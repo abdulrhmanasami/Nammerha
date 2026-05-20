@@ -12,6 +12,7 @@ import 'package:equatable/equatable.dart';
 //   - rememberMe (W3-P1-008: persistent session toggle)
 //   - isSocialLoading (P1-AUD-009: social login SDK loading state)
 //   - isForgotPwLoading (P0-AUD-004: forgot PW sheet loading state)
+//   - forgotPwEmail (P1-W5-003: email captured from forgot-PW sheet)
 //
 // UNIFIED CITIZEN: selectedRole removed — no role selection during registration.
 // C4 FIX: Added confirm password visibility toggle for registration parity.
@@ -19,6 +20,7 @@ import 'package:equatable/equatable.dart';
 // W3-P1-008: Added rememberMe for login session persistence.
 // P1-AUD-009: Migrated _isSocialLoading from setState to Cubit.
 // P0-AUD-004: Added isForgotPwLoading to keep sheet open during API call.
+// P1-W5-003: Added forgotPwEmail for interstitial screen navigation.
 // ═══════════════════════════════════════════════════════════════════════════
 
 class LoginFormState extends Equatable {
@@ -34,6 +36,8 @@ class LoginFormState extends Equatable {
   // PREVIOUS: Sheet closed immediately via Navigator.pop() before API response.
   // NOW: Sheet stays open with spinner, closes only on success/error.
   final bool isForgotPwLoading;
+  // P1-W5-003: Email captured from the forgot-PW sheet for the interstitial screen.
+  final String forgotPwEmail;
 
   const LoginFormState({
     this.isLoginMode = true,
@@ -43,6 +47,7 @@ class LoginFormState extends Equatable {
     this.rememberMe = false,
     this.isSocialLoading = false,
     this.isForgotPwLoading = false,
+    this.forgotPwEmail = '',
   });
 
   LoginFormState copyWith({
@@ -53,6 +58,7 @@ class LoginFormState extends Equatable {
     bool? rememberMe,
     bool? isSocialLoading,
     bool? isForgotPwLoading,
+    String? forgotPwEmail,
   }) {
     return LoginFormState(
       isLoginMode: isLoginMode ?? this.isLoginMode,
@@ -62,6 +68,7 @@ class LoginFormState extends Equatable {
       rememberMe: rememberMe ?? this.rememberMe,
       isSocialLoading: isSocialLoading ?? this.isSocialLoading,
       isForgotPwLoading: isForgotPwLoading ?? this.isForgotPwLoading,
+      forgotPwEmail: forgotPwEmail ?? this.forgotPwEmail,
     );
   }
 
@@ -74,6 +81,7 @@ class LoginFormState extends Equatable {
         rememberMe,
         isSocialLoading,
         isForgotPwLoading,
+        forgotPwEmail,
       ];
 }
 
@@ -113,6 +121,10 @@ class LoginFormCubit extends Cubit<LoginFormState> {
   /// P0-AUD-004 FIX: Forgot password sheet loading state.
   /// Keeps the bottom sheet open with a spinner while the API call completes.
   /// The BLocListener dismisses the sheet on AuthPasswordResetSent/AuthError.
-  void setForgotPwLoading(bool loading) =>
-      emit(state.copyWith(isForgotPwLoading: loading));
+  /// P1-W5-003: Also captures the email for the interstitial screen.
+  void setForgotPwLoading(bool loading, {String email = ''}) =>
+      emit(state.copyWith(
+        isForgotPwLoading: loading,
+        forgotPwEmail: email.isNotEmpty ? email : null,
+      ));
 }

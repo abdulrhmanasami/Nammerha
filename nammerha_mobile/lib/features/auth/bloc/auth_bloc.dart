@@ -240,8 +240,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   /// Tier 1: O(1) exact match for common error messages (case-insensitive via lowercase keys).
   /// Wave 4: Values are now i18n ERROR KEYS, not hardcoded Arabic.
+  /// P2-W5-001: Expanded with all backend auth error strings.
   /// The UI layer translates via context.tr(key).
   static final Map<String, String> _exactErrorMap = {
+    // ── Login / Auth ──────────────────────────────────────────────
     'verify your email': ErrorKeys.verifyEmail,
     'invalid email or password': ErrorKeys.invalidCredentials,
     'account temporarily locked': ErrorKeys.accountLocked,
@@ -257,14 +259,48 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     'not found': ErrorKeys.notFound,
     'unauthorized': ErrorKeys.unauthorized,
     'profile setup required': ErrorKeys.profileRequired,
+
+    // ── P2-W5-001: Backend Error Unification — New Mappings ──────
+    'email address is too long': ErrorKeys.emailTooLong,
+    'invalid email format': ErrorKeys.invalidEmailFormat,
+    'email is required': ErrorKeys.missingFields,
+    'current password is incorrect': ErrorKeys.incorrectPassword,
+    'user not found': ErrorKeys.notFound,
+    'invalid or expired reset token': ErrorKeys.invalidToken,
+    'new password must be different from current password':
+        ErrorKeys.passwordSameAsOld,
+    'token and new password are required': ErrorKeys.missingFields,
+    'current password and new password are required': ErrorKeys.missingFields,
+    'invalid verification token': ErrorKeys.invalidToken,
+    'verification token not found or already used': ErrorKeys.invalidToken,
+    'email already verified': ErrorKeys.verifyEmail,
+    'missing required fields: email, password': ErrorKeys.missingFields,
+    'missing required fields: email, password, full_name':
+        ErrorKeys.missingFields,
   };
 
   /// Tier 2: O(n) regex fallback for fuzzy/partial matches (rare cases).
+  /// P2-W5-001: Added patterns for template strings with dynamic values.
   static final List<MapEntry<RegExp, String>> _regexErrorFallbacks = [
     MapEntry(RegExp(r'verify your email', caseSensitive: false),
         ErrorKeys.verifyEmail),
     MapEntry(RegExp(r'no longer supported.*update', caseSensitive: false),
         ErrorKeys.generic),
+    // P2-W5-001: Dynamic template strings from backend
+    MapEntry(RegExp(r'password must not exceed', caseSensitive: false),
+        ErrorKeys.passwordTooLong),
+    MapEntry(RegExp(r'password must contain:', caseSensitive: false),
+        ErrorKeys.missingFields),
+    MapEntry(RegExp(r'account temporarily locked.*try again', caseSensitive: false),
+        ErrorKeys.accountLocked),
+    MapEntry(RegExp(r'this account uses .+ sign-in|uses social login', caseSensitive: false),
+        ErrorKeys.socialOnlyAccount),
+    MapEntry(RegExp(r'(verification|reset) token has expired', caseSensitive: false),
+        ErrorKeys.tokenExpired),
+    MapEntry(RegExp(r'please verify your email', caseSensitive: false),
+        ErrorKeys.verifyEmail),
+    MapEntry(RegExp(r'please wait \d+ seconds', caseSensitive: false),
+        ErrorKeys.tooManyRequests),
   ];
 
   /// M3 FIX: Two-tier localization — HashMap O(1) → RegExp O(n) fallback.

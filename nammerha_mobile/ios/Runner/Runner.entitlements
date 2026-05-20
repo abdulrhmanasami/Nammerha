@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+	<dict>
+		<!-- ═══════════════════════════════════════════════════════════════ -->
+		<!-- P0-VE-001: iOS Universal Links — Associated Domains            -->
+		<!-- Enables the app to intercept nammerha.com deep links.         -->
+		<!-- Requires apple-app-site-association on the server.            -->
+		<!-- ═══════════════════════════════════════════════════════════════ -->
+		<key>com.apple.developer.associated-domains</key>
+		<array>
+			<string>applinks:nammerha.com</string>
+			<string>applinks:www.nammerha.com</string>
+		</array>
+	</dict>
+</plist>

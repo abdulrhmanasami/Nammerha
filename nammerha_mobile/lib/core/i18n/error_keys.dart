@@ -31,6 +31,15 @@ abstract final class ErrorKeys {
   static const unauthorized = 'err_unauthorized';
   static const profileRequired = 'err_profile_required';
 
+  // ─── P2-W5-001: Backend Error Unification — New Keys ───────────────────
+  static const emailTooLong = 'err_email_too_long';
+  static const invalidEmailFormat = 'err_invalid_email_format';
+  static const passwordTooLong = 'err_password_too_long';
+  static const incorrectPassword = 'err_incorrect_password';
+  static const passwordSameAsOld = 'err_password_same_as_old';
+  static const socialOnlyAccount = 'err_social_only_account';
+  static const tokenExpired = 'err_token_expired';
+
   // ─── Auth Success Messages ──────────────────────────────────────────────
   // P0-AUD-001 FIX: Keys for auth_repository.dart fallback messages.
   // Replaces hardcoded Arabic strings that bypassed i18n entirely.
@@ -38,6 +47,16 @@ abstract final class ErrorKeys {
   static const resetLinkSent = 'msg_reset_link_sent';
   static const passwordChanged = 'msg_password_changed';
   static const resendVerificationSent = 'msg_resend_verification_sent';
+
+  // ─── Verify Email (Deep Link Screen) ───────────────────────────────────
+  // P1-VE-001 FIX: Replaces 4 hardcoded Arabic strings in verify_email_bloc.dart.
+  // BLoC emits these keys → UI resolves via context.tr().
+  static const verifyEmailInvalidToken = 'err_verify_email_invalid_token';
+  static const verifyEmailSuccess = 'msg_verify_email_success';
+  static const verifyEmailExpired = 'err_verify_email_expired';
+  static const verifyEmailFailed = 'err_verify_email_failed';
+  static const verifyEmailResent = 'msg_verify_email_resent';
+  static const verifyEmailResendFailed = 'err_verify_email_resend_failed';
 
   // ─── Generic ────────────────────────────────────────────────────────────
   static const generic = 'err_generic';

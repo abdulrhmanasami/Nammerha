@@ -1,0 +1,14 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "722G276H2R.com.nammerha.nammerhaMobile",
+        "paths": [
+          "/verify-email.html*",
+          "/reset-password.html*"
+        ]
+      }
+    ]
+  }
+}

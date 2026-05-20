@@ -121,6 +121,17 @@ const Map<String, Map<String, String>> kTranslations = {
   'auth_send_btn': {'ar': 'إرسال', 'en': 'Send'},
   // P0-AUD-004 FIX: Loading CTA label for forgot-PW sheet.
   'auth_forgot_sending': {'ar': 'جاري الإرسال…', 'en': 'Sending…'},
+
+  // ─── P1-W5-003: Password Reset Sent Interstitial ─────────────────────
+  'fp_sent_title': {'ar': 'تحقّق من بريدك الإلكتروني', 'en': 'Check your email'},
+  'fp_sent_subtitle': {'ar': 'أرسلنا رابط إعادة تعيين كلمة المرور. يرجى فتح بريدك والضغط على الرابط لإنشاء كلمة مرور جديدة.', 'en': 'We sent a password reset link. Open your email and tap the link to create a new password.'},
+  'fp_sent_check_spam': {'ar': 'تحقّق من مجلد البريد المزعج أيضاً', 'en': 'Also check your spam folder'},
+  'fp_sent_resend': {'ar': 'إعادة إرسال الرابط', 'en': 'Resend link'},
+  'fp_sent_resend_countdown': {'ar': 'إعادة الإرسال بعد \$1 ثانية', 'en': 'Resend in \$1s'},
+  'fp_sent_resent_success': {'ar': 'تم إعادة إرسال رابط إعادة التعيين بنجاح', 'en': 'Reset link resent successfully'},
+  'fp_sent_resend_failed': {'ar': 'فشل إعادة إرسال الرابط. حاول مرة أخرى.', 'en': 'Failed to resend link. Try again.'},
+  'fp_sent_open_mail': {'ar': 'فتح تطبيق البريد', 'en': 'Open Mail App'},
+  'fp_sent_back_to_login': {'ar': 'العودة لتسجيل الدخول', 'en': 'Back to Login'},
   'auth_select_role': {'ar': 'مرحباً بك في نعمّرها', 'en': 'Welcome to Nammerha'},
   'auth_terms_text': {'ar': 'بالتسجيل، أوافق على شروط الاستخدام وسياسة الخصوصية لمنصة نعمّرها', 'en': 'By registering, I agree to the Terms of Service and Privacy Policy of Nammerha'},
   'auth_terms_required': {'ar': 'يجب الموافقة على الشروط وسياسة الخصوصية للمتابعة', 'en': 'You must accept the Terms and Privacy Policy to continue'},
@@ -724,6 +735,15 @@ const Map<String, Map<String, String>> kTranslations = {
   'err_unauthorized': {'ar': 'غير مصرح', 'en': 'Unauthorized'},
   'err_profile_required': {'ar': 'يجب إكمال الملف الشخصي أولاً', 'en': 'Profile setup required'},
   'err_discrepancy_flagged': {'ar': 'تم تعليم التناقض — الإثبات مرفوض', 'en': 'Discrepancy flagged — proof rejected'},
+
+  // ─── P2-W5-001: Backend Error Unification — New Error Translations ─────
+  'err_email_too_long': {'ar': 'البريد الإلكتروني طويل جداً', 'en': 'Email address is too long'},
+  'err_invalid_email_format': {'ar': 'صيغة البريد الإلكتروني غير صحيحة', 'en': 'Invalid email format'},
+  'err_password_too_long': {'ar': 'كلمة المرور طويلة جداً', 'en': 'Password is too long'},
+  'err_incorrect_password': {'ar': 'كلمة المرور الحالية غير صحيحة', 'en': 'Current password is incorrect'},
+  'err_password_same_as_old': {'ar': 'كلمة المرور الجديدة يجب أن تكون مختلفة عن الحالية', 'en': 'New password must be different from current password'},
+  'err_social_only_account': {'ar': 'هذا الحساب مسجّل عبر تسجيل الدخول الاجتماعي. يرجى استخدام نفس الطريقة.', 'en': 'This account uses social login. Please use your social provider to sign in.'},
+  'err_token_expired': {'ar': 'انتهت صلاحية الرمز — يرجى طلب رمز جديد', 'en': 'Token has expired — please request a new one'},
 
   // P0-AUD-001 FIX: Auth success message keys for auth_repository.dart
   'msg_verification_link_sent': {'ar': 'تم إرسال رابط التحقق إلى بريدك الإلكتروني', 'en': 'Verification link sent to your email'},
@@ -2014,6 +2034,15 @@ const Map<String, Map<String, String>> kTranslations = {
   'verify_email_resent': {'ar': 'تم إعادة إرسال رابط التحقق ✓', 'en': 'Verification link resent ✓'},
   'verify_email_open_mail': {'ar': 'فتح تطبيق البريد', 'en': 'Open Mail App'},
   'verify_email_back_to_login': {'ar': 'العودة لتسجيل الدخول', 'en': 'Back to Login'},
+
+  // P1-VE-001 FIX: Verify-email BLoC error/success keys (replaces hardcoded Arabic).
+  'err_verify_email_invalid_token': {'ar': 'رابط التحقق غير صالح — لا يوجد رمز تحقق', 'en': 'Invalid verification link — no verification code'},
+  'msg_verify_email_success': {'ar': 'تم تأكيد بريدك الإلكتروني بنجاح!', 'en': 'Your email has been verified successfully!'},
+  'err_verify_email_expired': {'ar': 'انتهت صلاحية رابط التحقق — اطلب رابطاً جديداً', 'en': 'Verification link has expired — request a new one'},
+  'err_verify_email_failed': {'ar': 'حدث خطأ في التحقق — حاول مرة أخرى', 'en': 'Verification error — please try again'},
+  'msg_verify_email_resent': {'ar': 'تم إعادة إرسال رابط التحقق ✓', 'en': 'Verification link resent ✓'},
+  'err_verify_email_resend_failed': {'ar': 'تعذر إعادة إرسال رابط التحقق', 'en': 'Failed to resend verification link'},
+  'verify_email_resend_expired': {'ar': 'إعادة إرسال رابط التحقق', 'en': 'Resend Verification Link'},
 
   // ═══ P1-001 FIX: Funding CTA Clarity (UX Forensic Audit) ═══
   'fund_this_project': {'ar': 'ادعم هذا المشروع', 'en': 'Fund This Project'},

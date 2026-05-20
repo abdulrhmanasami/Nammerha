@@ -8,6 +8,7 @@ import '../../../core/widgets/bottom_sheet_grabber.dart';
 import '../../../core/network/api_client.dart'; // ApiException
 import '../../../core/services/social_auth_service.dart';
 import 'register_wizard_screen.dart';
+import 'password_reset_sent_screen.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/login_form_cubit.dart';
 import '../../../core/i18n/t.dart';
@@ -98,20 +99,24 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
           // PREVIOUS: Success snackbar shown BEFORE API response (false positive).
           // NOW: BLoC emits AuthPasswordResetSent after backend confirms.
           // P0-AUD-004: Sheet dismissed here on SUCCESS, not on submit.
+          // P1-W5-003 FIX: Navigate to PasswordResetSentScreen instead of
+          // a bare SnackBar. Gives the user clear guidance, resend option,
+          // "Open Mail App" button, and spam folder warning.
           } else if (state is AuthPasswordResetSent) {
-            // P0-AUD-004 FIX: Dismiss the forgot-PW sheet with success feedback.
             final formCubit = context.read<LoginFormCubit>();
+            final forgotEmail = formCubit.state.forgotPwEmail;
             if (formCubit.state.isForgotPwLoading) {
               formCubit.setForgotPwLoading(false);
               Navigator.of(context).pop(); // Dismiss the bottom sheet
             }
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(context.tr('auth_reset_link_sent')),
-                backgroundColor: colors.success,
-                duration: const Duration(seconds: 5),
-              ),
-            );
+            // Navigate to the full interstitial screen
+            if (forgotEmail.isNotEmpty) {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => PasswordResetSentScreen(email: forgotEmail),
+                ),
+              );
+            }
           }
         },
         child: Scaffold(
@@ -513,7 +518,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           },
                           onFieldSubmitted: (_) {
                             if (!isLoading && (formKey.currentState?.validate() ?? false)) {
-                              cubit.setForgotPwLoading(true);
+                              cubit.setForgotPwLoading(true, email: emailController.text.trim());
                               context.read<AuthBloc>().add(
                                 AuthForgotPassword(emailController.text.trim()),
                               );
@@ -533,7 +538,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                               ? null
                               : () {
                                   if (formKey.currentState?.validate() ?? false) {
-                                    cubit.setForgotPwLoading(true);
+                                    cubit.setForgotPwLoading(true, email: emailController.text.trim());
                                     context.read<AuthBloc>().add(
                                       AuthForgotPassword(emailController.text.trim()),
                                     );
@@ -576,8 +581,12 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       },
     ).then((_) {
       emailController.dispose(); // P1-004 preserved: Dispose on close
-      // Safety: reset loading if sheet dismissed externally (e.g. Android back).
-      cubit.setForgotPwLoading(false);
+      // P2-W5-004 FIX: Guard against calling setForgotPwLoading on a closed cubit.
+      // If the LoginScreen was popped while the sheet was open (e.g., rapid Android
+      // back presses), the BlocProvider disposes the cubit. Emitting on a closed cubit
+      // throws StateError in debug and fails silently in release.
+      // Standard: Flutter BLoC best practice — always check mounted before cubit access.
+      if (mounted) cubit.setForgotPwLoading(false);
     });
   }
 

@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch {
       /* best-effort */
     }
-    clearAuth();
+    clearAuth(true); // P2-W5-002: skipServerLogout — authApi.logout() already called above
     window.location.href = '/auth.html';
   });
 });

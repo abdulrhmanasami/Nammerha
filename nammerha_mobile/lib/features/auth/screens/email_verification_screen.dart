@@ -3,6 +3,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/i18n/t.dart';
 import '../../../core/network/api_client.dart';
@@ -130,7 +131,8 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                 width: 100,
                 height: 100,
                 decoration: BoxDecoration(
-                  color: colors.primaryBrand.withAlpha(15),
+                  // P2-VE-002 FIX: Alpha 15 → 26 (~10% opacity) for better visibility.
+                  color: colors.primaryBrand.withAlpha(26),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -224,7 +226,8 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                       ? null
                       : _resendVerification,
                   icon: _isResending
-                      ? SizedBox(
+                      // P3-VE-001 FIX: const for performance.
+                      ? const SizedBox(
                           width: 18,
                           height: 18,
                           child: CircularProgressIndicator(
@@ -254,13 +257,21 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
               ),
               const SizedBox(height: 12),
 
-              // Back to login
+              // P2-VE-001 FIX: "Open Mail App" button — i18n key existed
+              // (verify_email_open_mail) but was NEVER used in the UI.
+              // Uses url_launcher with mailto: scheme to open the default
+              // mail app on iOS/Android.
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: Icon(PhosphorIconsRegular.signIn, size: 18),
-                  label: Text(context.tr('verify_email_back_to_login')),
+                  onPressed: () async {
+                    final mailUri = Uri(scheme: 'mailto');
+                    if (await canLaunchUrl(mailUri)) {
+                      await launchUrl(mailUri);
+                    }
+                  },
+                  icon: Icon(PhosphorIconsRegular.envelopeOpen, size: 18),
+                  label: Text(context.tr('verify_email_open_mail')),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: colors.primaryBrand,
                     side: BorderSide(color: colors.primaryBrand),
@@ -268,6 +279,21 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Back to login
+              SizedBox(
+                width: double.infinity,
+                child: TextButton.icon(
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: Icon(PhosphorIconsRegular.signIn, size: 18),
+                  label: Text(context.tr('verify_email_back_to_login')),
+                  style: TextButton.styleFrom(
+                    foregroundColor: colors.textSecondary,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                 ),
               ),

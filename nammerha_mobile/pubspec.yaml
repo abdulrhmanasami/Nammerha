@@ -20,6 +20,7 @@ dependencies:
   equatable: ^2.0.5
 
   # Navigation
+  app_links: ^6.4.0  # P0-VE-001: Deep link handler (Android App Links + iOS Universal Links)
 
   # Storage & Security
   flutter_secure_storage: ^10.0.0

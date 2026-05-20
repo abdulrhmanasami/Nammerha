@@ -159,12 +159,45 @@ function showAuthRequired(): void {
 export function requireAuth(): boolean {
   if (checkSession()) {
     initNotificationPanel();
+    // P0-W5-002 FIX: Background session heartbeat — verify server-side JWT.
+    // localStorage check is instant but can be stale (cookie expired, server revoked).
+    // Fire a lightweight GET /api/auth/me to confirm the session is still valid.
+    // If the server returns 401, clear stale local state and show expiry overlay.
+    // This is non-blocking: page renders immediately from cache, then self-corrects.
+    // Standard: OWASP Session Management, NIST SP 800-63B (Session Freshness).
+    verifySessionOnServer();
     return true;
   }
 
   // No valid session — show auth overlay
   showAuthRequired();
   return false;
+}
+
+/**
+ * P0-W5-002: Lightweight background server session check.
+ * Fires GET /api/auth/me and, if 401, clears stale localStorage and
+ * replaces page content with the session-expired overlay.
+ *
+ * NOTE: Uses raw fetch (not api._client) to avoid the 401-mutex loop
+ * in _client.ts that would redirect to /auth.html before we show the
+ * contextual expiry message.
+ */
+function verifySessionOnServer(): void {
+  fetch('/api/auth/me', { credentials: 'same-origin' })
+    .then((res) => {
+      if (res.status === 401) {
+        // Session is dead on the server — clear stale client state
+        import('../auth').then(({ clearAuth }) => {
+          clearAuth(true); // Cookie is already expired on server
+          showAuthRequired();
+        });
+      }
+    })
+    .catch(() => {
+      // Network error — don't kick the user out, they may be offline.
+      // The next API interaction will trigger the 401 mutex in _client.ts.
+    });
 }
 
 /**

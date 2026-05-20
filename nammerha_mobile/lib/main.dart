@@ -9,6 +9,8 @@ import 'firebase_options.dart';
 import 'core/network/api_client.dart';
 import 'core/offline/offline_queue.dart';
 import 'core/services/push_notification_service.dart';
+// P0-VE-001 PLATINUM: Deep link handler for email verification & password reset
+import 'core/services/deep_link_service.dart';
 // GAP-M1 PLATINUM: Firebase Crashlytics — production crash reporting
 import 'core/services/crashlytics_service.dart';
 // GAP-M2 PLATINUM: Firebase Performance — app performance monitoring
@@ -81,6 +83,12 @@ void main() async {
       isError: true,
     );
   };
+
+  // P0-VE-001 PLATINUM: Initialize deep link service — intercepts
+  // email verification and password reset links from the browser.
+  // Must init AFTER Firebase but BEFORE runApp so cold-start links
+  // are captured even before the navigator is mounted.
+  await DeepLinkService.instance.init(navigatorKey);
 
   // Initialize push notification service (registers background handler, creates channel)
   await PushNotificationService.instance.init();
@@ -469,6 +477,12 @@ class _AppFlowControllerState extends State<_AppFlowController> {
             } else {
               _navigateTo(_AppScreen.onboarding);
             }
+
+            // P0-VE-001: Process any cold-start deep link after splash.
+            // Must happen after navigator is mounted and flow is established.
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              DeepLinkService.instance.processPendingDeepLink();
+            });
           },
         );
       case _AppScreen.onboarding:

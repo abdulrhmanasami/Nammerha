@@ -74,13 +74,23 @@ export function setCurrentUser(user: AuthUser): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
 }
 
-export function clearAuth(): void {
+export function clearAuth(skipServerLogout = false): void {
   currentUser = null;
   localStorage.removeItem(STORAGE_KEY);
   // V1-AUDIT FIX: Token is now in httpOnly cookie — cleared server-side.
-  // P2-DUP-001 FIX: Removed internal logout fetch. Portal pages (donor-portal,
-  // profile) already call authApi.logout() explicitly before clearAuth().
-  // The previous implementation fired TWO HTTP POST logout requests.
+  // P2-W5-002 FIX: Always clear the httpOnly JWT cookie via server logout.
+  // Previous: Only localStorage was cleared. The httpOnly cookie survived,
+  // meaning the browser still sent valid auth on subsequent API calls.
+  // callers that already called authApi.logout() pass skipServerLogout=true.
+  // The _client.ts 401 handler and cross-tab logout handler call clearAuth()
+  // directly — without skipServerLogout, the cookie would persist.
+  // Fire-and-forget: cookie clearance is best-effort, non-blocking.
+  // Standard: OWASP Session Management, NIST SP 800-63B.
+  if (!skipServerLogout) {
+    fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' }).catch(() => {
+      /* best-effort — network may be unavailable */
+    });
+  }
   localStorage.removeItem(DEV_USER_KEY);
 }
 

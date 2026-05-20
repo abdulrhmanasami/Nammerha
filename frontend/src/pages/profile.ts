@@ -400,7 +400,7 @@ async function logout(): Promise<void> {
     });
     // Logout API failure is non-fatal — clear local state regardless
   }
-  clearAuth();
+  clearAuth(true); // P2-W5-002: skipServerLogout — auth.logout() already called above
   window.location.href = '/auth.html';
 }
 

@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.nammerha.mobile",
+      "sha256_cert_fingerprints": [
+        "C6:53:FF:2C:67:EF:60:FE:BC:37:FF:CA:AB:4D:8C:56:4C:A1:C5:85:BA:39:42:97:D1:E4:7D:A4:42:1D:4D:3F"
+      ]
+    }
+  }
+]

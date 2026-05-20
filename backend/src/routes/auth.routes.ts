@@ -103,7 +103,7 @@ const sensitiveActionLimiter = rateLimit({
   legacyHeaders: false,
   message: {
     success: false,
-    error: 'تم تجاوز الحد الأقصى للطلبات. يرجى المحاولة بعد 15 دقيقة.',
+    error: 'Too many requests. Please try again after 15 minutes.',
   } as ApiResponse,
 });
 
@@ -143,8 +143,8 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
       phone?: string;
     };
 
-    // I18N-004: Locale-aware error messages for mobile clients
-    const regLocale = getEmailLocale(req);
+    // P2-W5-001: Locale detection for email templates only (not API errors).
+    // API errors are now English-only — clients translate via i18n.
 
     // UNIFIED-ROLES: Role parameter is ignored — all users get all roles.
     // Default primary role is 'homeowner' (most common use case).
@@ -154,10 +154,7 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
     if (!email || !password || !full_name) {
       res.status(400).json({
         success: false,
-        error:
-          regLocale === 'ar'
-            ? 'الحقول المطلوبة مفقودة: البريد الإلكتروني، كلمة المرور، الاسم الكامل'
-            : 'Missing required fields: email, password, full_name',
+        error: 'Missing required fields: email, password, full_name',
       } as ApiResponse);
       return;
     }
@@ -170,14 +167,14 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
     if (email.trim().length > MAX_EMAIL_LENGTH) {
       res.status(400).json({
         success: false,
-        error: regLocale === 'ar' ? 'البريد الإلكتروني طويل جداً' : 'Email address is too long',
+        error: 'Email address is too long',
       } as ApiResponse);
       return;
     }
     if (!EMAIL_REGEX.test(email)) {
       res.status(400).json({
         success: false,
-        error: regLocale === 'ar' ? 'صيغة البريد الإلكتروني غير صحيحة' : 'Invalid email format',
+        error: 'Invalid email format',
       } as ApiResponse);
       return;
     }
@@ -186,37 +183,21 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
     if (password.length > MAX_PASSWORD_LENGTH) {
       res.status(400).json({
         success: false,
-        error:
-          regLocale === 'ar'
-            ? `كلمة المرور يجب ألا تتجاوز ${MAX_PASSWORD_LENGTH} حرفاً`
-            : `Password must not exceed ${MAX_PASSWORD_LENGTH} characters`,
+        error: `Password must not exceed ${MAX_PASSWORD_LENGTH} characters`,
       } as ApiResponse);
       return;
     }
 
     // Validate password complexity
-    // I18N-004: Arabic password rule messages for mobile clients
-    const PASSWORD_RULES_AR: Record<string, string> = {
-      'at least 8 characters': '8 أحرف على الأقل',
-      'at least one uppercase letter': 'حرف كبير واحد على الأقل',
-      'at least one lowercase letter': 'حرف صغير واحد على الأقل',
-      'at least one digit': 'رقم واحد على الأقل',
-      'at least one special character': 'رمز خاص واحد على الأقل',
-    };
-
+    // P2-W5-001: Removed PASSWORD_RULES_AR — clients translate via i18n.
     const failedRules = PASSWORD_RULES.filter((rule) => !rule.test(password)).map(
       (rule) => rule.msg,
     );
 
     if (failedRules.length > 0) {
-      const localizedRules =
-        regLocale === 'ar' ? failedRules.map((r) => PASSWORD_RULES_AR[r] ?? r) : failedRules;
       res.status(400).json({
         success: false,
-        error:
-          regLocale === 'ar'
-            ? `كلمة المرور يجب أن تحتوي على: ${localizedRules.join('، ')}`
-            : `Password must contain: ${failedRules.join(', ')}`,
+        error: `Password must contain: ${failedRules.join(', ')}`,
       } as ApiResponse);
       return;
     }
@@ -277,7 +258,8 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
           );
 
           const baseUrl = process.env['APP_BASE_URL'] ?? 'https://nammerha.com';
-          const verificationUrl = `${baseUrl}/verify-email.html?token=${verificationToken}`;
+          // P1-W5-001 FIX: Include email so verify-email page pre-fills the Sign In link.
+          const verificationUrl = `${baseUrl}/verify-email.html?token=${verificationToken}&email=${encodeURIComponent(normalizedRegEmail)}`;
           sendVerificationEmail(normalizedRegEmail, verificationUrl, getEmailLocale(req)).catch(
             (err) => {
               logger.error('Auth: Verification email dispatch failed (re-register)', {
@@ -302,11 +284,18 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
     tokenExpiry.setHours(tokenExpiry.getHours() + VERIFICATION_TOKEN_EXPIRY_HOURS);
 
     // Create user with verification token
+    // P0-W5-003 FIX: ON CONFLICT (email) DO NOTHING defends against TOCTOU race condition.
+    // Without this, two concurrent registrations for the same email could both pass the
+    // SELECT check (line ~241) and both reach INSERT. The second INSERT either creates
+    // a duplicate (no UNIQUE constraint) or throws a 500 (with UNIQUE constraint).
+    // With ON CONFLICT, the second INSERT silently returns no rows → generic response.
+    // Standard: CWE-362 (TOCTOU Race Condition), SEC-FT-002 (Anti-Enumeration).
     const result = await query<
       Pick<User, 'user_id' | 'email' | 'full_name' | 'role' | 'is_active' | 'is_email_verified'>
     >(
       `INSERT INTO users (email, password_hash, full_name, role, phone, is_active, is_email_verified, email_verification_token, email_token_expires_at)
                  VALUES ($1, $2, $3, $4, $5, FALSE, FALSE, $6, $7)
+                 ON CONFLICT (email) DO NOTHING
                  RETURNING user_id, email, full_name, role, is_active, is_email_verified`,
       [
         normalizedRegEmail,
@@ -321,7 +310,10 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
 
     const user = result.rows[0];
     if (!user) {
-      throw new Error('Failed to create user');
+      // P0-W5-003: Email was taken between SELECT check and INSERT (race condition).
+      // Return the same generic response to prevent enumeration.
+      res.status(200).json(GENERIC_REGISTRATION_RESPONSE);
+      return;
     }
 
     // UNIFIED-ROLES: Auto-assign ALL 5 roles to every new user.
@@ -354,7 +346,8 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
     // PLT-AUD-006 FIX: Link points to frontend verify-email page, NOT the raw API.
     // The frontend page calls the API and displays a user-friendly result.
     const baseUrl = process.env['APP_BASE_URL'] ?? 'https://nammerha.com';
-    const verificationUrl = `${baseUrl}/verify-email.html?token=${verificationToken}`;
+    // P1-W5-001 FIX: Include email so verify-email page pre-fills the Sign In link.
+    const verificationUrl = `${baseUrl}/verify-email.html?token=${verificationToken}&email=${encodeURIComponent(user.email)}`;
     sendVerificationEmail(user.email, verificationUrl, getEmailLocale(req)).catch((err) => {
       logger.error('Auth: Verification email dispatch failed', {
         error: err instanceof Error ? err.message : String(err),
@@ -380,16 +373,10 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
       remember?: boolean;
     };
 
-    // I18N-004: Locale-aware error messages for mobile clients
-    const loginLocale = getEmailLocale(req);
-
     if (!email || !password) {
       res.status(400).json({
         success: false,
-        error:
-          loginLocale === 'ar'
-            ? 'الحقول المطلوبة مفقودة: البريد الإلكتروني وكلمة المرور'
-            : 'Missing required fields: email, password',
+        error: 'Missing required fields: email, password',
       } as ApiResponse);
       return;
     }
@@ -398,10 +385,7 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
     if (password.length > MAX_PASSWORD_LENGTH) {
       res.status(401).json({
         success: false,
-        error:
-          loginLocale === 'ar'
-            ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة'
-            : 'Invalid email or password',
+        error: 'Invalid email or password',
       } as ApiResponse);
       return;
     }
@@ -413,10 +397,7 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
     if (normalizedEmail.length > MAX_EMAIL_LENGTH) {
       res.status(401).json({
         success: false,
-        error:
-          loginLocale === 'ar'
-            ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة'
-            : 'Invalid email or password',
+        error: 'Invalid email or password',
       } as ApiResponse);
       return;
     }
@@ -439,13 +420,17 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
 
     const user = result.rows[0];
     if (!user) {
-      // Use generic message to prevent email enumeration
+      // P0-W5-001 FIX: Constant-time defense against timing side-channel (CWE-208).
+      // Without this dummy bcrypt call, non-existent emails return in ~2ms
+      // while existing emails take ~250ms (bcrypt hash comparison with
+      // BCRYPT_SALT_ROUNDS=12). Attackers measure response latency to
+      // enumerate valid emails, completely bypassing the generic error message.
+      // This dummy hash was pre-generated with the same salt rounds as production.
+      // Standard: OWASP ASVS 2.2.1, CWE-208 (Observable Timing Discrepancy).
+      await bcrypt.compare(password, '$2b$12$LJ3m4ys3Lf0Xg0EB8OQHZeK1QHW4QDpvzGIkPjEGLzJRAeSbVMCq');
       res.status(401).json({
         success: false,
-        error:
-          loginLocale === 'ar'
-            ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة'
-            : 'Invalid email or password',
+        error: 'Invalid email or password',
       } as ApiResponse);
       return;
     }
@@ -493,10 +478,7 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
       );
       res.status(429).json({
         success: false,
-        error:
-          loginLocale === 'ar'
-            ? `الحساب مقفل مؤقتاً. حاول مرة أخرى بعد ${minutesLeft} دقيقة.`
-            : `Account temporarily locked. Try again in ${minutesLeft} minute(s).`,
+        error: `Account temporarily locked. Try again in ${minutesLeft} minute(s).`,
       } as ApiResponse);
       return;
     }
@@ -521,10 +503,7 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
 
       res.status(401).json({
         success: false,
-        error:
-          loginLocale === 'ar'
-            ? `هذا الحساب مسجّل عبر ${displayName}. يرجى تسجيل الدخول باستخدام ${displayName}.`
-            : `This account uses ${displayName} sign-in. Please use ${displayName} to log in.`,
+        error: `This account uses ${displayName} sign-in. Please use ${displayName} to log in.`,
         code: 'SOCIAL_ONLY_ACCOUNT',
       } as ApiResponse);
       return;
@@ -576,10 +555,7 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
 
       res.status(401).json({
         success: false,
-        error:
-          loginLocale === 'ar'
-            ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة'
-            : 'Invalid email or password',
+        error: 'Invalid email or password',
       } as ApiResponse);
       return;
     }
@@ -595,9 +571,7 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
       res.status(403).json({
         success: false,
         error:
-          loginLocale === 'ar'
-            ? 'يرجى تأكيد بريدك الإلكتروني قبل تسجيل الدخول. تحقق من صندوق الوارد للحصول على رابط التحقق.'
-            : 'Please verify your email before signing in. Check your inbox for the verification link.',
+          'Please verify your email before signing in. Check your inbox for the verification link.',
         code: 'EMAIL_NOT_VERIFIED',
       } as ApiResponse);
       return;
@@ -803,13 +777,10 @@ router.post(
         const secondsSinceLastSend = (Date.now() - tokenCreatedAt.getTime()) / 1000;
         if (secondsSinceLastSend < RESEND_COOLDOWN_SECONDS) {
           const waitSeconds = Math.ceil(RESEND_COOLDOWN_SECONDS - secondsSinceLastSend);
-          const reqLocale = getEmailLocale(req);
+          // P2-W5-001: Removed locale ternary — clients translate via i18n.
           res.status(429).json({
             success: false,
-            error:
-              reqLocale === 'ar'
-                ? `يرجى الانتظار ${waitSeconds} ثانية قبل طلب رابط تحقق جديد.`
-                : `Please wait ${waitSeconds} seconds before requesting another verification email`,
+            error: `Please wait ${waitSeconds} seconds before requesting another verification email`,
           } as ApiResponse);
           return;
         }
@@ -829,7 +800,8 @@ router.post(
       // Send verification email
       // PLT-AUD-006 FIX: Point to frontend page, not raw API endpoint
       const baseUrl = process.env['APP_BASE_URL'] ?? 'https://nammerha.com';
-      const verificationUrl = `${baseUrl}/verify-email.html?token=${newToken}`;
+      // P1-W5-001 FIX: Include email so verify-email page pre-fills the Sign In link.
+      const verificationUrl = `${baseUrl}/verify-email.html?token=${newToken}&email=${encodeURIComponent(user.email)}`;
       sendVerificationEmail(user.email, verificationUrl, getEmailLocale(req)).catch((err) => {
         logger.error('Auth: Resend verification email failed', {
           error: err instanceof Error ? err.message : String(err),
@@ -904,7 +876,8 @@ router.post(
         );
 
         const baseUrl = process.env['APP_BASE_URL'] ?? 'https://nammerha.com';
-        const verificationUrl = `${baseUrl}/verify-email.html?token=${verificationToken}`;
+        // P1-W5-001 FIX: Include email so verify-email page pre-fills the Sign In link.
+        const verificationUrl = `${baseUrl}/verify-email.html?token=${verificationToken}&email=${encodeURIComponent(user.email)}`;
         sendVerificationEmail(user.email, verificationUrl, getEmailLocale(req)).catch((err) => {
           logger.error('Auth: Verification email dispatch failed (forgot-password redirect)', {
             error: err instanceof Error ? err.message : String(err),

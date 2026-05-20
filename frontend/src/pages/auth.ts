@@ -816,6 +816,26 @@ function validateRegisterForm(): boolean {
     termsErrorEl.classList.add('nm-hidden');
   }
 
+  // ── Step 1 optional: Phone number ──
+  // P2-W5-003 FIX: Syrian phone number format validation.
+  // Without this, users could enter arbitrary text ('call me') or partial numbers.
+  // Format: 09XX-XXX-XXXX (local) or +963-9XX-XXX-XXXX (international).
+  // Regex strips spaces/dashes, then validates the 10-digit Syrian mobile format.
+  // Validation only fires when the user enters something — phone is optional.
+  const phoneInput = document.getElementById('reg-phone') as HTMLInputElement | null;
+  const phoneRaw = phoneInput?.value.trim() ?? '';
+  if (phoneRaw) {
+    const phoneDigits = phoneRaw.replace(/[\s\-()]/g, '');
+    // Match: 09XXXXXXXX (local) or +96309XXXXXXXX or 96309XXXXXXXX (intl)
+    const SYRIA_PHONE_REGEX = /^(?:\+?963)?0?9\d{8}$/;
+    if (!SYRIA_PHONE_REGEX.test(phoneDigits)) {
+      goToRegStep(1);
+      showBanner('error', t('auth_phone_invalid', 'رقم الهاتف غير صالح — صيغة: 09XX-XXX-XXXX'));
+      scrollToField(phoneInput);
+      return false;
+    }
+  }
+
   return true;
 }
 
@@ -1396,8 +1416,13 @@ async function handleLoginRedirect(
   const redirectParam = new URLSearchParams(window.location.search).get('redirect');
   let finalTarget = redirectParam ? decodeURIComponent(redirectParam) : POST_LOGIN_REDIRECT;
 
-  // Security: Only allow relative paths (prevent open redirect vulnerability)
-  if (finalTarget.startsWith('//') || finalTarget.includes('://')) {
+  // P1-W5-002 FIX: Strengthened open redirect defense (CWE-601).
+  // Previous check only blocked '://' and '//' prefixes.
+  // Now uses strict allowlist: only relative paths starting with exactly one '/'
+  // are allowed. This also blocks 'javascript:', 'data:', 'vbscript:' URI schemes,
+  // protocol-relative URLs, and any non-path redirect targets.
+  // Standard: OWASP Unvalidated Redirects, CWE-601 (URL Redirection to Untrusted Site).
+  if (!finalTarget.startsWith('/') || finalTarget.startsWith('//')) {
     finalTarget = POST_LOGIN_REDIRECT;
   }
 

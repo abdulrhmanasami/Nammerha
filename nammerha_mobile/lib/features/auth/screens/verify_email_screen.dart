@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
@@ -8,38 +10,81 @@ import '../../../core/theme/semantic_colors.dart';
 import '../../../core/widgets/gradient_button.dart';
 import '../../../core/i18n/t.dart';
 import '../bloc/verify_email_bloc.dart';
+import '../bloc/auth_bloc.dart';
 import '../../../core/utils/animation_budget.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
-/// Verify Email Screen — Platinum Standard (Absolute Zero setState)
+/// Verify Email Screen — Platinum Standard (Wave 5 Audit)
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Mirrors web: frontend/src/pages/verify-email.ts
-/// Receives a verification token, calls backend via VerifyEmailBloc,
-/// shows result. Auto-navigates to login on success after 3s.
+/// Receives a verification token (from deep link), calls backend via
+/// VerifyEmailBloc, shows result. Auto-navigates to login on success after 3s.
 ///
-/// CRITICAL FIX: Previous version called NammerhaApiClient.instance.request()
-/// directly inside initState() with raw setState. Now all network logic
-/// is encapsulated in VerifyEmailBloc.
+/// P1-VE-001 FIX: i18n — all messages resolved via context.tr() from
+///   ErrorKeys emitted by VerifyEmailBloc.
+/// P1-VE-002 FIX: AuthRepository injected from AuthBloc into VerifyEmailBloc
+///   via constructor DI — no more NammerhaApiClient.instance singleton.
+/// P1-VE-003 FIX: Resend button with 60s cooldown timer shown on expired token
+///   — previously, users had NO recovery path from this screen.
+/// P2-VE-002 FIX: Icon background alpha 15 → 26 (~10% opacity).
+/// P3-VE-002 FIX: Semantics label wrapping main content.
 /// ═══════════════════════════════════════════════════════════════════════════
 class VerifyEmailScreen extends StatelessWidget {
   final String? token;
+  final String? email;
 
-  const VerifyEmailScreen({super.key, this.token});
+  const VerifyEmailScreen({super.key, this.token, this.email});
 
   @override
   Widget build(BuildContext context) {
+    // P1-VE-002 FIX: Inject AuthRepository from AuthBloc into VerifyEmailBloc.
+    final authRepo = context.read<AuthBloc>().authRepository;
     return BlocProvider(
-      create: (_) => VerifyEmailBloc()
+      create: (_) => VerifyEmailBloc(authRepository: authRepo)
         ..add(VerifyEmailRequested(token: token)),
-      child: _VerifyEmailView(token: token),
+      child: _VerifyEmailView(token: token, email: email),
     );
   }
 }
 
-class _VerifyEmailView extends StatelessWidget {
+class _VerifyEmailView extends StatefulWidget {
   final String? token;
+  final String? email;
 
-  const _VerifyEmailView({this.token});
+  const _VerifyEmailView({this.token, this.email});
+
+  @override
+  State<_VerifyEmailView> createState() => _VerifyEmailViewState();
+}
+
+class _VerifyEmailViewState extends State<_VerifyEmailView> {
+  // P1-VE-003: Resend cooldown timer state.
+  static const _cooldownSeconds = 60;
+  int _remainingSeconds = 0;
+  Timer? _timer;
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _startCooldown() {
+    _remainingSeconds = _cooldownSeconds;
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      setState(() {
+        _remainingSeconds--;
+        if (_remainingSeconds <= 0) {
+          timer.cancel();
+        }
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,35 +93,53 @@ class _VerifyEmailView extends StatelessWidget {
     return Scaffold(
       backgroundColor: colors.backgroundPrimary,
       body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: BlocConsumer<VerifyEmailBloc, VerifyEmailState>(
-              listener: (context, state) {
-                if (state is VerifyEmailSuccess) {
-                  // Auto-navigate to login after 3 seconds
-                  Future.delayed(const Duration(seconds: 3), () {
-                    if (context.mounted) {
-                      Navigator.of(context)
-                          .pushNamedAndRemoveUntil('/', (_) => false);
-                    }
-                  });
-                }
-              },
-              builder: (context, state) {
-                return Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _buildIcon(context, colors, state),
-                    const SizedBox(height: 32),
-                    _buildTitle(context, colors, state),
-                    const SizedBox(height: 12),
-                    _buildMessage(context, colors, state),
-                    const SizedBox(height: 40),
-                    _buildAction(context, colors, state),
-                  ],
-                );
-              },
+        // P3-VE-002 FIX: Semantics for screen readers.
+        child: Semantics(
+          label: 'Email verification screen',
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: BlocConsumer<VerifyEmailBloc, VerifyEmailState>(
+                listener: (context, state) {
+                  if (state is VerifyEmailSuccess) {
+                    // Auto-navigate to login after 3 seconds
+                    Future.delayed(const Duration(seconds: 3), () {
+                      if (context.mounted) {
+                        Navigator.of(context)
+                            .pushNamedAndRemoveUntil('/', (_) => false);
+                      }
+                    });
+                  } else if (state is VerifyEmailResent) {
+                    // P1-VE-003: Show success SnackBar and start cooldown.
+                    _startCooldown();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(context.tr(state.messageKey)),
+                        backgroundColor: colors.success,
+                        behavior: SnackBarBehavior.floating,
+                        margin: const EdgeInsets.all(16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    );
+                  }
+                },
+                builder: (context, state) {
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildIcon(context, colors, state),
+                      const SizedBox(height: 32),
+                      _buildTitle(context, colors, state),
+                      const SizedBox(height: 12),
+                      _buildMessage(context, colors, state),
+                      const SizedBox(height: 40),
+                      _buildAction(context, colors, state),
+                    ],
+                  );
+                },
+              ),
             ),
           ),
         ),
@@ -84,7 +147,8 @@ class _VerifyEmailView extends StatelessWidget {
     );
   }
 
-  Widget _buildIcon(BuildContext context, SemanticColors colors, VerifyEmailState state) {
+  Widget _buildIcon(
+      BuildContext context, SemanticColors colors, VerifyEmailState state) {
     if (state is VerifyEmailVerifying) {
       return SizedBox(
         width: 80,
@@ -100,15 +164,16 @@ class _VerifyEmailView extends StatelessWidget {
     if (state is VerifyEmailSuccess) {
       icon = PhosphorIconsRegular.sealCheck;
       iconColor = colors.success;
-      bgColor = colors.success.withAlpha(15);
+      // P2-VE-002 FIX: Alpha 15 → 26 (~10% opacity) for better visibility.
+      bgColor = colors.success.withAlpha(26);
     } else if (state is VerifyEmailExpired) {
       icon = PhosphorIconsRegular.clockCountdown;
       iconColor = colors.warning;
-      bgColor = colors.warning.withAlpha(15);
+      bgColor = colors.warning.withAlpha(26);
     } else {
       icon = PhosphorIconsRegular.xCircle;
       iconColor = colors.error;
-      bgColor = colors.error.withAlpha(15);
+      bgColor = colors.error.withAlpha(26);
     }
 
     return Container(
@@ -125,7 +190,8 @@ class _VerifyEmailView extends StatelessWidget {
         .scale(begin: const Offset(0.5, 0.5), end: const Offset(1, 1));
   }
 
-  Widget _buildTitle(BuildContext context, SemanticColors colors, VerifyEmailState state) {
+  Widget _buildTitle(
+      BuildContext context, SemanticColors colors, VerifyEmailState state) {
     String title;
     if (state is VerifyEmailVerifying) {
       title = context.tr('verify_loading');
@@ -147,14 +213,16 @@ class _VerifyEmailView extends StatelessWidget {
     ).nmAnimate(context, delay: 200.ms).fadeIn();
   }
 
-  Widget _buildMessage(BuildContext context, SemanticColors colors, VerifyEmailState state) {
+  Widget _buildMessage(
+      BuildContext context, SemanticColors colors, VerifyEmailState state) {
+    // P1-VE-001 FIX: Resolve i18n keys from BLoC states via context.tr().
     String message = '';
     if (state is VerifyEmailSuccess) {
-      message = state.message;
+      message = context.tr(state.messageKey);
     } else if (state is VerifyEmailExpired) {
-      message = state.message;
+      message = context.tr(state.messageKey);
     } else if (state is VerifyEmailError) {
-      message = state.message;
+      message = context.tr(state.messageKey);
     }
 
     if (message.isEmpty) return const SizedBox.shrink();
@@ -180,6 +248,56 @@ class _VerifyEmailView extends StatelessWidget {
       return Text(
         context.tr('auto_redirect'),
         style: TextStyle(fontSize: 13, color: colors.textSubtle),
+      ).nmAnimate(context, delay: 600.ms).fadeIn();
+    }
+
+    // P1-VE-003 FIX: Show resend button on expired state (with cooldown timer).
+    // Previously, users had NO recovery path — only "Back to Login".
+    if (state is VerifyEmailExpired && widget.email != null) {
+      return Column(
+        children: [
+          // Resend button with cooldown
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _remainingSeconds > 0
+                  ? null
+                  : () {
+                      context.read<VerifyEmailBloc>().add(
+                            ResendVerificationRequested(email: widget.email!),
+                          );
+                    },
+              icon: Icon(PhosphorIconsRegular.arrowsClockwise, size: 18),
+              label: Text(
+                _remainingSeconds > 0
+                    ? context
+                        .tr('verify_email_resend_countdown')
+                        .replaceAll(r'$1', '$_remainingSeconds')
+                    : context.tr('verify_email_resend_expired'),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: colors.primaryBrand,
+                foregroundColor: Colors.white,
+                disabledBackgroundColor: colors.primaryBrand.withAlpha(100),
+                disabledForegroundColor: Colors.white.withAlpha(180),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          // Back to login
+          GradientButton(
+            label: context.tr('back_to_login'),
+            icon: PhosphorIconsRegular.signIn,
+            onPressed: () {
+              Navigator.of(context)
+                  .pushNamedAndRemoveUntil('/', (_) => false);
+            },
+          ),
+        ],
       ).nmAnimate(context, delay: 600.ms).fadeIn();
     }
 
