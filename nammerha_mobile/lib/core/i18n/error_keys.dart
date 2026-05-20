@@ -31,6 +31,14 @@ abstract final class ErrorKeys {
   static const unauthorized = 'err_unauthorized';
   static const profileRequired = 'err_profile_required';
 
+  // ─── Auth Success Messages ──────────────────────────────────────────────
+  // P0-AUD-001 FIX: Keys for auth_repository.dart fallback messages.
+  // Replaces hardcoded Arabic strings that bypassed i18n entirely.
+  static const verificationLinkSent = 'msg_verification_link_sent';
+  static const resetLinkSent = 'msg_reset_link_sent';
+  static const passwordChanged = 'msg_password_changed';
+  static const resendVerificationSent = 'msg_resend_verification_sent';
+
   // ─── Generic ────────────────────────────────────────────────────────────
   static const generic = 'err_generic';
   static const network = 'err_network';

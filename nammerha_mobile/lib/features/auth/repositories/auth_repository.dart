@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import '../../../core/i18n/error_keys.dart';
 import '../../../core/network/api_client.dart';
 
 /// User model matching backend auth response
@@ -74,7 +75,8 @@ class AuthRepository {
         if (phone != null) 'phone': phone,
       },
     );
-    return response.message ?? 'تم إرسال رابط التحقق إلى بريدك الإلكتروني';
+    // P0-AUD-001 FIX: ErrorKeys constant instead of hardcoded Arabic.
+    return response.message ?? ErrorKeys.verificationLinkSent;
   }
 
   /// POST /api/auth/login
@@ -97,7 +99,8 @@ class AuthRepository {
     );
 
     if (!response.success || response.data == null) {
-      throw ApiException(response.error ?? 'فشل تسجيل الدخول');
+      // P0-AUD-001 FIX: ErrorKeys constant instead of hardcoded Arabic.
+      throw ApiException(response.error ?? ErrorKeys.loginFailed);
     }
 
     final data = response.data!;
@@ -135,7 +138,8 @@ class AuthRepository {
     );
 
     if (!response.success || response.data == null) {
-      throw ApiException(response.error ?? 'فشل تسجيل الدخول');
+      // P0-AUD-001 FIX: ErrorKeys constant instead of hardcoded Arabic.
+      throw ApiException(response.error ?? ErrorKeys.loginFailed);
     }
 
     final data = response.data!;
@@ -193,7 +197,8 @@ class AuthRepository {
       method: 'POST',
       body: {'email': email.toLowerCase().trim()},
     );
-    return response.message ?? 'إذا كان البريد مسجلاً، ستتلقى رابط إعادة تعيين كلمة المرور';
+    // P0-AUD-001 FIX: ErrorKeys constant instead of hardcoded Arabic.
+    return response.message ?? ErrorKeys.resetLinkSent;
   }
 
   /// POST /api/auth/reset-password
@@ -209,7 +214,8 @@ class AuthRepository {
         'new_password': newPassword,
       },
     );
-    return response.message ?? 'تم تغيير كلمة المرور بنجاح';
+    // P0-AUD-001 FIX: ErrorKeys constant instead of hardcoded Arabic.
+    return response.message ?? ErrorKeys.passwordChanged;
   }
 
   /// POST /api/auth/resend-verification
@@ -219,7 +225,8 @@ class AuthRepository {
       method: 'POST',
       body: {'email': email.toLowerCase().trim()},
     );
-    return response.message ?? 'تم إعادة إرسال رابط التحقق';
+    // P0-AUD-001 FIX: ErrorKeys constant instead of hardcoded Arabic.
+    return response.message ?? ErrorKeys.resendVerificationSent;
   }
 
   /// POST /api/auth/change-password (authenticated)
@@ -235,7 +242,8 @@ class AuthRepository {
         'new_password': newPassword,
       },
     );
-    return response.message ?? 'تم تغيير كلمة المرور بنجاح';
+    // P0-AUD-001 FIX: ErrorKeys constant instead of hardcoded Arabic.
+    return response.message ?? ErrorKeys.passwordChanged;
   }
 
   // UNIFIED CITIZEN: switchRole() and getMyRoles() removed.

@@ -71,7 +71,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
   String _strengthLabel(double strength) {
     if (strength < 0.3) return context.tr('pw_strength_weak');
     if (strength < 0.6) return context.tr('pw_strength_good');
-    if (strength < 0.85) return context.tr('password_good');
+    // P2-AUD-010 FIX: Was 'password_good' — inconsistent with other keys.
+    if (strength < 0.85) return context.tr('pw_strength_good');
     return context.tr('pw_strength_strong');
   }
 
@@ -219,6 +220,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
             ),
             validator: (v) {
               if (v == null || v.isEmpty) return context.tr('pw_required');
+              // P1-AUD-004 FIX: Max length check mirrors backend SEC-003.
+              if (v.length > 128) return context.tr('pw_too_long');
               if (v.length < 8) return context.tr('pw_min_length');
               if (!RegExp(r'[A-Z]').hasMatch(v)) return context.tr('pw_needs_upper');
               if (!RegExp(r'[a-z]').hasMatch(v)) return context.tr('pw_needs_lower');
@@ -230,7 +233,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
           const SizedBox(height: 8),
 
           // Password Strength Meter
-          if (_passwordController.text.isNotEmpty) ...[
+          // P1-AUD-007 FIX: Use Cubit state instead of controller text.
+          // Previous: _passwordController.text.isNotEmpty — missed initial rebuild.
+          if (formState.passwordStrength > 0) ...[
             Row(
               children: [
                 Expanded(

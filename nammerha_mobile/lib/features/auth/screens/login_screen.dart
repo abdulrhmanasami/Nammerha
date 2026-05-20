@@ -16,7 +16,9 @@ import '../../../core/i18n/t.dart';
 /// Login Screen — Platinum Standard (Absolute Zero setState)
 /// ═══════════════════════════════════════════════════════════════════════════
 /// All UI state managed via LoginFormCubit + AuthBloc.
-/// Zero setState calls in this file.
+/// P1-AUD-009: _isSocialLoading migrated to LoginFormCubit.isSocialLoading.
+/// P0-AUD-004: Forgot PW sheet stays open with spinner during API call.
+/// TRUE Absolute Zero setState — zero setState calls in this file.
 /// ═══════════════════════════════════════════════════════════════════════════
 class LoginScreen extends StatefulWidget {
   final VoidCallback onLoginSuccess;
@@ -30,10 +32,6 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStateMixin {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  // P0-UX-004 FIX: Social login loading state.
-  // PREVIOUS: Zero visual feedback during 3-10s SDK call.
-  // NOW: Spinner on button, all buttons disabled during auth.
-  bool _isSocialLoading = false;
   final _formKey = GlobalKey<FormState>();
 
   late AnimationController _animController;
@@ -84,6 +82,12 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
             ScaffoldMessenger.of(context).clearSnackBars();
             _showVerificationBanner(context, state.email, state.message);
           } else if (state is AuthError) {
+            // P0-AUD-004 FIX: If forgot-PW sheet is open, dismiss it first.
+            final formCubit = context.read<LoginFormCubit>();
+            if (formCubit.state.isForgotPwLoading) {
+              formCubit.setForgotPwLoading(false);
+              Navigator.of(context).pop(); // Dismiss the bottom sheet
+            }
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message),
@@ -93,7 +97,14 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
           // UX-F026 FIX: Forgot password confirmation — await backend before feedback.
           // PREVIOUS: Success snackbar shown BEFORE API response (false positive).
           // NOW: BLoC emits AuthPasswordResetSent after backend confirms.
+          // P0-AUD-004: Sheet dismissed here on SUCCESS, not on submit.
           } else if (state is AuthPasswordResetSent) {
+            // P0-AUD-004 FIX: Dismiss the forgot-PW sheet with success feedback.
+            final formCubit = context.read<LoginFormCubit>();
+            if (formCubit.state.isForgotPwLoading) {
+              formCubit.setForgotPwLoading(false);
+              Navigator.of(context).pop(); // Dismiss the bottom sheet
+            }
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(context.tr('auth_reset_link_sent')),
@@ -364,182 +375,210 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     final emailController = TextEditingController(text: _emailController.text);
     final formKey = GlobalKey<FormState>();
     final colors = context.colors;
+    // P0-AUD-004: Capture cubit before entering sheet builder scope.
+    final cubit = context.read<LoginFormCubit>();
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (sheetCtx) {
-        return Padding(
-          // Keyboard-aware: sheet rises above soft keyboard.
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(sheetCtx).viewInsets.bottom,
-          ),
-          child: Container(
-            decoration: BoxDecoration(
-              color: colors.surfaceElevated,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(24),
+        // P0-AUD-004 FIX: BlocBuilder makes the sheet reactive to loading state.
+        // PREVIOUS: Static sheet — popped immediately on submit, zero API feedback.
+        // NOW: Sheet stays open, CTA shows spinner, email field disabled.
+        return BlocBuilder<LoginFormCubit, LoginFormState>(
+          bloc: cubit,
+          buildWhen: (prev, curr) => prev.isForgotPwLoading != curr.isForgotPwLoading,
+          builder: (_, fpState) {
+            final isLoading = fpState.isForgotPwLoading;
+            return PopScope(
+              // Block back gesture while API call is in progress.
+              canPop: !isLoading,
+              child: Padding(
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(sheetCtx).viewInsets.bottom,
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: colors.surfaceElevated,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(24),
+                    ),
+                  ),
+                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+                  child: Form(
+                    key: formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Drag handle
+                        BottomSheetGrabber(colors: colors),
+
+                        // Icon header
+                        Center(
+                          child: Container(
+                            width: 64,
+                            height: 64,
+                            decoration: BoxDecoration(
+                              color: colors.primaryBrandLight,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              PhosphorIconsRegular.lockKey,
+                              size: 28,
+                              color: colors.primaryBrand,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Title
+                        Semantics(
+                          header: true,
+                          child: Center(
+                            child: Text(
+                              context.tr('auth_forgot_password'),
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w800,
+                                color: colors.textPrimary,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+
+                        // Description
+                        Center(
+                          child: Text(
+                            context.tr('auth_forgot_password_desc'),
+                            style: TextStyle(
+                              color: colors.textSecondary,
+                              fontSize: 14,
+                              height: 1.6,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Email field — disabled during loading
+                        TextFormField(
+                          controller: emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          textDirection: TextDirection.ltr,
+                          autofocus: true,
+                          // P0-AUD-004: Freeze input during API call.
+                          enabled: !isLoading,
+                          decoration: InputDecoration(
+                            labelText: context.tr('auth_email_label'),
+                            labelStyle: TextStyle(color: colors.textSecondary),
+                            hintText: 'example@email.com',
+                            hintStyle: TextStyle(color: colors.textSubtle),
+                            prefixIcon: Icon(
+                              PhosphorIconsRegular.envelope,
+                              color: colors.textSecondary,
+                            ),
+                            filled: true,
+                            fillColor: colors.backgroundPrimary,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: BorderSide(color: colors.strokeSubtle),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: BorderSide(color: colors.strokeSubtle),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: BorderSide(
+                                color: colors.primaryBrand,
+                                width: 2,
+                              ),
+                            ),
+                            errorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: BorderSide(color: colors.error),
+                            ),
+                          ),
+                          validator: (v) {
+                            if (v == null || v.trim().isEmpty) {
+                              return context.tr('auth_email_required');
+                            }
+                            if (!RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$').hasMatch(v.trim())) {
+                              return context.tr('auth_email_invalid');
+                            }
+                            return null;
+                          },
+                          onFieldSubmitted: (_) {
+                            if (!isLoading && (formKey.currentState?.validate() ?? false)) {
+                              cubit.setForgotPwLoading(true);
+                              context.read<AuthBloc>().add(
+                                AuthForgotPassword(emailController.text.trim()),
+                              );
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 24),
+
+                        // CTA — GradientButton shows loading spinner during API call
+                        GradientButton(
+                          label: isLoading
+                              ? context.tr('auth_forgot_sending')
+                              : context.tr('auth_send_btn'),
+                          icon: isLoading ? null : PhosphorIconsRegular.paperPlaneTilt,
+                          isLoading: isLoading,
+                          onPressed: isLoading
+                              ? null
+                              : () {
+                                  if (formKey.currentState?.validate() ?? false) {
+                                    cubit.setForgotPwLoading(true);
+                                    context.read<AuthBloc>().add(
+                                      AuthForgotPassword(emailController.text.trim()),
+                                    );
+                                    // P0-AUD-004: Do NOT pop here. BLocListener in
+                                    // build() dismisses the sheet on API response.
+                                  }
+                                },
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Cancel — disabled during loading
+                        Center(
+                          child: TextButton(
+                            onPressed: isLoading ? null : () => Navigator.pop(sheetCtx),
+                            child: Text(
+                              context.tr('cancel'),
+                              style: TextStyle(
+                                color: isLoading
+                                    ? colors.textSubtle
+                                    : colors.textSecondary,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        // Safe area bottom padding
+                        SizedBox(
+                          height: MediaQuery.of(sheetCtx).viewPadding.bottom + 8,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
-            ),
-            padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-            child: Form(
-              key: formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Drag handle
-                  BottomSheetGrabber(colors: colors),
-
-                  // Icon header
-                  Center(
-                    child: Container(
-                      width: 64,
-                      height: 64,
-                      decoration: BoxDecoration(
-                        color: colors.primaryBrandLight,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        PhosphorIconsRegular.lockKey,
-                        size: 28,
-                        color: colors.primaryBrand,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Title
-                  Semantics(
-                    header: true,
-                    child: Center(
-                      child: Text(
-                        context.tr('auth_forgot_password'),
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w800,
-                          color: colors.textPrimary,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Description
-                  Center(
-                    child: Text(
-                      context.tr('auth_forgot_password_desc'),
-                      style: TextStyle(
-                        color: colors.textSecondary,
-                        fontSize: 14,
-                        height: 1.6,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Email field — themed to match login inputs
-                  TextFormField(
-                    controller: emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    textDirection: TextDirection.ltr,
-                    autofocus: true,
-                    decoration: InputDecoration(
-                      labelText: context.tr('auth_email_label'),
-                      labelStyle: TextStyle(color: colors.textSecondary),
-                      hintText: 'example@email.com',
-                      hintStyle: TextStyle(color: colors.textSubtle),
-                      prefixIcon: Icon(
-                        PhosphorIconsRegular.envelope,
-                        color: colors.textSecondary,
-                      ),
-                      filled: true,
-                      fillColor: colors.backgroundPrimary,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(14),
-                        borderSide: BorderSide(color: colors.strokeSubtle),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(14),
-                        borderSide: BorderSide(color: colors.strokeSubtle),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(14),
-                        borderSide: BorderSide(
-                          color: colors.primaryBrand,
-                          width: 2,
-                        ),
-                      ),
-                      errorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(14),
-                        borderSide: BorderSide(color: colors.error),
-                      ),
-                    ),
-                    validator: (v) {
-                      if (v == null || v.trim().isEmpty) {
-                        return context.tr('auth_email_required');
-                      }
-                      if (!RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$').hasMatch(v.trim())) {
-                        return context.tr('auth_email_invalid');
-                      }
-                      return null;
-                    },
-                    onFieldSubmitted: (_) {
-                      if (formKey.currentState?.validate() ?? false) {
-                        context.read<AuthBloc>().add(
-                          AuthForgotPassword(emailController.text.trim()),
-                        );
-                        Navigator.pop(sheetCtx);
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 24),
-
-                  // CTA — GradientButton for visual consistency
-                  GradientButton(
-                    label: context.tr('auth_send_btn'),
-                    icon: PhosphorIconsRegular.paperPlaneTilt,
-                    onPressed: () {
-                      if (formKey.currentState?.validate() ?? false) {
-                        context.read<AuthBloc>().add(
-                          AuthForgotPassword(emailController.text.trim()),
-                        );
-                        Navigator.pop(sheetCtx);
-                        // UX-F026 FIX preserved: No premature success snackbar.
-                        // BLocListener handles AuthPasswordResetSent / AuthError.
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Cancel — subtle text button
-                  Center(
-                    child: TextButton(
-                      onPressed: () => Navigator.pop(sheetCtx),
-                      child: Text(
-                        context.tr('cancel'),
-                        style: TextStyle(
-                          color: colors.textSecondary,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // Safe area bottom padding
-                  SizedBox(
-                    height: MediaQuery.of(sheetCtx).viewPadding.bottom + 8,
-                  ),
-                ],
-              ),
-            ),
-          ),
+            );
+          },
         );
       },
-    ).then((_) => emailController.dispose()); // P1-004 preserved: Dispose on close
+    ).then((_) {
+      emailController.dispose(); // P1-004 preserved: Dispose on close
+      // Safety: reset loading if sheet dismissed externally (e.g. Android back).
+      cubit.setForgotPwLoading(false);
+    });
   }
 
   /// Shows a persistent MaterialBanner for email verification errors.
@@ -670,7 +709,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   Widget _buildSocialButtons() {
     final colors = context.colors;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
+    // P1-AUD-009 FIX: Read from Cubit instead of defunct _isSocialLoading field.
+    final isSocialLoading = context.read<LoginFormCubit>().state.isSocialLoading;
     return Column(
       children: [
         // ─── Google + Apple (functional) ───────────────────────────
@@ -687,8 +727,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                 backgroundColor: isDark ? colors.surfaceElevated : Colors.white,
                 foregroundColor: isDark ? colors.textPrimary : const Color(0xFF3C4043),
                 borderColor: colors.strokeBorder,
-                onPressed: _isSocialLoading ? null : () => _handleSocialLogin('google'),
-                isLoading: _isSocialLoading,
+                onPressed: isSocialLoading ? null : () => _handleSocialLogin('google'),
+                isLoading: isSocialLoading,
               ),
             ),
             const SizedBox(width: 10),
@@ -701,8 +741,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                 backgroundColor: isDark ? colors.surfaceElevated : Colors.black,
                 foregroundColor: isDark ? colors.textPrimary : Colors.white,
                 borderColor: isDark ? colors.strokeBorder : Colors.black,
-                onPressed: _isSocialLoading ? null : () => _handleSocialLogin('apple'),
-                isLoading: _isSocialLoading,
+                onPressed: isSocialLoading ? null : () => _handleSocialLogin('apple'),
+                isLoading: isSocialLoading,
               ),
             ),
           ],
@@ -739,9 +779,10 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                   color: colors.textSecondary,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Text(
-                  'قريباً',
-                  style: TextStyle(
+                // P2-AUD-009 FIX: Was hardcoded Arabic — bypassed i18n.
+                child: Text(
+                  context.tr('coming_soon'),
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
@@ -811,15 +852,13 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     );
   }
 
-  /// Handle social login via native SDK → backend verification.
-  /// OAuth-001: Real SDK integration for Google and Apple.
-  /// Facebook: Coming soon (requires Meta App review).
-  // P0-UX-004 FIX: Loading state for social login.
-  // PREVIOUS: Zero visual feedback during 3-10s native SDK call.
-  // NOW: _isSocialLoading → spinner on button, all social buttons disabled.
+  // P1-AUD-009 FIX: Loading state migrated to LoginFormCubit.isSocialLoading.
+  // PREVIOUS: setState(() => _isSocialLoading = true) — violated Absolute Zero.
+  // NOW: cubit.setSocialLoading(true) — BlocBuilder auto-rebuilds UI.
   // Standard: Nielsen #1 (Visibility of System Status), Apple HIG.
   Future<void> _handleSocialLogin(String provider) async {
-    setState(() => _isSocialLoading = true);
+    final cubit = context.read<LoginFormCubit>();
+    cubit.setSocialLoading(true);
     try {
       final result = await SocialAuthService.instance.signIn(provider);
 
@@ -867,7 +906,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         );
       }
     } finally {
-      if (mounted) setState(() => _isSocialLoading = false);
+      if (mounted) cubit.setSocialLoading(false);
     }
   }
 }

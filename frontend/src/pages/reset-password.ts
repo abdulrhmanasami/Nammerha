@@ -308,6 +308,27 @@ form?.addEventListener('submit', async (e) => {
       if (requestNewSection) {
         requestNewSection.classList.remove('nm-hidden');
       }
+    } else if (
+      // P1-AUD-008 FIX: Handle reused/invalid token errors → show "Request New Link".
+      // PREVIOUS: "not found" / "invalid" tokens fell through to generic error banner
+      // with no recovery path — user stuck at a dead-end.
+      // Standard: Nielsen #9 (Error Recovery), WCAG 3.3.3 (Error Suggestion).
+      message.includes('not found') ||
+      message.includes('invalid') ||
+      message.includes('already used') ||
+      message.includes('غير صالح') ||
+      message.includes('غير موجود')
+    ) {
+      showBanner(
+        'error',
+        t('reset_token_invalid', 'الرمز غير صالح أو تم استخدامه — اطلب رابط جديد'),
+      );
+      if (form) {
+        form.classList.add('nm-hidden');
+      }
+      if (requestNewSection) {
+        requestNewSection.classList.remove('nm-hidden');
+      }
     } else {
       showBanner('error', message);
     }

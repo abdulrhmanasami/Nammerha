@@ -85,6 +85,8 @@ const Map<String, Map<String, String>> kTranslations = {
   'pw_current_required': {'ar': 'يرجى إدخال كلمة المرور الحالية', 'en': 'Please enter current password'},
   'pw_new_required': {'ar': 'يرجى إدخال كلمة المرور الجديدة', 'en': 'Please enter new password'},
   'pw_min_length': {'ar': 'يجب أن تكون 8 أحرف على الأقل', 'en': 'Must be at least 8 characters'},
+  // P1-AUD-004 FIX: Added max length key for reset_password_screen validator.
+  'pw_too_long': {'ar': 'كلمة المرور طويلة جداً (الحد ١٢٨ حرف)', 'en': 'Password is too long (max 128 characters)'},
   'pw_need_uppercase': {'ar': 'يجب أن تحتوي على حرف كبير واحد على الأقل', 'en': 'Must contain at least one uppercase letter'},
   'pw_need_lowercase': {'ar': 'يجب أن تحتوي على حرف صغير واحد على الأقل', 'en': 'Must contain at least one lowercase letter'},
   'pw_need_digit': {'ar': 'يجب أن تحتوي على رقم واحد على الأقل', 'en': 'Must contain at least one digit'},
@@ -117,6 +119,8 @@ const Map<String, Map<String, String>> kTranslations = {
   'auth_forgot_password_desc': {'ar': 'أدخل بريدك الإلكتروني لإرسال رابط إعادة تعيين كلمة المرور', 'en': 'Enter your email to receive a password reset link'},
   'auth_reset_link_sent': {'ar': 'تم إرسال رابط إعادة تعيين كلمة المرور', 'en': 'Password reset link sent'},
   'auth_send_btn': {'ar': 'إرسال', 'en': 'Send'},
+  // P0-AUD-004 FIX: Loading CTA label for forgot-PW sheet.
+  'auth_forgot_sending': {'ar': 'جاري الإرسال…', 'en': 'Sending…'},
   'auth_select_role': {'ar': 'مرحباً بك في نعمّرها', 'en': 'Welcome to Nammerha'},
   'auth_terms_text': {'ar': 'بالتسجيل، أوافق على شروط الاستخدام وسياسة الخصوصية لمنصة نعمّرها', 'en': 'By registering, I agree to the Terms of Service and Privacy Policy of Nammerha'},
   'auth_terms_required': {'ar': 'يجب الموافقة على الشروط وسياسة الخصوصية للمتابعة', 'en': 'You must accept the Terms and Privacy Policy to continue'},
@@ -720,6 +724,12 @@ const Map<String, Map<String, String>> kTranslations = {
   'err_unauthorized': {'ar': 'غير مصرح', 'en': 'Unauthorized'},
   'err_profile_required': {'ar': 'يجب إكمال الملف الشخصي أولاً', 'en': 'Profile setup required'},
   'err_discrepancy_flagged': {'ar': 'تم تعليم التناقض — الإثبات مرفوض', 'en': 'Discrepancy flagged — proof rejected'},
+
+  // P0-AUD-001 FIX: Auth success message keys for auth_repository.dart
+  'msg_verification_link_sent': {'ar': 'تم إرسال رابط التحقق إلى بريدك الإلكتروني', 'en': 'Verification link sent to your email'},
+  'msg_reset_link_sent': {'ar': 'إذا كان البريد مسجلاً، ستتلقى رابط إعادة تعيين كلمة المرور', 'en': 'If the email is registered, you will receive a password reset link'},
+  'msg_password_changed': {'ar': 'تم تغيير كلمة المرور بنجاح', 'en': 'Password changed successfully'},
+  'msg_resend_verification_sent': {'ar': 'تم إعادة إرسال رابط التحقق', 'en': 'Verification link resent'},
 
   // ─── Wave 4.6: Comprehensive BLoC i18n Keys ─────────────────────────────
   'err_action_failed': {'ar': 'فشل تنفيذ الإجراء', 'en': 'Action failed'},
@@ -1621,6 +1631,10 @@ const Map<String, Map<String, String>> kTranslations = {
   'reg_pw_hint': {'ar': '8+ أحرف: كبير، صغير، رقم، رمز خاص', 'en': '8+ chars: uppercase, lowercase, number, symbol'},
   'reg_confirm_required': {'ar': 'تأكيد كلمة المرور مطلوب', 'en': 'Please confirm your password'},
   'reg_password_mismatch': {'ar': 'كلمات المرور غير متطابقة', 'en': 'Passwords do not match'},
+  // P1-AUD-005 FIX: Added max length key for register_wizard_screen validator.
+  'reg_pw_too_long': {'ar': 'كلمة المرور طويلة جداً (الحد ١٢٨ حرف)', 'en': 'Password is too long (max 128 characters)'},
+  // P2-AUD-009 FIX: i18n for Facebook "Coming Soon" badge.
+  'coming_soon': {'ar': 'قريباً', 'en': 'Soon'},
 
   // Terms consent (GDPR Art.7)
   'reg_terms_agree': {'ar': 'أوافق على شروط الخدمة وسياسة الخصوصية', 'en': 'I agree to the Terms of Service and Privacy Policy'},

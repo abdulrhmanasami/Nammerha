@@ -134,6 +134,13 @@ class _RegisterWizardBodyState extends State<_RegisterWizardBody> {
         curve: Curves.easeInOut,
       );
     } else {
+      // P2-AUD-007 FIX: Save draft before pop to prevent race condition.
+      // Previous: dispose() called _saveDraftSync() fire-and-forget — Cubit
+      // could be disposed before SharedPreferences write completed.
+      cubit.saveDraft(
+        name: _nameController.text.trim(),
+        email: _emailController.text.trim(),
+      );
       Navigator.of(context).pop();
     }
   }
@@ -146,6 +153,10 @@ class _RegisterWizardBodyState extends State<_RegisterWizardBody> {
     }
     if (value.length < 8) {
       return context.tr('reg_pw_min_length');
+    }
+    // P1-AUD-005 FIX: Max length check mirrors backend SEC-003.
+    if (value.length > 128) {
+      return context.tr('reg_pw_too_long');
     }
     if (!RegExp(r'[A-Z]').hasMatch(value)) {
       return context.tr('reg_pw_needs_upper');
@@ -440,7 +451,9 @@ class _RegisterWizardBodyState extends State<_RegisterWizardBody> {
               ),
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return context.tr('reg_email_required');
-                if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(v)) return context.tr('reg_email_invalid');
+                // P1-AUD-006 FIX: Upgraded weak regex to match login_screen pattern.
+                // Previous: r'^[^@]+@[^@]+\.[^@]+' — accepted @@@.@ as valid.
+                if (!RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$').hasMatch(v)) return context.tr('reg_email_invalid');
                 return null;
               },
               textInputAction: TextInputAction.next,

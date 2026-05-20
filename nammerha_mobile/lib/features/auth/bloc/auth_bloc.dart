@@ -338,7 +338,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthRegistrationSuccess(message));
     } on ApiException catch (e) {
       debugPrint('[Nammerha] bloc/auth_bloc: $e');
-      emit(AuthError(e.message));
+      // P0-AUD-002 FIX: Apply _localizeError() — was missing, unlike _onLogin.
+      emit(AuthError(_localizeError(e.message)));
     } catch (e) {
       debugPrint('[Nammerha] bloc/auth_bloc: $e');
       emit(AuthError(ErrorKeys.registerFailed));
@@ -359,7 +360,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthPasswordResetSent(message));
     } on ApiException catch (e) {
       debugPrint('[Nammerha] bloc/auth_bloc: $e');
-      emit(AuthError(e.message));
+      // P1-AUD-001 FIX: Apply _localizeError() — was missing, unlike _onLogin.
+      emit(AuthError(_localizeError(e.message)));
     } catch (e) {
       debugPrint('[Nammerha] bloc/auth_bloc: $e');
       emit(AuthError(ErrorKeys.generic));
@@ -383,7 +385,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       }
     } on ApiException catch (e) {
       debugPrint('[Nammerha] bloc/auth_bloc: $e');
-      emit(AuthError(e.message));
+      // P1-AUD-002 FIX: Apply _localizeError() — was missing, unlike _onLogin.
+      emit(AuthError(_localizeError(e.message)));
     } catch (e) {
       debugPrint('[Nammerha] bloc/auth_bloc: $e');
       emit(AuthError(ErrorKeys.generic));
@@ -400,7 +403,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthPasswordResetSuccess(message));
     } on ApiException catch (e) {
       debugPrint('[Nammerha] bloc/auth_bloc: $e');
-      emit(AuthError(e.message));
+      // P1-AUD-003 FIX: Apply _localizeError() — was missing, unlike _onLogin.
+      emit(AuthError(_localizeError(e.message)));
     } catch (e) {
       debugPrint('[Nammerha] bloc/auth_bloc: $e');
       emit(AuthError(ErrorKeys.generic));

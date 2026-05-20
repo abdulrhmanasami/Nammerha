@@ -1089,6 +1089,15 @@ forgotBtn?.addEventListener('click', async (e) => {
     return;
   }
 
+  // P2-AUD-008 FIX: Validate email format before API call.
+  // PREVIOUS: Malformed emails passed through to the backend, wasting a rate limit token.
+  // Standard: Nielsen #5 (Error Prevention), Client-Side Validation.
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  if (!emailRegex.test(email)) {
+    showBanner('error', t('auth_forgot_invalid_email', 'صيغة البريد الإلكتروني غير صحيحة'));
+    return;
+  }
+
   if (forgotBtn) {
     // GAP-2026-001 FIX: Added spinner icon for visual loading consistency.
     // Previous: text-only change "Sending..." — no visual loading indicator.

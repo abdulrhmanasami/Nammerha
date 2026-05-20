@@ -2,10 +2,12 @@ import 'dart:async';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/i18n/t.dart';
+import '../../../core/network/api_client.dart';
 import '../../../core/utils/animation_budget.dart';
-import '../repositories/auth_repository.dart';
+import '../bloc/auth_bloc.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// P0-002 FIX: Email Verification Interstitial
@@ -67,7 +69,9 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
 
     setState(() => _isResending = true);
     try {
-      final authRepo = AuthRepository();
+      // P0-AUD-003 FIX: Use BLoC-injected repository instead of standalone instance.
+      // Previous: AuthRepository() — bypassed DI, untestable, no BLoC error pipeline.
+      final authRepo = context.read<AuthBloc>().authRepository;
       await authRepo.resendVerification(email: widget.email);
       if (!mounted) return;
       _startCooldown();
@@ -85,7 +89,10 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('$e'),
+          // P2-AUD-006 FIX: User-friendly error instead of raw exception.toString().
+          content: Text(e is ApiException
+              ? e.message
+              : context.tr('auth_resend_verify_failed')),
           backgroundColor: context.colors.error,
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.all(16),
