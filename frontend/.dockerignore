@@ -5,6 +5,7 @@
 !src/
 !public/
 !deploy/
+!.well-known/
 !*.html
 !package.json
 !package-lock.json
