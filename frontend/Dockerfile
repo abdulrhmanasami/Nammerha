@@ -29,6 +29,11 @@ COPY deploy/security-headers.conf /etc/nginx/conf.d/security-headers.conf
 # Copy built assets from builder
 COPY --from=builder /app/dist /usr/share/nginx/html
 
+# P0-VE-001: Copy .well-known for deep link verification
+# Android App Links (assetlinks.json) and iOS Universal Links (AASA)
+# These are NOT part of the Vite build output — must be copied separately.
+COPY .well-known /usr/share/nginx/html/.well-known
+
 # Security: run as non-root with proper dir permissions
 RUN addgroup -g 1001 -S nammerha && \
     adduser -u 1001 -S nammerha -G nammerha && \
