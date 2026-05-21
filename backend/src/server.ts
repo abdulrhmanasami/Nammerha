@@ -51,6 +51,8 @@ import localeRouter from './middleware/locale-pages.middleware';
 
 // Background jobs
 import { startStalePaymentCleanup, stopStalePaymentCleanup } from './jobs/stale-payment-cleanup';
+import { startEmailRetryJob, stopEmailRetryJob } from './jobs/email-retry-job';
+import { startAccountPurgeJob, stopAccountPurgeJob } from './jobs/account-purge-job';
 
 // P3-AUD-NEW-002 FIX: Dynamic version from package.json instead of hardcoded '1.0.0'
 const PKG_VERSION = (() => {
@@ -342,6 +344,27 @@ app.get('/health/full', async (_req, res) => {
     });
 });
 
+// ─── P1-REM-003: Email Queue Health Endpoint ────────────────────────────────
+// Exposes email queue statistics for monitoring dashboards.
+app.get('/health/email-queue', async (_req, res) => {
+    try {
+        const { getQueueStats } = await import('./services/email-queue.service');
+        const stats = await getQueueStats();
+        const isHealthy = stats.exhausted === 0 && stats.failed < 10;
+        res.status(isHealthy ? 200 : 503).json({
+            status: isHealthy ? 'healthy' : 'degraded',
+            service: 'nammerha-email-queue',
+            stats,
+            timestamp: new Date().toISOString(),
+        });
+    } catch (err) {
+        res.status(500).json({
+            status: 'error',
+            error: err instanceof Error ? err.message : 'Email queue health check failed',
+        });
+    }
+});
+
 
 registerRoutes(app);
 
@@ -418,6 +441,12 @@ async function bootstrap(): Promise<void> {
 
         // P1-PLT-001: Start background job to expire stale 'pending' payments
         startStalePaymentCleanup();
+
+        // P1-REM-003: Start email retry queue processor
+        startEmailRetryJob();
+
+        // GDPR-047: Start account purge cron (runs every 24h)
+        startAccountPurgeJob();
     });
 
 async function gracefulShutdown(signal: string): Promise<void> {
@@ -425,6 +454,12 @@ async function gracefulShutdown(signal: string): Promise<void> {
 
     // P1-PLT-001: Stop stale payment cleanup before draining connections
     stopStalePaymentCleanup();
+
+    // P1-REM-003: Stop email retry processor
+    stopEmailRetryJob();
+
+    // GDPR-047: Stop account purge cron
+    stopAccountPurgeJob();
 
     // LOW-AUD-002 FIX: Force-kill safety net — if draining hangs, forcibly exit
     // after 30 seconds to prevent zombie processes.

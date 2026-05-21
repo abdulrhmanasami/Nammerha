@@ -935,6 +935,15 @@ formLogin?.addEventListener('submit', async (e) => {
       remember: (document.getElementById('remember-me') as HTMLInputElement)?.checked ?? false,
     });
     if (response.success && response.data) {
+      // ── MFA Challenge Gate (Migration 046) ────────────────────────────────
+      // If user has MFA enabled, the backend returns mfa_required + mfa_token
+      // instead of a JWT. Show the TOTP input panel.
+      const data = response.data as Record<string, unknown>;
+      if (data.mfa_required && typeof data.mfa_token === 'string') {
+        showMfaChallengePanel(data.mfa_token, email);
+        return;
+      }
+
       // UNIFIED CITIZEN: Uses shared handleLoginRedirect — single source of truth
       // for user context setting, redirect params, and onboarding detection.
       await handleLoginRedirect(
@@ -1470,6 +1479,14 @@ async function handleLoginRedirect(
     kyc_verified: userData.is_active,
   });
 
+  // P2-REM-002 FIX: Clear registration draft on successful login.
+  // PREVIOUS: clearRegDraft() only called on registration success (L1100).
+  // If a user started registration, abandoned, then logged in with an existing
+  // account — the partial draft persisted in sessionStorage, causing ghost data
+  // to auto-fill on next visit to the auth page.
+  // Standard: Session Data Hygiene, Nielsen #5 (Error Prevention).
+  clearRegDraft();
+
   showBanner('success', successMessage);
 
   // UNIFIED CITIZEN: All users go to homepage. ?redirect= param from auth-guard
@@ -1538,6 +1555,310 @@ async function handleLoginRedirect(
   }, 800);
 }
 
+// ─── MFA Challenge Panel (Migration 046) ──────────────────────────────────
+// Shown after successful password/social login when MFA is enabled.
+// Replaces the login form with a 6-digit TOTP code input or recovery code input.
+// Standard: NIST SP 800-63B (AAL2), Apple HIG (2FA Verification Screens).
+
+function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
+  // Hide login and register forms
+  if (formLogin) formLogin.style.display = 'none';
+  if (formRegister) formRegister.style.display = 'none';
+  // Hide tabs
+  if (tabLogin) tabLogin.style.display = 'none';
+  if (tabRegister) tabRegister.style.display = 'none';
+  hideBanner();
+
+  // Create MFA panel
+  const mfaPanel = document.createElement('div');
+  mfaPanel.id = 'mfa-challenge-panel';
+  mfaPanel.setAttribute('role', 'form');
+  mfaPanel.setAttribute('aria-label', t('mfa_verification', 'التحقق بخطوتين'));
+  mfaPanel.innerHTML = `
+    <div style="text-align:center; padding-block:1.5rem;">
+      <div style="font-size:2.5rem; margin-block-end:0.75rem;">🔐</div>
+      <h2 style="font-size:1.25rem; font-weight:700; color:var(--nm-text-primary, #242424); margin-block-end:0.5rem;">
+        ${esc(t('mfa_title', 'التحقق بخطوتين'))}
+      </h2>
+      <p style="font-size:0.875rem; color:var(--nm-text-secondary, #666); margin-block-end:1.5rem;">
+        ${esc(t('mfa_subtitle', 'أدخل الرمز المكوّن من 6 أرقام من تطبيق المصادقة'))}
+      </p>
+
+      <!-- TOTP Code Inputs -->
+      <div id="mfa-totp-section">
+        <div id="mfa-code-inputs" style="display:flex; gap:0.5rem; justify-content:center; margin-block-end:1rem; direction:ltr;">
+          <input type="text" inputmode="numeric" maxlength="1" class="nm-input" data-mfa-digit="0"
+            style="width:3rem; height:3.5rem; text-align:center; font-size:1.5rem; font-weight:700; padding:0;" autocomplete="one-time-code" />
+          <input type="text" inputmode="numeric" maxlength="1" class="nm-input" data-mfa-digit="1"
+            style="width:3rem; height:3.5rem; text-align:center; font-size:1.5rem; font-weight:700; padding:0;" />
+          <input type="text" inputmode="numeric" maxlength="1" class="nm-input" data-mfa-digit="2"
+            style="width:3rem; height:3.5rem; text-align:center; font-size:1.5rem; font-weight:700; padding:0;" />
+          <input type="text" inputmode="numeric" maxlength="1" class="nm-input" data-mfa-digit="3"
+            style="width:3rem; height:3.5rem; text-align:center; font-size:1.5rem; font-weight:700; padding:0;" />
+          <input type="text" inputmode="numeric" maxlength="1" class="nm-input" data-mfa-digit="4"
+            style="width:3rem; height:3.5rem; text-align:center; font-size:1.5rem; font-weight:700; padding:0;" />
+          <input type="text" inputmode="numeric" maxlength="1" class="nm-input" data-mfa-digit="5"
+            style="width:3rem; height:3.5rem; text-align:center; font-size:1.5rem; font-weight:700; padding:0;" />
+        </div>
+        <button id="mfa-verify-btn" type="button" class="nm-btn nm-btn-primary" style="width:100%; margin-block-end:1rem;">
+          <span id="mfa-verify-text">${esc(t('mfa_verify_btn', 'تحقق'))}</span>
+        </button>
+      </div>
+
+      <!-- Recovery Code Section (hidden by default) -->
+      <div id="mfa-recovery-section" class="nm-hidden">
+        <input type="text" id="mfa-recovery-input" class="nm-input" placeholder="${esc(t('mfa_recovery_placeholder', 'XXXX-XXXX'))}"
+          style="text-align:center; font-size:1.125rem; font-weight:600; letter-spacing:0.1em; margin-block-end:1rem; text-transform:uppercase;" autocomplete="off" />
+        <button id="mfa-recovery-btn" type="button" class="nm-btn nm-btn-primary" style="width:100%; margin-block-end:1rem;">
+          <span id="mfa-recovery-text">${esc(t('mfa_recovery_btn', 'استخدم رمز الاسترداد'))}</span>
+        </button>
+      </div>
+
+      <!-- Error Display -->
+      <p id="mfa-error" class="nm-hidden" style="color:var(--nm-danger, #dc3545); font-size:0.8125rem; margin-block-end:1rem;"></p>
+
+      <!-- Toggle Links -->
+      <div style="display:flex; flex-direction:column; gap:0.5rem; align-items:center;">
+        <button id="mfa-toggle-recovery" type="button" class="nm-link" style="font-size:0.8125rem; background:none; border:none; cursor:pointer; color:var(--nm-trust-blue, #1558D6);">
+          ${esc(t('mfa_use_recovery', 'استخدم رمز الاسترداد'))}
+        </button>
+        <button id="mfa-back-to-login" type="button" class="nm-link" style="font-size:0.8125rem; background:none; border:none; cursor:pointer; color:var(--nm-text-secondary, #666);">
+          ${esc(t('mfa_back_to_login', 'العودة لتسجيل الدخول'))}
+        </button>
+      </div>
+    </div>
+  `;
+
+  // Insert MFA panel after the forms
+  const authCard = formLogin?.closest('.nm-auth-card') ?? formLogin?.parentElement;
+  if (authCard) {
+    authCard.appendChild(mfaPanel);
+  } else {
+    document.body.appendChild(mfaPanel);
+  }
+
+  // ── Wire digit inputs (auto-advance + auto-submit) ──
+  const digitInputs = mfaPanel.querySelectorAll<HTMLInputElement>('[data-mfa-digit]');
+  const mfaError = document.getElementById('mfa-error');
+
+  function clearMfaError(): void {
+    if (mfaError) {
+      mfaError.textContent = '';
+      mfaError.classList.add('nm-hidden');
+    }
+  }
+
+  function showMfaError(msg: string): void {
+    if (mfaError) {
+      mfaError.textContent = msg;
+      mfaError.classList.remove('nm-hidden');
+    }
+  }
+
+  function getFullCode(): string {
+    return Array.from(digitInputs).map((inp) => inp.value).join('');
+  }
+
+  digitInputs.forEach((input, idx) => {
+    input.addEventListener('input', () => {
+      clearMfaError();
+      // Only allow digits
+      input.value = input.value.replace(/\D/g, '').slice(0, 1);
+      // Auto-advance to next input
+      if (input.value && idx < digitInputs.length - 1) {
+        digitInputs[idx + 1]?.focus();
+      }
+      // Auto-submit when all 6 digits are entered
+      const code = getFullCode();
+      if (code.length === 6) {
+        submitMfaTotp();
+      }
+    });
+
+    input.addEventListener('keydown', (e: KeyboardEvent) => {
+      // Backspace: clear current and move to previous
+      if (e.key === 'Backspace' && !input.value && idx > 0) {
+        e.preventDefault();
+        const prev = digitInputs[idx - 1];
+        if (prev) {
+          prev.value = '';
+          prev.focus();
+        }
+      }
+    });
+
+    // Handle paste — distribute digits across inputs
+    input.addEventListener('paste', (e: ClipboardEvent) => {
+      e.preventDefault();
+      const pasted = e.clipboardData?.getData('text')?.replace(/\D/g, '') ?? '';
+      for (let i = 0; i < Math.min(pasted.length, digitInputs.length); i++) {
+        const target = digitInputs[i];
+        if (target) {
+          target.value = pasted[i] ?? '';
+        }
+      }
+      // Focus last filled or submit
+      const lastIdx = Math.min(pasted.length, digitInputs.length) - 1;
+      if (lastIdx >= 0) {
+        digitInputs[lastIdx]?.focus();
+      }
+      if (pasted.length >= 6) {
+        submitMfaTotp();
+      }
+    });
+  });
+
+  // Focus first digit
+  digitInputs[0]?.focus();
+
+  // ── TOTP Submit ──
+  let isMfaSubmitting = false;
+
+  async function submitMfaTotp(): Promise<void> {
+    if (isMfaSubmitting) return;
+    const code = getFullCode();
+    if (code.length !== 6 || !/^\d{6}$/.test(code)) {
+      showMfaError(t('mfa_enter_6_digits', 'أدخل 6 أرقام'));
+      return;
+    }
+
+    isMfaSubmitting = true;
+    const verifyBtn = document.getElementById('mfa-verify-btn') as HTMLButtonElement | null;
+    const verifyText = document.getElementById('mfa-verify-text');
+    if (verifyBtn) verifyBtn.classList.add('btn-loading');
+    if (verifyText) verifyText.textContent = t('mfa_verifying', 'جاري التحقق…');
+    haptic.medium();
+
+    try {
+      const response = await auth.mfaVerify({ mfa_token: mfaToken, code });
+      if (response.success && response.data) {
+        haptic.success();
+        // Remove MFA panel and restore UI
+        mfaPanel.remove();
+        await handleLoginRedirect(
+          response.data.user as Record<string, unknown>,
+          t('auth_welcome_back', 'أهلاً بعودتك!'),
+        );
+      } else {
+        showMfaError(response.error ?? t('mfa_invalid_code', 'رمز غير صحيح'));
+        // Clear inputs for retry
+        digitInputs.forEach((inp) => { inp.value = ''; });
+        digitInputs[0]?.focus();
+      }
+    } catch (err) {
+      haptic.heavy();
+      if (err instanceof ApiError) {
+        if (err.code === 'MFA_TOKEN_EXPIRED') {
+          showMfaError(t('mfa_session_expired', 'انتهت صلاحية الجلسة. سجّل الدخول مجدداً.'));
+        } else {
+          showMfaError(err.message || t('mfa_invalid_code', 'رمز غير صحيح'));
+        }
+      } else {
+        showMfaError(t('auth_network_error_short', 'خطأ في الشبكة'));
+      }
+      digitInputs.forEach((inp) => { inp.value = ''; });
+      digitInputs[0]?.focus();
+    } finally {
+      isMfaSubmitting = false;
+      if (verifyBtn) verifyBtn.classList.remove('btn-loading');
+      if (verifyText) verifyText.textContent = t('mfa_verify_btn', 'تحقق');
+    }
+  }
+
+  // Wire verify button (in case auto-submit doesn't trigger)
+  document.getElementById('mfa-verify-btn')?.addEventListener('click', submitMfaTotp);
+
+  // ── Recovery Code Submit ──
+  async function submitRecoveryCode(): Promise<void> {
+    if (isMfaSubmitting) return;
+    const recoveryInput = document.getElementById('mfa-recovery-input') as HTMLInputElement | null;
+    const code = recoveryInput?.value.trim() ?? '';
+    if (!code) {
+      showMfaError(t('mfa_enter_recovery', 'أدخل رمز الاسترداد'));
+      return;
+    }
+
+    isMfaSubmitting = true;
+    const recoveryBtn = document.getElementById('mfa-recovery-btn') as HTMLButtonElement | null;
+    const recoveryText = document.getElementById('mfa-recovery-text');
+    if (recoveryBtn) recoveryBtn.classList.add('btn-loading');
+    if (recoveryText) recoveryText.textContent = t('mfa_verifying', 'جاري التحقق…');
+    haptic.medium();
+
+    try {
+      const response = await auth.mfaRecovery({ mfa_token: mfaToken, recovery_code: code });
+      if (response.success && response.data) {
+        haptic.success();
+        mfaPanel.remove();
+        await handleLoginRedirect(
+          response.data.user as Record<string, unknown>,
+          t('auth_welcome_back', 'أهلاً بعودتك!'),
+        );
+      } else {
+        showMfaError(response.error ?? t('mfa_invalid_recovery', 'رمز استرداد غير صحيح'));
+        if (recoveryInput) recoveryInput.value = '';
+        recoveryInput?.focus();
+      }
+    } catch (err) {
+      haptic.heavy();
+      if (err instanceof ApiError) {
+        showMfaError(err.message || t('mfa_invalid_recovery', 'رمز استرداد غير صحيح'));
+      } else {
+        showMfaError(t('auth_network_error_short', 'خطأ في الشبكة'));
+      }
+      if (recoveryInput) recoveryInput.value = '';
+      recoveryInput?.focus();
+    } finally {
+      isMfaSubmitting = false;
+      if (recoveryBtn) recoveryBtn.classList.remove('btn-loading');
+      if (recoveryText) recoveryText.textContent = t('mfa_recovery_btn', 'استخدم رمز الاسترداد');
+    }
+  }
+
+  document.getElementById('mfa-recovery-btn')?.addEventListener('click', submitRecoveryCode);
+
+  // ── Toggle between TOTP and Recovery Code ──
+  let showingRecovery = false;
+  document.getElementById('mfa-toggle-recovery')?.addEventListener('click', () => {
+    showingRecovery = !showingRecovery;
+    clearMfaError();
+
+    const totpSection = document.getElementById('mfa-totp-section');
+    const recoverySection = document.getElementById('mfa-recovery-section');
+    const toggleBtn = document.getElementById('mfa-toggle-recovery');
+
+    if (showingRecovery) {
+      totpSection?.classList.add('nm-hidden');
+      recoverySection?.classList.remove('nm-hidden');
+      if (toggleBtn) toggleBtn.textContent = t('mfa_use_authenticator', 'استخدم تطبيق المصادقة');
+      document.getElementById('mfa-recovery-input')?.focus();
+    } else {
+      totpSection?.classList.remove('nm-hidden');
+      recoverySection?.classList.add('nm-hidden');
+      if (toggleBtn) toggleBtn.textContent = t('mfa_use_recovery', 'استخدم رمز الاسترداد');
+      digitInputs[0]?.focus();
+    }
+  });
+
+  // ── Back to Login ──
+  document.getElementById('mfa-back-to-login')?.addEventListener('click', () => {
+    mfaPanel.remove();
+    // Restore login form
+    if (formLogin) formLogin.style.display = '';
+    if (tabLogin) tabLogin.style.display = '';
+    if (tabRegister) tabRegister.style.display = '';
+    state.isSubmitting = false;
+  });
+
+  // Handle Enter key in recovery input
+  document.getElementById('mfa-recovery-input')?.addEventListener('keydown', (e: Event) => {
+    if ((e as KeyboardEvent).key === 'Enter') {
+      e.preventDefault();
+      submitRecoveryCode();
+    }
+  });
+}
+
 /**
  * Shared handler: after POST /api/auth/social returns successfully,
  * set user context and redirect via the shared handleLoginRedirect.
@@ -1552,6 +1873,13 @@ async function handleSocialLoginSuccess(
   _provider: string,
 ): Promise<void> {
   if (!response.success || !response.data?.user) {
+    // ── MFA Challenge Gate (Migration 046) ──────────────────────────────
+    // Social login with MFA: backend returns mfa_required + mfa_token instead of user.
+    const data = response.data as Record<string, unknown> | undefined;
+    if (response.success && data?.mfa_required && typeof data.mfa_token === 'string') {
+      showMfaChallengePanel(data.mfa_token as string, '');
+      return;
+    }
     showBanner('error', response.error ?? t('auth_login_failed', 'فشل تسجيل الدخول'));
     return;
   }

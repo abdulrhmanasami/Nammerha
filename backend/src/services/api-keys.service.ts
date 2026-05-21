@@ -7,7 +7,8 @@
 // ============================================================================
 import crypto from 'node:crypto';
 import { query } from '../config/database';
-import { sendSecurityAlertEmail } from './email.service';
+// P1-REM-003 FIX: Replaced direct email sending with persistent queue.
+import { enqueueSecurityAlertEmail } from './email-queue.service';
 import { logSecurityEvent } from './security-events.service';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -129,10 +130,8 @@ export async function createApiKey(
         // Non-blocking
     });
 
-    // Send security alert email (fire-and-forget)
-    sendKeyEventEmail(userId, 'API Key Created', keyName, keyPrefix, ipAddress).catch(() => {
-        // Non-blocking
-    });
+    // P1-REM-003: Email queued — no .catch() needed (enqueue is non-throwing)
+    sendKeyEventEmail(userId, 'API Key Created', keyName, keyPrefix, ipAddress);
 
     return {
         key_id: created.key_id,
@@ -205,10 +204,8 @@ export async function revokeApiKey(
         // Non-blocking
     });
 
-    // Send security alert email (fire-and-forget)
-    sendKeyEventEmail(userId, 'API Key Revoked', revoked.key_name, revoked.key_prefix, ipAddress).catch(() => {
-        // Non-blocking
-    });
+    // P1-REM-003: Email queued — no .catch() needed (enqueue is non-throwing)
+    sendKeyEventEmail(userId, 'API Key Revoked', revoked.key_name, revoked.key_prefix, ipAddress);
 }
 
 // ─── Validate Key ───────────────────────────────────────────────────────────
@@ -262,34 +259,43 @@ export async function validateApiKey(
     };
 }
 
-// ─── Email Helpers ──────────────────────────────────────────────────────────
-
-async function sendKeyEventEmail(
+// P1-REM-003 FIX: Replaced fire-and-forget email with persistent queue.
+// PREVIOUS: `await sendSecurityAlertEmail(...)` — lost on SMTP failure.
+// NOW: Enqueues into email_queue table with exponential backoff retry.
+function sendKeyEventEmail(
     userId: string,
     alertTitle: string,
     keyName: string,
     keyPrefix: string,
     ipAddress: string
-): Promise<void> {
-    // Look up user email
-    const userResult = await query<{ email: string }>(
-        'SELECT email FROM users WHERE user_id = $1',
-        [userId]
-    );
+): void {
+    // Look up user email (async but we void the result — non-blocking)
+    void (async () => {
+        try {
+            const userResult = await query<{ email: string }>(
+                'SELECT email FROM users WHERE user_id = $1',
+                [userId]
+            );
 
-    const email = userResult.rows[0]?.email;
-    if (!email) {
-        return;
-    }
+            const email = userResult.rows[0]?.email;
+            if (!email) {
+                return;
+            }
 
-    await sendSecurityAlertEmail(
-        email,
-        alertTitle,
-        `A security-sensitive action was performed on your Nammerha account.\n\n` +
-        `Action: ${alertTitle}\n` +
-        `Key Name: ${keyName}\n` +
-        `Key Prefix: ${keyPrefix}...\n\n` +
-        `If you did not perform this action, please change your password immediately.`,
-        ipAddress
-    );
+            enqueueSecurityAlertEmail(
+                email,
+                alertTitle,
+                `A security-sensitive action was performed on your Nammerha account.\n\n` +
+                `Action: ${alertTitle}\n` +
+                `Key Name: ${keyName}\n` +
+                `Key Prefix: ${keyPrefix}...\n\n` +
+                `If you did not perform this action, please change your password immediately.`,
+                ipAddress,
+                'en',
+                { sourceAction: 'api_key_event', sourceUserId: userId },
+            );
+        } catch {
+            // Non-blocking — queue service logs failures internally
+        }
+    })();
 }

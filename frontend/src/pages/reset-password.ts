@@ -292,8 +292,14 @@ form?.addEventListener('submit', async (e) => {
       if (form) {
         form.classList.add('nm-hidden');
       }
+      // P2-REM-001 FIX: Pre-fill email in login form after successful password reset.
+      // PREVIOUS: User redirected to auth.html with empty email field — had to re-type
+      // the email they just used for reset. Causes friction, especially on mobile.
+      // Standard: Nielsen #6 (Recognition Over Recall), verify-email.ts parity.
       setTimeout(() => {
-        window.location.href = '/auth.html';
+        const userEmail = requestEmailInput?.value.trim() ?? '';
+        const emailParam = userEmail ? `?email=${encodeURIComponent(userEmail)}` : '';
+        window.location.href = `/auth.html${emailParam}`;
       }, 2000);
     } else {
       showBanner('error', data.error ?? t('reset_failed', 'فشلت إعادة التعيين'));

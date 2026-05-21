@@ -90,6 +90,39 @@ export const resendVerificationSchema = z.object({
     email: emailSchema,
 });
 
+// ─── MFA Schemas (Migration 046) ────────────────────────────────────────────
+
+/** TOTP code for MFA setup confirmation */
+export const mfaConfirmSchema = z.object({
+    token: z.string().length(6, 'Must be exactly 6 digits').regex(/^\d{6}$/, 'Must be 6 digits'),
+});
+
+/** Login MFA challenge — TOTP code verification */
+export const mfaVerifySchema = z.object({
+    mfa_token: z.string().min(1, 'MFA token is required'),
+    code: z.string().length(6, 'Must be exactly 6 digits').regex(/^\d{6}$/, 'Must be 6 digits'),
+});
+
+/** Login MFA challenge — recovery code verification */
+export const mfaRecoverySchema = z.object({
+    mfa_token: z.string().min(1, 'MFA token is required'),
+    recovery_code: z.string().min(1, 'Recovery code is required').max(20),
+});
+
+/** Disable MFA — requires password confirmation */
+export const mfaDisableSchema = z.object({
+    password: z.string().min(1, 'Password is required'),
+});
+
+// ─── Account Deletion Schemas (Migration 047 — GDPR Art. 17) ────────────────
+
+/** Request account deletion — requires password + typed confirmation */
+export const accountDeletionSchema = z.object({
+    password: z.string().min(1, 'Password is required'),
+    confirmation: z.string().min(1, 'Confirmation text is required'),
+    reason: z.string().max(500).optional(),
+});
+
 // ─── Project Schemas ────────────────────────────────────────────────────────
 
 export const createProjectSchema = z.object({

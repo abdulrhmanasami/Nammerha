@@ -1097,6 +1097,561 @@ function init(): void {
     main.insertAdjacentHTML('beforeend', securitySectionHtml);
   }
 
+  // ═══════════════════════════════════════════════════════════════════════
+  // Migration 046: MFA/2FA Management Section
+  // Injects after the sessions section. Users can:
+  //   - See MFA status (enabled/disabled)
+  //   - Enable MFA (QR → confirm → recovery codes)
+  //   - Disable MFA (password confirmation)
+  //   - Regenerate recovery codes
+  // Standard: NIST SP 800-63B (AAL2), OWASP ASVS v4 §2.8
+  // ═══════════════════════════════════════════════════════════════════════
+
+  const mfaSectionHtml = `
+    <section id="mfa-management-section" class="bg-white dark:bg-slate-800/50 rounded-xl p-5 shadow-sm border border-slate-100 dark:border-slate-700/30">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+          <i class="ph ph-shield-star text-trust-blue text-lg"></i>
+          ${esc(t('mfa_section_title', 'المصادقة الثنائية (2FA)'))}
+        </h3>
+        <span id="mfa-status-badge" class="text-xs px-2 py-0.5 rounded-full font-semibold bg-slate-100 text-slate-400 dark:bg-slate-700 dark:text-slate-500">
+          ${esc(t('mfa_loading', 'جاري التحميل…'))}
+        </span>
+      </div>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">
+        ${esc(t('mfa_description', 'أضف طبقة حماية إضافية لحسابك باستخدام تطبيق مصادقة مثل Google Authenticator أو Authy.'))}
+      </p>
+      <div id="mfa-action-area"></div>
+      <div id="mfa-setup-flow" class="nm-hidden"></div>
+    </section>
+  `;
+
+  const securitySection = document.getElementById('v005-security-section');
+  if (securitySection) {
+    securitySection.insertAdjacentHTML('afterend', mfaSectionHtml);
+  } else {
+    const mainEl = document.querySelector('main') ?? document.body;
+    mainEl.insertAdjacentHTML('beforeend', mfaSectionHtml);
+  }
+
+  // ── MFA State Management ──
+  async function loadMfaStatus(): Promise<void> {
+    const badge = document.getElementById('mfa-status-badge');
+    const actionArea = document.getElementById('mfa-action-area');
+    if (!badge || !actionArea) return;
+
+    try {
+      const res = await auth.mfaStatus();
+      if (!res.success || !res.data) {
+        badge.textContent = esc(t('mfa_error', 'خطأ'));
+        badge.className = 'text-xs px-2 py-0.5 rounded-full font-semibold bg-red-50 text-red-500 dark:bg-red-500/10 dark:text-red-400';
+        return;
+      }
+
+      const { enabled, recovery_codes_remaining } = res.data;
+
+      if (enabled) {
+        badge.textContent = esc(t('mfa_enabled', 'مفعّلة'));
+        badge.className = 'text-xs px-2 py-0.5 rounded-full font-semibold bg-smoky-jade/10 text-smoky-jade';
+
+        actionArea.innerHTML = `
+          <div class="flex flex-col gap-3">
+            <div class="flex items-center justify-between p-3 bg-cloud-dancer dark:bg-slate-700/30 rounded-lg">
+              <div>
+                <p class="text-sm font-medium text-slate-700 dark:text-slate-200">${esc(t('mfa_recovery_codes', 'رموز الاسترداد'))}</p>
+                <p class="text-xs text-slate-400">${esc(t('mfa_remaining', 'المتبقي'))}: <strong class="${recovery_codes_remaining <= 2 ? 'text-red-500' : 'text-smoky-jade'}">${recovery_codes_remaining}</strong></p>
+              </div>
+              <button id="mfa-regen-codes-btn" class="text-xs text-trust-blue hover:text-trust-blue-hover font-medium transition-colors">
+                ${esc(t('mfa_regenerate', 'إعادة توليد'))}
+              </button>
+            </div>
+            <button id="mfa-disable-btn" class="nm-btn text-xs px-4 py-2 border border-red-200 dark:border-red-500/30 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors">
+              ${esc(t('mfa_disable_btn', 'إلغاء المصادقة الثنائية'))}
+            </button>
+          </div>
+        `;
+
+        // Wire disable button
+        document.getElementById('mfa-disable-btn')?.addEventListener('click', () => {
+          const password = prompt(t('mfa_enter_password', 'أدخل كلمة المرور لتأكيد إلغاء المصادقة الثنائية:'));
+          if (!password) return;
+          disableMfaAction(password);
+        });
+
+        // Wire regenerate button
+        document.getElementById('mfa-regen-codes-btn')?.addEventListener('click', async () => {
+          if (!confirm(t('mfa_regen_confirm', 'سيتم إبطال الرموز القديمة. هل تريد المتابعة؟'))) return;
+          try {
+            const res = await auth.mfaRegenerateCodes();
+            if (res.success && res.data) {
+              showRecoveryCodes(res.data.recovery_codes);
+            } else {
+              showToast(res.error ?? t('mfa_regen_failed', 'فشل توليد الرموز'), 'error');
+            }
+          } catch {
+            showToast(t('mfa_regen_failed', 'فشل توليد الرموز'), 'error');
+          }
+        });
+
+      } else {
+        badge.textContent = esc(t('mfa_disabled', 'معطّلة'));
+        badge.className = 'text-xs px-2 py-0.5 rounded-full font-semibold bg-slate-100 text-slate-400 dark:bg-slate-700 dark:text-slate-500';
+
+        actionArea.innerHTML = `
+          <button id="mfa-enable-btn" class="nm-btn nm-btn-primary text-sm w-full py-2.5 flex items-center justify-center gap-2">
+            <i class="ph ph-shield-plus text-base"></i>
+            ${esc(t('mfa_enable_btn', 'تفعيل المصادقة الثنائية'))}
+          </button>
+        `;
+
+        document.getElementById('mfa-enable-btn')?.addEventListener('click', startMfaSetup);
+      }
+    } catch {
+      if (badge) {
+        badge.textContent = esc(t('mfa_error', 'خطأ'));
+      }
+    }
+  }
+
+  async function startMfaSetup(): Promise<void> {
+    const setupFlow = document.getElementById('mfa-setup-flow');
+    const actionArea = document.getElementById('mfa-action-area');
+    if (!setupFlow) return;
+
+    // Hide action area, show setup flow
+    if (actionArea) actionArea.classList.add('nm-hidden');
+    setupFlow.classList.remove('nm-hidden');
+    setupFlow.innerHTML = `<div class="flex justify-center py-4"><div class="nm-skeleton-pulse rounded-lg" style="width:100%;height:120px"></div></div>`;
+
+    try {
+      const res = await auth.mfaSetup();
+      if (!res.success || !res.data) {
+        setupFlow.innerHTML = `<p class="text-sm text-red-500">${esc(res.error ?? t('mfa_setup_failed', 'فشل بدء الإعداد'))}</p>`;
+        return;
+      }
+
+      const { qr_data_url, secret } = res.data;
+
+      setupFlow.innerHTML = `
+        <div class="text-center">
+          <p class="text-sm font-medium text-slate-700 dark:text-slate-200 mb-3">
+            ${esc(t('mfa_scan_qr', 'امسح رمز QR بتطبيق المصادقة:'))}
+          </p>
+          <div class="flex justify-center mb-3">
+            <img src="${esc(qr_data_url)}" alt="MFA QR Code" width="192" height="192" class="rounded-lg border border-slate-200 dark:border-slate-600" />
+          </div>
+          <details class="text-start mb-4">
+            <summary class="text-xs text-trust-blue cursor-pointer font-medium">
+              ${esc(t('mfa_manual_entry', 'أو أدخل المفتاح يدوياً'))}
+            </summary>
+            <code class="block mt-2 p-2 bg-slate-50 dark:bg-slate-700 rounded text-xs font-mono text-slate-600 dark:text-slate-300 break-all select-all" dir="ltr">
+              ${esc(secret)}
+            </code>
+          </details>
+          <div class="mb-4">
+            <label class="text-sm font-medium text-slate-600 dark:text-slate-300 mb-1 block">
+              ${esc(t('mfa_enter_code', 'أدخل الرمز من التطبيق للتأكيد:'))}
+            </label>
+            <input type="text" id="mfa-setup-code" inputmode="numeric" maxlength="6"
+              class="nm-input text-center text-lg font-bold tracking-widest" dir="ltr"
+              placeholder="000000" autocomplete="one-time-code" />
+          </div>
+          <div class="flex gap-2">
+            <button id="mfa-setup-cancel" class="nm-btn flex-1 text-sm border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">
+              ${esc(t('cancel', 'إلغاء'))}
+            </button>
+            <button id="mfa-setup-confirm" class="nm-btn nm-btn-primary flex-1 text-sm">
+              <span id="mfa-setup-confirm-text">${esc(t('mfa_confirm_btn', 'تأكيد'))}</span>
+            </button>
+          </div>
+          <p id="mfa-setup-error" class="nm-hidden text-xs text-red-500 mt-2"></p>
+        </div>
+      `;
+
+      // Wire cancel
+      document.getElementById('mfa-setup-cancel')?.addEventListener('click', () => {
+        setupFlow.classList.add('nm-hidden');
+        setupFlow.innerHTML = '';
+        if (actionArea) actionArea.classList.remove('nm-hidden');
+      });
+
+      // Wire confirm
+      let isConfirming = false;
+      async function confirmSetup(): Promise<void> {
+        if (isConfirming) return;
+        const codeInput = document.getElementById('mfa-setup-code') as HTMLInputElement | null;
+        const code = codeInput?.value.trim() ?? '';
+        const errorEl = document.getElementById('mfa-setup-error');
+
+        if (code.length !== 6 || !/^\d{6}$/.test(code)) {
+          if (errorEl) {
+            errorEl.textContent = t('mfa_enter_6_digits', 'أدخل 6 أرقام');
+            errorEl.classList.remove('nm-hidden');
+          }
+          return;
+        }
+
+        isConfirming = true;
+        const confirmBtn = document.getElementById('mfa-setup-confirm') as HTMLButtonElement | null;
+        const confirmText = document.getElementById('mfa-setup-confirm-text');
+        if (confirmBtn) confirmBtn.classList.add('btn-loading');
+        if (confirmText) confirmText.textContent = t('mfa_verifying', 'جاري التحقق…');
+
+        try {
+          const result = await auth.mfaConfirm({ token: code });
+          if (result.success && result.data) {
+            showToast(t('mfa_enabled_success', 'تم تفعيل المصادقة الثنائية بنجاح ✓'), 'success');
+            showRecoveryCodes(result.data.recovery_codes);
+            if (setupFlow) {
+              setupFlow.classList.add('nm-hidden');
+              setupFlow.innerHTML = '';
+            }
+            await loadMfaStatus(); // Refresh status
+          } else {
+            if (errorEl) {
+              errorEl.textContent = result.error ?? t('mfa_invalid_code', 'رمز غير صحيح');
+              errorEl.classList.remove('nm-hidden');
+            }
+            if (codeInput) codeInput.value = '';
+            codeInput?.focus();
+          }
+        } catch (err) {
+          if (errorEl) {
+            errorEl.textContent = err instanceof Error ? err.message : t('mfa_setup_failed', 'فشل التأكيد');
+            errorEl.classList.remove('nm-hidden');
+          }
+          if (codeInput) codeInput.value = '';
+          codeInput?.focus();
+        } finally {
+          isConfirming = false;
+          if (confirmBtn) confirmBtn.classList.remove('btn-loading');
+          if (confirmText) confirmText.textContent = t('mfa_confirm_btn', 'تأكيد');
+        }
+      }
+
+      document.getElementById('mfa-setup-confirm')?.addEventListener('click', confirmSetup);
+      document.getElementById('mfa-setup-code')?.addEventListener('keydown', (e: Event) => {
+        if ((e as KeyboardEvent).key === 'Enter') {
+          e.preventDefault();
+          confirmSetup();
+        }
+      });
+      // Focus code input
+      document.getElementById('mfa-setup-code')?.focus();
+
+    } catch {
+      setupFlow.innerHTML = `<p class="text-sm text-red-500">${esc(t('mfa_setup_failed', 'فشل بدء الإعداد'))}</p>`;
+    }
+  }
+
+  async function disableMfaAction(password: string): Promise<void> {
+    try {
+      const res = await auth.mfaDisable({ password });
+      if (res.success) {
+        showToast(t('mfa_disabled_success', 'تم إلغاء المصادقة الثنائية'), 'success');
+        await loadMfaStatus();
+      } else {
+        showToast(res.error ?? t('mfa_disable_failed', 'فشل إلغاء المصادقة الثنائية'), 'error');
+      }
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : t('mfa_disable_failed', 'فشل إلغاء المصادقة الثنائية'), 'error');
+    }
+  }
+
+  function showRecoveryCodes(codes: string[]): void {
+    // Show a modal/dialog with recovery codes
+    const existing = document.getElementById('mfa-recovery-dialog');
+    if (existing) existing.remove();
+
+    const dialog = document.createElement('div');
+    dialog.id = 'mfa-recovery-dialog';
+    dialog.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black/50';
+    dialog.setAttribute('role', 'dialog');
+    dialog.setAttribute('aria-modal', 'true');
+    dialog.setAttribute('aria-label', t('mfa_recovery_codes', 'رموز الاسترداد'));
+
+    const codesHtml = codes.map((c) => `<code class="block py-1 text-sm font-mono font-bold text-slate-700 dark:text-slate-200">${esc(c)}</code>`).join('');
+
+    dialog.innerHTML = `
+      <div class="bg-white dark:bg-slate-800 rounded-xl p-6 max-w-sm w-full mx-4 shadow-xl" style="max-height:90vh; overflow-y:auto;">
+        <div class="text-center mb-4">
+          <div class="text-3xl mb-2">🔑</div>
+          <h3 class="text-lg font-bold text-slate-700 dark:text-slate-200">${esc(t('mfa_recovery_codes', 'رموز الاسترداد'))}</h3>
+          <p class="text-xs text-red-500 font-medium mt-1">${esc(t('mfa_codes_warning', '⚠️ احفظ هذه الرموز — لن تُعرض مرة أخرى!'))}</p>
+        </div>
+        <div class="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 mb-4 text-center" dir="ltr">
+          ${codesHtml}
+        </div>
+        <p class="text-xs text-slate-400 mb-4 text-center">
+          ${esc(t('mfa_codes_info', 'كل رمز يُستخدم مرة واحدة فقط. استخدمه إذا فقدت الوصول لتطبيق المصادقة.'))}
+        </p>
+        <button id="mfa-codes-close" class="nm-btn nm-btn-primary w-full text-sm">
+          ${esc(t('mfa_codes_saved', 'لقد حفظت الرموز'))}
+        </button>
+      </div>
+    `;
+
+    document.body.appendChild(dialog);
+
+    document.getElementById('mfa-codes-close')?.addEventListener('click', () => {
+      dialog.remove();
+    });
+  }
+
+  // Load MFA status on init
+  loadMfaStatus();
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // Migration 047: GDPR Account Deletion — Danger Zone
+  // Standards: GDPR Art. 17, ISO/IEC 25010 (Platinum), OWASP ASVS v4 §1.4
+  // ═══════════════════════════════════════════════════════════════════════
+
+  const dangerZoneHtml = `
+    <section id="gdpr-danger-zone" class="bg-white dark:bg-slate-800/50 rounded-xl p-5 shadow-sm border border-red-200 dark:border-red-500/20 mt-4">
+      <div class="flex items-center gap-2 mb-4">
+        <i class="ph ph-warning-octagon text-red-500 text-lg"></i>
+        <h3 class="text-sm font-bold text-red-600 dark:text-red-400">${esc(t('danger_zone', 'منطقة الخطر'))}</h3>
+      </div>
+
+      <!-- Deletion status banner (shown if deletion is pending) -->
+      <div id="gdpr-deletion-banner" class="nm-hidden mb-4 p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-lg">
+        <div class="flex items-start gap-2">
+          <i class="ph ph-timer text-red-500 text-base mt-0.5"></i>
+          <div class="flex-1">
+            <p class="text-sm font-medium text-red-700 dark:text-red-300" id="gdpr-deletion-message"></p>
+            <p class="text-xs text-red-500 mt-1" id="gdpr-deletion-date"></p>
+            <button id="gdpr-cancel-deletion-btn" class="nm-btn mt-2 text-xs px-3 py-1.5 bg-smoky-jade text-white hover:bg-smoky-jade/90 rounded-lg transition-colors">
+              ${esc(t('cancel_deletion', 'إلغاء حذف الحساب'))}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <p class="text-xs text-slate-500 dark:text-slate-400 mb-3">
+        ${esc(t('delete_account_warning', 'حذف الحساب نهائي. سيتم حذف جميع بياناتك الشخصية بعد فترة سماح 30 يوم.'))}
+      </p>
+
+      <button id="gdpr-delete-account-btn" class="nm-btn text-xs px-4 py-2 border border-red-300 dark:border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors flex items-center gap-2">
+        <i class="ph ph-trash text-sm"></i>
+        ${esc(t('delete_account_btn', 'حذف الحساب نهائياً'))}
+      </button>
+    </section>
+  `;
+
+  const mfaSection = document.getElementById('mfa-management-section');
+  if (mfaSection) {
+    mfaSection.insertAdjacentHTML('afterend', dangerZoneHtml);
+  } else {
+    const mainEl = document.querySelector('main') ?? document.body;
+    mainEl.insertAdjacentHTML('beforeend', dangerZoneHtml);
+  }
+
+  // ── GDPR: Load Deletion Status ──
+  async function loadDeletionStatus(): Promise<void> {
+    const banner = document.getElementById('gdpr-deletion-banner');
+    const deleteBtn = document.getElementById('gdpr-delete-account-btn');
+    if (!banner) return;
+
+    try {
+      const res = await auth.deletionStatus();
+      if (!res.success || !res.data) return;
+
+      const { deletion_pending, grace_period_ends, days_remaining } = res.data;
+
+      if (deletion_pending && grace_period_ends) {
+        banner.classList.remove('nm-hidden');
+        if (deleteBtn) deleteBtn.classList.add('nm-hidden');
+
+        const msgEl = document.getElementById('gdpr-deletion-message');
+        const dateEl = document.getElementById('gdpr-deletion-date');
+        if (msgEl) {
+          msgEl.textContent = t(
+            'deletion_pending_msg',
+            `حسابك مجدول للحذف النهائي. لديك ${days_remaining ?? 0} يوم لإلغاء القرار.`,
+          );
+        }
+        if (dateEl) {
+          const endDate = new Date(grace_period_ends);
+          dateEl.textContent = t('deletion_date', `تاريخ الحذف النهائي: ${endDate.toLocaleDateString('ar-SY')}`);
+        }
+
+        // Wire cancel button
+        document.getElementById('gdpr-cancel-deletion-btn')?.addEventListener('click', async () => {
+          try {
+            const cancelRes = await auth.cancelDeletion();
+            if (cancelRes.success) {
+              showToast(t('deletion_cancelled', 'تم إلغاء حذف الحساب. حسابك نشط مجدداً ✓'), 'success');
+              banner.classList.add('nm-hidden');
+              if (deleteBtn) deleteBtn.classList.remove('nm-hidden');
+            } else {
+              showToast(cancelRes.error ?? t('cancel_failed', 'فشل إلغاء الحذف'), 'error');
+            }
+          } catch {
+            showToast(t('cancel_failed', 'فشل إلغاء الحذف'), 'error');
+          }
+        });
+      }
+    } catch {
+      // Silently fail — deletion status is not critical
+    }
+  }
+
+  loadDeletionStatus();
+
+  // ── GDPR: Delete Account Dialog ──
+  document.getElementById('gdpr-delete-account-btn')?.addEventListener('click', () => {
+    // Remove any existing dialog
+    document.getElementById('gdpr-delete-dialog')?.remove();
+
+    const dialog = document.createElement('div');
+    dialog.id = 'gdpr-delete-dialog';
+    dialog.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black/50';
+    dialog.setAttribute('role', 'dialog');
+    dialog.setAttribute('aria-modal', 'true');
+    dialog.setAttribute('aria-label', t('delete_account', 'حذف الحساب'));
+
+    dialog.innerHTML = `
+      <div class="bg-white dark:bg-slate-800 rounded-xl p-6 max-w-md w-full mx-4 shadow-xl" style="max-height:90vh; overflow-y:auto;">
+        <div class="text-center mb-4">
+          <div class="w-12 h-12 bg-red-100 dark:bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-3">
+            <i class="ph ph-warning text-2xl text-red-500"></i>
+          </div>
+          <h3 class="text-lg font-bold text-slate-700 dark:text-slate-200">${esc(t('delete_account_title', 'حذف الحساب نهائياً'))}</h3>
+        </div>
+
+        <div class="bg-red-50 dark:bg-red-500/10 rounded-lg p-3 mb-4">
+          <p class="text-xs text-red-700 dark:text-red-300 font-medium mb-2">${esc(t('delete_warning_title', '⚠️ هذا الإجراء لا يمكن التراجع عنه:'))}</p>
+          <ul class="text-xs text-red-600 dark:text-red-400 space-y-1" style="padding-inline-start: 1rem; list-style-type: disc;">
+            <li>${esc(t('delete_w1', 'سيتم حذف جميع بياناتك الشخصية'))}</li>
+            <li>${esc(t('delete_w2', 'سيتم إلغاء جميع الجلسات النشطة'))}</li>
+            <li>${esc(t('delete_w3', 'سيتم حذف رموز MFA ومفاتيح API'))}</li>
+            <li>${esc(t('delete_w4', 'ستبقى السجلات المالية مجهولة للامتثال'))}</li>
+            <li>${esc(t('delete_w5', 'لديك 30 يوم لإلغاء القرار قبل الحذف النهائي'))}</li>
+          </ul>
+        </div>
+
+        <div class="space-y-3 mb-4">
+          <div>
+            <label class="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">
+              ${esc(t('delete_confirm_label', 'اكتب "DELETE" أو "حذف" للتأكيد:'))}
+            </label>
+            <input type="text" id="gdpr-confirm-text" class="nm-input text-sm" dir="auto"
+              placeholder="${esc(t('delete_confirm_placeholder', 'DELETE'))}" autocomplete="off" />
+          </div>
+          <div>
+            <label class="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">
+              ${esc(t('delete_password_label', 'كلمة المرور:'))}
+            </label>
+            <input type="password" id="gdpr-confirm-password" class="nm-input text-sm"
+              placeholder="••••••••" autocomplete="current-password" />
+          </div>
+          <div>
+            <label class="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">
+              ${esc(t('delete_reason_label', 'سبب الحذف (اختياري):'))}
+            </label>
+            <textarea id="gdpr-delete-reason" class="nm-input text-sm resize-none" rows="2"
+              maxlength="500" placeholder="${esc(t('delete_reason_placeholder', 'أخبرنا لماذا تغادر...'))}"></textarea>
+          </div>
+        </div>
+
+        <p id="gdpr-delete-error" class="nm-hidden text-xs text-red-500 mb-3"></p>
+
+        <div class="flex gap-2">
+          <button id="gdpr-cancel-dialog" class="nm-btn flex-1 text-sm border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">
+            ${esc(t('cancel', 'إلغاء'))}
+          </button>
+          <button id="gdpr-confirm-delete" class="nm-btn flex-1 text-sm bg-red-500 hover:bg-red-600 text-white">
+            <span id="gdpr-confirm-delete-text">${esc(t('delete_confirm_btn', 'حذف الحساب'))}</span>
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(dialog);
+
+    // Wire cancel
+    document.getElementById('gdpr-cancel-dialog')?.addEventListener('click', () => dialog.remove());
+    dialog.addEventListener('click', (e) => { if (e.target === dialog) dialog.remove(); });
+
+    // Wire confirm
+    let isDeleting = false;
+    document.getElementById('gdpr-confirm-delete')?.addEventListener('click', async () => {
+      if (isDeleting) return;
+
+      const confirmText = (document.getElementById('gdpr-confirm-text') as HTMLInputElement)?.value.trim() ?? '';
+      const password = (document.getElementById('gdpr-confirm-password') as HTMLInputElement)?.value ?? '';
+      const reason = (document.getElementById('gdpr-delete-reason') as HTMLTextAreaElement)?.value.trim() ?? '';
+      const errorEl = document.getElementById('gdpr-delete-error');
+
+      // Validate confirmation text
+      const normalized = confirmText.toUpperCase();
+      if (normalized !== 'DELETE' && confirmText !== 'حذف') {
+        if (errorEl) {
+          errorEl.textContent = t('delete_type_confirm', 'اكتب "DELETE" أو "حذف" للتأكيد');
+          errorEl.classList.remove('nm-hidden');
+        }
+        return;
+      }
+
+      if (!password) {
+        if (errorEl) {
+          errorEl.textContent = t('delete_enter_password', 'أدخل كلمة المرور');
+          errorEl.classList.remove('nm-hidden');
+        }
+        return;
+      }
+
+      isDeleting = true;
+      const confirmBtn = document.getElementById('gdpr-confirm-delete') as HTMLButtonElement | null;
+      const confirmBtnText = document.getElementById('gdpr-confirm-delete-text');
+      if (confirmBtn) confirmBtn.classList.add('btn-loading');
+      if (confirmBtnText) confirmBtnText.textContent = t('deleting', 'جاري الحذف…');
+
+      try {
+        const res = await auth.deleteAccount({
+          password,
+          confirmation: confirmText,
+          reason: reason || undefined,
+        });
+
+        if (res.success) {
+          dialog.remove();
+          // Show success message, then redirect to auth page
+          showToast(t('account_deleted_msg', 'تم جدولة حذف حسابك. لديك 30 يوم لإلغاء القرار.'), 'success');
+          setTimeout(() => { window.location.href = '/auth.html'; }, 2500);
+        } else {
+          // Handle blockers
+          const data = res.data as Record<string, unknown> | undefined;
+          if (data && Array.isArray(data['blockers'])) {
+            const blockers = data['blockers'] as Array<{ message_ar?: string; message?: string }>;
+            const blockerMsg = blockers.map((b) => b.message_ar ?? b.message ?? '').join('\n');
+            if (errorEl) {
+              errorEl.textContent = blockerMsg;
+              errorEl.classList.remove('nm-hidden');
+            }
+          } else {
+            if (errorEl) {
+              errorEl.textContent = res.error ?? t('delete_failed', 'فشل حذف الحساب');
+              errorEl.classList.remove('nm-hidden');
+            }
+          }
+        }
+      } catch (err) {
+        if (errorEl) {
+          errorEl.textContent = err instanceof Error ? err.message : t('delete_failed', 'فشل حذف الحساب');
+          errorEl.classList.remove('nm-hidden');
+        }
+      } finally {
+        isDeleting = false;
+        if (confirmBtn) confirmBtn.classList.remove('btn-loading');
+        if (confirmBtnText) confirmBtnText.textContent = t('delete_confirm_btn', 'حذف الحساب');
+      }
+    });
+
+    // Focus confirm text input
+    document.getElementById('gdpr-confirm-text')?.focus();
+  });
+
   // Wire "Sign out all devices" button
   document.getElementById('v005-revoke-all-btn')?.addEventListener('click', async () => {
     if (

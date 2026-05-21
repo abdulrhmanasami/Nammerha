@@ -25,13 +25,17 @@ import { query } from '../config/database';
 function hashToken(token: string): string {
   return crypto.createHash('sha256').update(token).digest('hex');
 }
-import { generateToken, authMiddleware } from '../middleware/auth.middleware';
+import { generateToken, authMiddleware, generateMfaChallengeToken } from '../middleware/auth.middleware';
+// P1-REM-003 FIX: Replaced direct email sending with persistent queue.
+// PREVIOUS: Fire-and-forget sendXxxEmail().catch() — lost on SMTP failure.
+// NOW: Emails are queued in PostgreSQL and retried with exponential backoff.
+// email.service.ts remains the low-level transport (called by email-retry-job.ts).
 import {
-  sendVerificationEmail,
-  sendPasswordResetEmail,
-  sendSecurityAlertEmail,
-  type EmailLocale,
-} from '../services/email.service';
+  enqueueVerificationEmail,
+  enqueuePasswordResetEmail,
+  enqueueSecurityAlertEmail,
+} from '../services/email-queue.service';
+import type { EmailLocale } from '../services/email.service';
 import type { User, UserRole, ApiResponse } from '../types';
 import { safeRouteError } from '../utils/safe-error';
 import { logger } from '../utils/logger';
@@ -226,13 +230,10 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
           const baseUrl = process.env['APP_BASE_URL'] ?? 'https://nammerha.com';
           // P1-W5-001 FIX: Include email so verify-email page pre-fills the Sign In link.
           const verificationUrl = `${baseUrl}/verify-email.html?token=${verificationToken}&email=${encodeURIComponent(normalizedRegEmail)}`;
-          sendVerificationEmail(normalizedRegEmail, verificationUrl, getEmailLocale(req)).catch(
-            (err) => {
-              logger.error('Auth: Verification email dispatch failed (re-register)', {
-                error: err instanceof Error ? err.message : String(err),
-              });
-            },
-          );
+          enqueueVerificationEmail(normalizedRegEmail, verificationUrl, getEmailLocale(req), {
+            sourceAction: 'register_resend',
+            sourceUserId: existingUser.user_id,
+          });
         }
       }
 
@@ -314,10 +315,9 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
     const baseUrl = process.env['APP_BASE_URL'] ?? 'https://nammerha.com';
     // P1-W5-001 FIX: Include email so verify-email page pre-fills the Sign In link.
     const verificationUrl = `${baseUrl}/verify-email.html?token=${verificationToken}&email=${encodeURIComponent(user.email)}`;
-    sendVerificationEmail(user.email, verificationUrl, getEmailLocale(req)).catch((err) => {
-      logger.error('Auth: Verification email dispatch failed', {
-        error: err instanceof Error ? err.message : String(err),
-      });
+    enqueueVerificationEmail(user.email, verificationUrl, getEmailLocale(req), {
+      sourceAction: 'register',
+      sourceUserId: user.user_id,
     });
 
     // PLT-AUD-001 FIX: Return IDENTICAL response for new and existing emails.
@@ -356,9 +356,12 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
         | 'is_active'
         | 'is_email_verified'
         | 'password_hash'
+        | 'mfa_enabled'
+        | 'deleted_at'
+        | 'deletion_scheduled_at'
       >
     >(
-      'SELECT user_id, email, full_name, role, is_active, is_email_verified, password_hash FROM users WHERE email = $1',
+      'SELECT user_id, email, full_name, role, is_active, is_email_verified, password_hash, mfa_enabled, deleted_at, deletion_scheduled_at FROM users WHERE email = $1',
       [normalizedEmail],
     );
 
@@ -489,6 +492,20 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
             scope,
             maxAttempts: MAX_FAILED_ATTEMPTS,
           });
+          // P1-REM-004 FIX: Notify user of account lockout via security alert email.
+          // PREVIOUS: Lockout only logged to audit_trail + console — the legitimate
+          // account owner was never informed that someone was brute-forcing their account.
+          // Standard: NIST SP 800-63B (Lockout Notification), OWASP ASVS 2.2.1.
+          enqueueSecurityAlertEmail(
+            normalizedEmail,
+            getEmailLocale(req) === 'ar' ? 'تم قفل حسابك مؤقتاً' : 'Account Temporarily Locked',
+            getEmailLocale(req) === 'ar'
+              ? `تم قفل حسابك مؤقتاً بسبب ${MAX_FAILED_ATTEMPTS} محاولات تسجيل دخول فاشلة متتالية. سيتم فتح الحساب تلقائياً بعد ${LOCKOUT_DURATION_MINUTES} دقيقة. إذا لم تكن أنت من حاول تسجيل الدخول، يُرجى تغيير كلمة المرور فوراً.`
+              : `Your account has been temporarily locked after ${MAX_FAILED_ATTEMPTS} consecutive failed login attempts. It will automatically unlock after ${LOCKOUT_DURATION_MINUTES} minutes. If this was not you, please change your password immediately.`,
+            clientIp,
+            getEmailLocale(req),
+            { sourceAction: 'lockout' },
+          );
         }
       };
 
@@ -523,6 +540,23 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
 
     // Fetch all active roles for multi-role JWT
     // UNIFIED CITIZEN: All users have all roles. primaryRole used for JWT generation.
+
+    // ── MFA Challenge Gate (Migration 046) ─────────────────────────────────
+    // If user has MFA enabled, return a short-lived challenge token instead
+    // of the real JWT. The frontend must present the TOTP input screen and
+    // call /api/auth/mfa/verify with the challenge token + 6-digit code.
+    // Standard: NIST SP 800-63B (AAL2), OWASP ASVS v4 §2.8
+    if (user.mfa_enabled) {
+      const mfaChallengeToken = generateMfaChallengeToken(user.user_id, remember);
+      res.json({
+        success: true,
+        data: {
+          mfa_required: true,
+          mfa_token: mfaChallengeToken,
+        },
+      } as ApiResponse);
+      return;
+    }
     const userRolesResult = await query<{ role_name: string; is_primary: boolean }>(
       `SELECT r.role_name, ur.is_primary FROM user_roles ur
                  JOIN roles r ON r.role_id = ur.role_id
@@ -579,6 +613,11 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
           roles: allRoles.length > 0 ? allRoles : [user.role],
           is_active: user.is_active,
           is_email_verified: user.is_email_verified,
+          // GDPR-047: If account is soft-deleted, include deletion info
+          ...(user.deleted_at ? {
+            deletion_pending: true,
+            deletion_scheduled_at: user.deletion_scheduled_at?.toISOString?.() ?? null,
+          } : {}),
         },
         // MOB-AUTH-001: Token only included for mobile clients
         ...(isMobileClient ? { token } : {}),
@@ -747,10 +786,9 @@ router.post(
       const baseUrl = process.env['APP_BASE_URL'] ?? 'https://nammerha.com';
       // P1-W5-001 FIX: Include email so verify-email page pre-fills the Sign In link.
       const verificationUrl = `${baseUrl}/verify-email.html?token=${newToken}&email=${encodeURIComponent(user.email)}`;
-      sendVerificationEmail(user.email, verificationUrl, getEmailLocale(req)).catch((err) => {
-        logger.error('Auth: Resend verification email failed', {
-          error: err instanceof Error ? err.message : String(err),
-        });
+      enqueueVerificationEmail(user.email, verificationUrl, getEmailLocale(req), {
+        sourceAction: 'resend_verification',
+        sourceUserId: user.user_id,
       });
 
       res.json(GENERIC_RESPONSE);
@@ -824,10 +862,9 @@ router.post(
         const baseUrl = process.env['APP_BASE_URL'] ?? 'https://nammerha.com';
         // P1-W5-001 FIX: Include email so verify-email page pre-fills the Sign In link.
         const verificationUrl = `${baseUrl}/verify-email.html?token=${verificationToken}&email=${encodeURIComponent(user.email)}`;
-        sendVerificationEmail(user.email, verificationUrl, getEmailLocale(req)).catch((err) => {
-          logger.error('Auth: Verification email dispatch failed (forgot-password redirect)', {
-            error: err instanceof Error ? err.message : String(err),
-          });
+        enqueueVerificationEmail(user.email, verificationUrl, getEmailLocale(req), {
+          sourceAction: 'forgot_password_unverified',
+          sourceUserId: user.user_id,
         });
 
         logger.info('Auth: Unverified user hit forgot-password, sent verification instead', {
@@ -851,10 +888,9 @@ router.post(
       // Send reset email
       const baseUrl = process.env['APP_BASE_URL'] ?? 'https://nammerha.com';
       const resetUrl = `${baseUrl}/reset-password.html?token=${resetToken}`;
-      sendPasswordResetEmail(user.email, resetUrl, getEmailLocale(req)).catch((err) => {
-        logger.error('Auth: Password reset email failed', {
-          error: err instanceof Error ? err.message : String(err),
-        });
+      enqueuePasswordResetEmail(user.email, resetUrl, getEmailLocale(req), {
+        sourceAction: 'forgot_password',
+        sourceUserId: user.user_id,
       });
 
       logger.info('Auth: Password reset requested', { email: normalizedEmail });
@@ -968,7 +1004,7 @@ router.post(
       // their password was reset until their next login attempt.
       // Standard: NIST SP 800-63B (Password Reset Notification), OWASP ASVS 2.3.1.
       const resetIp = req.ip ?? req.socket.remoteAddress ?? 'unknown';
-      sendSecurityAlertEmail(
+      enqueueSecurityAlertEmail(
         user.email,
         getEmailLocale(req) === 'ar' ? 'تم إعادة تعيين كلمة المرور' : 'Password Reset',
         getEmailLocale(req) === 'ar'
@@ -976,11 +1012,8 @@ router.post(
           : 'The password for your Nammerha account has been successfully reset. If you did not request this, please contact support immediately.',
         resetIp,
         getEmailLocale(req),
-      ).catch((err) => {
-        logger.error('Auth: Password reset security alert email failed', {
-          error: err instanceof Error ? err.message : String(err),
-        });
-      });
+        { sourceAction: 'reset_password', sourceUserId: user.user_id },
+      );
 
       res.json({
         success: true,
@@ -1190,7 +1223,7 @@ router.post(
       // Standard: NIST SP 800-63B (Password Change Notification), OWASP ASVS 2.3.1.
       const changeIp = req.ip ?? req.socket.remoteAddress ?? 'unknown';
       const changeLang = getEmailLocale(req);
-      sendSecurityAlertEmail(
+      enqueueSecurityAlertEmail(
         user.email,
         changeLang === 'ar' ? 'تم تغيير كلمة المرور' : 'Password Changed',
         changeLang === 'ar'
@@ -1198,11 +1231,8 @@ router.post(
           : 'The password for your Nammerha account has been changed. If you did not perform this action, please secure your account immediately.',
         changeIp,
         changeLang,
-      ).catch((err) => {
-        logger.error('Auth: Password change security alert email failed', {
-          error: err instanceof Error ? err.message : String(err),
-        });
-      });
+        { sourceAction: 'change_password', sourceUserId: userId },
+      );
 
       res.json({
         success: true,

@@ -326,3 +326,53 @@ export function requireActive(req: Request, res: Response, next: NextFunction): 
 // role names in error messages ("Required role: admin or auditor"), giving attackers
 // intelligence about the access control structure.
 // Import from: '../middleware/role-guard.middleware'
+
+// ─── MFA Challenge Token (Migration 046) ────────────────────────────────────
+// Short-lived JWT for the MFA login challenge. This token:
+//   - Expires in 5 minutes (user must enter TOTP code quickly)
+//   - Has type: 'mfa_challenge' to prevent use as a session token
+//   - Contains the userId so the MFA verify endpoint knows who to check
+//   - Does NOT grant access to any protected endpoints
+
+interface MfaChallengePayload {
+  sub: string;
+  type: 'mfa_challenge';
+  remember?: boolean;
+}
+
+/**
+ * Generates a short-lived MFA challenge token after successful password verification.
+ * This token is NOT a session token — it can only be used with /api/auth/mfa/verify.
+ */
+export function generateMfaChallengeToken(userId: string, remember?: boolean): string {
+  if (!JWT_SECRET) {
+    throw new Error('[AUTH FATAL] JWT_SECRET is required for MFA challenge token generation');
+  }
+  return jwt.sign(
+    { sub: userId, type: 'mfa_challenge', remember: remember ?? false } satisfies MfaChallengePayload,
+    JWT_SECRET,
+    { expiresIn: '5m', algorithm: 'HS256' } as jwt.SignOptions,
+  );
+}
+
+/**
+ * Verifies an MFA challenge token and extracts the userId.
+ * Throws if the token is expired, invalid, or not an MFA challenge token.
+ */
+export function verifyMfaChallengeToken(token: string): { userId: string; remember: boolean } {
+  if (!JWT_SECRET) {
+    throw new Error('[AUTH FATAL] JWT_SECRET is required for MFA challenge token verification');
+  }
+  const payload = jwt.verify(token, JWT_SECRET, {
+    algorithms: ['HS256'],
+  }) as MfaChallengePayload;
+
+  if (payload.type !== 'mfa_challenge') {
+    throw new Error('Invalid token type — expected MFA challenge token');
+  }
+
+  return {
+    userId: payload.sub,
+    remember: payload.remember ?? false,
+  };
+}

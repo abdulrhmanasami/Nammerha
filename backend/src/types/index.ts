@@ -89,6 +89,13 @@ export interface User {
     // JWT revocation timestamp (PLAT-AUD-003 FIX: was missing from type)
     // Auth middleware checks: if token.iat < token_invalidated_at, reject JWT
     token_invalidated_at: Date | null;
+    // MFA/2FA (Migration 046)
+    mfa_enabled: boolean;
+    mfa_enforced_at: Date | null;
+    // GDPR Account Deletion (Migration 047)
+    deleted_at: Date | null;
+    deletion_scheduled_at: Date | null;
+    deletion_reason: string | null;
     created_at: Date;
     updated_at: Date;
 }

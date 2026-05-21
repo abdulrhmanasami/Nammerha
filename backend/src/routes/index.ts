@@ -60,6 +60,8 @@ import subscriptionRoutes from './subscription.routes';
 import enterpriseRoutes from './enterprise.routes';
 import socialAuthRoutes from './social-auth.routes';
 import contractPaymentRoutes from './contract-payment.routes';
+import mfaRoutes from './mfa.routes';
+import accountDeletionRoutes from './account-deletion.routes';
 
 /**
  * Register all API routes on the Express app.
@@ -76,6 +78,14 @@ export function registerRoutes(app: Express): void {
 
     // ── Social OAuth (Google, Apple, Facebook) — same limiter as auth ────────
     app.use('/api/auth', express.json({ limit: '10kb' }), authLimiter, socialAuthRoutes);
+
+    // ── MFA/2FA (TOTP Authenticator) — same auth body limit ─────────────────
+    // MFA routes have their own stricter rate limiters internally (5 attempts/15min).
+    app.use('/api/auth/mfa', express.json({ limit: '10kb' }), mfaRoutes);
+
+    // ── Account Deletion (GDPR Art. 17) — same auth body limit ──────────────
+    // Deletion routes have their own strict rate limiter (3 attempts/hour).
+    app.use('/api/auth/account', express.json({ limit: '10kb' }), accountDeletionRoutes);
 
     // ── Path 1: Homeowner → Engineer ─────────────────────────────────────────
     app.use('/api/projects', projectRoutes);

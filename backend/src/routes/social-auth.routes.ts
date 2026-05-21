@@ -20,7 +20,7 @@ import jwt from 'jsonwebtoken';
 import jwksClient from 'jwks-rsa';
 import { OAuth2Client } from 'google-auth-library';
 import { query } from '../config/database';
-import { generateToken } from '../middleware/auth.middleware';
+import { generateToken, generateMfaChallengeToken } from '../middleware/auth.middleware';
 import { logger } from '../utils/logger';
 import { safeRouteError } from '../utils/safe-error';
 import { z } from 'zod/v4';
@@ -69,6 +69,10 @@ const SocialAuthSchema = z.object({
   full_name: z.string().min(1).max(255).optional(),
   // BUG-004 FIX: Remember Me for 30-day sessions (parity with email login).
   remember: z.boolean().optional(),
+  // P1-REM-001 FIX: Frontend sends token_type to distinguish Facebook access_token
+  // from Google/Apple id_token. Without this, Zod strict mode strips it silently.
+  // Standard: Frontend-Backend Contract Parity, SEC-2 (Token Type Distinction).
+  token_type: z.enum(['id_token', 'access_token']).optional(),
 });
 
 // ─── Provider Verification Functions ────────────────────────────────────────
@@ -398,8 +402,9 @@ router.post('/social', socialAuthLimiter, async (req: Request, res: Response): P
       is_active: boolean;
       is_email_verified: boolean;
       avatar_url: string | null;
+      mfa_enabled: boolean;
     }>(
-      `SELECT user_id, email, full_name, role, is_active, is_email_verified, avatar_url
+      `SELECT user_id, email, full_name, role, is_active, is_email_verified, avatar_url, mfa_enabled
                  FROM users WHERE user_id = $1`,
       [userId],
     );
@@ -423,6 +428,20 @@ router.post('/social', socialAuthLimiter, async (req: Request, res: Response): P
     const allRoles = userRolesResult.rows.map((r) => r.role_name);
     const primaryRole = userRolesResult.rows.find((r) => r.is_primary)?.role_name ?? user.role;
     const rolesForToken = allRoles.length > 0 ? allRoles : [user.role];
+
+    // ── MFA Challenge Gate (Migration 046) ─────────────────────────────────
+    // Social login users with MFA enabled must also verify TOTP.
+    if (user.mfa_enabled && !isNewUser) {
+      const mfaChallengeToken = generateMfaChallengeToken(user.user_id, rememberFlag === true);
+      res.status(200).json({
+        success: true,
+        data: {
+          mfa_required: true,
+          mfa_token: mfaChallengeToken,
+        },
+      } as ApiResponse);
+      return;
+    }
 
     // Generate JWT
     // BUG-004 FIX: Support configurable expiry for Remember Me (30d), parity with email login.
@@ -496,16 +515,33 @@ async function createSocialUser(
   const defaultRole: UserRole = 'homeowner';
 
   // Create user with no password (social-only)
+  // P0-REM-002 FIX: Added ON CONFLICT (email) DO NOTHING to prevent 500 error
+  // from duplicate key constraint violation during concurrent social logins.
+  // Race condition: two providers (Google + Apple) register with same email
+  // simultaneously → first INSERT succeeds, second hits UNIQUE violation.
+  // Standard: PostgreSQL Upsert Pattern, CWE-362 (Race Condition).
   const userResult = await query<{ user_id: string }>(
     `INSERT INTO users (email, password_hash, full_name, role, avatar_url, is_active, is_email_verified)
          VALUES ($1, NULL, $2, $3, $4, TRUE, TRUE)
+         ON CONFLICT (email) DO NOTHING
          RETURNING user_id`,
     [email, fullName, defaultRole, socialUser.avatar_url],
   );
 
-  const userId = userResult.rows[0]?.user_id;
+  let userId = userResult.rows[0]?.user_id;
+
+  // P0-REM-002 FIX: Handle race condition — if another request created the user
+  // between our SELECT check (L334) and this INSERT, RETURNING is empty.
+  // Fall back to SELECT to find the existing user and proceed with linking.
   if (!userId) {
-    throw new Error('Failed to create social user');
+    const existingUser = await query<{ user_id: string }>(
+      'SELECT user_id FROM users WHERE email = $1',
+      [email],
+    );
+    userId = existingUser.rows[0]?.user_id;
+    if (!userId) {
+      throw new Error('Failed to create social user');
+    }
   }
 
   // BUG-001 FIX: UNIFIED CITIZEN — Auto-assign ALL 5 roles (parity with auth.routes.ts L306-313).
@@ -537,6 +573,24 @@ async function createSocialUser(
     `INSERT INTO oauth_providers (user_id, provider, provider_user_id, provider_email, provider_avatar_url)
          VALUES ($1, $2, $3, $4, $5)`,
     [userId, provider, socialUser.provider_user_id, socialUser.email, socialUser.avatar_url],
+  );
+
+  // P1-REM-005 FIX: Audit trail for social user creation.
+  // PREVIOUS: Email registration logs implicitly via INSERT flow,
+  // but social registration had zero audit visibility.
+  // Standard: OWASP ASVS 7.1.1, Nammerha Radical Transparency.
+  await query(
+    `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
+     VALUES ('user_registered_social', 'user', $1, $1, $2)`,
+    [
+      userId,
+      JSON.stringify({
+        provider,
+        email,
+        full_name: fullName,
+        timestamp: new Date().toISOString(),
+      }),
+    ],
   );
 
   return userId;

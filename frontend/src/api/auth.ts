@@ -31,7 +31,11 @@ export const auth = {
       body: JSON.stringify(data),
     }),
   // GAP-002 FIX: Stubbed updatePassword endpoint for authenticated profile settings
-  updatePassword: (data: { current_password: string; new_password: string }) =>
+  // P1-REM-002 FIX: Added optional `remember` — backend change-password endpoint
+  // uses this to set JWT expiry (30d vs 24h). Without it, post-password-change
+  // sessions always expire in 24h even if user had "Remember Me" active.
+  // Standard: Session Persistence Parity, FinTech UX.
+  updatePassword: (data: { current_password: string; new_password: string; remember?: boolean }) =>
     request('/auth/change-password', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -100,6 +104,88 @@ export const auth = {
     request<{ revoked_count: number }>('/auth/sessions', {
       method: 'DELETE',
     }),
+
+  // ── MFA/2FA (Migration 046) ─────────────────────────────────────────────
+  // TOTP-based two-factor authentication endpoints.
+
+  /** Begin MFA enrollment — returns QR code + manual secret key */
+  mfaSetup: () =>
+    request<{ secret: string; otpauth_uri: string; qr_data_url: string }>(
+      '/auth/mfa/setup',
+      { method: 'POST' },
+    ),
+
+  /** Confirm enrollment with first TOTP code → returns recovery codes */
+  mfaConfirm: (data: { token: string }) =>
+    request<{ recovery_codes: string[]; message: string }>('/auth/mfa/confirm', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  /** Login MFA challenge — verify TOTP code */
+  mfaVerify: (data: { mfa_token: string; code: string }) =>
+    request<{ user: unknown }>('/auth/mfa/verify', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  /** Login MFA challenge — verify recovery code */
+  mfaRecovery: (data: { mfa_token: string; recovery_code: string }) =>
+    request<{ user: unknown }>('/auth/mfa/recovery', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  /** Disable MFA (requires password confirmation) */
+  mfaDisable: (data: { password: string }) =>
+    request('/auth/mfa/disable', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  /** Get MFA status for profile page */
+  mfaStatus: () =>
+    request<{
+      enabled: boolean;
+      enforced_at: string | null;
+      recovery_codes_remaining: number;
+    }>('/auth/mfa/status', { skipAntiFlicker: true }),
+
+  /** Regenerate recovery codes (old codes invalidated) */
+  mfaRegenerateCodes: () =>
+    request<{ recovery_codes: string[]; message: string }>('/auth/mfa/recovery-codes', {
+      method: 'POST',
+    }),
+
+  // ── Account Deletion (GDPR Art. 17) ─────────────────────────────────────
+
+  /** Request account deletion — requires password + confirmation text */
+  deleteAccount: (data: { password: string; confirmation: string; reason?: string }) =>
+    request<{
+      request_id: string;
+      grace_period_ends: string;
+      grace_period_days: number;
+      message: string;
+      message_ar: string;
+    }>('/auth/account/delete', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  /** Cancel pending account deletion */
+  cancelDeletion: () =>
+    request<{ message: string; message_ar: string }>('/auth/account/cancel-deletion', {
+      method: 'POST',
+    }),
+
+  /** Get account deletion status */
+  deletionStatus: () =>
+    request<{
+      deletion_pending: boolean;
+      deleted_at: string | null;
+      grace_period_ends: string | null;
+      days_remaining: number | null;
+    }>('/auth/account/deletion-status'),
 };
 
 // ─── SEC-001 FIX: Role Management (centralized) ────────────────────────────
