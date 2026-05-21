@@ -757,6 +757,24 @@
               كلمتا المرور غير متطابقتين
             </p>
           </div>
+          <!-- P1-DEEP-003 FIX: "Forgot Password?" accessibility from Register tab.
+             Scenario: User tries to register, realizes they already have an account,
+             but can't remember the password. Without this, they must:
+             1. Switch to Login tab → 2. Enter email again → 3. Click Forgot Password.
+             That's 3 steps when a direct link would take 1.
+             Design: Visually secondary (text-3xs, muted color) — doesn't compete with
+             primary "Next" flow. Text is contextual: "Already registered? Reset password."
+             Handler in auth.ts reads email from #reg-email (Step 1) automatically.
+             Standard: Nielsen #3 (User Control & Freedom), WCAG 2.4.5 (Multiple Ways). -->
+          <div class="text-center mt-1 mb-2">
+            <a
+              href="/reset-password.html"
+              id="reg-forgot-password-btn"
+              class="text-3xs text-slate-400 dark:text-slate-500 hover:text-trust-blue dark:hover:text-blue-400 transition-colors"
+              data-i18n="reg_forgot_password"
+              >لديك حساب سابق؟ أعد تعيين كلمة المرور</a
+            >
+          </div>
           <!-- Navigation -->
           <div class="flex gap-3">
             <!-- INC-2026-004 FIX: Canonical .nm-step-back class replaces 105+ chars inline Tailwind.

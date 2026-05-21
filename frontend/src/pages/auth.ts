@@ -246,6 +246,84 @@ function switchTab(mode: 'login' | 'register'): void {
 
 let currentRegStep = 1;
 
+// ─── P2-DEEP-001 FIX: Strict Name Validation ───────────────────────────────
+// PREVIOUS: Only checked `!name` (non-empty). Accepted "123456", "!!!", "🎉🎊".
+// These are not real human names and pollute the database.
+// DESIGN DECISIONS:
+//   - Min 2 chars: Backend parity (registerSchema.full_name.min(2)). Covers "Li", "عل"
+//   - Max 100 chars: Backend parity (registerSchema.full_name.max(100))
+//   - Must contain ≥1 Unicode letter (\p{L}): Rejects pure numbers/symbols/emoji
+//     while accepting ANY script (Arabic, Chinese, Cyrillic, Devanagari, Latin, etc.)
+//   - No digits anywhere: Real human names don't contain digits. "علي123" is invalid.
+//   - No dangerous chars (<>{}[]\): Defense-in-depth XSS layer (escapeHtml is primary)
+//   - Allows: spaces, hyphens, apostrophes, dots, commas (O'Brien, Al-Rashid, Jr.)
+// Standard: Nielsen #5 (Error Prevention), Unicode CLDR Name Validation,
+// OWASP Input Validation Cheat Sheet.
+// ─────────────────────────────────────────────────────────────────────────────
+const NAME_MIN_LENGTH = 2;
+const NAME_MAX_LENGTH = 100;
+
+interface NameValidationResult {
+  valid: boolean;
+  errorKey: string;
+  fallbackMsg: string;
+}
+
+function validateName(name: string): NameValidationResult {
+  const trimmed = name.trim();
+
+  // 1. Empty check
+  if (!trimmed) {
+    return { valid: false, errorKey: 'auth_name_required', fallbackMsg: 'الاسم مطلوب' };
+  }
+
+  // 2. Length bounds — backend parity (registerSchema L50)
+  if (trimmed.length < NAME_MIN_LENGTH) {
+    return {
+      valid: false,
+      errorKey: 'auth_name_too_short',
+      fallbackMsg: `الاسم قصير جداً (الحد الأدنى ${NAME_MIN_LENGTH} أحرف)`,
+    };
+  }
+  if (trimmed.length > NAME_MAX_LENGTH) {
+    return {
+      valid: false,
+      errorKey: 'auth_name_too_long',
+      fallbackMsg: `الاسم طويل جداً (الحد الأقصى ${NAME_MAX_LENGTH} حرف)`,
+    };
+  }
+
+  // 3. Must contain at least one Unicode letter — rejects "123", "!!!", "🎉🎊"
+  // \p{L} matches letters in ANY Unicode script (Arabic, Latin, CJK, Cyrillic, etc.)
+  if (!/\p{L}/u.test(trimmed)) {
+    return {
+      valid: false,
+      errorKey: 'auth_name_must_have_letters',
+      fallbackMsg: 'الاسم يجب أن يحتوي على أحرف',
+    };
+  }
+
+  // 4. No digits — no real human name contains numbers
+  if (/[0-9]/.test(trimmed)) {
+    return {
+      valid: false,
+      errorKey: 'auth_name_no_digits',
+      fallbackMsg: 'الاسم لا يجب أن يحتوي على أرقام',
+    };
+  }
+
+  // 5. No dangerous characters — defense-in-depth XSS prevention
+  if (/[<>{}[\]\\]/.test(trimmed)) {
+    return {
+      valid: false,
+      errorKey: 'auth_name_invalid_chars',
+      fallbackMsg: 'الاسم يحتوي على رموز غير مسموح بها',
+    };
+  }
+
+  return { valid: true, errorKey: '', fallbackMsg: '' };
+}
+
 // UX-REM-J002 FIX: Registration draft persistence.
 // PREVIOUS: User fills Step 1 (name, email) → accidentally closes tab → all input lost.
 // NOW: Saves non-sensitive fields (name, email) to sessionStorage on input.
@@ -430,6 +508,15 @@ function goToRegStep(targetStep: number): void {
 
   currentRegStep = targetStep;
 
+  // P2-DEEP-003 FIX: Re-trigger password strength meter on Step 2 navigation.
+  // PREVIOUS: If user fills Step 2 (password), goes to Step 3, then back to Step 2,
+  // the strength meter bars didn't reflect the current password value because the
+  // `input` event wasn't re-fired on step navigation.
+  // Standard: Nielsen #1 (Visibility of System Status), State Consistency.
+  if (targetStep === 2 && regPassword) {
+    updatePasswordStrength(regPassword.value, strengthBars, strengthLabel);
+  }
+
   // ── FRIC-003 FIX: Sync URL hash with wizard step ──
   // Enables browser back-button navigation between wizard steps.
   // Standard: Nielsen #3 (User Control & Freedom), History API best practices.
@@ -455,8 +542,10 @@ function validateCurrentStep(): boolean {
   if (currentRegStep === 1) {
     const name = (document.getElementById('reg-name') as HTMLInputElement)?.value.trim();
     const email = (document.getElementById('reg-email') as HTMLInputElement)?.value.trim();
-    if (!name) {
-      showBanner('error', t('auth_name_required', 'الاسم مطلوب'));
+    // P2-DEEP-001 FIX: Use validateName() for strict name validation.
+    const nameResult = validateName(name ?? '');
+    if (!nameResult.valid) {
+      showBanner('error', t(nameResult.errorKey, nameResult.fallbackMsg));
       scrollToField(document.getElementById('reg-name'));
       return false;
     }
@@ -790,10 +879,11 @@ function validateRegisterForm(): boolean {
   const passwordInput = document.getElementById('reg-password') as HTMLInputElement | null;
 
   // ── Step 1 fields (Identity) ──
-  // Check name
-  if (!nameInput?.value.trim()) {
+  // P2-DEEP-001 FIX: Use validateName() for strict name validation.
+  const nameResult = validateName(nameInput?.value ?? '');
+  if (!nameResult.valid) {
     goToRegStep(1); // PLAT-C01: Navigate to failing step
-    showBanner('error', t('auth_name_required', 'الاسم مطلوب'));
+    showBanner('error', t(nameResult.errorKey, nameResult.fallbackMsg));
     scrollToField(nameInput);
     return false;
   }
@@ -909,6 +999,29 @@ formLogin?.addEventListener('submit', async (e) => {
 
   if (!email || !password) {
     showBanner('error', t('auth_enter_email_password', 'أدخل البريد الإلكتروني وكلمة المرور'));
+    return;
+  }
+
+  // P1-DEEP-001 FIX: Email format validation — parity with registration (L470) and
+  // forgot-password (L1183). Without this, malformed emails like "user@" are sent to
+  // the backend, consuming a rate limit token and wasting 2-5s on Syria 2G.
+  // Standard: Nielsen #5 (Error Prevention), Client-Side Validation.
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  if (!emailRegex.test(email)) {
+    showBanner('error', t('auth_email_invalid', 'البريد الإلكتروني غير صالح'));
+    scrollToField(document.getElementById('login-email'));
+    return;
+  }
+
+  // P1-DEEP-002 FIX: Max password length check — parity with registration (L490) and
+  // reset-password (L270). Without this, a 1MB password transfers over Syria 2G,
+  // wastes bandwidth, and causes CPU starvation via bcrypt on the backend.
+  // The backend Zod schema (loginSchema) limits to 128 chars and returns 400, but
+  // the 1MB payload still transfers and consumes a rate limit token.
+  // Standard: SEC-003 (bcrypt DoS Prevention), Nielsen #5.
+  if (password.length > MAX_PASSWORD_LENGTH) {
+    showBanner('error', t('auth_password_too_long', 'كلمة المرور طويلة جداً (الحد ١٢٨)'));
+    scrollToField(document.getElementById('login-password'));
     return;
   }
 
@@ -1126,9 +1239,26 @@ formRegister?.addEventListener('submit', async (e) => {
       showBanner('error', response.error ?? t('auth_reg_failed', 'فشل إنشاء الحساب'));
     }
   } catch (err) {
-    const message =
-      err instanceof Error ? err.message : t('auth_network_error', 'خطأ في الشبكة. حاول مرة أخرى.');
-    showBanner('error', message);
+    // P0-DEEP-001 FIX: Detect structured ApiError codes from _client.ts.
+    // PREVIOUS: Only checked `err instanceof Error` — backend error codes (429 rate limit,
+    // SANCTIONS_BLOCK, EMAIL_BLACKLISTED) were discarded. Users saw generic "خطأ في الشبكة"
+    // for rate limiting. Parity with login handler (L966-1011).
+    // Standard: OWASP Error Handling, Nielsen #9 (Error Recovery).
+    if (err instanceof ApiError) {
+      if (err.status === 429) {
+        showBanner(
+          'error',
+          err.message ||
+            t('auth_rate_limited', 'محاولات كثيرة. يرجى الانتظار قبل المحاولة مرة أخرى.'),
+        );
+      } else {
+        showBanner('error', err.message || t('auth_reg_failed', 'فشل إنشاء الحساب'));
+      }
+    } else {
+      const message =
+        err instanceof Error ? err.message : t('auth_network_error', 'خطأ في الشبكة. حاول مرة أخرى.');
+      showBanner('error', message);
+    }
   } finally {
     state.isSubmitting = false;
     if (regSubmit) {
@@ -1144,32 +1274,47 @@ formRegister?.addEventListener('submit', async (e) => {
 // Was dynamically injected via document.createElement('style') — violated DRY principle.
 
 // ─── PLT-AUD-002: Forgot Password Handler ───────────────────────────────────
-// PLAT-M08 FIX: forgotBtn is an <a> element, not <button>. Previous code cast
-// it as HTMLButtonElement and used .disabled — which doesn't exist on <a>.
-// Now uses aria-disabled + pointer-events for proper anchor "disable" pattern.
-// Standard: TypeScript Type Safety, Nielsen #5 (Error Prevention).
-const forgotBtn = document.getElementById('forgot-password-btn') as HTMLAnchorElement | null;
-forgotBtn?.addEventListener('click', async (e) => {
-  e.preventDefault(); // Prevent mailto fallback when JS is available
+// ─── P1-DEEP-003 REFACTOR: Reusable Forgot Password Handler ────────────────
+// PREVIOUS: Monolithic closure on #forgot-password-btn hardcoded to #login-email.
+// PROBLEM: Register Step 2 users who already have an account can't access password
+// reset without: 1) switching to Login tab, 2) re-typing email, 3) clicking link.
+// NOW: Extracted into handleForgotPassword(triggerBtn, emailInputId) — shared by:
+//   - Login tab: #forgot-password-btn → reads #login-email
+//   - Register Step 2: #reg-forgot-password-btn → reads #reg-email
+// Standard: Nielsen #3 (User Control & Freedom), WCAG 2.4.5 (Multiple Ways),
+// DRY (Don't Repeat Yourself) — one handler, two entry points.
+// ─────────────────────────────────────────────────────────────────────────────
+async function handleForgotPassword(
+  triggerBtn: HTMLAnchorElement,
+  emailInputId: string,
+): Promise<void> {
   // P2-W6-007 FIX: Normalize email to lowercase before submission.
-  const email = (document.getElementById('login-email') as HTMLInputElement)?.value
-    .trim()
-    .toLowerCase();
+  const emailInput = document.getElementById(emailInputId) as HTMLInputElement | null;
+  const email = emailInput?.value.trim().toLowerCase() ?? '';
+
   if (!email) {
-    // M-AUD-003 FIX: Focus the email field with guiding instruction.
-    const loginEmailInput = document.getElementById('login-email') as HTMLInputElement | null;
-    if (loginEmailInput) {
-      loginEmailInput.focus();
-      // DEF-FLASH-001 FIX: Replaced setTimeout + 3 Tailwind classes with CSS animation.
-      // Previous: add('ring-2', 'ring-trust-blue/50', 'border-trust-blue')
-      //   + setTimeout(remove, 3000) — 4 classes + timing hack.
-      // Standard: P1-SST-001 governance, CSS-driven animation, zero setTimeout.
-      loginEmailInput.classList.add('nm-input-flash-focus');
-      loginEmailInput.addEventListener(
+    // If the email field is empty, guide the user to fill it.
+    // For login tab: focus the login email field directly.
+    // For register tab: navigate to Step 1 where the email field lives,
+    // then focus it — because Step 2 doesn't have an email field.
+    if (emailInputId === 'reg-email') {
+      // Navigate to Step 1 first (where #reg-email lives), then focus
+      goToRegStep(1);
+      requestAnimationFrame(() => {
+        emailInput?.focus();
+        emailInput?.classList.add('nm-input-flash-focus');
+        emailInput?.addEventListener(
+          'animationend',
+          () => emailInput?.classList.remove('nm-input-flash-focus'),
+          { once: true },
+        );
+      });
+    } else if (emailInput) {
+      emailInput.focus();
+      emailInput.classList.add('nm-input-flash-focus');
+      emailInput.addEventListener(
         'animationend',
-        () => {
-          loginEmailInput.classList.remove('nm-input-flash-focus');
-        },
+        () => emailInput.classList.remove('nm-input-flash-focus'),
         { once: true },
       );
     }
@@ -1178,50 +1323,75 @@ forgotBtn?.addEventListener('click', async (e) => {
   }
 
   // P2-AUD-008 FIX: Validate email format before API call.
-  // PREVIOUS: Malformed emails passed through to the backend, wasting a rate limit token.
-  // Standard: Nielsen #5 (Error Prevention), Client-Side Validation.
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   if (!emailRegex.test(email)) {
     showBanner('error', t('auth_forgot_invalid_email', 'صيغة البريد الإلكتروني غير صحيحة'));
     return;
   }
 
-  if (forgotBtn) {
-    // GAP-2026-001 FIX: Added spinner icon for visual loading consistency.
-    // Previous: text-only change "Sending..." — no visual loading indicator.
-    // Standard: Design System Governance (all loading states must show spinners).
-    forgotBtn.innerHTML = `<i class="ph ph-spinner animate-spin text-sm" aria-hidden="true"></i> ${esc(t('auth_forgot_sending', 'جاري الإرسال…'))}`;
-    forgotBtn.setAttribute('aria-disabled', 'true');
-    // P1-AUD4-002 FIX: Replaced inline style.pointerEvents + style.opacity with CSS class.
-    // Previous: forgotBtn.style.pointerEvents = 'none'; forgotBtn.style.opacity = '0.5'
-    // Standard: P1-001 precedent — CSS Single Source of Truth.
-    forgotBtn.classList.add('nm-btn-cooldown');
-  }
+  // Show loading state on the trigger button
+  const originalHTML = triggerBtn.innerHTML;
+  triggerBtn.innerHTML = `<i class="ph ph-spinner animate-spin text-sm" aria-hidden="true"></i> ${esc(t('auth_forgot_sending', 'جاري الإرسال…'))}`;
+  triggerBtn.setAttribute('aria-disabled', 'true');
+  triggerBtn.classList.add('nm-btn-cooldown');
 
   try {
     const data = await auth.forgotPassword({ email });
     if (data.success) {
-      showBanner('success', data.message ?? t('auth_forgot_sent', 'تم إرسال رابط إعادة التعيين!'));
+      // P2-DEEP-005 FIX: Anti-enumeration wording.
+      // PREVIOUS: showBanner('success', data.message ?? t('auth_forgot_sent', '...'))
+      //   - data.message is the ENGLISH backend string — shown raw to ar/de/fr/tr users.
+      //   - Fallback 'تم إرسال رابط إعادة التعيين!' is affirmative — leaks existence.
+      // NOW: Always use the i18n-translated anti-enumeration message.
+      // Wording: "If your email is registered, you'll receive a reset link."
+      // This is identical regardless of whether the email exists — OWASP SEC-009.
+      // Standard: OWASP Authentication Cheat Sheet, NIST 800-63B §5.1.1.2.
+      const mainMsg = t(
+        'auth_forgot_sent',
+        'إذا كان بريدك مسجّلاً لدينا، ستصلك رسالة لإعادة تعيين كلمة المرور.',
+      );
+      // Follow-up hint: check spam/junk — many Syrian ISPs aggressively filter
+      const spamHint = t(
+        'auth_forgot_check_spam',
+        'تحقق من مجلد الرسائل غير المرغوبة (Spam) إذا لم تصلك الرسالة.',
+      );
+      showBanner('success', `${mainMsg} ${spamHint}`);
     } else {
       showBanner('error', data.error ?? t('auth_forgot_error', 'فشل الإرسال. حاول مرة أخرى.'));
     }
   } catch (err) {
-    showBanner(
-      'error',
-      err instanceof Error ? err.message : t('auth_network_error', 'خطأ في الشبكة. حاول مرة أخرى.'),
-    );
-  } finally {
-    if (forgotBtn) {
-      // P2-AUTH-003 FIX: Restore the ORIGINAL i18n key and text, not the
-      // action text "Send reset link". The link should revert to "Forgot Password?".
-      // PREVIOUS: t('auth_forgot_link_text', 'إرسال رابط إعادة التعيين') — permanently
-      // changed the link text after the API call completed.
-      forgotBtn.innerHTML = `<span data-i18n="forgot_password">${esc(t('forgot_password', 'نسيت كلمة المرور؟'))}</span>`;
-      forgotBtn.removeAttribute('aria-disabled');
-      // P1-AUD4-002 FIX: Remove CSS cooldown class (replaces inline style reset).
-      forgotBtn.classList.remove('nm-btn-cooldown');
+    if (err instanceof ApiError) {
+      if (err.status === 429) {
+        showBanner('error', err.message || t('auth_rate_limited', 'محاولات كثيرة. يرجى الانتظار.'));
+      } else {
+        showBanner('error', err.message || t('auth_forgot_error', 'فشل الإرسال. حاول مرة أخرى.'));
+      }
+    } else {
+      showBanner(
+        'error',
+        err instanceof Error ? err.message : t('auth_network_error', 'خطأ في الشبكة. حاول مرة أخرى.'),
+      );
     }
+  } finally {
+    // Restore original button content
+    triggerBtn.innerHTML = originalHTML;
+    triggerBtn.removeAttribute('aria-disabled');
+    triggerBtn.classList.remove('nm-btn-cooldown');
   }
+}
+
+// Wire Login tab "Forgot Password?" button
+const forgotBtn = document.getElementById('forgot-password-btn') as HTMLAnchorElement | null;
+forgotBtn?.addEventListener('click', async (e) => {
+  e.preventDefault();
+  await handleForgotPassword(forgotBtn, 'login-email');
+});
+
+// Wire Register Step 2 "Already registered? Reset password" button
+const regForgotBtn = document.getElementById('reg-forgot-password-btn') as HTMLAnchorElement | null;
+regForgotBtn?.addEventListener('click', async (e) => {
+  e.preventDefault();
+  await handleForgotPassword(regForgotBtn, 'reg-email');
 });
 
 // ─── P0-AUTH-003 FIX: Email Sent Confirmation Panel ─────────────────────────
@@ -1561,12 +1731,15 @@ async function handleLoginRedirect(
 // Standard: NIST SP 800-63B (AAL2), Apple HIG (2FA Verification Screens).
 
 function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
-  // Hide login and register forms
-  if (formLogin) formLogin.style.display = 'none';
-  if (formRegister) formRegister.style.display = 'none';
+  // P0-DEEP-003 FIX: Use nm-hidden class instead of style.display.
+  // PREVIOUS: style.display = 'none' violated P1-SST-001 (CSS Single Source of Truth)
+  // and could race with switchTab() which uses CSS classes.
+  // Standard: Design System Governance, CSS Single Source of Truth.
+  if (formLogin) formLogin.classList.add('nm-hidden');
+  if (formRegister) formRegister.classList.add('nm-hidden');
   // Hide tabs
-  if (tabLogin) tabLogin.style.display = 'none';
-  if (tabRegister) tabRegister.style.display = 'none';
+  if (tabLogin) tabLogin.classList.add('nm-hidden');
+  if (tabRegister) tabRegister.classList.add('nm-hidden');
   hideBanner();
 
   // Create MFA panel
@@ -1574,55 +1747,53 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
   mfaPanel.id = 'mfa-challenge-panel';
   mfaPanel.setAttribute('role', 'form');
   mfaPanel.setAttribute('aria-label', t('mfa_verification', 'التحقق بخطوتين'));
+  // P0-DEEP-004 FIX: All inline styles converted to Tailwind classes.
+  // PREVIOUS: ~30 inline style declarations (style="text-align:center; padding-block:1.5rem;" etc.)
+  // Inline styles cannot be overridden by dark: variants, cannot be themed, and
+  // violate AGENTS.md: "NEVER use inline styles for layout."
+  // Standard: Design System Governance, Dark Mode Parity, AGENTS.md.
   mfaPanel.innerHTML = `
-    <div style="text-align:center; padding-block:1.5rem;">
-      <div style="font-size:2.5rem; margin-block-end:0.75rem;">🔐</div>
-      <h2 style="font-size:1.25rem; font-weight:700; color:var(--nm-text-primary, #242424); margin-block-end:0.5rem;">
+    <div class="text-center py-6">
+      <div class="text-[2.5rem] mb-3">🔐</div>
+      <h2 class="text-xl font-bold text-[color:var(--nm-text-primary,#242424)] dark:text-white mb-2">
         ${esc(t('mfa_title', 'التحقق بخطوتين'))}
       </h2>
-      <p style="font-size:0.875rem; color:var(--nm-text-secondary, #666); margin-block-end:1.5rem;">
+      <p class="text-sm text-[color:var(--nm-text-secondary,#666)] dark:text-slate-400 mb-6">
         ${esc(t('mfa_subtitle', 'أدخل الرمز المكوّن من 6 أرقام من تطبيق المصادقة'))}
       </p>
 
       <!-- TOTP Code Inputs -->
       <div id="mfa-totp-section">
-        <div id="mfa-code-inputs" style="display:flex; gap:0.5rem; justify-content:center; margin-block-end:1rem; direction:ltr;">
-          <input type="text" inputmode="numeric" maxlength="1" class="nm-input" data-mfa-digit="0"
-            style="width:3rem; height:3.5rem; text-align:center; font-size:1.5rem; font-weight:700; padding:0;" autocomplete="one-time-code" />
-          <input type="text" inputmode="numeric" maxlength="1" class="nm-input" data-mfa-digit="1"
-            style="width:3rem; height:3.5rem; text-align:center; font-size:1.5rem; font-weight:700; padding:0;" />
-          <input type="text" inputmode="numeric" maxlength="1" class="nm-input" data-mfa-digit="2"
-            style="width:3rem; height:3.5rem; text-align:center; font-size:1.5rem; font-weight:700; padding:0;" />
-          <input type="text" inputmode="numeric" maxlength="1" class="nm-input" data-mfa-digit="3"
-            style="width:3rem; height:3.5rem; text-align:center; font-size:1.5rem; font-weight:700; padding:0;" />
-          <input type="text" inputmode="numeric" maxlength="1" class="nm-input" data-mfa-digit="4"
-            style="width:3rem; height:3.5rem; text-align:center; font-size:1.5rem; font-weight:700; padding:0;" />
-          <input type="text" inputmode="numeric" maxlength="1" class="nm-input" data-mfa-digit="5"
-            style="width:3rem; height:3.5rem; text-align:center; font-size:1.5rem; font-weight:700; padding:0;" />
+        <div id="mfa-code-inputs" class="flex gap-2 justify-center mb-4" style="direction:ltr;">
+          <input type="text" inputmode="numeric" maxlength="1" class="nm-input nm-mfa-digit" data-mfa-digit="0" autocomplete="one-time-code" />
+          <input type="text" inputmode="numeric" maxlength="1" class="nm-input nm-mfa-digit" data-mfa-digit="1" />
+          <input type="text" inputmode="numeric" maxlength="1" class="nm-input nm-mfa-digit" data-mfa-digit="2" />
+          <input type="text" inputmode="numeric" maxlength="1" class="nm-input nm-mfa-digit" data-mfa-digit="3" />
+          <input type="text" inputmode="numeric" maxlength="1" class="nm-input nm-mfa-digit" data-mfa-digit="4" />
+          <input type="text" inputmode="numeric" maxlength="1" class="nm-input nm-mfa-digit" data-mfa-digit="5" />
         </div>
-        <button id="mfa-verify-btn" type="button" class="nm-btn nm-btn-primary" style="width:100%; margin-block-end:1rem;">
+        <button id="mfa-verify-btn" type="button" class="nm-btn nm-btn-primary w-full mb-4">
           <span id="mfa-verify-text">${esc(t('mfa_verify_btn', 'تحقق'))}</span>
         </button>
       </div>
 
       <!-- Recovery Code Section (hidden by default) -->
       <div id="mfa-recovery-section" class="nm-hidden">
-        <input type="text" id="mfa-recovery-input" class="nm-input" placeholder="${esc(t('mfa_recovery_placeholder', 'XXXX-XXXX'))}"
-          style="text-align:center; font-size:1.125rem; font-weight:600; letter-spacing:0.1em; margin-block-end:1rem; text-transform:uppercase;" autocomplete="off" />
-        <button id="mfa-recovery-btn" type="button" class="nm-btn nm-btn-primary" style="width:100%; margin-block-end:1rem;">
+        <input type="text" id="mfa-recovery-input" class="nm-input text-center text-lg font-semibold tracking-widest mb-4 uppercase" placeholder="${esc(t('mfa_recovery_placeholder', 'XXXX-XXXX'))}" autocomplete="off" />
+        <button id="mfa-recovery-btn" type="button" class="nm-btn nm-btn-primary w-full mb-4">
           <span id="mfa-recovery-text">${esc(t('mfa_recovery_btn', 'استخدم رمز الاسترداد'))}</span>
         </button>
       </div>
 
       <!-- Error Display -->
-      <p id="mfa-error" class="nm-hidden" style="color:var(--nm-danger, #dc3545); font-size:0.8125rem; margin-block-end:1rem;"></p>
+      <p id="mfa-error" class="nm-hidden text-[color:var(--nm-danger,#dc3545)] dark:text-red-400 text-[0.8125rem] mb-4"></p>
 
       <!-- Toggle Links -->
-      <div style="display:flex; flex-direction:column; gap:0.5rem; align-items:center;">
-        <button id="mfa-toggle-recovery" type="button" class="nm-link" style="font-size:0.8125rem; background:none; border:none; cursor:pointer; color:var(--nm-trust-blue, #1558D6);">
+      <div class="flex flex-col gap-2 items-center">
+        <button id="mfa-toggle-recovery" type="button" class="nm-link text-[0.8125rem] bg-transparent border-none cursor-pointer text-trust-blue dark:text-blue-400">
           ${esc(t('mfa_use_recovery', 'استخدم رمز الاسترداد'))}
         </button>
-        <button id="mfa-back-to-login" type="button" class="nm-link" style="font-size:0.8125rem; background:none; border:none; cursor:pointer; color:var(--nm-text-secondary, #666);">
+        <button id="mfa-back-to-login" type="button" class="nm-link text-[0.8125rem] bg-transparent border-none cursor-pointer text-slate-500 dark:text-slate-400">
           ${esc(t('mfa_back_to_login', 'العودة لتسجيل الدخول'))}
         </button>
       </div>
@@ -1843,10 +2014,10 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
   // ── Back to Login ──
   document.getElementById('mfa-back-to-login')?.addEventListener('click', () => {
     mfaPanel.remove();
-    // Restore login form
-    if (formLogin) formLogin.style.display = '';
-    if (tabLogin) tabLogin.style.display = '';
-    if (tabRegister) tabRegister.style.display = '';
+    // P0-DEEP-003 FIX: Restore using nm-hidden class (parity with show).
+    if (formLogin) formLogin.classList.remove('nm-hidden');
+    if (tabLogin) tabLogin.classList.remove('nm-hidden');
+    if (tabRegister) tabRegister.classList.remove('nm-hidden');
     state.isSubmitting = false;
   });
 
@@ -2040,11 +2211,22 @@ function initGoogleSignIn(): void {
                   'Google',
                 );
               } catch (err) {
-                const msg =
-                  err instanceof Error
-                    ? err.message
-                    : t('auth_network_error', 'خطأ في الشبكة. حاول مرة أخرى.');
-                showBanner('error', msg);
+                // P1-DEEP-004 FIX: ApiError-aware catch for Google GSI callback.
+                // PREVIOUS: Only checked err instanceof Error — discarded 429, SOCIAL_ONLY_ACCOUNT.
+                // Standard: OWASP Error Handling, Parity with login handler.
+                if (err instanceof ApiError) {
+                  if (err.status === 429) {
+                    showBanner('error', err.message || t('auth_rate_limited', 'محاولات كثيرة. يرجى الانتظار.'));
+                  } else {
+                    showBanner('error', err.message || t('auth_login_failed', 'فشل تسجيل الدخول'));
+                  }
+                } else {
+                  const msg =
+                    err instanceof Error
+                      ? err.message
+                      : t('auth_network_error', 'خطأ في الشبكة. حاول مرة أخرى.');
+                  showBanner('error', msg);
+                }
               } finally {
                 setSocialBtnLoading(btn, false);
               }
@@ -2132,11 +2314,22 @@ function openGoogleOAuthPopup(clientId: string): void {
     return;
   }
 
+  // P1-DEEP-005 FIX: Belt-and-suspenders tabnabbing defense for Firefox.
+  // `noopener` in window.open features string is only reliably supported in
+  // Chromium. Firefox ignores it, leaving window.opener accessible to the popup.
+  // Standard: OWASP Tabnabbing Prevention, Defense-in-Depth.
+  try { popup.opener = null; } catch { /* cross-origin — safe */ }
+
   // P1-W6-001 UPGRADE: Use tracked interval for pagehide cleanup.
   const pollTimer = createTrackedInterval(async () => {
     try {
       if (popup.closed) {
         clearTrackedInterval(pollTimer);
+        // P2-DEEP-007 FIX: Clean stale OAuth state on popup cancel.
+        // PREVIOUS: sessionStorage.__google_oauth_state lingered after user closed
+        // the popup without completing OAuth. Harmless but unnecessary stale data.
+        // Standard: State Hygiene, Defense-in-Depth.
+        try { sessionStorage.removeItem('__google_oauth_state'); } catch { /* ignore */ }
         return;
       }
       // Check if the popup has navigated back to our origin
@@ -2197,11 +2390,20 @@ function openGoogleOAuthPopup(clientId: string): void {
               'Google',
             );
           } catch (err) {
-            const msg =
-              err instanceof Error
-                ? err.message
-                : t('auth_network_error', 'خطأ في الشبكة. حاول مرة أخرى.');
-            showBanner('error', msg);
+            // P1-DEEP-004 FIX: ApiError-aware catch for Google popup callback.
+            if (err instanceof ApiError) {
+              if (err.status === 429) {
+                showBanner('error', err.message || t('auth_rate_limited', 'محاولات كثيرة. يرجى الانتظار.'));
+              } else {
+                showBanner('error', err.message || t('auth_login_failed', 'فشل تسجيل الدخول'));
+              }
+            } else {
+              const msg =
+                err instanceof Error
+                  ? err.message
+                  : t('auth_network_error', 'خطأ في الشبكة. حاول مرة أخرى.');
+              showBanner('error', msg);
+            }
           }
         }
       }
@@ -2316,11 +2518,20 @@ function initAppleSignIn(): void {
         if (err instanceof Error && err.message.includes('popup_closed')) {
           // Silent — user just closed the popup
         } else {
-          const msg =
-            err instanceof Error
-              ? err.message
-              : t('auth_network_error', 'خطأ في الشبكة. حاول مرة أخرى.');
-          showBanner('error', msg);
+          // P1-DEEP-004 FIX: ApiError-aware catch for Apple Sign-In.
+          if (err instanceof ApiError) {
+            if (err.status === 429) {
+              showBanner('error', err.message || t('auth_rate_limited', 'محاولات كثيرة. يرجى الانتظار.'));
+            } else {
+              showBanner('error', err.message || t('auth_login_failed', 'فشل تسجيل الدخول'));
+            }
+          } else {
+            const msg =
+              err instanceof Error
+                ? err.message
+                : t('auth_network_error', 'خطأ في الشبكة. حاول مرة أخرى.');
+            showBanner('error', msg);
+          }
         }
       } finally {
         setSocialBtnLoading(btn, false);
@@ -2330,50 +2541,127 @@ function initAppleSignIn(): void {
 }
 
 // ─── Facebook Login ─────────────────────────────────────────────────────────
-// OAUTH-FIX-002: Added FB.init() — was completely missing before.
-// Without FB.init(), the Facebook SDK loads but never initializes,
-// causing FB.login() to be undefined.
-// Docs: https://developers.facebook.com/docs/facebook-login/web
+// P1-DEEP-006 FIX: Proper lazy loading of the Facebook SDK.
+// PREVIOUS STATE (broken):
+//   - UX-F019 removed the <script src="connect.facebook.net"> from auth.html ✅
+//   - But NEVER added a dynamic loader to replace it ❌
+//   - initFBSDK() set fbAsyncInit + checked window.FB, but the script was never loaded
+//   - Result: FB.login was always undefined → 10× 200ms polls → "not configured" banner
+//   - Facebook login was 100% broken with zero user-facing error explanation
+// NOW:
+//   - loadFacebookSDK() dynamically injects <script> on first Facebook button click
+//   - Returns a Promise<FB> that resolves when fbAsyncInit fires
+//   - Cached via module-scoped fbSDKPromise — subsequent clicks resolve instantly
+//   - 8-second timeout for blocked networks (Syrian ISPs may block Facebook)
+//   - CSP nonce support via existing <script> tag nonce detection
+// Standard: PRPL Pattern, Web Vitals (lazy third-party), OWASP (CSP compliance).
+// ─────────────────────────────────────────────────────────────────────────────
 
-// Initialize Facebook SDK
-(function initFBSDK() {
+/** Facebook SDK interface — only the methods we use */
+interface FacebookSDK {
+  init: (config: { appId: string; cookie: boolean; xfbml: boolean; version: string }) => void;
+  login: (
+    callback: (response: { authResponse?: { accessToken: string } }) => void,
+    options: { scope: string },
+  ) => void;
+  getLoginStatus: (
+    callback: (response: {
+      status: string;
+      authResponse?: { accessToken: string };
+    }) => void,
+  ) => void;
+}
+
+/** Cached SDK load promise — ensures we only inject the script once */
+let fbSDKPromise: Promise<FacebookSDK> | null = null;
+
+/**
+ * Lazy-load the Facebook SDK by dynamically injecting the <script> tag.
+ * Returns a Promise that resolves with the initialized FB object.
+ *
+ * Why not load eagerly?
+ *   - Facebook SDK is ~300KB+ (gzipped ~90KB)
+ *   - On Syrian 2G/3G networks, this adds 5-10s to page load
+ *   - Most users use email or Google login — only ~5% click Facebook
+ *   - PRPL pattern: load what you need, when you need it
+ */
+function loadFacebookSDK(): Promise<FacebookSDK> {
+  // Return cached promise if SDK is already loading/loaded
+  if (fbSDKPromise) {
+    return fbSDKPromise;
+  }
+
   const fbAppId = (window as unknown as Record<string, unknown>).__FACEBOOK_APP_ID__ as
     | string
     | undefined;
+
   if (!fbAppId) {
-    return;
+    return Promise.reject(new Error('Facebook App ID not configured'));
   }
 
-  // fbAsyncInit is called by the Facebook SDK when it finishes loading
-  (window as unknown as Record<string, unknown>).fbAsyncInit = function () {
-    const FB = (window as unknown as Record<string, unknown>).FB as
-      | {
-          init: (config: Record<string, unknown>) => void;
-        }
-      | undefined;
-    FB?.init({
-      appId: fbAppId,
-      cookie: true,
-      xfbml: false,
-      version: 'v19.0',
-    });
-  };
+  fbSDKPromise = new Promise<FacebookSDK>((resolve, reject) => {
+    // If FB is already on window (e.g., loaded by another integration), init and resolve
+    const existingFB = (window as unknown as Record<string, unknown>).FB as FacebookSDK | undefined;
+    if (existingFB?.login) {
+      existingFB.init({ appId: fbAppId, cookie: true, xfbml: false, version: 'v19.0' });
+      resolve(existingFB);
+      return;
+    }
 
-  // If FB SDK already loaded before this code ran
-  const FB = (window as unknown as Record<string, unknown>).FB as
-    | {
-        init: (config: Record<string, unknown>) => void;
+    // Set up fbAsyncInit — called by the SDK when it finishes loading
+    (window as unknown as Record<string, unknown>).fbAsyncInit = function () {
+      const FB = (window as unknown as Record<string, unknown>).FB as FacebookSDK | undefined;
+      if (!FB) {
+        reject(new Error('Facebook SDK loaded but FB object not found'));
+        return;
       }
-    | undefined;
-  if (FB?.init) {
-    FB.init({
-      appId: fbAppId,
-      cookie: true,
-      xfbml: false,
-      version: 'v19.0',
-    });
-  }
-})();
+      FB.init({ appId: fbAppId, cookie: true, xfbml: false, version: 'v19.0' });
+      resolve(FB);
+    };
+
+    // Dynamically inject the <script> tag
+    const script = document.createElement('script');
+    script.src = 'https://connect.facebook.net/en_US/sdk.js';
+    script.async = true;
+    script.defer = true;
+    // CSP nonce: inherit from the existing auth module script tag if available
+    const existingScript = document.querySelector<HTMLScriptElement>('script[nonce]');
+    if (existingScript?.nonce) {
+      script.nonce = existingScript.nonce;
+    }
+
+    script.onerror = () => {
+      // Facebook SDK blocked by ISP, firewall, or ad blocker
+      fbSDKPromise = null; // Allow retry on next click
+      reject(new Error('Facebook SDK failed to load'));
+    };
+
+    // Timeout: if SDK doesn't load within 8 seconds, reject
+    // Syrian mobile networks can be extremely slow — 8s is generous but finite
+    const timeoutId = setTimeout(() => {
+      fbSDKPromise = null; // Allow retry on next click
+      reject(new Error('Facebook SDK load timeout'));
+    }, 8000);
+
+    // Clear timeout when fbAsyncInit fires (via resolve above)
+    const originalInit = (window as unknown as Record<string, unknown>).fbAsyncInit as () => void;
+    (window as unknown as Record<string, unknown>).fbAsyncInit = function () {
+      clearTimeout(timeoutId);
+      originalInit();
+    };
+
+    // Add fb-root div required by the SDK (if not already present)
+    if (!document.getElementById('fb-root')) {
+      const fbRoot = document.createElement('div');
+      fbRoot.id = 'fb-root';
+      document.body.appendChild(fbRoot);
+    }
+
+    document.head.appendChild(script);
+  });
+
+  return fbSDKPromise;
+}
 
 function initFacebookLogin(): void {
   document.querySelectorAll<HTMLButtonElement>('[data-sso-provider="facebook"]').forEach((btn) => {
@@ -2385,37 +2673,8 @@ function initFacebookLogin(): void {
       setSocialBtnLoading(btn, true);
 
       try {
-        // Wait up to 2s for FB SDK to initialize
-        let FB = (window as unknown as Record<string, unknown>).FB as
-          | {
-              login: (
-                callback: (response: { authResponse?: { accessToken: string } }) => void,
-                options: { scope: string },
-              ) => void;
-              getLoginStatus: (
-                callback: (response: {
-                  status: string;
-                  authResponse?: { accessToken: string };
-                }) => void,
-              ) => void;
-            }
-          | undefined;
-
-        if (!FB?.login) {
-          for (let i = 0; i < 10; i++) {
-            await new Promise((r) => setTimeout(r, 200));
-            FB = (window as unknown as Record<string, unknown>).FB as typeof FB;
-            if (FB?.login) {
-              break;
-            }
-          }
-        }
-
-        if (!FB?.login) {
-          showBanner('info', t('auth_facebook_not_configured', 'تسجيل Facebook غير مهيأ بعد'));
-          setSocialBtnLoading(btn, false);
-          return;
-        }
+        // P1-DEEP-006: Lazy-load SDK on first click
+        const FB = await loadFacebookSDK();
 
         FB.login(
           async (fbResponse) => {
@@ -2443,20 +2702,42 @@ function initFacebookLogin(): void {
                 'Facebook',
               );
             } catch (err) {
-              const msg =
-                err instanceof Error
-                  ? err.message
-                  : t('auth_network_error', 'خطأ في الشبكة. حاول مرة أخرى.');
-              showBanner('error', msg);
+              // P1-DEEP-004 FIX: ApiError-aware catch for Facebook login.
+              if (err instanceof ApiError) {
+                if (err.status === 429) {
+                  showBanner('error', err.message || t('auth_rate_limited', 'محاولات كثيرة. يرجى الانتظار.'));
+                } else {
+                  showBanner('error', err.message || t('auth_login_failed', 'فشل تسجيل الدخول'));
+                }
+              } else {
+                const msg =
+                  err instanceof Error
+                    ? err.message
+                    : t('auth_network_error', 'خطأ في الشبكة. حاول مرة أخرى.');
+                showBanner('error', msg);
+              }
             } finally {
               setSocialBtnLoading(btn, false);
             }
           },
           { scope: 'email,public_profile' },
         );
-      } catch {
+      } catch (err) {
         setSocialBtnLoading(btn, false);
-        showBanner('error', t('auth_sso_unavailable', 'تسجيل الدخول الاجتماعي غير متاح حالياً'));
+        // P1-DEEP-006: Distinguish timeout/blocked from not-configured
+        if (err instanceof Error && err.message.includes('timeout')) {
+          showBanner(
+            'error',
+            t('auth_facebook_timeout', 'تعذّر تحميل Facebook. تحقق من اتصالك بالإنترنت.'),
+          );
+        } else if (err instanceof Error && err.message.includes('failed to load')) {
+          showBanner(
+            'error',
+            t('auth_facebook_blocked', 'تعذّر الوصول إلى Facebook. قد يكون محظوراً في شبكتك.'),
+          );
+        } else {
+          showBanner('info', t('auth_facebook_not_configured', 'تسجيل Facebook غير مهيأ بعد'));
+        }
       }
     });
   });
@@ -2573,4 +2854,38 @@ formRegister?.querySelectorAll<HTMLElement>('[data-step-dot]').forEach((dot) => 
 // ─────────────────────────────────────────────────────────────────────────────
 window.addEventListener('pagehide', () => {
   clearAllTrackedTimers();
+});
+
+// ─── P2-DEEP-006 FIX: Caps Lock Warning on Password Fields ─────────────────
+// Desktop users frequently type passwords with unintended Caps Lock, causing
+// repeated "Invalid password" errors. This adds a subtle warning indicator
+// that appears when Caps Lock is detected during a keypress on any password field.
+// Standard: Apple HIG (Input Guidance), Material Design 3 (Helper Text).
+// ─────────────────────────────────────────────────────────────────────────────
+document.querySelectorAll<HTMLInputElement>('input[type="password"]').forEach((pwField) => {
+  let capsWarning: HTMLElement | null = null;
+
+  function showCapsWarning(show: boolean): void {
+    if (show && !capsWarning) {
+      capsWarning = document.createElement('p');
+      capsWarning.className = 'text-xs font-medium text-amber-600 dark:text-amber-400 mt-1';
+      capsWarning.textContent = t('auth_caps_lock', '⚠ مفتاح Caps Lock مفعّل');
+      capsWarning.setAttribute('aria-live', 'polite');
+      pwField.parentElement?.appendChild(capsWarning);
+    } else if (!show && capsWarning) {
+      capsWarning.remove();
+      capsWarning = null;
+    }
+  }
+
+  pwField.addEventListener('keydown', (e: KeyboardEvent) => {
+    // getModifierState is supported in all modern browsers
+    if (typeof e.getModifierState === 'function') {
+      showCapsWarning(e.getModifierState('CapsLock'));
+    }
+  });
+
+  pwField.addEventListener('blur', () => {
+    showCapsWarning(false);
+  });
 });

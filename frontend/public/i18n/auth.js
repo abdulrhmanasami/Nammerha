@@ -102,7 +102,14 @@
         'auth_network_error': { ar: 'خطأ في الشبكة. حاول مرة أخرى.', de: 'Netzwerkfehler. Bitte erneut versuchen.', fr: 'Erreur réseau. Veuillez réessayer.', tr: 'Ağ hatası. Tekrar deneyin.' },
         'auth_forgot_enter_email': { ar: 'أدخل بريدك الإلكتروني', de: 'Geben Sie Ihre E-Mail ein', fr: 'Saisissez votre e-mail', tr: 'E-postanızı girin' },
         'auth_forgot_sending': { ar: 'جاري الإرسال…', de: 'Wird gesendet…', fr: 'Envoi en cours…', tr: 'Gönderiliyor…' },
-        'auth_forgot_sent': { ar: 'تم إرسال رابط إعادة التعيين!', de: 'Link zum Zurücksetzen gesendet!', fr: 'Lien de réinitialisation envoyé !', tr: 'Sıfırlama bağlantısı gönderildi!' },
+        /* P2-DEEP-005 FIX: Anti-enumeration wording.
+           PREVIOUS: 'تم إرسال رابط إعادة التعيين!' — affirmative, confirms email exists.
+           NOW: Conditional "If your email is registered…" — identical for existing and
+           non-existing emails. Prevents user enumeration attacks (OWASP SEC-009).
+           Standard: OWASP Authentication Cheat Sheet, NIST 800-63B §5.1.1.2. */
+        'auth_forgot_sent': { ar: 'إذا كان بريدك مسجّلاً لدينا، ستصلك رسالة لإعادة تعيين كلمة المرور.', de: 'Falls Ihre E-Mail bei uns registriert ist, erhalten Sie einen Link zum Zurücksetzen.', fr: 'Si votre e-mail est enregistré chez nous, vous recevrez un lien de réinitialisation.', tr: 'E-postanız kayıtlıysa, şifre sıfırlama bağlantısı gönderilecektir.' },
+        // P2-DEEP-005: Spam/junk folder hint — Syrian ISPs aggressively filter transactional emails
+        'auth_forgot_check_spam': { ar: 'تحقق من مجلد الرسائل غير المرغوبة (Spam) إذا لم تصلك الرسالة.', de: 'Prüfen Sie Ihren Spam-Ordner, falls die E-Mail nicht ankommt.', fr: 'Vérifiez votre dossier spam si vous ne recevez pas l\'e-mail.', tr: 'E-posta gelmezse spam klasörünüzü kontrol edin.' },
         'auth_forgot_error': { ar: 'فشل الإرسال. حاول مرة أخرى.', de: 'Senden fehlgeschlagen. Bitte erneut versuchen.', fr: 'Échec de l\'envoi. Veuillez réessayer.', tr: 'Gönderim başarısız. Tekrar deneyin.' },
         'auth_forgot_link_text': { ar: 'إرسال رابط إعادة التعيين', de: 'Link zum Zurücksetzen senden', fr: 'Envoyer le lien de réinitialisation', tr: 'Sıfırlama bağlantısı gönder' },
         'auth_sso_coming_soon': { ar: 'قريباً — لم يتم تفعيله بعد', de: 'Demnächst — noch nicht aktiviert', fr: 'Bientôt — pas encore activé', tr: 'Yakında — henüz etkinleştirilmedi' },
@@ -157,7 +164,29 @@
 
         // ═══ AF4: verify-email.html labels ═══
         'verify_resend_btn': { ar: 'إعادة إرسال رابط التحقق', de: 'Verifizierungslink erneut senden', fr: 'Renvoyer le lien de vérification', tr: 'Doğrulama bağlantısını yeniden gönder' },
-        'verify_resend_label': { ar: 'لم تستلم رسالة التحقق؟', de: 'Keine Verifizierungs-E-Mail erhalten?', fr: 'Vous n\'avez pas reçu l\'e-mail ?', tr: 'Doğrulama e-postası almadınız mı?' }
+        'verify_resend_label': { ar: 'لم تستلم رسالة التحقق؟', de: 'Keine Verifizierungs-E-Mail erhalten?', fr: 'Vous n\'avez pas reçu l\'e-mail ?', tr: 'Doğrulama e-postası almadınız mı?' },
+
+        // ═══ DEEP-AUDIT: New keys from Deep Auth Audit (Session 2026-05-21) ═══
+        // P1-DEEP-003: Register Step 2 "Already registered?" link text
+        'reg_forgot_password': { ar: 'لديك حساب سابق؟ أعد تعيين كلمة المرور', de: 'Bereits registriert? Passwort zurücksetzen', fr: 'Déjà inscrit ? Réinitialiser le mot de passe', tr: 'Zaten kayıtlı mısınız? Şifreyi sıfırlayın' },
+        // P2-DEEP-006: Caps Lock warning on password fields
+        'auth_caps_lock': { ar: '⚠ مفتاح Caps Lock مفعّل', de: '⚠ Feststelltaste ist aktiv', fr: '⚠ Verrouillage majuscules activé', tr: '⚠ Caps Lock açık' },
+        // P1-DEEP-004: Rate limiting message for social login catch blocks
+        'auth_rate_limited': { ar: 'محاولات كثيرة. يرجى الانتظار قبل المحاولة مرة أخرى.', de: 'Zu viele Versuche. Bitte warten.', fr: 'Trop de tentatives. Veuillez patienter.', tr: 'Çok fazla deneme. Lütfen bekleyin.' },
+        // P1-DEEP-007: "Already verified" distinction on verify-email page
+        'verify_already_title': { ar: 'تم التحقق مسبقاً', de: 'Bereits verifiziert', fr: 'Déjà vérifié', tr: 'Zaten doğrulanmış' },
+        'verify_already_body': { ar: 'بريدك الإلكتروني مؤكد بالفعل — يمكنك تسجيل الدخول', de: 'Ihre E-Mail ist bereits bestätigt — Sie können sich anmelden', fr: 'Votre e-mail est déjà confirmé — vous pouvez vous connecter', tr: 'E-postanız zaten onaylandı — giriş yapabilirsiniz' },
+        // P2-AUD-008 FIX: Forgot password invalid email format
+        'auth_forgot_invalid_email': { ar: 'صيغة البريد الإلكتروني غير صحيحة', de: 'Ungültiges E-Mail-Format', fr: 'Format d\'e-mail invalide', tr: 'Geçersiz e-posta formatı' },
+        // P2-DEEP-001: Strict name validation error messages
+        'auth_name_too_short': { ar: 'الاسم قصير جداً (الحد الأدنى ٢ أحرف)', de: 'Name zu kurz (mind. 2 Zeichen)', fr: 'Nom trop court (min. 2 caractères)', tr: 'Ad çok kısa (min. 2 karakter)' },
+        'auth_name_too_long': { ar: 'الاسم طويل جداً (الحد الأقصى ١٠٠ حرف)', de: 'Name zu lang (max. 100 Zeichen)', fr: 'Nom trop long (max. 100 caractères)', tr: 'Ad çok uzun (maks. 100 karakter)' },
+        'auth_name_must_have_letters': { ar: 'الاسم يجب أن يحتوي على أحرف', de: 'Name muss Buchstaben enthalten', fr: 'Le nom doit contenir des lettres', tr: 'Ad harf içermelidir' },
+        'auth_name_no_digits': { ar: 'الاسم لا يجب أن يحتوي على أرقام', de: 'Name darf keine Ziffern enthalten', fr: 'Le nom ne doit pas contenir de chiffres', tr: 'Ad rakam içermemelidir' },
+        'auth_name_invalid_chars': { ar: 'الاسم يحتوي على رموز غير مسموح بها', de: 'Name enthält unzulässige Zeichen', fr: 'Le nom contient des caractères non autorisés', tr: 'Ad geçersiz karakterler içeriyor' },
+        // P1-DEEP-006: Facebook SDK lazy loading error messages
+        'auth_facebook_timeout': { ar: 'تعذّر تحميل Facebook. تحقق من اتصالك بالإنترنت.', de: 'Facebook konnte nicht geladen werden. Überprüfen Sie Ihre Internetverbindung.', fr: 'Impossible de charger Facebook. Vérifiez votre connexion.', tr: 'Facebook yüklenemedi. İnternet bağlantınızı kontrol edin.' },
+        'auth_facebook_blocked': { ar: 'تعذّر الوصول إلى Facebook. قد يكون محظوراً في شبكتك.', de: 'Facebook nicht erreichbar. Möglicherweise in Ihrem Netzwerk blockiert.', fr: 'Facebook inaccessible. Peut-être bloqué sur votre réseau.', tr: 'Facebook\'a erişilemiyor. Ağınızda engellenmiş olabilir.' }
         });
     }
 })();

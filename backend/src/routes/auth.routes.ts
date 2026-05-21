@@ -1015,9 +1015,15 @@ router.post(
         { sourceAction: 'reset_password', sourceUserId: user.user_id },
       );
 
+      // P0-DEEP-002 FIX: Include user email in response so the frontend can
+      // pre-fill the login form after redirect. Without this, the reset-password
+      // page's redirect to auth.html always sends an empty ?email= param because
+      // requestEmailInput is only populated when the token is missing/expired.
+      // Standard: Nielsen #6 (Recognition Over Recall), Zero Re-entry Friction.
       res.json({
         success: true,
         message: 'Password has been reset successfully. You can now log in with your new password.',
+        data: { email: user.email },
       } as ApiResponse);
     } catch (error) {
       safeRouteError(res, error, 'Auth.ResetPassword');

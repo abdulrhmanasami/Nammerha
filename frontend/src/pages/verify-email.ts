@@ -135,11 +135,28 @@ async function verifyEmail(): Promise<void> {
     const data = await auth.verifyEmail(verifyToken);
 
     if (data.success) {
-      showResult(
-        'success',
-        t('verify_success_title', 'تم التحقق!'),
-        data.message ?? t('verify_success_body', 'تم تأكيد بريدك الإلكتروني بنجاح'),
-      );
+      // P1-DEEP-007 FIX: Distinguish "already verified" from "just verified".
+      // Backend returns "Email already verified" (auth.routes.ts L668-672) when
+      // the user clicks the verification link a second time. Showing the same
+      // celebratory "تم التحقق!" is misleading — the action didn't DO anything.
+      // Standard: Nielsen #1 (System Status Visibility), Honest Feedback.
+      const isAlreadyVerified =
+        data.message?.toLowerCase().includes('already verified') ||
+        data.message?.includes('تم التحقق مسبقاً');
+
+      if (isAlreadyVerified) {
+        showResult(
+          'success',
+          t('verify_already_title', 'تم التحقق مسبقاً'),
+          data.message ?? t('verify_already_body', 'بريدك الإلكتروني مؤكد بالفعل — يمكنك تسجيل الدخول'),
+        );
+      } else {
+        showResult(
+          'success',
+          t('verify_success_title', 'تم التحقق!'),
+          data.message ?? t('verify_success_body', 'تم تأكيد بريدك الإلكتروني بنجاح'),
+        );
+      }
       // BUG-F13 FIX: Update "Sign In" link to include verified email for pre-fill.
       // PREVIOUS: <a href="/auth.html"> — user had to re-type email after verification.
       // NOW: Appends ?email= param. auth.ts reads it for pre-fill convenience.

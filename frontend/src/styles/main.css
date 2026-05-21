@@ -1063,6 +1063,18 @@ html[data-theme='dark'] .animate-pulse::after {
 .nm-input.nm-input-icon {
   padding-inline-start: 2.5rem; /* 40px — room for 16-20px icon */
 }
+/* P0-DEEP-004 FIX: MFA digit input styling.
+   Replaces 6× inline style="width:3rem; height:3.5rem; text-align:center; ..."
+   declarations in auth.ts showMfaChallengePanel().
+   Standard: Design System Governance, Dark Mode Parity, AGENTS.md (no inline styles). */
+.nm-mfa-digit {
+  width: 3rem;
+  height: 3.5rem;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  padding: 0;
+}
 .nm-textarea {
   resize: vertical;
   min-height: 5rem;

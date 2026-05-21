@@ -47,7 +47,14 @@ export const registerSchema = z.object({
         .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
         .regex(/[0-9]/, 'Password must contain at least one digit')
         .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
-    full_name: z.string().min(2).max(100).trim(),
+    // P2-DEEP-001 FIX: Strict name validation — parity with frontend validateName().
+    // PREVIOUS: Only min(2).max(100).trim() — accepted "123456", "!!!", pure emoji.
+    // NOW: Must contain ≥1 Unicode letter, no digits, no dangerous chars.
+    // Standard: Unicode CLDR Name Validation, OWASP Input Validation, Frontend Parity.
+    full_name: z.string().min(2, 'Name must be at least 2 characters').max(100, 'Name must not exceed 100 characters').trim()
+        .regex(/\p{L}/u, 'Name must contain at least one letter')
+        .regex(/^[^0-9]*$/, 'Name must not contain digits')
+        .regex(/^[^<>{}[\]\\]*$/, 'Name must not contain special characters like < > { } [ ] \\'),
     phone: z.string().max(20).optional(),
     role: z.enum(['homeowner', 'engineer', 'donor', 'supplier', 'contractor', 'tradesperson']).optional(),
     intent: z.string().max(500).optional(),

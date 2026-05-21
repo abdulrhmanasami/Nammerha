@@ -292,12 +292,19 @@ form?.addEventListener('submit', async (e) => {
       if (form) {
         form.classList.add('nm-hidden');
       }
-      // P2-REM-001 FIX: Pre-fill email in login form after successful password reset.
-      // PREVIOUS: User redirected to auth.html with empty email field — had to re-type
-      // the email they just used for reset. Causes friction, especially on mobile.
+      // P0-DEEP-002 FIX: Pre-fill email from API response data instead of requestEmailInput.
+      // PREVIOUS: requestEmailInput is the "Request New Link" email field — only visible
+      // when token is missing/expired. During a SUCCESSFUL reset, it's hidden and empty.
+      // NOW: Backend returns { data: { email } } in the success response.
+      // Fallback chain: response.data.email → requestEmailInput → URL param → empty.
       // Standard: Nielsen #6 (Recognition Over Recall), verify-email.ts parity.
       setTimeout(() => {
-        const userEmail = requestEmailInput?.value.trim() ?? '';
+        const responseData = data as { data?: { email?: string } };
+        const userEmail =
+          responseData.data?.email ??
+          requestEmailInput?.value.trim() ??
+          urlParams.get('email') ??
+          '';
         const emailParam = userEmail ? `?email=${encodeURIComponent(userEmail)}` : '';
         window.location.href = `/auth.html${emailParam}`;
       }, 2000);
@@ -361,3 +368,13 @@ form?.addEventListener('submit', async (e) => {
     }
   }
 });
+
+// P2-DEEP-004 FIX: Auto-focus the new-password input when a valid token is present.
+// PREVIOUS: Users arriving from email reset link had to manually tap the field.
+// auth.ts has autofocus at L2536-2547 — parity was missing here.
+// Standard: Apple HIG ("Focus the primary input"), Material Design 3.
+if (resetToken && newPasswordInput) {
+  requestAnimationFrame(() => {
+    newPasswordInput.focus();
+  });
+}
