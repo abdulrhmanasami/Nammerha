@@ -201,13 +201,25 @@ export async function authMiddleware(
       return;
     }
 
-    // Fetch user from database
-    // MED-001: Also fetch token_invalidated_at for JWT revocation check
+    // P0-W6-003 FIX: Combined user + roles into single JOIN query.
+    // Previous: 2 separate queries per authenticated request (user data + roles).
+    // At ~100 concurrent users, this was ~200 queries/second just for auth overhead.
+    // Now: Single query with LEFT JOIN + ARRAY_AGG reduces to ~100 queries/second.
     const result = await query<
-      Pick<User, 'user_id' | 'role' | 'is_active'> & { token_invalidated_at: string | null }
-    >('SELECT user_id, role, is_active, token_invalidated_at FROM users WHERE user_id = $1', [
-      userId,
-    ]);
+      Pick<User, 'user_id' | 'role' | 'is_active'> & {
+        token_invalidated_at: string | null;
+        roles: UserRole[] | null;
+      }
+    >(
+      `SELECT u.user_id, u.role, u.is_active, u.token_invalidated_at,
+              ARRAY_AGG(r.role_name) FILTER (WHERE ur.status = 'active' AND r.role_name IS NOT NULL) AS roles
+       FROM users u
+       LEFT JOIN user_roles ur ON ur.user_id = u.user_id
+       LEFT JOIN roles r ON r.role_id = ur.role_id
+       WHERE u.user_id = $1
+       GROUP BY u.user_id`,
+      [userId],
+    );
 
     const user = result.rows[0];
     if (!user) {
@@ -230,22 +242,14 @@ export async function authMiddleware(
       }
     }
 
-    // Fetch user + all active roles from user_roles junction table
-    const rolesResult = await query<{ role_name: UserRole; is_primary: boolean }>(
-      `SELECT r.role_name, ur.is_primary
-             FROM user_roles ur
-             JOIN roles r ON r.role_id = ur.role_id
-             WHERE ur.user_id = $1 AND ur.status = 'active'`,
-      [userId],
-    );
-
-    const allRoles = rolesResult.rows.map((r) => r.role_name);
+    const allRoles: UserRole[] =
+      user.roles && user.roles.length > 0 ? user.roles : [user.role as UserRole];
 
     // Attach to request — multi-role aware
     const authUser: AuthUser = {
       user_id: user.user_id,
       role: user.role, // primary registration role
-      roles: allRoles.length > 0 ? allRoles : [user.role], // all active roles
+      roles: allRoles, // all active roles
       is_active: user.is_active,
     };
 

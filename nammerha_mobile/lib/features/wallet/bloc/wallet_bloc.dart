@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../data/wallet_repository.dart';
 import '../models/wallet_model.dart';
+import '../../../core/network/api_client.dart';
+import '../../../core/i18n/error_keys.dart';
 import 'wallet_event.dart';
 import 'wallet_state.dart';
 
@@ -24,9 +26,16 @@ class WalletBloc extends Bloc<WalletEvent, WalletState> {
         walletData: data,
         hasMore: data.transactions.length >= WalletRepository.pageSize,
       ));
-    } catch (e) {
+    } on ApiException catch (e) {
+      // CRIT-MOB-002 FIX: ApiException messages are already i18n'd by the
+      // API client layer (Arabic strings from api_client.dart).
       debugPrint('[Nammerha] bloc/wallet_bloc: $e');
-      emit(WalletError(e.toString()));
+      emit(WalletError(e.message));
+    } catch (e) {
+      // CRIT-MOB-002 FIX: Generic exceptions → ErrorKeys.loadFailed
+      // PREVIOUS: e.toString() leaked raw English "SocketException" strings.
+      debugPrint('[Nammerha] bloc/wallet_bloc: $e');
+      emit(WalletError(ErrorKeys.loadFailed));
     }
   }
 

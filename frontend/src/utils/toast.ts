@@ -111,7 +111,10 @@ export function showToast(
     if (dismissable) {
         const btn = document.createElement('button');
         btn.className = 'nm-toast-close';
-        btn.setAttribute('aria-label', 'Dismiss');
+        // HIGH-UX-003 FIX: i18n for screen reader — was hardcoded English 'Dismiss'.
+        // Arabic screen reader users heard English in an otherwise Arabic interface.
+        // Standard: WCAG 4.1.2 (Name, Role, Value), Nielsen #4 (Consistency).
+        btn.setAttribute('aria-label', resolveMessage('common_dismiss') || 'Dismiss');
         btn.innerHTML = '<i class="ph ph-x" aria-hidden="true"></i>';
         btn.addEventListener('click', () => removeToast(el));
         el.appendChild(btn);

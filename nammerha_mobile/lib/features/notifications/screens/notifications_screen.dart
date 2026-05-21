@@ -11,6 +11,7 @@ import '../../../core/theme/semantic_colors.dart';
 import '../bloc/notifications_bloc.dart';
 import '../bloc/notifications_event.dart';
 import '../bloc/notifications_state.dart';
+import '../models/notification_model.dart';
 import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 import 'package:nammerha_mobile/core/utils/notification_navigator.dart';
 
@@ -93,7 +94,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             );
           }
 
-          List<Map<String, dynamic>> notifications = [];
+          // MED-MOB-003: Typed list — no more raw Map access
+          List<NotificationModel> notifications = [];
           if (state is NotificationsLoaded) {
             notifications = state.notifications;
           } else if (state is NotificationsLoading) {
@@ -137,55 +139,45 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     ),
                   );
                 }
-                final n = notifications[index];
-                final isRead = n['is_read'] ?? n['isRead'] ?? false;
-                final title = n['title'] ?? '';
-                final message = n['message'] ?? n['body'] ?? '';
-                final type = n['type'] ?? '';
-                final createdAt = n['created_at'] ?? n['createdAt'] ?? '';
 
-                IconData icon;
-                Color iconColor;
-                switch (type.toString().toLowerCase()) {
-                  case 'funding':
-                  case 'donation': // Legacy backend alias
-                  case 'escrow':
+                // MED-MOB-003: Typed field access — no more n['field'] raw access
+                final n = notifications[index];
+
+                // MED-MOB-003: Exhaustive icon mapping via NotificationIconCategory enum
+                final IconData icon;
+                final Color iconColor;
+                switch (n.type.iconCategory) {
+                  case NotificationIconCategory.financial:
                     icon = PhosphorIconsRegular.wallet;
                     iconColor = colors.success;
-                    break;
-                  case 'proof':
-                  case 'spatial_proof':
+                  case NotificationIconCategory.proof:
                     icon = PhosphorIconsRegular.camera;
                     iconColor = colors.primaryBrand;
-                    break;
-                  case 'bid':
-                  case 'matchmaking':
+                  case NotificationIconCategory.bid:
                     icon = PhosphorIconsRegular.gavel;
                     iconColor = colors.warning;
-                    break;
-                  case 'order':
-                  case 'delivery':
+                  case NotificationIconCategory.delivery:
                     icon = PhosphorIconsRegular.truck;
                     iconColor = colors.info;
-                    break;
-                  default:
+                  case NotificationIconCategory.general:
                     icon = PhosphorIconsRegular.bell;
                     iconColor = colors.primaryBrand;
                 }
 
                 // AUD-020: Semantics + AUD-022: Conditional animation
+                // MED-MOB-003: NotificationNavigator still expects Map — use toMap()
                 final rawCard = GestureDetector(
                   onTap: () {
                     HapticFeedback.lightImpact();
-                    NotificationNavigator.handleTap(context, n);
+                    NotificationNavigator.handleTap(context, n.toMap());
                   },
                   child: Container(
                     margin: const EdgeInsets.only(bottom: 10),
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: isRead ? colors.surfaceElevated : colors.primaryBrandLight,
+                      color: n.isRead ? colors.surfaceElevated : colors.primaryBrandLight,
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: isRead ? colors.strokeSubtle : colors.primaryBrand.withAlpha(30)),
+                      border: Border.all(color: n.isRead ? colors.strokeSubtle : colors.primaryBrand.withAlpha(30)),
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -204,39 +196,39 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                title.toString(),
+                                n.title,
                                 style: TextStyle(
                                   fontSize: 14,
-                                  fontWeight: isRead ? FontWeight.w500 : FontWeight.w700,
+                                  fontWeight: n.isRead ? FontWeight.w500 : FontWeight.w700,
                                   color: colors.textPrimary,
                                 ),
                               ),
-                              if (message.toString().isNotEmpty) ...[
+                              if (n.message.isNotEmpty) ...[
                                 const SizedBox(height: 4),
                                 Text(
-                                  message.toString(),
+                                  n.message,
                                   style: TextStyle(fontSize: 12, color: colors.textSecondary, height: 1.4),
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ],
-                              if (createdAt.toString().isNotEmpty) ...[
+                              if (n.createdAt.isNotEmpty) ...[
                                 const SizedBox(height: 6),
                                 Text(
-                                  NammerhaDateUtils.relativeTimeFromString(context, createdAt.toString()),
+                                  NammerhaDateUtils.relativeTimeFromString(context, n.createdAt),
                                   style: TextStyle(fontSize: 10, color: colors.textSecondary),
                                 ),
                               ],
                             ],
                           ),
                         ),
-                        if (!isRead)
+                        if (!n.isRead)
                           Container(
                             width: 8, height: 8,
                             margin: const EdgeInsets.only(top: 4),
                             decoration: BoxDecoration(color: colors.primaryBrand, shape: BoxShape.circle),
                           ),
-                        if (NotificationNavigator.isNavigable(n))
+                        if (NotificationNavigator.isNavigable(n.toMap()))
                           Padding(
                             padding: const EdgeInsetsDirectional.only(start: 4),
                             child: Icon(
@@ -250,7 +242,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   ),
                 );
                 final card = Semantics(
-                  label: '$title — ${type.isNotEmpty ? type : "general"} ${context.tr("notification")}',
+                  label: '${n.title} — ${n.type.name} ${context.tr("notification")}',
                   button: true,
                   child: rawCard,
                 );

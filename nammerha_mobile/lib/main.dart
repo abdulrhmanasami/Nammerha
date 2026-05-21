@@ -25,6 +25,7 @@ import 'features/auth/screens/login_screen.dart';
 import 'features/dashboard/screens/dashboard_screen.dart';
 import 'features/notifications/bloc/notifications_bloc.dart';
 import 'features/notifications/bloc/notifications_event.dart';
+import 'features/notifications/models/notification_model.dart';
 import 'features/onboarding/screens/onboarding_screen.dart';
 import 'features/onboarding/screens/splash_screen.dart';
 import 'features/search/data/search_repository.dart';
@@ -308,7 +309,8 @@ class _AppFlowControllerState extends State<_AppFlowController> {
       final notification = message.notification;
       if (notification == null) return;
 
-      final notifData = <String, dynamic>{
+      // MED-MOB-003: Create typed NotificationModel from FCM payload
+      final notifData = NotificationModel.fromJson(<String, dynamic>{
         'notification_id': message.messageId ?? DateTime.now().millisecondsSinceEpoch.toString(),
         'title': notification.title ?? '',
         'body': notification.body ?? '',
@@ -316,7 +318,7 @@ class _AppFlowControllerState extends State<_AppFlowController> {
         'is_read': false,
         'created_at': DateTime.now().toIso8601String(),
         'data': message.data,
-      };
+      });
 
       context.read<NotificationsBloc>().add(PushNotificationReceived(notifData));
     };

@@ -2406,6 +2406,52 @@ html[data-theme='dark'] .nm-notif-body::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.1);
 }
 
+/* ── HIGH-UX-006 FIX: Clickable notification items ─────────────────────
+   PREVIOUS: Notifications were static text blocks — no way to navigate
+   to the related resource (project, escrow, profile KYC status).
+   NOW: Items with data-href become cursor:pointer clickable links.
+   Standard: Notification UX Best Practices (Slack, GitHub, Linear). */
+.nm-notif-item[data-notif-href] {
+  cursor: pointer;
+}
+.nm-notif-item[data-notif-href]:hover {
+  background: rgba(21, 88, 214, 0.04);
+}
+.nm-notif-item[data-notif-href]:hover .nm-notif-item-title {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+html[data-theme='dark'] .nm-notif-item[data-notif-href]:hover {
+  background: rgba(21, 88, 214, 0.08);
+}
+
+/* ── HIGH-UX-005 FIX: Upload Progress Ring ─────────────────────────────
+   Conic-gradient driven by --progress (0–100) custom property.
+   On Syrian 3G, photo uploads can take 15-30 seconds — this ring gives
+   real-time visual feedback instead of an indeterminate spinner.
+   Standard: Material Design 3 (Determinate Progress), Apple HIG. */
+.nm-upload-ring {
+  --progress: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--trust-blue, #1558d6) calc(var(--progress) * 1%),
+    rgba(255, 255, 255, 0.2) calc(var(--progress) * 1%)
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
+}
+.nm-upload-ring::after {
+  content: '';
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.7);
+}
+
 /* ── Mobile: full-width panel ───────────────────────────────────────── */
 @media (max-width: 480px) {
   .nm-notif-panel {

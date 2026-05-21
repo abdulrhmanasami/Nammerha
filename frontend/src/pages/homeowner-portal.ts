@@ -2,7 +2,7 @@ import '../styles/main.css';
 import { reportWarning } from '../error-reporter';
 import { escapeHtml as esc } from '../utils/xss';
 import { renderErrorWithRetry } from '../utils/error-retry';
-import { clearAuth } from '../auth';
+import { clearAuth, getCurrentUser } from '../auth';
 import { requireAuth } from '../utils/auth-guard';
 import { auth as authApi } from '../api';
 import { statusColor, statusLabel, tradeColor, urgencyColor } from '../utils/status-colors';
@@ -131,6 +131,70 @@ document.addEventListener('DOMContentLoaded', () => {
   // B7 FIX: Breadcrumb on homeowner portal
   initBreadcrumb();
 
+  // ═══════════════════════════════════════════════════════════════════════
+  // CRIT-UX-003 FIX: KYC Completion Banner for new homeowners.
+  // PREVIOUS: New homeowner registers → lands on portal → has NO idea that
+  // KYC verification is required before escrow can release funds. They submit
+  // a damage report, wait weeks, then discover KYC is blocking payment.
+  // NOW: Non-blocking banner at top of main content with CTA to profile.
+  // Standard: Nielsen #1 (System Status Visibility), FinTech Compliance UX.
+  // ═══════════════════════════════════════════════════════════════════════
+  const user = getCurrentUser();
+  if (user && !user.kyc_verified) {
+    const mainContent = document.getElementById('main-content');
+    if (mainContent) {
+      const kycBanner = document.createElement('div');
+      kycBanner.id = 'nm-kyc-banner';
+      kycBanner.className =
+        'mx-4 mt-4 mb-2 rounded-xl p-4 flex items-start gap-3 ' +
+        'bg-warning-yellow/10 border border-warning-yellow/25 ' +
+        'dark:bg-warning-yellow/5 dark:border-warning-yellow/15 ' +
+        'animate-fade-in-up';
+      kycBanner.setAttribute('role', 'alert');
+      kycBanner.innerHTML = `
+        <div class="size-10 rounded-full bg-warning-yellow/20 flex items-center justify-center shrink-0 mt-0.5">
+          <i class="ph ph-identification-card text-warning-yellow nm-icon-20" aria-hidden="true"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-bold text-slate-800 dark:text-slate-200" data-i18n="kyc_banner_title">
+            ${esc(t('kyc_banner_title', 'أكمل التحقق من هويتك'))}
+          </p>
+          <p class="text-xs text-slate-600 mt-0.5 dark:text-slate-400" data-i18n="kyc_banner_msg">
+            ${esc(t('kyc_banner_msg', 'التحقق مطلوب قبل صرف أي مبالغ. يستغرق أقل من دقيقتين.'))}
+          </p>
+          <a href="/profile.html#kyc" 
+             class="inline-flex items-center gap-1 text-xs font-bold text-trust-blue mt-2 hover:underline transition-colors">
+            <i class="ph ph-arrow-right" aria-hidden="true"></i>
+            <span data-i18n="kyc_banner_cta">${esc(t('kyc_banner_cta', 'إكمال التحقق الآن'))}</span>
+          </a>
+        </div>
+        <button type="button" id="nm-kyc-banner-dismiss"
+                class="shrink-0 p-1 text-slate-400 hover:text-slate-600 dark:text-slate-500 transition-colors"
+                aria-label="${esc(t('common_dismiss', 'إغلاق'))}">
+          <i class="ph ph-x text-sm" aria-hidden="true"></i>
+        </button>
+      `;
+      // Insert as the first child of main-content (above tabs/dashboard)
+      mainContent.insertBefore(kycBanner, mainContent.firstChild);
+
+      // Dismiss handler — persists dismissal for this session
+      document.getElementById('nm-kyc-banner-dismiss')?.addEventListener('click', () => {
+        kycBanner.classList.add('animate-fade-out');
+        setTimeout(() => kycBanner.remove(), 300);
+        try {
+          sessionStorage.setItem('nm_kyc_banner_dismissed', '1');
+        } catch { /* quota */ }
+      });
+
+      // Don't show again if dismissed this session
+      try {
+        if (sessionStorage.getItem('nm_kyc_banner_dismissed') === '1') {
+          kycBanner.remove();
+        }
+      } catch { /* quota */ }
+    }
+  }
+
   setupTabs();
   setupServiceRequestForm();
   setupToggleDetails(); // CONF-N04 FIX
@@ -153,14 +217,33 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ─── Secure Logout ──────────────────────────────────────────────────
-  document.getElementById('portal-logout-btn')?.addEventListener('click', async () => {
-    try {
-      await authApi.logout();
-    } catch {
-      /* best-effort */
-    }
-    clearAuth(true); // P2-W5-002: skipServerLogout — authApi.logout() already called above
-    window.location.href = '/auth.html';
+  // MED-UX-009 FIX: Confirmation before logout to prevent accidental sign-out.
+  // PREVIOUS: Immediate logout on click — one accidental tap on 2G = 30s wasted re-authenticating.
+  // NOW: confirmAction dialog protects against accidental taps.
+  // Standard: Destructive Action Protection, Nielsen #5 (Error Prevention).
+  document.getElementById('portal-logout-btn')?.addEventListener('click', () => {
+    confirmAction({
+      title: t('confirm_logout_title', 'تسجيل الخروج'),
+      message: t('confirm_logout_msg', 'هل أنت متأكد أنك تريد تسجيل الخروج؟'),
+      confirmLabel: t('confirm_logout_btn', 'تسجيل الخروج'),
+      icon: 'sign-out',
+      variant: 'warning',
+      i18n: {
+        title: 'confirm_logout_title',
+        message: 'confirm_logout_msg',
+        confirm: 'confirm_logout_btn',
+        cancel: 'common_cancel',
+      },
+      onConfirm: async () => {
+        try {
+          await authApi.logout();
+        } catch {
+          /* best-effort */
+        }
+        clearAuth(true); // P2-W5-002: skipServerLogout — authApi.logout() already called above
+        window.location.href = '/auth.html';
+      },
+    });
   });
 });
 
@@ -225,6 +308,15 @@ function switchTab(tab: TabName): void {
   const currentHash = hashRouter.getInitialTab();
   if (currentHash !== tab) {
     saveScrollPosition(currentHash);
+
+    // CRIT-UX-004 FIX: Notify user that draft is preserved when switching away from form.
+    // PREVIOUS: User types into service request form → switches tabs → form vanishes.
+    // No feedback that data was saved. User thinks data is lost → re-enters everything.
+    // NOW: If switching away from 'requests' tab and form has data, show reassurance toast.
+    // Standard: Google Docs auto-save pattern, Nielsen #1 (System Status Visibility).
+    if (currentHash === 'requests' && hasDraft(SR_DRAFT_KEY)) {
+      showToast(t('ho_draft_saved', '✓ تم حفظ المسودة تلقائياً'), 'info', { duration: 2500 });
+    }
   }
   // P3-UXA-003 FIX: Persist last active tab for cross-session memory
   saveLastTab(tab);

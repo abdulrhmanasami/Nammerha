@@ -2,11 +2,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/services/api_services.dart';
 import '../../../core/i18n/error_keys.dart';
+import '../models/notification_model.dart';
 import 'notifications_event.dart';
 import 'notifications_state.dart';
 
 /// Wave 4: Pagination-aware NotificationsBloc.
 /// Page size = 20 (optimized for Syria 2G networks).
+///
+/// MED-MOB-003: Fully typed — uses `NotificationModel` instead of raw `Map`.
 class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
   final NotificationsApi _api;
   static const int _pageSize = 20;
@@ -29,7 +32,11 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
         
     emit(NotificationsLoading(oldNotifications: currentNotifs));
     try {
-      final notifications = await _api.getAll(limit: _pageSize, offset: 0);
+      final rawNotifications = await _api.getAll(limit: _pageSize, offset: 0);
+      // MED-MOB-003: Parse raw maps into typed models
+      final notifications = rawNotifications
+          .map((json) => NotificationModel.fromJson(json))
+          .toList();
       emit(NotificationsLoaded(
         notifications: notifications,
         hasMore: notifications.length >= _pageSize,
@@ -52,10 +59,14 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     emit(currentState.copyWith(isLoadingMore: true));
 
     try {
-      final nextPage = await _api.getAll(
+      final rawNextPage = await _api.getAll(
         limit: _pageSize,
         offset: currentState.notifications.length,
       );
+      // MED-MOB-003: Parse raw maps into typed models
+      final nextPage = rawNextPage
+          .map((json) => NotificationModel.fromJson(json))
+          .toList();
 
       emit(currentState.copyWith(
         notifications: [...currentState.notifications, ...nextPage],
@@ -76,11 +87,10 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
       try {
         await _api.markAllAsRead();
         
-        final updatedNotifications = currentState.notifications.map((n) {
-          final newNotif = Map<String, dynamic>.from(n);
-          newNotif['is_read'] = true;
-          return newNotif;
-        }).toList();
+        // MED-MOB-003: Use typed markAsRead() instead of Map mutation
+        final updatedNotifications = currentState.notifications
+            .map((n) => n.markAsRead())
+            .toList();
         
         emit(currentState.copyWith(notifications: updatedNotifications));
       } catch (e) {
@@ -98,12 +108,10 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
       try {
         await _api.markAsRead(event.notificationId);
         
+        // MED-MOB-003: Use typed markAsRead() instead of Map mutation
         final updatedNotifications = currentState.notifications.map((n) {
-          final id = (n['notification_id'] ?? n['id'] ?? '').toString();
-          if (id == event.notificationId) {
-             final newNotif = Map<String, dynamic>.from(n);
-             newNotif['is_read'] = true;
-             return newNotif;
+          if (n.id == event.notificationId) {
+            return n.markAsRead();
           }
           return n;
         }).toList();

@@ -1,6 +1,10 @@
 import '../styles/main.css';
 import { auth } from '../api';
 import { t } from '../utils/i18n';
+// P2-W6-009 FIX: Pre-warm CSRF token for POST requests (resend verification).
+// Parity with auth.ts L33 — prevents 2-5s invisible delay on Syria 2G.
+import { warmCsrf } from '../api/_client';
+warmCsrf();
 
 // ============================================================================
 // Nammerha — Email Verification Landing Page
@@ -21,6 +25,13 @@ const bannerIcon = document.getElementById('verify-banner-icon');
 const bannerTitle = document.getElementById('verify-banner-title');
 const bannerText = document.getElementById('verify-banner-text');
 const actions = document.getElementById('verify-actions');
+
+// P2-W6-005 FIX: Moved resend DOM references above verifyEmail() function.
+// Previously at L165-167, referenced at L124 inside verifyEmail() — fragile
+// code ordering dependency (temporal dead zone with const declarations).
+const resendBtn = document.getElementById('verify-resend-btn');
+const resendEmail = document.getElementById('verify-resend-email') as HTMLInputElement | null;
+const resendFeedback = document.getElementById('verify-resend-feedback');
 
 // ─── Extract Token from URL ────────────────────────────────────────────────
 // The backend sends links like: /verify-email.html?token=<uuid>
@@ -161,10 +172,7 @@ async function verifyEmail(): Promise<void> {
   }
 }
 
-// ─── FIX-07: Resend Verification Email ──────────────────────────────────────
-const resendBtn = document.getElementById('verify-resend-btn');
-const resendEmail = document.getElementById('verify-resend-email') as HTMLInputElement | null;
-const resendFeedback = document.getElementById('verify-resend-feedback');
+// FIX-07: Resend Verification Email (DOM refs moved to top — P2-W6-005)
 
 resendBtn?.addEventListener('click', async () => {
   const email = resendEmail?.value.trim();

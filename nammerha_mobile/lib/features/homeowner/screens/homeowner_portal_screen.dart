@@ -14,6 +14,8 @@ import '../bloc/homeowner_state.dart';
 import '../../../core/i18n/t.dart';
 import '../../../core/utils/format_utils.dart';
 import '../../damage_report/screens/damage_report_screen.dart';
+import '../../profile/screens/profile_screen.dart';
+import '../../auth/bloc/auth_bloc.dart';
 import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
 import '../../../core/utils/animation_budget.dart';
 
@@ -38,6 +40,7 @@ class _HomeownerPortalView extends StatefulWidget {
 
 class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleTickerProviderStateMixin {
   late final TabController _tabController;
+  bool _kycDismissed = false; // MED-MOB-004: Transient dismiss (resets per session)
 
   @override
   void initState() {
@@ -128,6 +131,9 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          // MED-MOB-004 FIX: KYC completion banner — mirrors web CRIT-UX-003.
+          // Shows if user is not KYC verified and not dismissed this session.
+          _buildKycBanner(colors),
           Row(children: [
             _kpiCard(context.tr('ho_kpi_active'), '${data.stats.activeProjects}', colors.primaryBrand, PhosphorIconsRegular.buildings, colors),
             const SizedBox(width: 8),
@@ -527,6 +533,85 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
         Flexible(child: Text(text, style: TextStyle(fontSize: 11, color: colors.textSecondary), maxLines: 1, overflow: TextOverflow.ellipsis)),
       ],
     );
+  }
+
+  // ─── MED-MOB-004 FIX: KYC Completion Banner ────────────────────────────
+  /// Mirrors web CRIT-UX-003. Checks AuthState for isKycVerified.
+  /// Dismissable per session (_kycDismissed), non-blocking.
+  Widget _buildKycBanner(SemanticColors colors) {
+    if (_kycDismissed) return const SizedBox.shrink();
+
+    // Read auth state — the AuthBloc is provided at app root
+    final authState = context.watch<AuthBloc>().state;
+    if (authState is! AuthAuthenticated) return const SizedBox.shrink();
+    if (authState.user.isKycVerified) return const SizedBox.shrink();
+
+    return Semantics(
+      label: context.tr('kyc_banner_a11y'),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          // Warning Yellow accent background (brand: #FCC934)
+          color: colors.warning.withAlpha(12),
+          borderRadius: BorderRadius.circular(NammerhaTheme.radiusMd),
+          border: Border.all(color: colors.warning.withAlpha(40)),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: colors.warning.withAlpha(20),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(PhosphorIconsRegular.identificationCard, size: 18, color: colors.warning),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    context.tr('kyc_banner_title'),
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: colors.textPrimary),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    context.tr('kyc_banner_subtitle'),
+                    style: TextStyle(fontSize: 11, color: colors.textSecondary, height: 1.4),
+                  ),
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen())),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: colors.warning.withAlpha(20),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        context.tr('kyc_banner_cta'),
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: colors.warning),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            GestureDetector(
+              onTap: () => setState(() => _kycDismissed = true),
+              child: Padding(
+                padding: const EdgeInsets.all(4),
+                child: Icon(PhosphorIconsRegular.x, size: 16, color: colors.textSubtle),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ).nmAnimate(context).fadeIn(duration: 400.ms);
   }
 
   Widget _emptyState(SemanticColors colors, IconData icon, String title, String subtitle) {

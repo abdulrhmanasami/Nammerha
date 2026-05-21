@@ -11,6 +11,8 @@ import '../widgets/wizard_stepper.dart';
 import '../widgets/damage_type_selector.dart';
 import '../widgets/photo_uploader.dart';
 
+import 'package:geolocator/geolocator.dart';
+
 import '../models/damage_report_data.dart';
 import '../data/damage_report_repository.dart';
 import '../bloc/damage_report_bloc.dart';
@@ -150,8 +152,11 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
           }
 
           if (state is DamageReportError) {
+            // CRIT-MOB-001 companion: Translate ErrorKey via context.tr()
+            // BLoC now emits ErrorKeys (e.g., 'err_gps_permission_required')
+            // instead of raw exception strings.
              ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.error), backgroundColor: colors.error),
+              SnackBar(content: Text(context.tr(state.error)), backgroundColor: colors.error),
             );
           }
 
@@ -253,9 +258,32 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
             child: GestureDetector(
             onTap: isDetectingGPS
                 ? null // Guard: prevent double-tap during GPS acquisition
-                : () {
+                : () async {
                     Haptics.light();
-                    context.read<DamageReportBloc>().add(DetectGPSEvent());
+                    // HIGH-MOB-003 FIX: GPS permission pre-explanation.
+                    // PREVIOUS: Tapping immediately triggered the OS permission dialog.
+                    // iOS users get ONE chance — if they deny, must go to Settings.
+                    // In conflict zones (Syria), users are extra privacy-conscious.
+                    // NOW: Show a custom explanation BEFORE the OS dialog.
+                    // If GPS was already detected, skip the explanation (re-detect).
+                    final permission = await Geolocator.checkPermission();
+                    final alreadyGranted = permission == LocationPermission.always ||
+                        permission == LocationPermission.whileInUse;
+
+                    if (data.gpsPosition != null || alreadyGranted) {
+                      // Re-detect or already granted — go directly
+                      if (context.mounted) {
+                        context.read<DamageReportBloc>().add(DetectGPSEvent());
+                      }
+                    } else {
+                      // First time — show explanation bottom sheet
+                      if (context.mounted) {
+                        final confirmed = await _showGpsExplanation(context, colors);
+                        if (confirmed == true && context.mounted) {
+                          context.read<DamageReportBloc>().add(DetectGPSEvent());
+                        }
+                      }
+                    }
                   },
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 300),
@@ -357,6 +385,8 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
             onChanged: (val) {
               context.read<DamageReportBloc>().add(UpdateFormDataEvent(data.copyWith(neighborhood: val)));
             },
+            // HIGH-MOB-004 FIX: Optimized keyboard and autofill hints
+            textInputAction: TextInputAction.next,
             decoration: InputDecoration(
               labelText: context.tr('neighborhood'),
               hintText: context.tr('dr_neighborhood_hint'),
@@ -370,6 +400,10 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
           TextField(
             controller: _addressController,
             onChanged: (_) => _updateTextData(context, data),
+            // HIGH-MOB-004 FIX: Optimized keyboard type and input action
+            keyboardType: TextInputType.streetAddress,
+            textInputAction: TextInputAction.done,
+            autofillHints: const [AutofillHints.fullStreetAddress],
             decoration: InputDecoration(
               labelText: context.tr('dr_address_detail'),
               hintText: context.tr('dr_address_hint'),
@@ -489,6 +523,112 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
             child: Text(
               value,
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: colors.textPrimary),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── GPS Permission Pre-Explanation (HIGH-MOB-003) ──────────────────────
+
+  /// Shows a branded bottom sheet explaining WHY location is needed.
+  /// Returns `true` if user taps "Allow", `false`/null if dismissed or skipped.
+  ///
+  /// HIGH-MOB-003 FIX: In Syria, users are privacy-conscious — especially in
+  /// post-conflict areas. A cold OS permission dialog with no context leads to
+  /// high denial rates. On iOS, denial is quasi-permanent (Settings only).
+  /// This pre-explanation aligns with Google's "Pre-Prompting" best practice
+  /// and Apple HIG's "Explain why your app needs the data" guideline.
+  Future<bool?> _showGpsExplanation(BuildContext context, SemanticColors colors) {
+    Haptics.light();
+    return showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: BoxDecoration(
+          color: colors.surfaceElevated,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Grabber
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 20),
+              decoration: BoxDecoration(
+                color: colors.strokeSubtle,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            // Icon
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: colors.primaryBrand.withAlpha(12),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(PhosphorIconsRegular.mapPinLine, size: 32, color: colors.primaryBrand),
+            ),
+            const SizedBox(height: 16),
+            // Title
+            Text(
+              context.tr('gps_why_title'),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: colors.textPrimary),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            // Explanation bullets
+            _gpsBullet(context, colors, PhosphorIconsRegular.mapTrifold, 'gps_why_verify'),
+            _gpsBullet(context, colors, PhosphorIconsRegular.shieldCheck, 'gps_why_escrow'),
+            _gpsBullet(context, colors, PhosphorIconsRegular.lockSimple, 'gps_why_privacy'),
+            const SizedBox(height: 20),
+            // CTA
+            GradientButton(
+              label: context.tr('gps_allow_btn'),
+              icon: PhosphorIconsRegular.mapPinLine,
+              onPressed: () => Navigator.pop(ctx, true),
+            ),
+            const SizedBox(height: 8),
+            // Skip
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(
+                context.tr('gps_skip_btn'),
+                style: TextStyle(color: colors.textSecondary, fontSize: 14),
+              ),
+            ),
+            SizedBox(height: MediaQuery.of(context).viewPadding.bottom),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _gpsBullet(BuildContext context, SemanticColors colors, IconData icon, String key) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            margin: const EdgeInsetsDirectional.only(end: 12),
+            decoration: BoxDecoration(
+              color: colors.primaryBrand.withAlpha(8),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, size: 16, color: colors.primaryBrand),
+          ),
+          Expanded(
+            child: Text(
+              context.tr(key),
+              style: TextStyle(fontSize: 13, color: colors.textSecondary, height: 1.5),
             ),
           ),
         ],

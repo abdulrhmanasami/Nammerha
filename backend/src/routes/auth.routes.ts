@@ -34,6 +34,15 @@ import {
 import type { User, UserRole, ApiResponse } from '../types';
 import { safeRouteError } from '../utils/safe-error';
 import { logger } from '../utils/logger';
+// P0-W6-001 FIX: Wire Zod validation — replaces manual inline checks.
+import {
+  registerSchema,
+  loginSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+  changePasswordSchema,
+  resendVerificationSchema,
+} from '../validation/schemas';
 
 // ─── I18N-004: Locale Detection ─────────────────────────────────────────────
 /**
@@ -60,11 +69,7 @@ function getEmailLocale(req: Request): EmailLocale {
 
 const router = Router();
 
-// SEC-003: Maximum password length to prevent bcrypt CPU exhaustion.
-// bcrypt truncates at 72 bytes internally, but the hashing function still
-// processes the full input. A 1MB password would cause CPU starvation.
-const MAX_PASSWORD_LENGTH = 128;
-
+// P0-W6-001: MAX_PASSWORD_LENGTH removed — Zod schema enforces .max(128) directly.
 // BUG-010 FIX: RFC 5321 max email length — prevents DoS via extremely long email strings.
 const MAX_EMAIL_LENGTH = 254;
 
@@ -107,20 +112,8 @@ const sensitiveActionLimiter = rateLimit({
   } as ApiResponse,
 });
 
-// SEC-FIELD-002 FIX: ReDoS-safe email validation. The original RFC 5322 pattern
-// had nested quantifiers `(?:...)*` causing catastrophic backtracking on crafted input.
-// This version uses bounded {1,63} domain labels and requires at least one dot (TLD).
-const EMAIL_REGEX =
-  /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]?\.[a-zA-Z]{2,63}(?:\.[a-zA-Z]{2,63}){0,3}$/;
-
-// Password complexity: min 8 chars, 1 upper, 1 lower, 1 digit, 1 special
-const PASSWORD_RULES = [
-  { test: (p: string) => p.length >= 8, msg: 'at least 8 characters' },
-  { test: (p: string) => /[A-Z]/.test(p), msg: 'at least one uppercase letter' },
-  { test: (p: string) => /[a-z]/.test(p), msg: 'at least one lowercase letter' },
-  { test: (p: string) => /[0-9]/.test(p), msg: 'at least one digit' },
-  { test: (p: string) => /[^A-Za-z0-9]/.test(p), msg: 'at least one special character' },
-];
+// P0-W6-001: EMAIL_REGEX and PASSWORD_RULES removed — Zod schemas in
+// validation/schemas.ts are now the single source of truth for input validation.
 
 // UNIFIED-ROLES: All 5 roles are auto-assigned to every user at registration.
 // Donor excluded while DONATIONS_ENABLED=false.
@@ -135,72 +128,20 @@ const AUTO_ASSIGN_ROLES: readonly string[] = [
 // ─── POST /api/auth/register ────────────────────────────────────────────────
 router.post('/register', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, password, full_name, phone } = req.body as {
-      email: string;
-      password: string;
-      full_name: string;
-      // UNIFIED-ROLES: role parameter is no longer accepted
-      phone?: string;
-    };
-
-    // P2-W5-001: Locale detection for email templates only (not API errors).
-    // API errors are now English-only — clients translate via i18n.
+    // P0-W6-001 FIX: Wire Zod validation — replaces 60+ lines of manual inline checks.
+    // Zod handles type coercion, trimming, format validation, complexity rules,
+    // max lengths, and unknown field stripping in a single call.
+    const parsed = registerSchema.safeParse(req.body);
+    if (!parsed.success) {
+      const firstError = parsed.error.issues[0]?.message ?? 'Invalid input';
+      res.status(400).json({ success: false, error: firstError } as ApiResponse);
+      return;
+    }
+    const { email, password, full_name, phone } = parsed.data;
 
     // UNIFIED-ROLES: Role parameter is ignored — all users get all roles.
     // Default primary role is 'homeowner' (most common use case).
     const role: UserRole = 'homeowner';
-
-    // Validate required fields
-    if (!email || !password || !full_name) {
-      res.status(400).json({
-        success: false,
-        error: 'Missing required fields: email, password, full_name',
-      } as ApiResponse);
-      return;
-    }
-
-    // UNIFIED-ROLES: Role validation removed — role parameter is ignored.
-    // All users get all 5 standard roles automatically.
-
-    // Validate email format
-    // BUG-010 FIX: RFC 5321 max email length (using email.trim() since toLowerCase doesn't alter length).
-    if (email.trim().length > MAX_EMAIL_LENGTH) {
-      res.status(400).json({
-        success: false,
-        error: 'Email address is too long',
-      } as ApiResponse);
-      return;
-    }
-    if (!EMAIL_REGEX.test(email)) {
-      res.status(400).json({
-        success: false,
-        error: 'Invalid email format',
-      } as ApiResponse);
-      return;
-    }
-
-    // SEC-003: Password max length check (before bcrypt hashing)
-    if (password.length > MAX_PASSWORD_LENGTH) {
-      res.status(400).json({
-        success: false,
-        error: `Password must not exceed ${MAX_PASSWORD_LENGTH} characters`,
-      } as ApiResponse);
-      return;
-    }
-
-    // Validate password complexity
-    // P2-W5-001: Removed PASSWORD_RULES_AR — clients translate via i18n.
-    const failedRules = PASSWORD_RULES.filter((rule) => !rule.test(password)).map(
-      (rule) => rule.msg,
-    );
-
-    if (failedRules.length > 0) {
-      res.status(400).json({
-        success: false,
-        error: `Password must contain: ${failedRules.join(', ')}`,
-      } as ApiResponse);
-      return;
-    }
 
     // ─── PLT-AUD-001 FIX: Anti-Enumeration Canonical Response ─────────
     // Both "email exists" and "new user" paths return an IDENTICAL 200
@@ -229,6 +170,12 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
 
     if (existing.rows[0]) {
       const existingUser = existing.rows[0];
+
+      // P1-W6-005 FIX: Timing equalization — bcrypt hash to match new-user path latency.
+      // Without this, existing emails return in ~5-50ms while new users take ~350ms
+      // (bcrypt.hash with 12 rounds). Attackers measure latency to enumerate valid
+      // emails (CWE-208). Parity with login route's dummy bcrypt at L430.
+      await bcrypt.hash('timing_equalization_padding', BCRYPT_SALT_ROUNDS);
 
       // PLT-AUD-009 FIX: The "Black Hole" Trap
       // If a user registers, doesn't verify, and tries to register again days later,
@@ -366,41 +313,19 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
 // ─── POST /api/auth/login ───────────────────────────────────────────────────
 router.post('/login', async (req: Request, res: Response): Promise<void> => {
   try {
-    // P0-AUTH-001 FIX: Accept `remember` field for 30-day sessions.
-    const { email, password, remember } = req.body as {
-      email: string;
-      password: string;
-      remember?: boolean;
-    };
-
-    if (!email || !password) {
+    // P0-W6-001 FIX: Wire Zod validation for login input.
+    const parsed = loginSchema.safeParse(req.body);
+    if (!parsed.success) {
       res.status(400).json({
         success: false,
         error: 'Missing required fields: email, password',
       } as ApiResponse);
       return;
     }
-
-    // SEC-003: Password max length check (before bcrypt comparison)
-    if (password.length > MAX_PASSWORD_LENGTH) {
-      res.status(401).json({
-        success: false,
-        error: 'Invalid email or password',
-      } as ApiResponse);
-      return;
-    }
+    const { email, password, remember } = parsed.data;
 
     // Find user by email
     const normalizedEmail = email.toLowerCase().trim();
-
-    // BUG-010 FIX: RFC 5321 max email length.
-    if (normalizedEmail.length > MAX_EMAIL_LENGTH) {
-      res.status(401).json({
-        success: false,
-        error: 'Invalid email or password',
-      } as ApiResponse);
-      return;
-    }
 
     const result = await query<
       Pick<
@@ -736,15 +661,16 @@ router.post(
   sensitiveActionLimiter,
   async (req: Request, res: Response): Promise<void> => {
     try {
-      const { email } = req.body as { email?: string };
-
-      if (!email) {
+      // P0-W6-001 FIX: Wire Zod validation for resend-verification.
+      const parsed = resendVerificationSchema.safeParse(req.body);
+      if (!parsed.success) {
         res.status(400).json({
           success: false,
           error: 'Email is required',
         } as ApiResponse);
         return;
       }
+      const { email } = parsed.data;
 
       // Anti-enumeration: always return success regardless of outcome
       const GENERIC_RESPONSE: ApiResponse = {
@@ -821,15 +747,16 @@ router.post(
   sensitiveActionLimiter,
   async (req: Request, res: Response): Promise<void> => {
     try {
-      const { email } = req.body as { email: string };
-
-      if (!email) {
+      // P0-W6-001 FIX: Wire Zod validation for forgot-password.
+      const parsed = forgotPasswordSchema.safeParse(req.body);
+      if (!parsed.success) {
         res.status(400).json({
           success: false,
           error: 'Email is required',
         } as ApiResponse);
         return;
       }
+      const { email } = parsed.data;
 
       // ALWAYS return success to prevent email enumeration (SEC-009)
       const successResponse = {
@@ -925,43 +852,22 @@ router.post(
   sensitiveActionLimiter,
   async (req: Request, res: Response): Promise<void> => {
     try {
-      const { token, new_password } = req.body as {
-        token: string;
-        new_password: string;
-      };
-
-      if (!token || !new_password) {
+      // P0-W6-001 FIX: Wire Zod validation for reset-password.
+      const parsed = resetPasswordSchema.safeParse(req.body);
+      if (!parsed.success) {
+        const firstError = parsed.error.issues[0]?.message ?? 'Token and new password are required';
         res.status(400).json({
           success: false,
-          error: 'Token and new password are required',
+          error: firstError,
         } as ApiResponse);
         return;
       }
-
-      // Validate password complexity
-      const failedRules = PASSWORD_RULES.filter((rule) => !rule.test(new_password)).map(
-        (rule) => rule.msg,
-      );
-
-      if (failedRules.length > 0) {
-        res.status(400).json({
-          success: false,
-          error: `Password must contain: ${failedRules.join(', ')}`,
-        } as ApiResponse);
-        return;
-      }
-
-      if (new_password.length > MAX_PASSWORD_LENGTH) {
-        res.status(400).json({
-          success: false,
-          error: `Password must not exceed ${MAX_PASSWORD_LENGTH} characters`,
-        } as ApiResponse);
-        return;
-      }
+      const { token, new_password } = parsed.data;
 
       // Find user by reset token
-      const result = await query<Pick<User, 'user_id' | 'email' | 'reset_token_expires_at'>>(
-        `SELECT user_id, email, reset_token_expires_at
+      // P2-W6-010 FIX: Also select password_hash for password-reuse check.
+      const result = await query<Pick<User, 'user_id' | 'email' | 'reset_token_expires_at' | 'password_hash'>>(
+        `SELECT user_id, email, reset_token_expires_at, password_hash
              FROM users WHERE password_reset_token = $1`,
         [hashToken(token)],
       );
@@ -987,6 +893,21 @@ router.post(
           error: 'Reset token has expired. Please request a new one.',
         } as ApiResponse);
         return;
+      }
+
+      // P2-W6-010 FIX: Prevent password reuse on reset.
+      // change-password checks `current_password === new_password` but reset-password
+      // did NOT — a user could reset to the exact same password, undermining the
+      // security purpose of password reset (e.g., after account compromise).
+      if (user.password_hash) {
+        const isSamePassword = await bcrypt.compare(new_password, user.password_hash);
+        if (isSamePassword) {
+          res.status(400).json({
+            success: false,
+            error: 'New password must be different from your current password',
+          } as ApiResponse);
+          return;
+        }
       }
 
       // Hash new password, clear reset token, and invalidate all existing JWTs
@@ -1051,23 +972,34 @@ router.post(
     // NMR-AUD-M004 FIX: Soft-auth token invalidation.
     // Try to decode the JWT to get the user_id and invalidate all their tokens.
     // If decode fails (expired, malformed, etc.), we still proceed to clear the cookie.
+    // P0-W6-002 FIX: Use jwt.verify() to prevent forged JWTs from triggering
+    // token_invalidated_at on arbitrary users (DoS via unsigned decode).
+    // Previous: jwt.decode() without verification — a crafted JWT with any
+    // `sub` claim could force-logout any user via DB write.
+    // Now: Only verified tokens trigger DB invalidation. Expired/invalid tokens
+    // still get their cookie cleared but do NOT write to DB.
     try {
       const token = req.cookies?.['nammerha_jwt'] as string | undefined;
       if (token) {
-        // Decode WITHOUT verification — we only need the user_id.
-        // The token is about to be invalidated anyway; verifying it first
-        // would just block logout for users with expired tokens.
-        const decoded = jwt.decode(token) as { sub?: string; user_id?: string } | null;
-        const userId = decoded?.sub ?? decoded?.user_id;
-        if (userId) {
-          await query('UPDATE users SET token_invalidated_at = NOW() WHERE user_id = $1', [userId]);
-          logger.info('Auth: Token invalidated on logout', { userId });
+        try {
+          const jwtSecret = process.env['JWT_SECRET'] ?? '';
+          if (jwtSecret) {
+            const verified = jwt.verify(token, jwtSecret, { algorithms: ['HS256'] }) as { sub?: string };
+            const userId = verified.sub;
+            if (userId) {
+              await query('UPDATE users SET token_invalidated_at = NOW() WHERE user_id = $1', [userId]);
+              logger.info('Auth: Token invalidated on logout', { userId });
+            }
+          }
+        } catch {
+          // Token expired or invalid — cookie will be cleared below.
+          // No DB write for unverifiable tokens (prevents DoS).
+          logger.info('Auth: Logout with expired/invalid token — cookie cleared only');
         }
       }
     } catch (err) {
       // Non-fatal: cookie will still be cleared below.
-      // The token will expire naturally within 24h even if invalidation fails.
-      logger.error('Auth: Failed to invalidate token on logout', {
+      logger.error('Auth: Failed to process logout', {
         error: err instanceof Error ? err.message : String(err),
       });
     }
@@ -1096,44 +1028,17 @@ router.post(
   async (req: Request, res: Response): Promise<void> => {
     try {
       const userId = getAuthUser(req).user_id;
-      // W3-P3-001 FIX: Accept optional `remember` field so the reissued JWT
-      // after password change respects the user's session preference.
-      const { current_password, new_password, remember } = req.body as {
-        current_password?: string;
-        new_password?: string;
-        remember?: boolean;
-      };
-
-      // ── Validation: Required fields ────────────────────────────
-      if (!current_password || !new_password) {
+      // P0-W6-001 FIX: Wire Zod validation for change-password.
+      const parsed = changePasswordSchema.safeParse(req.body);
+      if (!parsed.success) {
+        const firstError = parsed.error.issues[0]?.message ?? 'Current password and new password are required';
         res.status(400).json({
           success: false,
-          error: 'Current password and new password are required',
+          error: firstError,
         } as ApiResponse);
         return;
       }
-
-      // ── Validation: Max length (SEC-003: bcrypt DoS prevention) ─
-      if (new_password.length > MAX_PASSWORD_LENGTH) {
-        res.status(400).json({
-          success: false,
-          error: `Password must not exceed ${MAX_PASSWORD_LENGTH} characters`,
-        } as ApiResponse);
-        return;
-      }
-
-      // ── Validation: Password complexity rules ──────────────────
-      const failedRules = PASSWORD_RULES.filter((rule) => !rule.test(new_password)).map(
-        (rule) => rule.msg,
-      );
-
-      if (failedRules.length > 0) {
-        res.status(400).json({
-          success: false,
-          error: `Password must contain: ${failedRules.join(', ')}`,
-        } as ApiResponse);
-        return;
-      }
+      const { current_password, new_password, remember } = parsed.data;
 
       // ── Validation: No password reuse ──────────────────────────
       if (current_password === new_password) {

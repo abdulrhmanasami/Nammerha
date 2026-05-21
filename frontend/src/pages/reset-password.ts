@@ -3,6 +3,10 @@ import { auth } from '../api';
 import { updatePasswordStrength } from '../utils/password-strength';
 import { t } from '../utils/i18n';
 import { showStructuredBanner, type StructuredBannerElements } from '../utils/banner';
+// P2-W6-009 FIX: Pre-warm CSRF token for POST requests.
+// Parity with auth.ts L33 — prevents 2-5s invisible delay on Syria 2G.
+import { warmCsrf } from '../api/_client';
+warmCsrf();
 // P1-006 FIX: Scroll-to-field on validation error
 import { scrollToField } from '../utils/scroll-to-field';
 // P1-013 FIX: Auto-detect required fields and add asterisk markers to labels.
@@ -173,6 +177,15 @@ requestBtn?.addEventListener('click', async () => {
   const email = requestEmailInput?.value.trim();
   if (!email) {
     showRequestFeedback('error', t('reset_enter_email', 'أدخل بريدك الإلكتروني'));
+    requestEmailInput?.focus();
+    return;
+  }
+
+  // P2-W6-004 FIX: Email format + length validation (RFC 5321 parity).
+  // Previously no validation — extremely long or malformed emails sent to backend.
+  const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  if (email.length > 254 || !EMAIL_REGEX.test(email)) {
+    showRequestFeedback('error', t('reset_invalid_email', 'صيغة البريد الإلكتروني غير صالحة'));
     requestEmailInput?.focus();
     return;
   }

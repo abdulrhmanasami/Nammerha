@@ -1834,6 +1834,20 @@ const Map<String, Map<String, String>> kTranslations = {
   'dr_discard_leave': {'ar': 'مغادرة', 'en': 'Leave'},
   'dr_discard_stay': {'ar': 'متابعة التعبئة', 'en': 'Continue Editing'},
 
+  // ═══ GPS PERMISSION PRE-EXPLANATION (HIGH-MOB-003) ═══
+  'gps_why_title': {'ar': 'لماذا نحتاج موقعك؟', 'en': 'Why do we need your location?'},
+  'gps_why_verify': {'ar': 'إحداثيات GPS تُثبت أن العقار موجود فعلاً في الموقع المُبلَّغ عنه — مما يمنع التلاعب', 'en': 'GPS coordinates verify the property exists at the reported location — preventing fraud'},
+  'gps_why_escrow': {'ar': 'الأموال في حساب الضمان (Escrow) لا تُفرج إلا بعد التحقق المكاني من التقدم الفعلي', 'en': 'Escrow funds are only released after spatial verification of actual progress'},
+  'gps_why_privacy': {'ar': 'موقعك يُستخدم فقط للتحقق — لا يُشارك مع أطراف ثالثة ولا يُخزّن في سجلات عامة', 'en': 'Your location is used only for verification — never shared with third parties or stored in public records'},
+  'gps_allow_btn': {'ar': 'السماح بتحديد الموقع', 'en': 'Allow Location Access'},
+  'gps_skip_btn': {'ar': 'تخطّي الآن', 'en': 'Skip for Now'},
+
+  // ═══ KYC BANNER (MED-MOB-004 — Mobile Parity) ═══
+  'kyc_banner_title': {'ar': 'أكمل التحقق من هويتك', 'en': 'Complete Your Identity Verification'},
+  'kyc_banner_subtitle': {'ar': 'التحقق مطلوب قبل صرف أي مبالغ من حساب الضمان', 'en': 'Verification is required before any escrow funds can be released'},
+  'kyc_banner_cta': {'ar': 'إكمال التحقق →', 'en': 'Complete Verification →'},
+  'kyc_banner_a11y': {'ar': 'تنبيه: يجب إكمال التحقق من الهوية', 'en': 'Alert: Identity verification must be completed'},
+
   // ═══ AUD-003: Registration Draft Persistence ═══
   'reg_draft_restored': {'ar': 'تم استعادة بياناتك السابقة ✓', 'en': 'Your previous data has been restored ✓'},
 

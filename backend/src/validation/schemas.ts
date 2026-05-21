@@ -42,18 +42,20 @@ export const registerSchema = z.object({
     email: emailSchema,
     password: z.string()
         .min(8, 'Password must be at least 8 characters')
+        .max(128, 'Password must not exceed 128 characters')
         .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
         .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
         .regex(/[0-9]/, 'Password must contain at least one digit')
         .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
     full_name: z.string().min(2).max(100).trim(),
+    phone: z.string().max(20).optional(),
     role: z.enum(['homeowner', 'engineer', 'donor', 'supplier', 'contractor', 'tradesperson']).optional(),
     intent: z.string().max(500).optional(),
 });
 
 export const loginSchema = z.object({
     email: emailSchema,
-    password: z.string().min(1, 'Password is required'),
+    password: z.string().min(1, 'Password is required').max(128),
     remember: z.boolean().optional(),
 });
 
@@ -65,6 +67,7 @@ export const resetPasswordSchema = z.object({
     token: z.string().min(1, 'Reset token is required'),
     new_password: z.string()
         .min(8, 'Password must be at least 8 characters')
+        .max(128, 'Password must not exceed 128 characters')
         .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
         .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
         .regex(/[0-9]/, 'Password must contain at least one digit')
@@ -75,10 +78,12 @@ export const changePasswordSchema = z.object({
     current_password: z.string().min(1),
     new_password: z.string()
         .min(8)
+        .max(128)
         .regex(/[A-Z]/)
         .regex(/[a-z]/)
         .regex(/[0-9]/)
         .regex(/[^A-Za-z0-9]/),
+    remember: z.boolean().optional(),
 });
 
 export const resendVerificationSchema = z.object({

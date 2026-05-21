@@ -50,6 +50,49 @@ const state: AuthState = {
   isSubmitting: false,
 };
 
+// ─── P1-W6-001 FIX: Module-Scoped Timer Registry ───────────────────────────
+// PREVIOUS: Countdown timers used local `const resendTimer = setInterval(...)` variables.
+// These leaked if the user navigated away (SPA redirect, tab close, bfcache).
+// The timer continued ticking against orphaned DOM, wasting CPU and memory.
+//
+// FIX: All interval timers register in `_activeTimers`. Utility helpers ensure:
+//   1. Automatic registration on creation (`createTrackedInterval`)
+//   2. Automatic deregistration on clearance (`clearTrackedInterval`)
+//   3. Bulk cleanup on `pagehide` (bfcache-safe; `beforeunload` blocks bfcache)
+//
+// Standard: Web Performance (Timer Hygiene), Page Lifecycle API.
+// ─────────────────────────────────────────────────────────────────────────────
+const _activeTimers = new Set<ReturnType<typeof setInterval>>();
+
+/** Create a setInterval that auto-registers in the timer registry. */
+function createTrackedInterval(
+  callback: () => void,
+  intervalMs: number,
+): ReturnType<typeof setInterval> {
+  const timerId = setInterval(callback, intervalMs);
+  _activeTimers.add(timerId);
+  return timerId;
+}
+
+/** Clear a tracked interval and remove from registry. No-op if null. */
+function clearTrackedInterval(
+  timerId: ReturnType<typeof setInterval> | null,
+): null {
+  if (timerId !== null) {
+    clearInterval(timerId);
+    _activeTimers.delete(timerId);
+  }
+  return null;
+}
+
+/** Clear ALL active timers — called on pagehide for bfcache-safe cleanup. */
+function clearAllTrackedTimers(): void {
+  for (const timerId of _activeTimers) {
+    clearInterval(timerId);
+  }
+  _activeTimers.clear();
+}
+
 // ─── UNIFIED CITIZEN: Post-Login Redirect ─────────────────────────────────────
 // Previous: ROLE_DASHBOARD map routed users to different portals based on their
 // "primary role" (homeowner→homeowner-portal, engineer→engineer-camera, etc.).
@@ -229,11 +272,11 @@ function restoreRegDraft(): void {
     if (emailEl && draft.email) {
       emailEl.value = draft.email;
     }
-    // Restore to the step the user was on (but never beyond step 2 — passwords aren't saved)
-    if (draft.step && draft.step <= 2 && draft.step > 1) {
-      // Use setTimeout to ensure DOM is ready
-      setTimeout(() => goToRegStep(draft.step!), 100);
-    }
+    // P2-W6-003 FIX: Always cap restoration at Step 1 (name + email only).
+    // Previous: Could advance to Step 2, showing empty password fields with no context.
+    // Password fields are never saved (correct security decision), so advancing
+    // to Step 2 from a draft is confusing. Parity with Flutter RegisterWizardCubit.
+    // No step restoration — user always starts at Step 1 with pre-filled name/email.
   } catch {
     /* ignore corrupt/missing data */
   }
@@ -416,8 +459,9 @@ function validateCurrentStep(): boolean {
       scrollToField(document.getElementById('reg-email'));
       return false;
     }
-    // Basic email format check
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    // P1-W6-002 FIX: Use stricter email regex — parity with forgot-password & backend.
+    // Previous: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ — allowed non-alphanumeric in domain.
+    if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
       showBanner('error', t('auth_email_invalid', 'البريد الإلكتروني غير صالح'));
       scrollToField(document.getElementById('reg-email'));
       return false;
@@ -852,7 +896,7 @@ formLogin?.addEventListener('submit', async (e) => {
   // Standard: Nielsen #9 (Error Recognition), CSS-Driven Validation.
   formLogin.classList.add('submitted');
 
-  const email = (document.getElementById('login-email') as HTMLInputElement)?.value.trim();
+  const email = (document.getElementById('login-email') as HTMLInputElement)?.value.trim().toLowerCase();
   const password = (document.getElementById('login-password') as HTMLInputElement)?.value;
 
   if (!email || !password) {
@@ -993,7 +1037,9 @@ formRegister?.addEventListener('submit', async (e) => {
   }
 
   const full_name = (document.getElementById('reg-name') as HTMLInputElement)?.value.trim();
-  const email = (document.getElementById('reg-email') as HTMLInputElement)?.value.trim();
+  // P2-W6-007 FIX: Normalize email to lowercase before submission.
+  // Backend does email.toLowerCase().trim() but frontend was sending raw case.
+  const email = (document.getElementById('reg-email') as HTMLInputElement)?.value.trim().toLowerCase();
   const password = (document.getElementById('reg-password') as HTMLInputElement)?.value;
   // W3-P2-001 FIX: Read optional phone field — cross-platform registration parity.
   const phone =
@@ -1086,7 +1132,8 @@ formRegister?.addEventListener('submit', async (e) => {
 const forgotBtn = document.getElementById('forgot-password-btn') as HTMLAnchorElement | null;
 forgotBtn?.addEventListener('click', async (e) => {
   e.preventDefault(); // Prevent mailto fallback when JS is available
-  const email = (document.getElementById('login-email') as HTMLInputElement)?.value.trim();
+  // P2-W6-007 FIX: Normalize email to lowercase before submission.
+  const email = (document.getElementById('login-email') as HTMLInputElement)?.value.trim().toLowerCase();
   if (!email) {
     // M-AUD-003 FIX: Focus the email field with guiding instruction.
     const loginEmailInput = document.getElementById('login-email') as HTMLInputElement | null;
@@ -1216,16 +1263,14 @@ function showEmailSentConfirmation(emailAddress: string): void {
 
   // BUG-F05 FIX: Track active timer IDs for cleanup when panel is removed.
   // PREVIOUS: panel.remove() at L1132 orphaned running setIntervals.
+  // P1-W6-001 UPGRADE: Now uses module-scoped tracked intervals.
   // Standard: Resource Lifecycle Management, Memory Leak Prevention.
   let _confirmResendTimer: ReturnType<typeof setInterval> | null = null;
 
   // Wire "Back to Login" button
   document.getElementById('nm-back-to-login-from-confirm')?.addEventListener('click', () => {
     // BUG-F05 FIX: Clear countdown timer BEFORE removing panel.
-    if (_confirmResendTimer !== null) {
-      clearInterval(_confirmResendTimer);
-      _confirmResendTimer = null;
-    }
+    _confirmResendTimer = clearTrackedInterval(_confirmResendTimer);
     panel.remove();
     switchTab('login');
     // Pre-fill email for convenience
@@ -1272,16 +1317,14 @@ function showEmailSentConfirmation(emailAddress: string): void {
       const countdownSpan = resendBtn.querySelector('span');
       const originalText = countdownSpan?.textContent ?? '';
       // BUG-F05 FIX: Store timer for cleanup in "Back to Login" handler.
-      _confirmResendTimer = setInterval(() => {
+      // P1-W6-001 UPGRADE: Use tracked interval for pagehide cleanup.
+      _confirmResendTimer = createTrackedInterval(() => {
         countdown--;
         if (countdownSpan) {
           countdownSpan.textContent = `${t('auth_resend_wait', 'انتظر')} (${countdown}s)`;
         }
         if (countdown <= 0) {
-          if (_confirmResendTimer !== null) {
-            clearInterval(_confirmResendTimer);
-            _confirmResendTimer = null;
-          }
+          _confirmResendTimer = clearTrackedInterval(_confirmResendTimer);
           resendBtn.classList.remove('nm-btn-cooldown');
           resendBtn.removeAttribute('aria-disabled');
           if (countdownSpan) {
@@ -1354,13 +1397,19 @@ function showInlineResendVerification(emailAddress: string): void {
       let countdown = 60;
       const resendSpan = btn.querySelector('span');
       const originalResendText = resendSpan?.textContent ?? '';
-      const resendTimer = setInterval(() => {
+      // P1-W6-001 FIX: Use tracked interval instead of local-only variable.
+      // PREVIOUS: `const resendTimer = setInterval(...)` — local variable leaked
+      // if user navigated away during the 60s countdown. Timer continued ticking
+      // against orphaned DOM nodes (CPU waste, potential null-ref on GC'd elements).
+      // NOW: Tracked in `_activeTimers` — cleaned up on pagehide.
+      let _inlineResendTimer: ReturnType<typeof setInterval> | null = null;
+      _inlineResendTimer = createTrackedInterval(() => {
         countdown--;
         if (resendSpan) {
           resendSpan.textContent = `${t('auth_resend_wait', 'انتظر')} (${countdown}s)`;
         }
         if (countdown <= 0) {
-          clearInterval(resendTimer);
+          _inlineResendTimer = clearTrackedInterval(_inlineResendTimer);
           btn.classList.remove('nm-btn-cooldown');
           btn.removeAttribute('aria-disabled');
           if (resendSpan) {
@@ -1726,7 +1775,7 @@ function openGoogleOAuthPopup(clientId: string): void {
   const popup = window.open(
     authUrl,
     'google_oauth',
-    `width=${width},height=${height},left=${left},top=${top},menubar=no,toolbar=no`,
+    `width=${width},height=${height},left=${left},top=${top},noopener,noreferrer,menubar=no,toolbar=no`,
   );
 
   if (!popup) {
@@ -1734,16 +1783,16 @@ function openGoogleOAuthPopup(clientId: string): void {
     return;
   }
 
-  // Poll for the popup redirect (hash fragment contains id_token)
-  const pollTimer = setInterval(async () => {
+  // P1-W6-001 UPGRADE: Use tracked interval for pagehide cleanup.
+  const pollTimer = createTrackedInterval(async () => {
     try {
       if (popup.closed) {
-        clearInterval(pollTimer);
+        clearTrackedInterval(pollTimer);
         return;
       }
       // Check if the popup has navigated back to our origin
       if (popup.location.origin === window.location.origin) {
-        clearInterval(pollTimer);
+        clearTrackedInterval(pollTimer);
         const hash = popup.location.hash.substring(1);
         popup.close();
 
@@ -1814,7 +1863,7 @@ function openGoogleOAuthPopup(clientId: string): void {
 
   // Safety timeout: stop polling after 5 minutes
   setTimeout(() => {
-    clearInterval(pollTimer);
+    clearTrackedInterval(pollTimer);
     // Clean up stale state if popup was abandoned
     try {
       sessionStorage.removeItem('__google_oauth_state');
@@ -2153,4 +2202,17 @@ formRegister?.querySelectorAll<HTMLElement>('[data-step-dot]').forEach((dot) => 
       goToRegStep(dotStep);
     }
   });
+});
+
+// ─── P1-W6-001 FIX: Page Lifecycle Cleanup ──────────────────────────────────
+// Clear ALL tracked interval timers when the page is hidden or navigated away.
+// Uses `pagehide` over `beforeunload` because:
+//   1. `beforeunload` blocks bfcache — critical for Syria 2G (users frequently
+//      navigate back; bfcache restores instant, re-fetch costs 5-15s on 2G).
+//   2. `pagehide` fires for ALL navigation types (back/forward, tab close, SPA).
+//   3. MDN and web.dev recommend `pagehide` as the modern replacement.
+// Standard: Page Lifecycle API, Web Performance (bfcache eligibility).
+// ─────────────────────────────────────────────────────────────────────────────
+window.addEventListener('pagehide', () => {
+  clearAllTrackedTimers();
 });

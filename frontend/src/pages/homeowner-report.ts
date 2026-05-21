@@ -12,6 +12,10 @@ import { haptic } from '../utils/haptic';
 import { scrollToField } from '../utils/scroll-to-field';
 // W6-003 FIX: Auth guard — was missing on this homeowner page.
 import { requireAuth } from '../utils/auth-guard';
+// CRIT-UX-001 FIX: Confirmation before leaving wizard when data exists.
+import { confirmAction } from '../utils/confirm-action';
+// HIGH-UX-002 FIX: Breadcrumb for spatial orientation on inner pages.
+import { initBreadcrumb } from '../utils/breadcrumb';
 
 // W6-003 FIX: Module-level guard — prevent wizard from initializing for unauthenticated users.
 // P1-WIZARD-001 FIX: Throw is correct at ES module top-level (only way to abort initialization),
@@ -22,6 +26,32 @@ if (!requireAuth()) {
   // Prevents error reporter from logging this as a real error
   throw new DOMException('Auth guard: wizard module aborted (expected)', 'AbortError');
 }
+
+// HIGH-UX-002 FIX: Breadcrumb on homeowner report page.
+// PREVIOUS: Users arriving via deep links had no spatial context — "Where am I?"
+// Standard: WCAG 2.4.8 (Location), Nielsen #7 (Recognition).
+initBreadcrumb();
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CRIT-UX-001 FIX: Wizard Leave Protection (beforeunload)
+// PREVIOUS: User could close the tab, navigate away, or hit back with NO warning.
+// A Syrian homeowner who spent 10 minutes uploading photos + getting GPS lock
+// would lose EVERYTHING on accidental back-press or tab close.
+// NOW: beforeunload fires if wizard has meaningful data (damageType or photos).
+// Standard: Nielsen #5 (Error Prevention), Progressive Web App Best Practices.
+// ═══════════════════════════════════════════════════════════════════════════
+function hasWizardData(): boolean {
+  // Check if the wizard state has any meaningful user input
+  return !!(state?.damageType || state?.governorate || state?.photoCount > 0 || state?.description);
+}
+
+window.addEventListener('beforeunload', (e: BeforeUnloadEvent) => {
+  // Only warn if wizard has meaningful data AND we're NOT on the success step
+  if (hasWizardData() && state.currentStep < 4) {
+    e.preventDefault();
+    // Modern browsers ignore custom messages but still show the dialog
+  }
+});
 
 // ═══════════════════════════════════════════════════════════════════════════
 // WIZARD STATE
@@ -363,15 +393,35 @@ if (nextBtn) {
 if (backBtn) {
   backBtn.addEventListener('click', () => {
     if (state.currentStep === 1) {
-      // B2 FIX: Use history.back() to preserve spatial navigation context.
-      // PREVIOUS: Hardcoded `window.location.href = 'index.html'` — user always
-      // lands on homepage even if they came from homeowner-portal.html.
-      // NOW: Respects browser history; falls back to homeowner portal if no history.
-      // Standard: Nielsen #3 (User Control & Freedom), Spatial Navigation Memory.
-      if (window.history.length > 1) {
-        window.history.back();
+      // CRIT-UX-001 FIX: Confirm before leaving wizard if data exists.
+      // PREVIOUS: history.back() fired immediately — user lost 10+ min of work.
+      // NOW: If wizard has data, show confirmation dialog first.
+      // Standard: Nielsen #5 (Error Prevention), Apple HIG (Data Loss Prevention).
+      const navigateAway = () => {
+        if (window.history.length > 1) {
+          window.history.back();
+        } else {
+          window.location.href = '/homeowner-portal.html';
+        }
+      };
+
+      if (hasWizardData()) {
+        confirmAction({
+          title: t('hr_leave_title', 'مغادرة النموذج؟'),
+          message: t('hr_leave_msg', 'لديك بيانات غير مُرسلة. ستُفقد إذا غادرت الآن. (يتم حفظ المسودة تلقائياً ويمكنك استئنافها لاحقاً)'),
+          confirmLabel: t('hr_leave_confirm', 'مغادرة'),
+          icon: 'sign-out',
+          variant: 'warning',
+          i18n: {
+            title: 'hr_leave_title',
+            message: 'hr_leave_msg',
+            confirm: 'hr_leave_confirm',
+            cancel: 'common_cancel',
+          },
+          onConfirm: navigateAway,
+        });
       } else {
-        window.location.href = '/homeowner-portal.html';
+        navigateAway();
       }
     } else if (state.currentStep <= TOTAL_STEPS) {
       showStep(state.currentStep - 1);
@@ -926,6 +976,12 @@ if (photoUploadZone && photoInput) {
         photoThumbnails.appendChild(thumb);
 
         // P1-FIX-007: Immediate Pre-Signed Upload to MinIO/S3
+        // HIGH-UX-005 FIX: XMLHttpRequest with progress tracking replaces fetch().
+        // PREVIOUS: fetch() PUT gave ZERO progress feedback. On Syrian 3G, a 300KB
+        // compressed photo takes 15-30 seconds. Users saw only a spinner, assumed
+        // failure, and either abandoned or re-submitted (duplicating uploads).
+        // NOW: Real-time conic-gradient progress ring on thumbnail + percentage text.
+        // Standard: Nielsen #1 (System Status Visibility), Material Design 3 (Progress).
         try {
           const uploadData = await storage.getUploadUrl({
             project_id: 'pending', // Special case allowed by routes for pre-creation uploads
@@ -936,19 +992,59 @@ if (photoUploadZone && photoInput) {
           });
 
           if (uploadData.success && uploadData.data) {
-            const s3Upload = await fetch(uploadData.data.upload_url, {
-              method: 'PUT',
-              headers: { 'Content-Type': 'image/jpeg' },
-              body: blob,
+            // HIGH-UX-005: Create progress overlay on thumbnail
+            const progressOverlay = document.createElement('div');
+            progressOverlay.className =
+              'absolute inset-0 flex flex-col items-center justify-center bg-slate-900/50 rounded-lg transition-opacity';
+            progressOverlay.innerHTML = `
+              <div class="nm-upload-ring" style="--progress: 0"></div>
+              <span class="text-white text-3xs font-bold mt-0.5">0%</span>
+            `;
+            thumb.appendChild(progressOverlay);
+
+            // Remove initial spinner — progress ring replaces it
+            const initialSpinner = thumb.querySelector('.ph-spinner');
+            initialSpinner?.parentElement?.remove();
+
+            await new Promise<void>((resolveUpload, rejectUpload) => {
+              const xhr = new XMLHttpRequest();
+              xhr.open('PUT', uploadData.data!.upload_url);
+              xhr.setRequestHeader('Content-Type', 'image/jpeg');
+
+              // Track upload progress
+              xhr.upload.addEventListener('progress', (pe: ProgressEvent) => {
+                if (pe.lengthComputable) {
+                  const pct = Math.round((pe.loaded / pe.total) * 100);
+                  const ring = progressOverlay.querySelector<HTMLElement>('.nm-upload-ring');
+                  const label = progressOverlay.querySelector<HTMLElement>('span');
+                  if (ring) {
+                    ring.style.setProperty('--progress', String(pct));
+                  }
+                  if (label) {
+                    label.textContent = `${pct}%`;
+                  }
+                }
+              });
+
+              xhr.addEventListener('load', () => {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                  resolveUpload();
+                } else {
+                  rejectUpload(new Error(`S3 Upload Failed: ${xhr.status}`));
+                }
+              });
+
+              xhr.addEventListener('error', () => rejectUpload(new Error('Network error')));
+              xhr.addEventListener('abort', () => rejectUpload(new Error('Upload aborted')));
+
+              xhr.send(blob);
             });
-            if (!s3Upload.ok) {
-              throw new Error('S3 Upload Failed');
-            }
 
             state.uploadedPhotoUrls.push(uploadData.data.public_url);
             state.photoCount++;
 
-            // Reflect success in thumbnail
+            // Remove progress overlay and show success
+            progressOverlay.remove();
             const imgEl = thumb.querySelector('img');
             if (imgEl) {
               imgEl.classList.remove('opacity-50');

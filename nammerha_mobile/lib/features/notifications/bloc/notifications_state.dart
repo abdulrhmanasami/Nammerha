@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../models/notification_model.dart';
 
 abstract class NotificationsState extends Equatable {
   const NotificationsState();
@@ -10,7 +11,8 @@ abstract class NotificationsState extends Equatable {
 class NotificationsInitial extends NotificationsState {}
 
 class NotificationsLoading extends NotificationsState {
-  final List<Map<String, dynamic>>? oldNotifications;
+  /// MED-MOB-003: Typed list replaces `List<Map<String, dynamic>>?`
+  final List<NotificationModel>? oldNotifications;
   
   const NotificationsLoading({this.oldNotifications});
   
@@ -19,7 +21,8 @@ class NotificationsLoading extends NotificationsState {
 }
 
 class NotificationsLoaded extends NotificationsState {
-  final List<Map<String, dynamic>> notifications;
+  /// MED-MOB-003: Typed list replaces `List<Map<String, dynamic>>`
+  final List<NotificationModel> notifications;
   final bool hasMore;
   final bool isLoadingMore;
 
@@ -30,7 +33,7 @@ class NotificationsLoaded extends NotificationsState {
   });
 
   NotificationsLoaded copyWith({
-    List<Map<String, dynamic>>? notifications,
+    List<NotificationModel>? notifications,
     bool? hasMore,
     bool? isLoadingMore,
   }) {

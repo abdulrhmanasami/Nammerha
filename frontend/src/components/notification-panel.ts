@@ -60,6 +60,48 @@ const TYPE_CONFIG: Record<string, { icon: string; color: string }> = {
 
 const DEFAULT_CONFIG = { icon: 'ph-bell', color: 'text-slate-500' };
 
+// HIGH-UX-006 FIX: Notification type → deep-link URL routing map.
+// PREVIOUS: Notifications were passive text blocks — users read them,
+// then had to manually navigate to the relevant page. 3+ taps wasted
+// per notification, especially painful on 2G Syrian networks.
+// NOW: Each notification type resolves to a contextual URL.
+// Data payload (project_id, escrow_id, etc.) further personalizes the link.
+// Standard: Slack/GitHub notification UX, Nielsen #7 (Flexibility & Efficiency).
+function resolveNotificationHref(n: Notification): string | null {
+  const data = n.data || {};
+  const projectId = data['project_id'] as string | undefined;
+
+  switch (n.type) {
+    case 'escrow_locked':
+    case 'escrow_released':
+    case 'escrow_refunded':
+      return projectId
+        ? `/project-details.html?id=${encodeURIComponent(projectId)}#escrow`
+        : '/wallet.html#payments';
+    case 'bid_received':
+    case 'bid_accepted':
+      return projectId
+        ? `/project-details.html?id=${encodeURIComponent(projectId)}#bids`
+        : '/projects.html';
+    case 'project_update':
+      return projectId
+        ? `/project-details.html?id=${encodeURIComponent(projectId)}`
+        : '/projects.html';
+    case 'kyc_approved':
+    case 'kyc_rejected':
+      return '/profile.html#kyc';
+    case 'po_status':
+      return '/supplier-dashboard.html#orders';
+    case 'proof_verified':
+      return projectId
+        ? `/project-details.html?id=${encodeURIComponent(projectId)}#proofs`
+        : '/projects.html';
+    case 'system':
+    default:
+      return null;
+  }
+}
+
 // ─── Constants ──────────────────────────────────────────────────────────────
 const BELL_SELECTORS =
   '#notification-bell, #nav-notification-btn, #mobile-notif-bell, [data-notif-bell]';
@@ -477,6 +519,35 @@ async function loadNotifications(): Promise<void> {
         }
       });
     });
+
+    // HIGH-UX-006 FIX: Wire click-to-navigate on actionable notification items.
+    // Clicking marks as read (optimistic) and navigates to the resolved URL.
+    body.querySelectorAll<HTMLElement>('[data-notif-href]').forEach((item) => {
+      item.addEventListener('click', async (e) => {
+        // Don't navigate if they clicked the mark-read button (handled above)
+        if ((e.target as HTMLElement).closest('[data-mark-read]')) {
+          return;
+        }
+
+        const href = item.dataset['notifHref'];
+        const notifId = item.dataset['notifId'];
+
+        // Mark as read (optimistic, fire-and-forget)
+        if (notifId && item.classList.contains('nm-notif-unread')) {
+          notifications.markAsRead(notifId).catch(() => { /* best-effort */ });
+          updateBadge();
+        }
+
+        // Navigate
+        if (href) {
+          // Close panel first for clean transition
+          if (activeBell) {
+            closePanel(activeBell);
+          }
+          window.location.href = href;
+        }
+      });
+    });
   } catch {
     body.innerHTML = `
             <div class="nm-notif-empty">
@@ -500,8 +571,14 @@ function renderNotificationItem(n: Notification): string {
         </button>
     `;
 
+  // HIGH-UX-006 FIX: Resolve deep-link URL for this notification type.
+  const href = resolveNotificationHref(n);
+  const hrefAttr = href ? ` data-notif-href="${escapeHtml(href)}"` : '';
+  // Accessible hint that this item is clickable
+  const roleAttr = href ? ' role="link" tabindex="0"' : '';
+
   return `
-        <div class="nm-notif-item ${unreadClass}" data-notif-id="${escapeHtml(n.notification_id)}">
+        <div class="nm-notif-item ${unreadClass}" data-notif-id="${escapeHtml(n.notification_id)}"${hrefAttr}${roleAttr}>
             <div class="nm-notif-item-icon ${config.color}">
                 <i class="ph ${config.icon}" aria-hidden="true"></i>
             </div>

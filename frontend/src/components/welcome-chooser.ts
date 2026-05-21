@@ -78,6 +78,22 @@ const WORKSPACE_OPTIONS: WorkspaceOption[] = [
     colorClass: 'text-smoky-jade dark:text-emerald-400',
     bgClass: 'bg-smoky-jade/10 dark:bg-emerald-400/20',
   },
+  // HIGH-UX-001 FIX: Tradesperson workspace option.
+  // PREVIOUS: 5 registration roles but only 4 welcome chooser cards.
+  // Tradespersons selected "engineer/contractor" → landed on /projects.html
+  // instead of /tradesperson-portal.html → could not find their work queue.
+  // Standard: Nielsen #2 (Match System ↔ Real World), Role Completeness.
+  {
+    id: 'tradesperson',
+    icon: 'wrench',
+    titleKey: 'wc_task_tradesperson',
+    titleFallback: "I'm a skilled tradesperson",
+    descKey: 'wc_desc_tradesperson',
+    descFallback: 'Find repair jobs, manage service requests, and grow your business',
+    href: '/tradesperson-portal.html',
+    colorClass: 'text-amber-600 dark:text-amber-400',
+    bgClass: 'bg-amber-600/10 dark:bg-amber-400/20',
+  },
   {
     id: 'supplier',
     icon: 'storefront',

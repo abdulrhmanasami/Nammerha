@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:geolocator/geolocator.dart';
 import '../data/damage_report_repository.dart';
 import '../../../core/i18n/error_keys.dart';
 import '../models/damage_report_data.dart';
@@ -40,10 +41,20 @@ class DamageReportBloc extends Bloc<DamageReportEvent, DamageReportState> {
       final position = await repository.detectGPS();
       final newData = state.formData.copyWith(gpsPosition: position);
       emit(DamageReportDraft(newData));
+    } on LocationServiceDisabledException {
+      // HIGH-MOB-005 FIX: Specific error key for GPS service disabled.
+      emit(DamageReportError(state.formData, ErrorKeys.gpsPermissionRequired));
+      // CRIT-MOB-001 FIX: Do NOT re-emit DamageReportDraft here.
+      // The BlocConsumer.listener shows the SnackBar, and the user's next
+      // interaction (editing form, tapping retry) transitions back naturally.
     } catch (e) {
-      emit(DamageReportError(state.formData, e.toString()));
-      // Reset back to draft after emitting error so user can rectify
-      emit(DamageReportDraft(state.formData));
+      // HIGH-MOB-005 FIX: Classify exception — permission denied vs network.
+      // PREVIOUS: e.toString() leaked "PlatformException(PERMISSION_DENIED, ...)"
+      final errorKey = e.toString().contains(ErrorKeys.gpsPermissionRequired)
+          ? ErrorKeys.gpsPermissionRequired
+          : ErrorKeys.network;
+      emit(DamageReportError(state.formData, errorKey));
+      // CRIT-MOB-001 FIX: Terminal state — no immediate DamageReportDraft re-emit.
     }
   }
 
@@ -54,8 +65,9 @@ class DamageReportBloc extends Bloc<DamageReportEvent, DamageReportState> {
       emit(DamageReportSuccess(state.formData));
     } catch (e) {
       emit(DamageReportError(state.formData, ErrorKeys.damageReportFailed));
-      // Reset back to draft
-      emit(DamageReportDraft(state.formData));
+      // CRIT-MOB-001 FIX: Terminal state — no immediate DamageReportDraft re-emit.
+      // The listener shows the SnackBar. The user retries by tapping Submit again,
+      // which fires a new SubmitReportEvent and transitions Draft → Loading → ...
     }
   }
 }

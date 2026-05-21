@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../models/notification_model.dart';
 
 abstract class NotificationsEvent extends Equatable {
   const NotificationsEvent();
@@ -21,8 +22,10 @@ class MarkAsReadRequested extends NotificationsEvent {
 
 /// Injected by PushNotificationService when a foreground FCM message arrives.
 /// Prepends the notification to the list without a full API reload.
+///
+/// MED-MOB-003: Now accepts typed NotificationModel instead of raw Map.
 class PushNotificationReceived extends NotificationsEvent {
-  final Map<String, dynamic> notification;
+  final NotificationModel notification;
   const PushNotificationReceived(this.notification);
 
   @override
