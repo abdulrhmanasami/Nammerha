@@ -29,6 +29,7 @@ import { generateToken, authMiddleware } from '../middleware/auth.middleware';
 import {
   sendVerificationEmail,
   sendPasswordResetEmail,
+  sendSecurityAlertEmail,
   type EmailLocale,
 } from '../services/email.service';
 import type { User, UserRole, ApiResponse } from '../types';
@@ -109,6 +110,24 @@ const sensitiveActionLimiter = rateLimit({
   message: {
     success: false,
     error: 'Too many requests. Please try again after 15 minutes.',
+  } as ApiResponse,
+});
+
+// V-005 FIX: Separate rate limiter for logout.
+// PREVIOUS: Logout shared sensitiveActionLimiter with change-password and forgot-password.
+// An attacker could exhaust the shared quota by spamming /api/auth/logout (which doesn't
+// require authentication), then the victim couldn't change their password or request a
+// password reset for 15 minutes. Logout is a non-destructive operation that only clears
+// a cookie — it deserves a more generous, isolated limit.
+// Standard: OWASP Rate Limiting, Zero-Trust Resource Isolation.
+const logoutLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 30, // More generous than sensitiveActionLimiter (logout is non-destructive)
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    error: 'Too many logout requests. Please try again later.',
   } as ApiResponse,
 });
 
@@ -866,7 +885,9 @@ router.post(
 
       // Find user by reset token
       // P2-W6-010 FIX: Also select password_hash for password-reuse check.
-      const result = await query<Pick<User, 'user_id' | 'email' | 'reset_token_expires_at' | 'password_hash'>>(
+      const result = await query<
+        Pick<User, 'user_id' | 'email' | 'reset_token_expires_at' | 'password_hash'>
+      >(
         `SELECT user_id, email, reset_token_expires_at, password_hash
              FROM users WHERE password_reset_token = $1`,
         [hashToken(token)],
@@ -941,6 +962,26 @@ router.post(
 
       logger.info('Auth: Password reset completed', { userId: user.user_id });
 
+      // V-012 FIX: Notify user of password reset via security alert email.
+      // PREVIOUS: Password resets were silent — if an attacker obtained the reset
+      // token (e.g., via email account compromise), the real user would not know
+      // their password was reset until their next login attempt.
+      // Standard: NIST SP 800-63B (Password Reset Notification), OWASP ASVS 2.3.1.
+      const resetIp = req.ip ?? req.socket.remoteAddress ?? 'unknown';
+      sendSecurityAlertEmail(
+        user.email,
+        getEmailLocale(req) === 'ar' ? 'تم إعادة تعيين كلمة المرور' : 'Password Reset',
+        getEmailLocale(req) === 'ar'
+          ? 'تم إعادة تعيين كلمة المرور الخاصة بحسابك في نمّرها بنجاح. إذا لم تطلب هذا الإجراء، يُرجى التواصل مع الدعم فوراً.'
+          : 'The password for your Nammerha account has been successfully reset. If you did not request this, please contact support immediately.',
+        resetIp,
+        getEmailLocale(req),
+      ).catch((err) => {
+        logger.error('Auth: Password reset security alert email failed', {
+          error: err instanceof Error ? err.message : String(err),
+        });
+      });
+
       res.json({
         success: true,
         message: 'Password has been reset successfully. You can now log in with your new password.',
@@ -965,54 +1006,56 @@ router.post(
 // attempt to extract the user_id from the token, but always clear the cookie
 // regardless of whether the token is valid.
 // W3-P3-003 FIX: Rate-limit logout to prevent token-invalidation DoS.
-router.post(
-  '/logout',
-  sensitiveActionLimiter,
-  async (req: Request, res: Response): Promise<void> => {
-    // NMR-AUD-M004 FIX: Soft-auth token invalidation.
-    // Try to decode the JWT to get the user_id and invalidate all their tokens.
-    // If decode fails (expired, malformed, etc.), we still proceed to clear the cookie.
-    // P0-W6-002 FIX: Use jwt.verify() to prevent forged JWTs from triggering
-    // token_invalidated_at on arbitrary users (DoS via unsigned decode).
-    // Previous: jwt.decode() without verification — a crafted JWT with any
-    // `sub` claim could force-logout any user via DB write.
-    // Now: Only verified tokens trigger DB invalidation. Expired/invalid tokens
-    // still get their cookie cleared but do NOT write to DB.
-    try {
-      const token = req.cookies?.['nammerha_jwt'] as string | undefined;
-      if (token) {
-        try {
-          const jwtSecret = process.env['JWT_SECRET'] ?? '';
-          if (jwtSecret) {
-            const verified = jwt.verify(token, jwtSecret, { algorithms: ['HS256'] }) as { sub?: string };
-            const userId = verified.sub;
-            if (userId) {
-              await query('UPDATE users SET token_invalidated_at = NOW() WHERE user_id = $1', [userId]);
-              logger.info('Auth: Token invalidated on logout', { userId });
-            }
+// V-005 FIX: Uses separate logoutLimiter — no longer shares quota with
+// change-password/forgot-password.
+router.post('/logout', logoutLimiter, async (req: Request, res: Response): Promise<void> => {
+  // NMR-AUD-M004 FIX: Soft-auth token invalidation.
+  // Try to decode the JWT to get the user_id and invalidate all their tokens.
+  // If decode fails (expired, malformed, etc.), we still proceed to clear the cookie.
+  // P0-W6-002 FIX: Use jwt.verify() to prevent forged JWTs from triggering
+  // token_invalidated_at on arbitrary users (DoS via unsigned decode).
+  // Previous: jwt.decode() without verification — a crafted JWT with any
+  // `sub` claim could force-logout any user via DB write.
+  // Now: Only verified tokens trigger DB invalidation. Expired/invalid tokens
+  // still get their cookie cleared but do NOT write to DB.
+  try {
+    const token = req.cookies?.['nammerha_jwt'] as string | undefined;
+    if (token) {
+      try {
+        const jwtSecret = process.env['JWT_SECRET'] ?? '';
+        if (jwtSecret) {
+          const verified = jwt.verify(token, jwtSecret, { algorithms: ['HS256'] }) as {
+            sub?: string;
+          };
+          const userId = verified.sub;
+          if (userId) {
+            await query('UPDATE users SET token_invalidated_at = NOW() WHERE user_id = $1', [
+              userId,
+            ]);
+            logger.info('Auth: Token invalidated on logout', { userId });
           }
-        } catch {
-          // Token expired or invalid — cookie will be cleared below.
-          // No DB write for unverifiable tokens (prevents DoS).
-          logger.info('Auth: Logout with expired/invalid token — cookie cleared only');
         }
+      } catch {
+        // Token expired or invalid — cookie will be cleared below.
+        // No DB write for unverifiable tokens (prevents DoS).
+        logger.info('Auth: Logout with expired/invalid token — cookie cleared only');
       }
-    } catch (err) {
-      // Non-fatal: cookie will still be cleared below.
-      logger.error('Auth: Failed to process logout', {
-        error: err instanceof Error ? err.message : String(err),
-      });
     }
-
-    res.clearCookie('nammerha_jwt', {
-      httpOnly: true,
-      secure: process.env['NODE_ENV'] === 'production',
-      sameSite: 'strict',
-      path: '/',
+  } catch (err) {
+    // Non-fatal: cookie will still be cleared below.
+    logger.error('Auth: Failed to process logout', {
+      error: err instanceof Error ? err.message : String(err),
     });
-    res.json({ success: true, message: 'Logged out successfully' } as ApiResponse);
-  },
-);
+  }
+
+  res.clearCookie('nammerha_jwt', {
+    httpOnly: true,
+    secure: process.env['NODE_ENV'] === 'production',
+    sameSite: 'strict',
+    path: '/',
+  });
+  res.json({ success: true, message: 'Logged out successfully' } as ApiResponse);
+});
 
 // ─── POST /api/auth/change-password ─────────────────────────────────────────
 // Authenticated endpoint: requires valid JWT + current password verification.
@@ -1031,7 +1074,8 @@ router.post(
       // P0-W6-001 FIX: Wire Zod validation for change-password.
       const parsed = changePasswordSchema.safeParse(req.body);
       if (!parsed.success) {
-        const firstError = parsed.error.issues[0]?.message ?? 'Current password and new password are required';
+        const firstError =
+          parsed.error.issues[0]?.message ?? 'Current password and new password are required';
         res.status(400).json({
           success: false,
           error: firstError,
@@ -1139,6 +1183,26 @@ router.post(
       );
 
       logger.info('Auth: Password changed successfully', { userId });
+
+      // V-012 FIX: Notify user of password change via security alert email.
+      // PREVIOUS: Password changes were silent — a compromised session could change
+      // the password without the real account owner knowing until their next login.
+      // Standard: NIST SP 800-63B (Password Change Notification), OWASP ASVS 2.3.1.
+      const changeIp = req.ip ?? req.socket.remoteAddress ?? 'unknown';
+      const changeLang = getEmailLocale(req);
+      sendSecurityAlertEmail(
+        user.email,
+        changeLang === 'ar' ? 'تم تغيير كلمة المرور' : 'Password Changed',
+        changeLang === 'ar'
+          ? 'تم تغيير كلمة المرور الخاصة بحسابك في نمّرها. إذا لم تقم بهذا الإجراء، يُرجى تأمين حسابك فوراً.'
+          : 'The password for your Nammerha account has been changed. If you did not perform this action, please secure your account immediately.',
+        changeIp,
+        changeLang,
+      ).catch((err) => {
+        logger.error('Auth: Password change security alert email failed', {
+          error: err instanceof Error ? err.message : String(err),
+        });
+      });
 
       res.json({
         success: true,

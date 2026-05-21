@@ -185,7 +185,13 @@ export async function authMiddleware(
 
     // Development fallback: X-User-Id header
     // SEC-007: Log a warning whenever this bypass is used, even in development.
-    if (!userId && process.env['NODE_ENV'] === 'development') {
+    // V-006 FIX: Requires both NODE_ENV=development AND DEV_AUTH_BYPASS=true
+    // to prevent accidental impersonation in misconfigured production deployments.
+    if (
+      !userId &&
+      process.env['NODE_ENV'] === 'development' &&
+      process.env['DEV_AUTH_BYPASS'] === 'true'
+    ) {
       userId = req.headers['x-user-id'] as string | undefined;
       if (userId) {
         logger.warn('SEC-007: X-User-Id dev bypass used', {

@@ -475,6 +475,198 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
+  /api/auth/social:
+    post:
+      tags: [Authentication]
+      summary: Social OAuth login/register (Google, Apple, Facebook)
+      description: |
+        Universal social login endpoint. Backend verifies the ID token
+        server-side with the provider, creates or links the user account,
+        and returns a JWT.
+
+        CSRF exempt (MOB-CSRF-001): Pre-auth endpoint — users cannot
+        obtain a CSRF token before authenticating.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [provider, id_token]
+              properties:
+                provider:
+                  type: string
+                  enum: [google, apple, facebook]
+                  description: OAuth provider identifier
+                id_token:
+                  type: string
+                  description: |
+                    JWT ID token from the OAuth provider (Google/Apple)
+                    or access token (Facebook). See token_type.
+                full_name:
+                  type: string
+                  description: Required for Apple first-login only (Apple returns name once)
+                remember:
+                  type: boolean
+                  default: false
+                  description: |
+                    When true, issues a 30-day JWT (matching email login behavior).
+                    When false, issues a 24-hour JWT.
+                token_type:
+                  type: string
+                  enum: [id_token, access_token]
+                  default: id_token
+                  description: |
+                    SEC-2 FIX: Distinguishes Facebook's access_token from
+                    Google/Apple's JWT id_tokens. Helps the backend select
+                    the correct token validation strategy.
+      responses:
+        '200':
+          description: Social login successful — JWT in cookie and response
+        '401':
+          description: Token verification failed with provider
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/auth/forgot-password:
+    post:
+      tags: [Authentication]
+      summary: Request password reset email
+      description: |
+        Sends a password reset email if the account exists.
+        Anti-enumeration: Always returns 200 regardless of whether
+        the email exists (CWE-204).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Reset email sent (or silently ignored if email not found)
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/auth/reset-password:
+    post:
+      tags: [Authentication]
+      summary: Reset password with token
+      description: |
+        Resets the user's password using a token from the reset email.
+        Invalidates all existing sessions (token_invalidated_at = NOW()).
+        V-012: Sends security alert email notification.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, new_password]
+              properties:
+                token:
+                  type: string
+                  description: Reset token from the password reset email
+                new_password:
+                  type: string
+                  minLength: 8
+                  description: New password (must differ from current)
+      responses:
+        '200':
+          description: Password reset successfully
+        '400':
+          description: Invalid token or password reuse detected
+        '410':
+          description: Reset token has expired
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/auth/change-password:
+    post:
+      tags: [Authentication]
+      summary: Change password (authenticated)
+      description: |
+        Changes the authenticated user's password. Requires current
+        password verification. Invalidates all other sessions and
+        reissues JWT for the current session.
+        V-012: Sends security alert email notification.
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [current_password, new_password]
+              properties:
+                current_password:
+                  type: string
+                new_password:
+                  type: string
+                  minLength: 8
+                remember:
+                  type: boolean
+                  default: false
+                  description: Reissue JWT with 30-day expiry if true
+      responses:
+        '200':
+          description: Password changed — new JWT issued
+        '400':
+          description: Validation error or social-only account
+        '401':
+          description: Current password incorrect
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/auth/logout:
+    post:
+      tags: [Authentication]
+      summary: Logout and invalidate session
+      description: |
+        Two-layer defense:
+        1. Sets token_invalidated_at = NOW() (invalidates all JWTs)
+        2. Clears nammerha_jwt HTTP-only cookie
+
+        Does NOT require authentication — uses soft-auth to prevent
+        logout loops when JWT is expired/malformed.
+        V-005: Uses separate logoutLimiter (30 req/15min).
+      responses:
+        '200':
+          description: Logged out successfully
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/auth/resend-verification:
+    post:
+      tags: [Authentication]
+      summary: Resend email verification link
+      description: |
+        Resends the verification email. Does NOT require authentication
+        (PLT-AUTH-002: unverified users can't login to request it).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Verification email sent (or silently ignored)
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
   # ── Projects ────────────────────────────────────────────────────────────
   /api/projects:
     get:

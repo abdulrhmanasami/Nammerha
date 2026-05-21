@@ -229,6 +229,16 @@ class AuthRepository {
     return response.message ?? ErrorKeys.resendVerificationSent;
   }
 
+  /// GET /api/auth/verify-email/:token
+  /// MOB-DI FIX: Moved from direct NammerhaApiClient.instance usage in
+  /// VerifyEmailBloc to repository layer for DI consistency and testability.
+  Future<void> verifyEmail(String token) async {
+    await _api.request(
+      '/auth/verify-email/$token',
+      method: 'GET',
+    );
+  }
+
   /// POST /api/auth/change-password (authenticated)
   Future<String> changePassword({
     required String currentPassword,

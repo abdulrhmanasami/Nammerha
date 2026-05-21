@@ -66,6 +66,9 @@ export const auth = {
     id_token: string;
     full_name?: string;
     remember?: boolean;
+    // SEC-2 FIX: Facebook returns an access_token (NOT a JWT id_token).
+    // This metadata helps the backend distinguish token types for validation.
+    token_type?: 'id_token' | 'access_token';
   }) =>
     request<{ user: unknown }>('/auth/social', {
       method: 'POST',

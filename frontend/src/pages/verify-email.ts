@@ -6,6 +6,19 @@ import { t } from '../utils/i18n';
 import { warmCsrf } from '../api/_client';
 warmCsrf();
 
+// EDGE-6 FIX: Module-scoped timer reference for cooldown cleanup.
+// Prevents timer leak when user navigates away during 60s resend countdown.
+let _activeCooldownTimer: ReturnType<typeof setInterval> | null = null;
+
+// EDGE-6 FIX: Clean up timer on page unload (bfcache-safe).
+// Uses 'pagehide' instead of 'beforeunload' to avoid blocking bfcache.
+window.addEventListener('pagehide', () => {
+  if (_activeCooldownTimer !== null) {
+    clearInterval(_activeCooldownTimer);
+    _activeCooldownTimer = null;
+  }
+});
+
 // ============================================================================
 // Nammerha — Email Verification Landing Page
 // PLT-AUD-006 FIX: User-friendly verification result display
@@ -215,11 +228,21 @@ resendBtn?.addEventListener('click', async () => {
     const btnEl = resendBtn as HTMLElement;
     const origText = btnEl.textContent ?? '';
     let countdown = 60;
-    const cooldownTimer = setInterval(() => {
+    // EDGE-6 FIX: Track cooldown timer to prevent memory leak on navigation.
+    // PREVIOUS: Raw setInterval was NOT tracked — if the user navigated away
+    // during the 60s countdown, this timer leaked until expiry.
+    // Standard: Timer Hygiene, Page Lifecycle API.
+    if (_activeCooldownTimer !== null) {
+      clearInterval(_activeCooldownTimer);
+    }
+    _activeCooldownTimer = setInterval(() => {
       countdown--;
       btnEl.textContent = `${t('verify_resend_wait', 'انتظر')} (${countdown}s)`;
       if (countdown <= 0) {
-        clearInterval(cooldownTimer);
+        if (_activeCooldownTimer !== null) {
+          clearInterval(_activeCooldownTimer);
+          _activeCooldownTimer = null;
+        }
         resendBtn.classList.remove('nm-btn-cooldown');
         btnEl.removeAttribute('aria-disabled');
         btnEl.textContent = origText;

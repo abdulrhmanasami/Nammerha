@@ -1,12 +1,13 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import '../../../core/utils/password_strength.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // ResetPasswordFormCubit — Platinum Standard (Absolute Zero setState)
 // ═══════════════════════════════════════════════════════════════════════════
 // Manages pure UI state for the Reset Password screen:
 //   - obscurePassword / obscureConfirm (password visibility toggles)
-//   - passwordStrength (0.0 – 1.0 calculated from password rules)
+//   - passwordStrength (0–4 integer score, unified with PasswordStrengthIndicator)
 //   - isSubmitting / isSuccess (form lifecycle)
 //
 // This replaces 7 `setState` calls in `_ResetPasswordScreenState`.
@@ -15,7 +16,9 @@ import 'package:equatable/equatable.dart';
 class ResetPasswordFormState extends Equatable {
   final bool obscurePassword;
   final bool obscureConfirm;
-  final double passwordStrength;
+  // MOB-PW FIX: Changed from double (0.0–1.0) to int (0–4) to unify with
+  // PasswordStrengthIndicator widget and ChangePasswordFormCubit.
+  final int passwordStrength;
   final bool isSubmitting;
   final bool isSuccess;
 
@@ -30,7 +33,7 @@ class ResetPasswordFormState extends Equatable {
   ResetPasswordFormState copyWith({
     bool? obscurePassword,
     bool? obscureConfirm,
-    double? passwordStrength,
+    int? passwordStrength,
     bool? isSubmitting,
     bool? isSuccess,
   }) {
@@ -62,15 +65,10 @@ class ResetPasswordFormCubit extends Cubit<ResetPasswordFormState> {
   void toggleConfirmVisibility() =>
       emit(state.copyWith(obscureConfirm: !state.obscureConfirm));
 
+  /// MOB-PW-DRY FIX: Delegates to shared computePasswordStrength().
+  /// Single source of truth: core/utils/password_strength.dart.
   void updateStrength(String password) {
-    double strength = 0;
-    if (password.length >= 8) strength += 0.2;
-    if (password.length >= 12) strength += 0.1;
-    if (RegExp(r'[A-Z]').hasMatch(password)) strength += 0.2;
-    if (RegExp(r'[a-z]').hasMatch(password)) strength += 0.15;
-    if (RegExp(r'[0-9]').hasMatch(password)) strength += 0.15;
-    if (RegExp(r'[^A-Za-z0-9]').hasMatch(password)) strength += 0.2;
-    emit(state.copyWith(passwordStrength: strength.clamp(0.0, 1.0)));
+    emit(state.copyWith(passwordStrength: computePasswordStrength(password)));
   }
 
   void setSubmitting() => emit(state.copyWith(isSubmitting: true));

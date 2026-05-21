@@ -1,12 +1,13 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import '../../../core/utils/password_strength.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // ChangePasswordFormCubit — Platinum Standard (Absolute Zero setState)
 // ═══════════════════════════════════════════════════════════════════════════
 // Manages pure UI state for the Change Password bottom sheet:
 //   - obscureCurrent / obscureNew / obscureConfirm (visibility toggles)
-//   - strength (password strength indicator 0-5)
+//   - strength (password strength indicator 0-4, unified with PasswordStrengthIndicator)
 //   - validationError (client-side validation message)
 //
 // This replaces 6 `setState` calls in `_ChangePasswordSheetState`.
@@ -66,14 +67,10 @@ class ChangePasswordFormCubit extends Cubit<ChangePasswordFormState> {
   void toggleConfirmVisibility() =>
       emit(state.copyWith(obscureConfirm: !state.obscureConfirm));
 
+  /// MOB-PW-DRY FIX: Delegates to shared computePasswordStrength().
+  /// Single source of truth: core/utils/password_strength.dart.
   void updateStrength(String password) {
-    int s = 0;
-    if (password.length >= 8) s++;
-    if (RegExp(r'[A-Z]').hasMatch(password)) s++;
-    if (RegExp(r'[a-z]').hasMatch(password)) s++;
-    if (RegExp(r'[0-9]').hasMatch(password)) s++;
-    if (RegExp(r'[^A-Za-z0-9]').hasMatch(password)) s++;
-    emit(state.copyWith(strength: s));
+    emit(state.copyWith(strength: computePasswordStrength(password)));
   }
 
   void setValidationError(String error) =>

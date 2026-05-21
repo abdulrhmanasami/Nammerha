@@ -117,11 +117,14 @@ function showAuthRequired(): void {
 
   const icon = isExpired ? 'clock' : 'lock';
   const titleKey = isExpired ? 'session_expired' : 'auth_required';
-  const titleDefault = isExpired ? 'Session Expired' : 'Sign in required';
+  // UX-5 FIX: Arabic fallback defaults — primary audience is Syrian Arabic speakers.
+  // PREVIOUS: English defaults ('Session Expired', 'Sign in required') showed when
+  // i18n engine hadn't loaded yet. Arabic is the correct fallback for this audience.
+  const titleDefault = isExpired ? 'انتهت الجلسة' : 'يرجى تسجيل الدخول';
   const msgKey = isExpired ? 'session_expired_msg' : 'auth_required_msg';
   const msgDefault = isExpired
-    ? 'Your session has expired for security. Please sign in again to continue.'
-    : 'Please sign in to access this page. Your data is safe and waiting for you.';
+    ? 'انتهت جلستك لأسباب أمنية. يرجى تسجيل الدخول مرة أخرى للمتابعة.'
+    : 'يرجى تسجيل الدخول للوصول إلى هذه الصفحة. بياناتك آمنة وبانتظارك.';
 
   // Determine current page path for redirect-after-login
   const returnPath = encodeURIComponent(window.location.pathname + window.location.search);
@@ -137,7 +140,7 @@ function showAuthRequired(): void {
             </p>
             <a href="/auth.html?redirect=${returnPath}" class="btn-primary nm-btn-inline mt-2">
                 <i class="ph ph-sign-in" aria-hidden="true"></i>
-                <span data-i18n="sign_in_btn">Sign In</span>
+                <span data-i18n="sign_in_btn">تسجيل الدخول</span>
             </a>
         </div>`;
 

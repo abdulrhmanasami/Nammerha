@@ -698,20 +698,22 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
     super.dispose();
   }
 
+  // MOB-PW FIX: Unified 0–4 scoring. Updated thresholds.
   Color _strengthColor(SemanticColors colors, int strength) {
-    if (strength <= 1) return colors.error;
-    if (strength <= 2) return const Color(0xFFFCC934);
-    if (strength <= 3) return const Color(0xFFD59F80);
+    if (strength == 0) return colors.strokeSubtle;
+    if (strength == 1) return colors.error;
+    if (strength == 2) return Colors.orange;
+    if (strength == 3) return Colors.lime;
     return colors.success;
   }
 
+  // MOB-PW FIX: Unified 0–4 scoring. Updated labels.
   String _strengthLabel(int strength) {
     if (strength == 0) return '';
-    if (strength <= 1) return context.tr('pw_strength_weak');
-    if (strength <= 2) return context.tr('pw_strength_fair');
-    if (strength <= 3) return context.tr('pw_strength_good');
-    if (strength <= 4) return context.tr('pw_strength_strong');
-    return context.tr('pw_strength_excellent');
+    if (strength == 1) return context.tr('pw_strength_weak');
+    if (strength == 2) return context.tr('pw_strength_fair');
+    if (strength == 3) return context.tr('pw_strength_good');
+    return context.tr('pw_strength_strong');
   }
 
   String? _validate() {
@@ -858,10 +860,11 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    ...List.generate(5, (i) => Expanded(
+                    // MOB-PW FIX: 4 bars instead of 5 for unified 0–4 scoring.
+                    ...List.generate(4, (i) => Expanded(
                       child: Container(
                         height: 3,
-                        margin: EdgeInsetsDirectional.only(end: i < 4 ? 3 : 0),
+                        margin: EdgeInsetsDirectional.only(end: i < 3 ? 3 : 0),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(2),
                           color: i < formState.strength ? _strengthColor(colors, formState.strength) : colors.strokeSubtle,

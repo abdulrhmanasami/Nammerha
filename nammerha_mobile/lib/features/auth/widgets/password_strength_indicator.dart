@@ -3,21 +3,16 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/i18n/t.dart';
 import '../../../core/utils/animation_budget.dart';
+import '../../../core/utils/password_strength.dart';
 
 class PasswordStrengthIndicator extends StatelessWidget {
   final String password;
 
   const PasswordStrengthIndicator({super.key, required this.password});
 
-  int get _strengthScore {
-    if (password.isEmpty) return 0;
-    int score = 0;
-    if (password.length >= 8) score++;
-    if (password.contains(RegExp(r'[A-Z]'))) score++;
-    if (password.contains(RegExp(r'[a-z]'))) score++;
-    if (password.contains(RegExp(r'[0-9!@#\$&*~]'))) score++;
-    return score;
-  }
+  /// MOB-PW-DRY FIX: Delegates to shared computePasswordStrength().
+  /// Single source of truth: core/utils/password_strength.dart.
+  int get _strengthScore => computePasswordStrength(password);
 
   Color _getStrengthColor(int score, SemanticColors colors) {
     if (score == 0) return colors.strokeSubtle;

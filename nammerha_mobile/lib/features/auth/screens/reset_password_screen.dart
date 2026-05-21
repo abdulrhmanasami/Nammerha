@@ -61,18 +61,21 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
     super.dispose();
   }
 
-  Color _strengthColor(SemanticColors colors, double strength) {
-    if (strength < 0.3) return colors.error;
-    if (strength < 0.6) return colors.warning;
-    if (strength < 0.85) return colors.info;
+  // MOB-PW FIX: Updated for unified int (0–4) scoring.
+  Color _strengthColor(SemanticColors colors, int strength) {
+    if (strength == 0) return colors.strokeSubtle;
+    if (strength == 1) return colors.error;
+    if (strength == 2) return Colors.orange;
+    if (strength == 3) return Colors.lime;
     return colors.success;
   }
 
-  String _strengthLabel(double strength) {
-    if (strength < 0.3) return context.tr('pw_strength_weak');
-    if (strength < 0.6) return context.tr('pw_strength_good');
-    // P2-AUD-010 FIX: Was 'password_good' — inconsistent with other keys.
-    if (strength < 0.85) return context.tr('pw_strength_good');
+  // MOB-PW FIX: Updated for unified int (0–4) scoring.
+  String _strengthLabel(int strength) {
+    if (strength == 0) return context.tr('pw_strength_none');
+    if (strength == 1) return context.tr('pw_strength_weak');
+    if (strength == 2) return context.tr('pw_strength_fair');
+    if (strength == 3) return context.tr('pw_strength_good');
     return context.tr('pw_strength_strong');
   }
 
@@ -242,7 +245,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(4),
                     child: LinearProgressIndicator(
-                      value: strength,
+                      // MOB-PW FIX: Divide by 4 to convert int 0–4 to 0.0–1.0.
+                      value: strength / 4,
                       backgroundColor: colors.backgroundSecondary,
                       valueColor: AlwaysStoppedAnimation<Color>(
                           _strengthColor(colors, strength)),

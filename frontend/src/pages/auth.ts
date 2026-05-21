@@ -75,9 +75,7 @@ function createTrackedInterval(
 }
 
 /** Clear a tracked interval and remove from registry. No-op if null. */
-function clearTrackedInterval(
-  timerId: ReturnType<typeof setInterval> | null,
-): null {
+function clearTrackedInterval(timerId: ReturnType<typeof setInterval> | null): null {
   if (timerId !== null) {
     clearInterval(timerId);
     _activeTimers.delete(timerId);
@@ -116,9 +114,17 @@ const MAX_PASSWORD_LENGTH = 128;
 // P1-001 FIX (Wave 2): Shared helper to read Remember Me checkbox value.
 // Social login buttons exist on both login and register forms.
 // The checkbox is on the login form — always read from there.
-// Returns false if checkbox not found (register tab active).
+// UX-3 FIX: When called from the register tab, the checkbox is hidden/absent.
+// PREVIOUS: Returned false → social-login new users got a 24h session.
+// NOW: Returns true when checkbox is not found (register tab active).
+// Rationale: New users just created their account — forcing re-login the
+// next day is hostile UX. Returning true gives them the 30-day session.
+// Standard: Nielsen #7 (Flexibility), FinTech Onboarding Best Practices.
 function getRememberMe(): boolean {
-  return (document.getElementById('remember-me') as HTMLInputElement | null)?.checked ?? false;
+  const checkbox = document.getElementById('remember-me') as HTMLInputElement | null;
+  // If checkbox exists and is visible (login tab), use its checked state.
+  // If checkbox is absent/hidden (register tab), default to true for new users.
+  return checkbox ? checkbox.checked : true;
 }
 
 // ─── DOM References ─────────────────────────────────────────────────────────
@@ -896,7 +902,9 @@ formLogin?.addEventListener('submit', async (e) => {
   // Standard: Nielsen #9 (Error Recognition), CSS-Driven Validation.
   formLogin.classList.add('submitted');
 
-  const email = (document.getElementById('login-email') as HTMLInputElement)?.value.trim().toLowerCase();
+  const email = (document.getElementById('login-email') as HTMLInputElement)?.value
+    .trim()
+    .toLowerCase();
   const password = (document.getElementById('login-password') as HTMLInputElement)?.value;
 
   if (!email || !password) {
@@ -1039,7 +1047,9 @@ formRegister?.addEventListener('submit', async (e) => {
   const full_name = (document.getElementById('reg-name') as HTMLInputElement)?.value.trim();
   // P2-W6-007 FIX: Normalize email to lowercase before submission.
   // Backend does email.toLowerCase().trim() but frontend was sending raw case.
-  const email = (document.getElementById('reg-email') as HTMLInputElement)?.value.trim().toLowerCase();
+  const email = (document.getElementById('reg-email') as HTMLInputElement)?.value
+    .trim()
+    .toLowerCase();
   const password = (document.getElementById('reg-password') as HTMLInputElement)?.value;
   // W3-P2-001 FIX: Read optional phone field — cross-platform registration parity.
   const phone =
@@ -1133,7 +1143,9 @@ const forgotBtn = document.getElementById('forgot-password-btn') as HTMLAnchorEl
 forgotBtn?.addEventListener('click', async (e) => {
   e.preventDefault(); // Prevent mailto fallback when JS is available
   // P2-W6-007 FIX: Normalize email to lowercase before submission.
-  const email = (document.getElementById('login-email') as HTMLInputElement)?.value.trim().toLowerCase();
+  const email = (document.getElementById('login-email') as HTMLInputElement)?.value
+    .trim()
+    .toLowerCase();
   if (!email) {
     // M-AUD-003 FIX: Focus the email field with guiding instruction.
     const loginEmailInput = document.getElementById('login-email') as HTMLInputElement | null;
@@ -1504,7 +1516,11 @@ async function handleLoginRedirect(
       const { resolveWorkspaceUrl, WS_STORAGE_KEY } = await import('../utils/workspace-map');
       const preferredWs = localStorage.getItem(WS_STORAGE_KEY);
       const wsUrl = resolveWorkspaceUrl(preferredWs);
-      if (wsUrl) {
+      // SEC-5 FIX: Validate workspace URL against open redirect (CWE-601).
+      // resolveWorkspaceUrl() is a whitelist lookup, but defense-in-depth
+      // requires validating the output too — a future code change to the
+      // whitelist could introduce a redirect to an external domain.
+      if (wsUrl && wsUrl.startsWith('/') && !wsUrl.startsWith('//')) {
         finalTarget = wsUrl;
       }
     } catch {
@@ -1512,6 +1528,11 @@ async function handleLoginRedirect(
     }
   }
 
+  // EDGE-8 FIX: Block further user interaction during redirect delay.
+  // PREVIOUS: 800ms window where isSubmitting was reset (in finally) but redirect
+  // hadn't fired yet — user could click submit again or start another flow.
+  // Standard: Dead Zone Prevention, FinTech UX (no double-submit).
+  document.body.style.pointerEvents = 'none';
   setTimeout(() => {
     window.location.href = finalTarget;
   }, 800);
@@ -1862,7 +1883,11 @@ function openGoogleOAuthPopup(clientId: string): void {
   }, 500);
 
   // Safety timeout: stop polling after 5 minutes
-  setTimeout(() => {
+  // EDGE-3 FIX: Track the 5-minute safety timeout in _activeTimers.
+  // PREVIOUS: Raw setTimeout was NOT tracked — if the user navigated away
+  // before 5 minutes, this orphaned timeout survived until expiry.
+  // Standard: Timer Hygiene, Page Lifecycle API.
+  const safetyTimeout = setTimeout(() => {
     clearTrackedInterval(pollTimer);
     // Clean up stale state if popup was abandoned
     try {
@@ -1871,6 +1896,7 @@ function openGoogleOAuthPopup(clientId: string): void {
       /* ignore */
     }
   }, 300000);
+  _activeTimers.add(safetyTimeout);
 }
 
 // ─── Apple Sign-In ──────────────────────────────────────────────────────────
@@ -2071,9 +2097,13 @@ function initFacebookLogin(): void {
             }
 
             try {
+              // SEC-2 FIX: Facebook returns an accessToken (NOT a JWT id_token).
+              // Adding token_type metadata helps the backend distinguish Facebook's
+              // Graph API access token from Google/Apple's JWT id_tokens.
               const response = await auth.socialLogin({
                 provider: 'facebook',
                 id_token: fbResponse.authResponse.accessToken,
+                token_type: 'access_token',
                 remember: getRememberMe(),
               });
               await handleSocialLoginSuccess(

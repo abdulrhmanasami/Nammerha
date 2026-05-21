@@ -718,9 +718,15 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   Widget _buildSocialButtons() {
     final colors = context.colors;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    // P1-AUD-009 FIX: Read from Cubit instead of defunct _isSocialLoading field.
-    final isSocialLoading = context.read<LoginFormCubit>().state.isSocialLoading;
-    return Column(
+    // MOB-SOCIAL FIX: Wrap in BlocBuilder for reactive isSocialLoading state.
+    // PREVIOUS: context.read<LoginFormCubit>().state.isSocialLoading — one-time
+    // snapshot, never rebuilt when loading state changed.
+    // NOW: BlocBuilder with buildWhen → UI rebuilds only on isSocialLoading changes.
+    return BlocBuilder<LoginFormCubit, LoginFormState>(
+      buildWhen: (prev, curr) => prev.isSocialLoading != curr.isSocialLoading,
+      builder: (context, formState) {
+        final isSocialLoading = formState.isSocialLoading;
+        return Column(
       children: [
         // ─── Google + Apple (functional) ───────────────────────────
         Row(
@@ -802,6 +808,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
           ],
         ),
       ],
+    );
+      },
     );
   }
 
@@ -905,10 +913,12 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       }
     } catch (e) {
       if (mounted) {
-        // UX-F006 FIX: Hardcoded Arabic login failure → i18n
+        // MOB-ERR-2 FIX: Use i18n-only error text instead of raw e.toString().
+        // PREVIOUS: '${context.tr('auth_social_login_failed')}: ${e.toString()}'
+        // leaked Dart exception internals (network errors, stack traces) to users.
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${context.tr('auth_social_login_failed')}: ${e.toString()}'),
+            content: Text(context.tr('auth_social_login_failed')),
             backgroundColor: context.colors.error,
             duration: const Duration(seconds: 4),
           ),

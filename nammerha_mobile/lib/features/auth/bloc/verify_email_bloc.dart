@@ -111,12 +111,10 @@ class VerifyEmailBloc extends Bloc<VerifyEmailEvent, VerifyEmailState> {
     try {
       // W3-P0-002 FIX: Backend is GET /api/auth/verify-email/:token
       // (token in URL path, not POST body).
-      // P1-VE-002 FIX: Uses injected _authRepository._api instead of singleton.
-      final api = NammerhaApiClient.instance;
-      await api.request(
-        '/auth/verify-email/${event.token}',
-        method: 'GET',
-      );
+      // P1-VE-002 FIX: Uses injected _authRepository instead of singleton.
+      // MOB-DI FIX: Previous code used NammerhaApiClient.instance directly,
+      // bypassing the injected repository — broke testability and DI contract.
+      await _authRepository.verifyEmail(event.token!);
 
       // P1-VE-001 FIX: i18n key instead of hardcoded Arabic.
       emit(const VerifyEmailSuccess(ErrorKeys.verifyEmailSuccess));
@@ -126,7 +124,9 @@ class VerifyEmailBloc extends Bloc<VerifyEmailEvent, VerifyEmailState> {
         // P1-VE-001 FIX: i18n key instead of hardcoded Arabic.
         emit(const VerifyEmailExpired(ErrorKeys.verifyEmailExpired));
       } else {
-        emit(VerifyEmailError(e.message));
+        // V-001 FIX: Use i18n key instead of raw API error message.
+        // Previous: e.message leaked untranslated backend strings to UI.
+        emit(const VerifyEmailError(ErrorKeys.generic));
       }
     } catch (e) {
       debugPrint('[Nammerha] bloc/verify_email_bloc: $e');
@@ -145,7 +145,11 @@ class VerifyEmailBloc extends Bloc<VerifyEmailEvent, VerifyEmailState> {
       emit(const VerifyEmailResent(ErrorKeys.verifyEmailResent));
     } on ApiException catch (e) {
       debugPrint('[Nammerha] bloc/verify_email_bloc resend: $e');
-      emit(VerifyEmailError(e.message));
+      // MOB-ERR FIX: Use i18n key instead of raw API error message.
+      // PREVIOUS: e.message leaked untranslated backend strings to UI
+      // (e.g., 'rate_limit_exceeded', 'user_not_found', SQL fragments).
+      // NOW: Same ErrorKeys constant as the generic catch below.
+      emit(const VerifyEmailError(ErrorKeys.verifyEmailResendFailed));
     } catch (e) {
       debugPrint('[Nammerha] bloc/verify_email_bloc resend: $e');
       emit(const VerifyEmailError(ErrorKeys.verifyEmailResendFailed));
