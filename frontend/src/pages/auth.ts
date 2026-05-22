@@ -124,10 +124,9 @@ function setForgotPwCooldown(seconds: number): void {
   }
 }
 
-// P2-W14-003: These helpers are used by the tab-switch restoration logic below.
-// Marking as read to suppress TS6133 — they ARE consumed at runtime.
-void isForgotPwOnCooldown;
-void getForgotPwCooldownRemaining;
+// P3-W15-007: void casts removed — these functions are now consumed in handleForgotPassword().
+// PREVIOUS (P2-W14-003): `void isForgotPwOnCooldown;` suppressed TS6133.
+// NOW: Functions used for cross-tab cooldown pre-guard at L1568.
 
 function isResendOnCooldown(): boolean {
   try {
@@ -1562,6 +1561,18 @@ async function handleForgotPassword(
   triggerBtn: HTMLAnchorElement,
   emailInputId: string,
 ): Promise<void> {
+  // P3-W15-007 FIX: Cross-tab cooldown check via sessionStorage.
+  // PREVIOUS: isForgotPwOnCooldown() was defined (L99) but NEVER called.
+  // setForgotPwCooldown() at L1667 wrote the timestamp, but on page reload
+  // no code restored the cooldown state — button re-enabled immediately.
+  // NOW: Pre-guard mirrors resend-verification pattern (L1783).
+  // Standard: Cross-Tab State Consistency, Parity with resend-verification.
+  if (isForgotPwOnCooldown()) {
+    const remaining = getForgotPwCooldownRemaining();
+    showBanner('error', t('auth_forgot_wait', 'انتظر') + ` (${remaining}s)`);
+    return;
+  }
+
   // P2-W6-007 FIX: Normalize email to lowercase before submission.
   const emailInput = document.getElementById(emailInputId) as HTMLInputElement | null;
   const email = emailInput?.value.trim().toLowerCase() ?? '';

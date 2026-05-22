@@ -46,6 +46,17 @@ abstract final class ErrorKeys {
   static const mfaSessionExpired = 'err_mfa_session_expired';
   static const mfaVerifyFailed = 'err_mfa_verify_failed';
 
+  // ─── P1-W15-001: MFA Challenge Screen UI Keys ─────────────────────────
+  static const mfaEnterCode = 'mfa_enter_code';
+  static const mfaCodeHint = 'mfa_code_hint';
+  static const mfaVerifyButton = 'mfa_verify_button';
+  static const mfaUseRecovery = 'mfa_use_recovery';
+  static const mfaUseAuthenticator = 'mfa_use_authenticator';
+  static const mfaRecoveryHint = 'mfa_recovery_hint';
+  static const mfaBackToLogin = 'mfa_back_to_login';
+  static const mfaCodeExpiry = 'mfa_code_expiry';
+  static const mfaWrongCode = 'mfa_wrong_code';
+
   // ─── Auth Success Messages ──────────────────────────────────────────────
   // P0-AUD-001 FIX: Keys for auth_repository.dart fallback messages.
   // Replaces hardcoded Arabic strings that bypassed i18n entirely.

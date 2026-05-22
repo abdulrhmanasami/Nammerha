@@ -18,7 +18,7 @@ import { ApiError } from '../api/_client';
 // P0-W13-001 + P0-W13-002 FIX: Import shared password validators.
 // PREVIOUS: Inline regex checks + local MAX_PASSWORD_LENGTH duplicated from validators.ts.
 // Standard: DRY Principle, OWASP ASVS 2.1.1, validators.ts parity.
-import { EMAIL_REGEX, validatePasswordComplexity, MAX_PASSWORD_LENGTH } from '../utils/validators';
+import { EMAIL_REGEX, validatePasswordComplexity } from '../utils/validators';
 // P2-W6-009 FIX: Pre-warm CSRF token for POST requests.
 // Parity with auth.ts L33 — prevents 2-5s invisible delay on Syria 2G.
 import { warmCsrf } from '../api/_client';
@@ -109,10 +109,7 @@ if (resetToken) {
   }
 }
 
-// P0-W13-002: MAX_PASSWORD_LENGTH now imported from '../utils/validators'.
-// PREVIOUS: Local `const MAX_PASSWORD_LENGTH = 128` — duplicated from validators.ts.
-// If the limit changes, validators.ts updates but this file stayed at 128.
-// Standard: DRY Principle, Single Source of Truth.
+// P3-W15-008: MAX_PASSWORD_LENGTH import removed — validatePasswordComplexity handles max check internally.
 
 // If no token, show guidance instead of error.
 // W3-P0-004 FIX: Changed from error banner to info banner with helpful guidance.
@@ -429,17 +426,8 @@ form?.addEventListener('submit', async (e) => {
     return;
   }
 
-  // P0-W13-001: Max length check now handled by validatePasswordComplexity().
-  // The shared validator checks both min(8) and max(128).
-  // Keeping explicit banner for user clarity on the max-length edge case.
-  if (newPassword.length > MAX_PASSWORD_LENGTH) {
-    showBanner(
-      'error',
-      t('reset_password_too_long', `كلمة المرور طويلة جداً (الحد ${MAX_PASSWORD_LENGTH})`),
-    );
-    scrollToField(newPasswordInput);
-    return;
-  }
+  // P3-W15-008: Explicit max-length check removed — unreachable dead code.
+  // validatePasswordComplexity() at L425 already checks max(128).
 
   isSubmitting = true;
   if (submitBtn) {

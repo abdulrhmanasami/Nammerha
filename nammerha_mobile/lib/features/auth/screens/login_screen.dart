@@ -11,6 +11,7 @@ import 'register_wizard_screen.dart';
 import 'password_reset_sent_screen.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/login_form_cubit.dart';
+import 'mfa_challenge_screen.dart';
 import '../../../core/i18n/t.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
@@ -79,55 +80,28 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
           if (state is AuthAuthenticated) {
             widget.onLoginSuccess();
           } else if (state is AuthMfaRequired) {
-            // P1-W14-001/002 FIX: Handle MFA challenge from login or social login.
-            // PREVIOUS: AuthMfaRequired was not handled — silently swallowed.
-            // MFA users saw loading spinner stop with zero feedback.
-            // NOW: Shows informational dialog until MFA verification screen is built.
-            // TODO(P1-W15): Replace this dialog with MfaChallengeScreen navigation.
-            showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (dialogCtx) => AlertDialog(
-                backgroundColor: context.colors.surfaceElevated,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                title: Row(
-                  children: [
-                    Icon(PhosphorIconsRegular.shieldCheck, color: context.colors.primaryBrand),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        context.tr('err_mfa_required'),
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: context.colors.textPrimary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                content: Text(
-                  context.tr('mfa_use_web_hint'),
-                  style: TextStyle(
-                    color: context.colors.textSecondary,
-                    fontSize: 14,
-                    height: 1.6,
+            // P1-W15-001 FIX: Navigate to full MFA Challenge Screen.
+            // PREVIOUS (P1-W14-001): AlertDialog with "use web platform" hint.
+            // NOW: Full TOTP entry screen with recovery code fallback.
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => BlocProvider.value(
+                  value: context.read<AuthBloc>(),
+                  child: MfaChallengeScreen(
+                    mfaToken: state.mfaToken,
+                    email: state.email,
                   ),
                 ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(dialogCtx).pop(),
-                    child: Text(
-                      context.tr('ok'),
-                      style: TextStyle(
-                        color: context.colors.primaryBrand,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ],
+              ),
+            );
+          } else if (state is AuthMfaError) {
+            // P1-W15-002: MFA verification failed — show error snackbar.
+            // The MfaChallengeScreen handles this state internally too,
+            // but if the user is still on login screen (edge case), show it here.
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(context.tr(state.message)),
+                backgroundColor: colors.error,
               ),
             );
           } else if (state is AuthEmailNotVerified) {

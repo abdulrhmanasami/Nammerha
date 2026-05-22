@@ -205,6 +205,21 @@ class AuthMfaRequired extends AuthState {
   List<Object?> get props => [mfaToken, email];
 }
 
+/// P1-W15-002: MFA verification error — retains MFA context for retry.
+/// PREVIOUS: _onMfaVerify emitted generic AuthError, which kicked the user
+/// back to login. They had to re-enter password to get a new MFA challenge.
+/// NOW: Carries the error message AND the mfaToken/email so the MFA screen
+/// can show the error and let the user retry without re-authenticating.
+/// Standard: Nielsen #9 (Error Recovery), State Preservation.
+class AuthMfaError extends AuthState {
+  final String message;
+  final String mfaToken;
+  final String email;
+  const AuthMfaError({required this.message, required this.mfaToken, required this.email});
+  @override
+  List<Object?> get props => [message, mfaToken, email];
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // BLOC
 // ═══════════════════════════════════════════════════════════════════════════
@@ -245,7 +260,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(AuthUnauthenticated());
       }
     } catch (e) {
-      debugPrint('[Nammerha] bloc/auth_bloc: $e');
+      if (kDebugMode) debugPrint('[Nammerha] bloc/auth_bloc: $e');
       emit(AuthUnauthenticated());
     }
   }
@@ -269,12 +284,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       emit(AuthAuthenticated(result.user!));
     } on ApiException catch (e) {
-      debugPrint('[Nammerha] bloc/auth_bloc: $e');
+      if (kDebugMode) debugPrint('[Nammerha] bloc/auth_bloc: $e');
       // Apply same i18n defense as email login
       final translatedMsg = _localizeError(e.message);
       emit(AuthError(translatedMsg));
     } catch (e) {
-      debugPrint('[Nammerha] bloc/auth_bloc: $e');
+      if (kDebugMode) debugPrint('[Nammerha] bloc/auth_bloc: $e');
       emit(AuthError(_localizeError(e.toString())));
     }
   }
@@ -404,7 +419,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       emit(AuthAuthenticated(user));
     } on ApiException catch (e) {
-      debugPrint('[Nammerha] bloc/auth_bloc: $e');
+      if (kDebugMode) debugPrint('[Nammerha] bloc/auth_bloc: $e');
       // Detect email verification errors and emit specific state
       if (_isEmailVerificationError(e.message)) {
         emit(AuthEmailNotVerified(
@@ -415,7 +430,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(AuthError(_localizeError(e.message)));
       }
     } catch (e) {
-      debugPrint('[Nammerha] bloc/auth_bloc: $e');
+      if (kDebugMode) debugPrint('[Nammerha] bloc/auth_bloc: $e');
       emit(AuthError(ErrorKeys.loginFailed));
     }
   }
@@ -433,11 +448,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       );
       emit(AuthRegistrationSuccess(message));
     } on ApiException catch (e) {
-      debugPrint('[Nammerha] bloc/auth_bloc: $e');
+      if (kDebugMode) debugPrint('[Nammerha] bloc/auth_bloc: $e');
       // P0-AUD-002 FIX: Apply _localizeError() — was missing, unlike _onLogin.
       emit(AuthError(_localizeError(e.message)));
     } catch (e) {
-      debugPrint('[Nammerha] bloc/auth_bloc: $e');
+      if (kDebugMode) debugPrint('[Nammerha] bloc/auth_bloc: $e');
       emit(AuthError(ErrorKeys.registerFailed));
     }
   }
@@ -455,11 +470,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final message = await _authRepository.forgotPassword(email: event.email);
       emit(AuthPasswordResetSent(message));
     } on ApiException catch (e) {
-      debugPrint('[Nammerha] bloc/auth_bloc: $e');
+      if (kDebugMode) debugPrint('[Nammerha] bloc/auth_bloc: $e');
       // P1-AUD-001 FIX: Apply _localizeError() — was missing, unlike _onLogin.
       emit(AuthError(_localizeError(e.message)));
     } catch (e) {
-      debugPrint('[Nammerha] bloc/auth_bloc: $e');
+      if (kDebugMode) debugPrint('[Nammerha] bloc/auth_bloc: $e');
       emit(AuthError(ErrorKeys.generic));
     }
   }
@@ -480,11 +495,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(AuthPasswordChanged(message));
       }
     } on ApiException catch (e) {
-      debugPrint('[Nammerha] bloc/auth_bloc: $e');
+      if (kDebugMode) debugPrint('[Nammerha] bloc/auth_bloc: $e');
       // P1-AUD-002 FIX: Apply _localizeError() — was missing, unlike _onLogin.
       emit(AuthError(_localizeError(e.message)));
     } catch (e) {
-      debugPrint('[Nammerha] bloc/auth_bloc: $e');
+      if (kDebugMode) debugPrint('[Nammerha] bloc/auth_bloc: $e');
       emit(AuthError(ErrorKeys.generic));
     }
   }
@@ -498,11 +513,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       );
       emit(AuthPasswordResetSuccess(message));
     } on ApiException catch (e) {
-      debugPrint('[Nammerha] bloc/auth_bloc: $e');
+      if (kDebugMode) debugPrint('[Nammerha] bloc/auth_bloc: $e');
       // P1-AUD-003 FIX: Apply _localizeError() — was missing, unlike _onLogin.
       emit(AuthError(_localizeError(e.message)));
     } catch (e) {
-      debugPrint('[Nammerha] bloc/auth_bloc: $e');
+      if (kDebugMode) debugPrint('[Nammerha] bloc/auth_bloc: $e');
       emit(AuthError(ErrorKeys.generic));
     }
   }
@@ -520,13 +535,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       );
       emit(AuthAuthenticated(user));
     } on ApiException catch (e) {
-      debugPrint('[Nammerha] bloc/auth_bloc: $e');
+      if (kDebugMode) debugPrint('[Nammerha] bloc/auth_bloc: $e');
       final translatedMsg = _localizeError(e.message);
-      // Re-emit MFA required so user stays on MFA screen to retry
-      emit(AuthError(translatedMsg));
+      // P1-W15-002 FIX: Emit AuthMfaError instead of AuthError.
+      // PREVIOUS: Generic AuthError kicked user back to login — lost MFA context.
+      // NOW: AuthMfaError carries mfaToken + email for retry on MFA screen.
+      emit(AuthMfaError(message: translatedMsg, mfaToken: event.mfaToken, email: ''));
     } catch (e) {
-      debugPrint('[Nammerha] bloc/auth_bloc: $e');
-      emit(AuthError(ErrorKeys.mfaVerifyFailed));
+      if (kDebugMode) debugPrint('[Nammerha] bloc/auth_bloc: $e');
+      emit(AuthMfaError(message: ErrorKeys.mfaVerifyFailed, mfaToken: event.mfaToken, email: ''));
     }
   }
 
@@ -539,12 +556,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       );
       emit(AuthAuthenticated(user));
     } on ApiException catch (e) {
-      debugPrint('[Nammerha] bloc/auth_bloc: $e');
+      if (kDebugMode) debugPrint('[Nammerha] bloc/auth_bloc: $e');
       final translatedMsg = _localizeError(e.message);
-      emit(AuthError(translatedMsg));
+      // P1-W15-002 FIX: Same fix as _onMfaVerify above.
+      emit(AuthMfaError(message: translatedMsg, mfaToken: event.mfaToken, email: ''));
     } catch (e) {
-      debugPrint('[Nammerha] bloc/auth_bloc: $e');
-      emit(AuthError(ErrorKeys.mfaVerifyFailed));
+      if (kDebugMode) debugPrint('[Nammerha] bloc/auth_bloc: $e');
+      emit(AuthMfaError(message: ErrorKeys.mfaVerifyFailed, mfaToken: event.mfaToken, email: ''));
     }
   }
 }

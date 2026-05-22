@@ -6,6 +6,14 @@ import { t } from '../utils/i18n';
 import { warmCsrf, ApiError } from '../api/_client';
 // P3-AUD-002 FIX: Import haptic for tactile feedback — parity with auth.ts.
 import { haptic } from '../utils/haptic';
+// P2-W15-004 FIX: Import shared tracked-timer utilities — parity with auth.ts/reset-password.ts.
+// PREVIOUS: Raw setInterval with manual module-scoped tracking and pagehide listener.
+// Standard: DRY Principle, Timer Hygiene, Centralized Cleanup.
+import {
+  createTrackedInterval,
+  clearTrackedInterval,
+  clearAllTrackedTimers,
+} from '../utils/tracked-timers';
 warmCsrf();
 
 // P1-AUD-003 FIX: Re-warm CSRF token when tab becomes visible after background.
@@ -20,17 +28,14 @@ document.addEventListener('visibilitychange', () => {
   }
 });
 
-// EDGE-6 FIX: Module-scoped timer reference for cooldown cleanup.
-// Prevents timer leak when user navigates away during 60s resend countdown.
+// P2-W15-004: Module-scoped timer ref — now uses tracked-timers utility.
 let _activeCooldownTimer: ReturnType<typeof setInterval> | null = null;
 
-// EDGE-6 FIX: Clean up timer on page unload (bfcache-safe).
-// Uses 'pagehide' instead of 'beforeunload' to avoid blocking bfcache.
+// P2-W15-004: Page Lifecycle Cleanup — parity with auth.ts L3359-3361.
+// Uses tracked-timers clearAllTrackedTimers() which handles ALL registered timers.
+// Standard: Page Lifecycle API, Web Performance (bfcache eligibility).
 window.addEventListener('pagehide', () => {
-  if (_activeCooldownTimer !== null) {
-    clearInterval(_activeCooldownTimer);
-    _activeCooldownTimer = null;
-  }
+  clearAllTrackedTimers();
 });
 
 // ============================================================================
@@ -327,20 +332,15 @@ resendBtn?.addEventListener('click', async () => {
     const origText = btnEl.textContent ?? '';
     let countdown = 60;
     // EDGE-6 FIX: Track cooldown timer to prevent memory leak on navigation.
-    // PREVIOUS: Raw setInterval was NOT tracked — if the user navigated away
-    // during the 60s countdown, this timer leaked until expiry.
-    // Standard: Timer Hygiene, Page Lifecycle API.
+    // P2-W15-004 FIX: Use tracked interval instead of raw setInterval.
     if (_activeCooldownTimer !== null) {
-      clearInterval(_activeCooldownTimer);
+      _activeCooldownTimer = clearTrackedInterval(_activeCooldownTimer);
     }
-    _activeCooldownTimer = setInterval(() => {
+    _activeCooldownTimer = createTrackedInterval(() => {
       countdown--;
       btnEl.textContent = `${t('verify_resend_wait', 'انتظر')} (${countdown}s)`;
       if (countdown <= 0) {
-        if (_activeCooldownTimer !== null) {
-          clearInterval(_activeCooldownTimer);
-          _activeCooldownTimer = null;
-        }
+        _activeCooldownTimer = clearTrackedInterval(_activeCooldownTimer);
         resendBtn.classList.remove('nm-btn-cooldown');
         btnEl.removeAttribute('aria-disabled');
         btnEl.textContent = origText;

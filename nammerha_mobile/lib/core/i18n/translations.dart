@@ -752,6 +752,17 @@ const Map<String, Map<String, String>> kTranslations = {
   'err_mfa_verify_failed': {'ar': 'فشل التحقق من الرمز — يرجى المحاولة مرة أخرى', 'en': 'Code verification failed — please try again'},
   'mfa_use_web_hint': {'ar': 'حسابك مُفعّل عليه التحقق بخطوتين (MFA). يرجى استخدام المنصة عبر المتصفح لتسجيل الدخول حالياً. سيتوفر الدعم في التطبيق قريباً.', 'en': 'Your account has two-factor authentication (MFA) enabled. Please use the web platform to log in for now. Mobile MFA support is coming soon.'},
 
+  // P1-W15-001: MFA Challenge Screen UI Translations
+  'mfa_enter_code': {'ar': 'أدخل رمز التحقق', 'en': 'Enter verification code'},
+  'mfa_code_hint': {'ar': 'الرمز المكوّن من 6 أرقام', 'en': '6-digit code'},
+  'mfa_verify_button': {'ar': 'تحقق', 'en': 'Verify'},
+  'mfa_use_recovery': {'ar': 'استخدم رمز الاسترداد', 'en': 'Use recovery code'},
+  'mfa_use_authenticator': {'ar': 'استخدم تطبيق المصادقة', 'en': 'Use authenticator app'},
+  'mfa_recovery_hint': {'ar': 'أدخل رمز الاسترداد', 'en': 'Enter recovery code'},
+  'mfa_back_to_login': {'ar': 'العودة لتسجيل الدخول', 'en': 'Back to login'},
+  'mfa_code_expiry': {'ar': 'ينتهي الرمز خلال', 'en': 'Code expires in'},
+  'mfa_wrong_code': {'ar': 'الرمز غير صحيح — حاول مرة أخرى', 'en': 'Wrong code — try again'},
+
   // P0-AUD-001 FIX: Auth success message keys for auth_repository.dart
   'msg_verification_link_sent': {'ar': 'تم إرسال رابط التحقق إلى بريدك الإلكتروني', 'en': 'Verification link sent to your email'},
   'msg_reset_link_sent': {'ar': 'إذا كان البريد مسجلاً، ستتلقى رابط إعادة تعيين كلمة المرور', 'en': 'If the email is registered, you will receive a password reset link'},
@@ -1651,6 +1662,8 @@ const Map<String, Map<String, String>> kTranslations = {
   'reg_email_invalid': {'ar': 'بريد إلكتروني غير صالح', 'en': 'Invalid email address'},
   // P0-W14-002: Phone field label for registration wizard.
   'phone_label_optional': {'ar': 'رقم الهاتف (اختياري)', 'en': 'Phone Number (optional)'},
+  // P2-W15-006b: Phone format validation error
+  'reg_phone_invalid': {'ar': 'صيغة رقم الهاتف غير صحيحة (مثال: +963912345678)', 'en': 'Invalid phone format (example: +963912345678)'},
   'reg_pw_required': {'ar': 'كلمة المرور مطلوبة', 'en': 'Password is required'},
   'reg_pw_min_length': {'ar': 'كلمة المرور يجب أن تكون 8 أحرف على الأقل', 'en': 'Password must be at least 8 characters'},
   'reg_pw_needs_upper': {'ar': 'يجب أن تحتوي على حرف كبير واحد', 'en': 'Must contain at least 1 uppercase letter'},

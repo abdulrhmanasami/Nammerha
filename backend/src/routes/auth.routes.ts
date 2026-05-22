@@ -904,13 +904,19 @@ router.post(
       // unverified users to the verification flow instead of password reset.
       // P0-W11-004 FIX: Also select password_hash to detect social-only accounts.
       // P2-W12-005 FIX: Also select email_token_expires_at for cooldown check.
+      // P2-W15-005 FIX: Also select reset_token_expires_at for reset cooldown check.
       const result = await query<
         Pick<
           User,
-          'user_id' | 'email' | 'is_email_verified' | 'password_hash' | 'email_token_expires_at'
+          | 'user_id'
+          | 'email'
+          | 'is_email_verified'
+          | 'password_hash'
+          | 'email_token_expires_at'
+          | 'reset_token_expires_at'
         >
       >(
-        'SELECT user_id, email, is_email_verified, password_hash, email_token_expires_at FROM users WHERE email = $1',
+        'SELECT user_id, email, is_email_verified, password_hash, email_token_expires_at, reset_token_expires_at FROM users WHERE email = $1',
         [normalizedEmail],
       );
 
@@ -999,6 +1005,29 @@ router.post(
         });
         res.json(successResponse);
         return;
+      }
+
+      // P2-W15-005 FIX: Token-generation cooldown for verified users.
+      // PREVIOUS: No cooldown — attacker could spam /forgot-password every second,
+      // invalidating the victim's legitimate reset link. Each call generates a new
+      // token, making the previous email link useless. While sensitiveActionLimiter
+      // throttles per IP, rotating proxies bypass it.
+      // NOW: Same backwards-math cooldown as /resend-verification (L829-841).
+      // Anti-enumeration response preserved during cooldown.
+      // Standard: OWASP Rate Limiting, Anti-Abuse, CWE-799 (Improper Control of Interaction Frequency).
+      if (user.reset_token_expires_at) {
+        const tokenCreatedAt = new Date(user.reset_token_expires_at);
+        tokenCreatedAt.setMinutes(tokenCreatedAt.getMinutes() - RESET_TOKEN_EXPIRY_MINUTES);
+        const secondsSinceLastSend = (Date.now() - tokenCreatedAt.getTime()) / 1000;
+        if (secondsSinceLastSend < RESEND_COOLDOWN_SECONDS) {
+          // Silent anti-enumeration: return success without generating a new token
+          logger.info('Auth: Forgot-password verified cooldown active', {
+            email: normalizedEmail,
+            secondsSinceLastSend: Math.round(secondsSinceLastSend),
+          });
+          res.json(successResponse);
+          return;
+        }
       }
 
       // Generate cryptographically secure reset token

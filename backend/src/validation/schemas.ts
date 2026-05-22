@@ -69,7 +69,15 @@ export const registerSchema = z.object({
     .regex(/\p{L}/u, 'Name must contain at least one letter')
     .regex(/^[^0-9]*$/, 'Name must not contain digits')
     .regex(/^[^<>{}[\]\\]*$/, 'Name must not contain special characters like < > { } [ ] \\'),
-  phone: z.string().max(20).optional(),
+  // P2-W15-006 FIX: Phone format validation — prevents garbage data like "abc".
+  // PREVIOUS: Only `.max(20)` — accepted any string as a phone number.
+  // NOW: Must be digits with optional + prefix, 7-20 chars total.
+  // Standard: E.164 (relaxed), Frontend Parity, OWASP Input Validation.
+  phone: z
+    .string()
+    .max(20, 'Phone number must not exceed 20 characters')
+    .regex(/^\+?[0-9]{7,20}$/, 'Invalid phone number format')
+    .optional(),
   role: z
     .enum(['homeowner', 'engineer', 'donor', 'supplier', 'contractor', 'tradesperson'])
     .optional(),

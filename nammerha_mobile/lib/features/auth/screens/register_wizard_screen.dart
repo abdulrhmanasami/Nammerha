@@ -476,11 +476,24 @@ class _RegisterWizardBodyState extends State<_RegisterWizardBody> {
             TextFormField(
               controller: _phoneController,
               keyboardType: TextInputType.phone,
+              textDirection: TextDirection.ltr,
               decoration: _themedInputDecoration(
                 colors: colors,
                 labelText: context.tr('phone_label_optional'),
                 prefixIcon: PhosphorIconsRegular.phone,
               ),
+              // P2-W15-006b FIX: Phone format validator — backend parity.
+              // PREVIOUS: No validator — user could enter "abc" or "123".
+              // Backend schemas.ts now validates: /^\+?\d{7,20}$/
+              // Standard: OWASP Input Validation, Backend Parity.
+              validator: (v) {
+                if (v == null || v.trim().isEmpty) return null; // Optional field
+                final phone = v.trim();
+                if (!RegExp(r'^\+?\d{7,20}$').hasMatch(phone)) {
+                  return context.tr('reg_phone_invalid');
+                }
+                return null;
+              },
               textInputAction: TextInputAction.next,
               onFieldSubmitted: (_) => _nextPage(_formKey2),
             ),
