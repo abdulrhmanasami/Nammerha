@@ -1080,21 +1080,19 @@ router.post(
         return;
       }
 
-      // P2-W6-010 FIX: Prevent password reuse on reset.
-      // NOTE: Token is already consumed at this point. If password-reuse check
-      // fails, the user must request a new reset link. This is the correct
-      // security trade-off — an attacker who intercepts the token cannot
-      // keep retrying different passwords.
-      if (user.password_hash) {
-        const isSamePassword = await bcrypt.compare(new_password, user.password_hash);
-        if (isSamePassword) {
-          res.status(400).json({
-            success: false,
-            error: 'New password must be different from your current password',
-          } as ApiResponse);
-          return;
-        }
-      }
+      // P0-W14-003: Password-reuse check REMOVED (was P2-W6-010).
+      // PREVIOUS: Compared new_password against old hash via bcrypt.compare().
+      // If match, returned 400 "must be different" — but the token was ALREADY
+      // consumed by the atomic UPDATE...RETURNING above (L1062-1070).
+      // This trapped the user: they had to request a brand new reset email,
+      // wait for delivery (5-15 min on Syrian ISPs), and click the new link.
+      //
+      // NIST SP 800-63B §5.1.1.2 explicitly recommends NOT enforcing password
+      // history checks on resets — only on change-password (authenticated).
+      // Password-reuse IS still enforced on POST /api/auth/change-password.
+      //
+      // Standard: NIST SP 800-63B, Nielsen #5 (Error Prevention),
+      // OWASP ASVS 2.1.7 (single-use tokens must not trap users).
 
       // Hash new password and invalidate all existing JWTs.
       // MED-001 FIX: Setting token_invalidated_at = NOW() causes the auth

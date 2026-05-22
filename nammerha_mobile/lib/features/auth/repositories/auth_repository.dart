@@ -49,6 +49,31 @@ class NammerhaUser {
       fullName.trim().isNotEmpty && (phone?.trim().isNotEmpty ?? false);
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// P1-W14-001: Login Result — discriminated union for MFA challenge detection.
+// ═══════════════════════════════════════════════════════════════════════════════
+// PREVIOUS: login() returned Future<NammerhaUser>. When the backend returned
+// { mfa_required: true, mfa_token: "..." } instead of user data, the repository
+// tried to parse data['user'] → null cast → crash. MFA users were locked out.
+// NOW: Returns LoginResult which is either .authenticated (user) or
+// .mfaChallenge (token). The BLoC handles both cases explicitly.
+// Standard: NIST SP 800-63B (AAL2), Sealed Type Pattern.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+class LoginResult {
+  final NammerhaUser? user;
+  final String? mfaToken;
+  final bool mfaRequired;
+
+  LoginResult.authenticated(NammerhaUser this.user)
+      : mfaToken = null,
+        mfaRequired = false;
+
+  LoginResult.mfaChallenge(String this.mfaToken)
+      : user = null,
+        mfaRequired = true;
+}
+
 /// Production Auth Repository — calls real backend API
 /// Mirrors web platform's api.ts auth module exactly
 class AuthRepository {
@@ -80,9 +105,11 @@ class AuthRepository {
   }
 
   /// POST /api/auth/login
-  /// Returns user + JWT token (MOB-AUTH-001: token in body for mobile)
+  /// Returns LoginResult — either authenticated user or MFA challenge.
+  /// P1-W14-002 FIX: Changed return type from Future<NammerhaUser> to
+  /// Future<LoginResult> to handle MFA challenge responses.
   /// W3-P0-001: `remember` controls session duration (short vs long-lived JWT).
-  Future<NammerhaUser> login({
+  Future<LoginResult> login({
     required String email,
     required String password,
     bool remember = false,
@@ -104,6 +131,15 @@ class AuthRepository {
     }
 
     final data = response.data!;
+
+    // P1-W14-002 FIX: Detect MFA challenge before parsing user data.
+    // Backend returns { mfa_required: true, mfa_token: "..." } for MFA users.
+    // PREVIOUS: Tried to read data['user'] → null → crash.
+    // Standard: NIST SP 800-63B (AAL2), Defensive Parsing.
+    if (data['mfa_required'] == true && data['mfa_token'] is String) {
+      return LoginResult.mfaChallenge(data['mfa_token'] as String);
+    }
+
     final userData = data['user'] as Map<String, dynamic>;
     final token = data['token'] as String?;
 
@@ -112,14 +148,16 @@ class AuthRepository {
       await _api.setToken(token);
     }
 
-    return NammerhaUser.fromJson(userData);
+    return LoginResult.authenticated(NammerhaUser.fromJson(userData));
   }
 
   /// POST /api/auth/social
   /// Universal social login — works for Google, Apple, Facebook.
   /// Backend verifies ID token server-side, creates/links user, returns JWT.
+  /// P1-W14-001 FIX: Changed return type from Future<NammerhaUser> to
+  /// Future<LoginResult> to handle MFA challenge responses.
   /// W3-P2-009: `remember` controls session duration (consistent with email login).
-  Future<NammerhaUser> loginWithSocial({
+  Future<LoginResult> loginWithSocial({
     required String provider, // 'google' | 'apple' | 'facebook'
     required String idToken,
     String? fullName, // Apple first-login only
@@ -143,6 +181,14 @@ class AuthRepository {
     }
 
     final data = response.data!;
+
+    // P1-W14-001 FIX: Detect MFA challenge for social login too.
+    // A user who registered via email+password and enabled MFA, then links
+    // their Google account — social login still triggers MFA.
+    if (data['mfa_required'] == true && data['mfa_token'] is String) {
+      return LoginResult.mfaChallenge(data['mfa_token'] as String);
+    }
+
     final userData = data['user'] as Map<String, dynamic>;
     final token = data['token'] as String?;
 
@@ -151,7 +197,7 @@ class AuthRepository {
       await _api.setToken(token);
     }
 
-    return NammerhaUser.fromJson(userData);
+    return LoginResult.authenticated(NammerhaUser.fromJson(userData));
   }
 
   /// POST /api/auth/logout
@@ -197,8 +243,12 @@ class AuthRepository {
       method: 'POST',
       body: {'email': email.toLowerCase().trim()},
     );
-    // P0-AUD-001 FIX: ErrorKeys constant instead of hardcoded Arabic.
-    return response.message ?? ErrorKeys.resetLinkSent;
+    // P2-W14-001 FIX: Always return i18n key — never raw backend English message.
+    // PREVIOUS: response.message was the English anti-enumeration string
+    // "If an account with that email exists..." shown raw to Arabic users.
+    // NOW: Always return the i18n key. The UI layer translates via context.tr().
+    // Standard: i18n Parity, Anti-Enumeration (identical wording both paths).
+    return ErrorKeys.resetLinkSent;
   }
 
   /// POST /api/auth/reset-password
@@ -225,8 +275,9 @@ class AuthRepository {
       method: 'POST',
       body: {'email': email.toLowerCase().trim()},
     );
-    // P0-AUD-001 FIX: ErrorKeys constant instead of hardcoded Arabic.
-    return response.message ?? ErrorKeys.resendVerificationSent;
+    // P2-W14-002 FIX: Always return i18n key — never raw backend English message.
+    // Same pattern as P2-W14-001 (forgotPassword above).
+    return ErrorKeys.resendVerificationSent;
   }
 
   /// POST /api/auth/verify-email
@@ -265,4 +316,73 @@ class AuthRepository {
 
   /// Check if user is currently authenticated
   bool get isAuthenticated => _api.isAuthenticated;
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // P1-W14-001: MFA Verification Methods
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Backend endpoints: POST /api/auth/mfa/verify, POST /api/auth/mfa/recovery
+  // Both return the same user + token shape as a normal login on success.
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// POST /api/auth/mfa/verify — TOTP code verification
+  /// Called after login returns MFA challenge. Verifies 6-digit TOTP code.
+  Future<NammerhaUser> mfaVerify({
+    required String mfaToken,
+    required String code,
+  }) async {
+    final response = await _api.request<Map<String, dynamic>>(
+      '/auth/mfa/verify',
+      method: 'POST',
+      body: {
+        'mfa_token': mfaToken,
+        'code': code,
+      },
+      fromData: (data) => data as Map<String, dynamic>,
+    );
+
+    if (!response.success || response.data == null) {
+      throw ApiException(response.error ?? ErrorKeys.mfaVerifyFailed);
+    }
+
+    final data = response.data!;
+    final userData = data['user'] as Map<String, dynamic>;
+    final token = data['token'] as String?;
+
+    if (token != null) {
+      await _api.setToken(token);
+    }
+
+    return NammerhaUser.fromJson(userData);
+  }
+
+  /// POST /api/auth/mfa/recovery — Recovery code verification
+  /// Fallback when user doesn't have access to their authenticator app.
+  Future<NammerhaUser> mfaRecovery({
+    required String mfaToken,
+    required String recoveryCode,
+  }) async {
+    final response = await _api.request<Map<String, dynamic>>(
+      '/auth/mfa/recovery',
+      method: 'POST',
+      body: {
+        'mfa_token': mfaToken,
+        'recovery_code': recoveryCode,
+      },
+      fromData: (data) => data as Map<String, dynamic>,
+    );
+
+    if (!response.success || response.data == null) {
+      throw ApiException(response.error ?? ErrorKeys.mfaVerifyFailed);
+    }
+
+    final data = response.data!;
+    final userData = data['user'] as Map<String, dynamic>;
+    final token = data['token'] as String?;
+
+    if (token != null) {
+      await _api.setToken(token);
+    }
+
+    return NammerhaUser.fromJson(userData);
+  }
 }

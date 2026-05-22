@@ -40,6 +40,12 @@ abstract final class ErrorKeys {
   static const socialOnlyAccount = 'err_social_only_account';
   static const tokenExpired = 'err_token_expired';
 
+  // ─── P1-W14-001: MFA Error Keys ────────────────────────────────────────
+  static const mfaRequired = 'err_mfa_required';
+  static const mfaInvalidCode = 'err_mfa_invalid_code';
+  static const mfaSessionExpired = 'err_mfa_session_expired';
+  static const mfaVerifyFailed = 'err_mfa_verify_failed';
+
   // ─── Auth Success Messages ──────────────────────────────────────────────
   // P0-AUD-001 FIX: Keys for auth_repository.dart fallback messages.
   // Replaces hardcoded Arabic strings that bypassed i18n entirely.

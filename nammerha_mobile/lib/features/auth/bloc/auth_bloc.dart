@@ -35,17 +35,20 @@ class AuthLoginRequested extends AuthEvent {
 
 /// Register new account
 /// UNIFIED CITIZEN: role param removed — backend auto-grants all roles.
+/// P0-W14-002 FIX: Added `phone` parameter — cross-platform parity with web.
 class AuthRegisterRequested extends AuthEvent {
   final String email;
   final String password;
   final String fullName;
+  final String? phone;
   const AuthRegisterRequested({
     required this.email,
     required this.password,
     required this.fullName,
+    this.phone,
   });
   @override
-  List<Object?> get props => [email, password, fullName];
+  List<Object?> get props => [email, password, fullName, phone];
 }
 
 /// Logout
@@ -95,6 +98,30 @@ class AuthSocialLoginRequested extends AuthEvent {
   });
   @override
   List<Object?> get props => [provider, idToken, fullName, remember];
+}
+
+/// P1-W14-001: MFA TOTP verification after login returns mfa_required
+class AuthMfaVerifyRequested extends AuthEvent {
+  final String mfaToken;
+  final String code;
+  const AuthMfaVerifyRequested({
+    required this.mfaToken,
+    required this.code,
+  });
+  @override
+  List<Object?> get props => [mfaToken, code];
+}
+
+/// P1-W14-001: MFA recovery code verification
+class AuthMfaRecoveryRequested extends AuthEvent {
+  final String mfaToken;
+  final String recoveryCode;
+  const AuthMfaRecoveryRequested({
+    required this.mfaToken,
+    required this.recoveryCode,
+  });
+  @override
+  List<Object?> get props => [mfaToken, recoveryCode];
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -168,6 +195,16 @@ class AuthPasswordResetSuccess extends AuthState {
   List<Object?> get props => [message];
 }
 
+/// P1-W14-001: MFA challenge required — user must enter TOTP code.
+/// Carries the MFA token and the login email for display context.
+class AuthMfaRequired extends AuthState {
+  final String mfaToken;
+  final String email;
+  const AuthMfaRequired({required this.mfaToken, required this.email});
+  @override
+  List<Object?> get props => [mfaToken, email];
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // BLOC
 // ═══════════════════════════════════════════════════════════════════════════
@@ -189,6 +226,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthChangePasswordRequested>(_onChangePassword);
     on<AuthResetPassword>(_onResetPassword);
     on<AuthSocialLoginRequested>(_onSocialLogin);
+    on<AuthMfaVerifyRequested>(_onMfaVerify);
+    on<AuthMfaRecoveryRequested>(_onMfaRecovery);
 
     // Listen for 401 from API client
     NammerhaApiClient.instance.onAuthExpired = () {
@@ -212,16 +251,23 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   /// OAuth-001: Social login via provider's ID token
+  /// P1-W14-001 FIX: Handle LoginResult.mfaChallenge.
   Future<void> _onSocialLogin(AuthSocialLoginRequested event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
-      final user = await _authRepository.loginWithSocial(
+      final result = await _authRepository.loginWithSocial(
         provider: event.provider,
         idToken: event.idToken,
         fullName: event.fullName,
         remember: event.remember,
       );
-      emit(AuthAuthenticated(user));
+
+      if (result.mfaRequired && result.mfaToken != null) {
+        emit(AuthMfaRequired(mfaToken: result.mfaToken!, email: ''));
+        return;
+      }
+
+      emit(AuthAuthenticated(result.user!));
     } on ApiException catch (e) {
       debugPrint('[Nammerha] bloc/auth_bloc: $e');
       // Apply same i18n defense as email login
@@ -331,11 +377,22 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> _onLogin(AuthLoginRequested event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
-      final user = await _authRepository.login(
+      final result = await _authRepository.login(
         email: event.email,
         password: event.password,
         remember: event.remember,
       );
+
+      // P1-W14-002 FIX: Handle MFA challenge response.
+      // PREVIOUS: login() returned NammerhaUser directly — if backend returned
+      // mfa_required, the repository tried to parse data['user'] → null → crash.
+      // NOW: LoginResult discriminated union handles both paths.
+      if (result.mfaRequired && result.mfaToken != null) {
+        emit(AuthMfaRequired(mfaToken: result.mfaToken!, email: event.email));
+        return;
+      }
+
+      final user = result.user!;
 
       if (!user.isEmailVerified) {
         emit(AuthEmailNotVerified(
@@ -370,6 +427,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         email: event.email,
         password: event.password,
         fullName: event.fullName,
+        // P0-W14-002 FIX: Pass phone field to repository.
+        // PREVIOUS: phone was never passed — mobile users couldn't register with phone.
+        phone: event.phone,
       );
       emit(AuthRegistrationSuccess(message));
     } on ApiException catch (e) {
@@ -444,6 +504,47 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } catch (e) {
       debugPrint('[Nammerha] bloc/auth_bloc: $e');
       emit(AuthError(ErrorKeys.generic));
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // P1-W14-001: MFA Verification Handlers
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  Future<void> _onMfaVerify(AuthMfaVerifyRequested event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    try {
+      final user = await _authRepository.mfaVerify(
+        mfaToken: event.mfaToken,
+        code: event.code,
+      );
+      emit(AuthAuthenticated(user));
+    } on ApiException catch (e) {
+      debugPrint('[Nammerha] bloc/auth_bloc: $e');
+      final translatedMsg = _localizeError(e.message);
+      // Re-emit MFA required so user stays on MFA screen to retry
+      emit(AuthError(translatedMsg));
+    } catch (e) {
+      debugPrint('[Nammerha] bloc/auth_bloc: $e');
+      emit(AuthError(ErrorKeys.mfaVerifyFailed));
+    }
+  }
+
+  Future<void> _onMfaRecovery(AuthMfaRecoveryRequested event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    try {
+      final user = await _authRepository.mfaRecovery(
+        mfaToken: event.mfaToken,
+        recoveryCode: event.recoveryCode,
+      );
+      emit(AuthAuthenticated(user));
+    } on ApiException catch (e) {
+      debugPrint('[Nammerha] bloc/auth_bloc: $e');
+      final translatedMsg = _localizeError(e.message);
+      emit(AuthError(translatedMsg));
+    } catch (e) {
+      debugPrint('[Nammerha] bloc/auth_bloc: $e');
+      emit(AuthError(ErrorKeys.mfaVerifyFailed));
     }
   }
 }

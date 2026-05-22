@@ -78,6 +78,58 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         listener: (context, state) {
           if (state is AuthAuthenticated) {
             widget.onLoginSuccess();
+          } else if (state is AuthMfaRequired) {
+            // P1-W14-001/002 FIX: Handle MFA challenge from login or social login.
+            // PREVIOUS: AuthMfaRequired was not handled — silently swallowed.
+            // MFA users saw loading spinner stop with zero feedback.
+            // NOW: Shows informational dialog until MFA verification screen is built.
+            // TODO(P1-W15): Replace this dialog with MfaChallengeScreen navigation.
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (dialogCtx) => AlertDialog(
+                backgroundColor: context.colors.surfaceElevated,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                title: Row(
+                  children: [
+                    Icon(PhosphorIconsRegular.shieldCheck, color: context.colors.primaryBrand),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        context.tr('err_mfa_required'),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: context.colors.textPrimary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                content: Text(
+                  context.tr('mfa_use_web_hint'),
+                  style: TextStyle(
+                    color: context.colors.textSecondary,
+                    fontSize: 14,
+                    height: 1.6,
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(dialogCtx).pop(),
+                    child: Text(
+                      context.tr('ok'),
+                      style: TextStyle(
+                        color: context.colors.primaryBrand,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
           } else if (state is AuthEmailNotVerified) {
             // Show persistent verification banner with resend action
             ScaffoldMessenger.of(context).clearSnackBars();

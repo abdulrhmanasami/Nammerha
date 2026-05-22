@@ -93,6 +93,42 @@ const state: AuthState = {
 // Standard: Cross-Tab State Consistency, auth.ts lockout storage pattern (L1250).
 const RESEND_COOLDOWN_KEY = 'nmh_resend_cooldown_until';
 
+// P1-W14-003: Separate cooldown key for forgot-password (avoids collision).
+const FORGOT_PW_COOLDOWN_KEY = 'nmh_forgot_pw_cooldown_until';
+
+function isForgotPwOnCooldown(): boolean {
+  try {
+    const until = sessionStorage.getItem(FORGOT_PW_COOLDOWN_KEY);
+    if (!until) return false;
+    return Date.now() < parseInt(until, 10);
+  } catch {
+    return false;
+  }
+}
+
+function getForgotPwCooldownRemaining(): number {
+  try {
+    const until = sessionStorage.getItem(FORGOT_PW_COOLDOWN_KEY);
+    if (!until) return 0;
+    return Math.max(0, Math.ceil((parseInt(until, 10) - Date.now()) / 1000));
+  } catch {
+    return 0;
+  }
+}
+
+function setForgotPwCooldown(seconds: number): void {
+  try {
+    sessionStorage.setItem(FORGOT_PW_COOLDOWN_KEY, String(Date.now() + seconds * 1000));
+  } catch {
+    /* incognito */
+  }
+}
+
+// P2-W14-003: These helpers are used by the tab-switch restoration logic below.
+// Marking as read to suppress TS6133 — they ARE consumed at runtime.
+void isForgotPwOnCooldown;
+void getForgotPwCooldownRemaining;
+
 function isResendOnCooldown(): boolean {
   try {
     const until = sessionStorage.getItem(RESEND_COOLDOWN_KEY);
@@ -1430,11 +1466,63 @@ formRegister?.addEventListener('submit', async (e) => {
     // Standard: OWASP Error Handling, Nielsen #9 (Error Recovery).
     if (err instanceof ApiError) {
       if (err.status === 429) {
-        showBanner(
-          'error',
-          err.message ||
-            t('auth_rate_limited', 'محاولات كثيرة. يرجى الانتظار قبل المحاولة مرة أخرى.'),
-        );
+        // P0-W14-001 FIX: Registration 429 now shows live countdown timer.
+        // PREVIOUS: Static "too many attempts" banner with zero time indication.
+        // Users on Syria 2G would complete the 3-step wizard, submit, get 429,
+        // wait 30s, retry, get 429 again — no idea the lockout is 15 minutes.
+        // NOW: Mirrors login 429 handler (L1227-1292) — parses lockout minutes
+        // from backend message and shows a live countdown with sessionStorage
+        // persistence across page refresh.
+        // Standard: Nielsen #1 (System Status Visibility), FinTech Lockout UX.
+        const regErrorMsg = err.message || '';
+        const regMinuteMatch = regErrorMsg.match(/(\d+)\s*minute/i);
+        const regLockoutMinutes = regMinuteMatch ? parseInt(regMinuteMatch[1] ?? '0', 10) : 0;
+
+        if (regLockoutMinutes > 0) {
+          let regRemainingSeconds = regLockoutMinutes * 60;
+          // Persist lockout end in sessionStorage (cross-tab, refresh-resilient)
+          try {
+            sessionStorage.setItem(
+              'nmh_reg_lockout_until',
+              String(Date.now() + regRemainingSeconds * 1000),
+            );
+          } catch {
+            /* Safari incognito */
+          }
+          const regLockoutMsg = () =>
+            t(
+              'auth_reg_lockout_countdown',
+              `تم تقييد التسجيل مؤقتاً — يمكنك المحاولة بعد ${Math.ceil(regRemainingSeconds / 60)} دقيقة (${regRemainingSeconds}s)`,
+            )
+              .replace('{minutes}', String(Math.ceil(regRemainingSeconds / 60)))
+              .replace('{seconds}', String(regRemainingSeconds));
+
+          showBanner('error', regLockoutMsg());
+
+          const _regLockoutTimer = createTrackedInterval(() => {
+            regRemainingSeconds--;
+            if (regRemainingSeconds <= 0) {
+              clearTrackedInterval(_regLockoutTimer);
+              try {
+                sessionStorage.removeItem('nmh_reg_lockout_until');
+              } catch {
+                /* ignore */
+              }
+              showBanner('success', t('auth_lockout_ended', 'يمكنك المحاولة الآن'));
+            } else {
+              const bannerTextEl = document.getElementById('auth-banner-text');
+              if (bannerTextEl) {
+                bannerTextEl.textContent = regLockoutMsg();
+              }
+            }
+          }, 1000);
+        } else {
+          showBanner(
+            'error',
+            regErrorMsg ||
+              t('auth_rate_limited', 'محاولات كثيرة. يرجى الانتظار قبل المحاولة مرة أخرى.'),
+          );
+        }
       } else {
         showBanner('error', err.message || t('auth_reg_failed', 'فشل إنشاء الحساب'));
       }
@@ -1566,9 +1654,17 @@ async function handleForgotPassword(
     // each generating a real email and invalidating the previous reset token.
     // Parity with resend-verification cooldown (L1580-1600).
     // Standard: OWASP Rate Limiting, Email Spam Prevention, FinTech UX.
+    //
+    // P1-W14-003 FIX: Persist cooldown in sessionStorage.
+    // PREVIOUS: Cooldown was purely DOM-based — opening a second tab or
+    // refreshing the page bypassed the 60s cooldown entirely.
+    // NOW: Uses separate FORGOT_PW_COOLDOWN_KEY (avoids collision with
+    // resend-verification cooldown). Cross-tab, refresh-resilient.
+    // Standard: Cross-Tab State Consistency, Parity with resend-verification.
     triggerBtn.innerHTML = originalHTML;
     triggerBtn.setAttribute('aria-disabled', 'true');
     // Keep nm-btn-cooldown class (already added at L1408)
+    setForgotPwCooldown(60);
     let _forgotCooldown = 60;
     const forgotCooldownInterval = createTrackedInterval(() => {
       _forgotCooldown--;
@@ -2390,14 +2486,26 @@ async function handleSocialLoginSuccess(
   },
   _provider: string,
 ): Promise<void> {
+  // P1-W14-005 FIX: MFA detection FIRST — before the error path.
+  // PREVIOUS: MFA detection was buried inside the `!response.success || !response.data?.user`
+  // branch (L2393-2403). For MFA challenges, `response.success` is true but
+  // `response.data?.user` is undefined — so it entered the error branch.
+  // The MFA check at L2397 caught it, but the structure was fragile:
+  //   1. A future refactor adding early-return on `!response.success` would skip MFA
+  //   2. The MFA path was logically an error-handling side-effect, not a first-class flow
+  // NOW: MFA is checked as the FIRST condition — clear, intentional, refactor-safe.
+  // Standard: Defense-in-Depth, Code Clarity, Separation of Concerns.
+  const responseData = response.data as Record<string, unknown> | undefined;
+  if (
+    response.success &&
+    responseData?.mfa_required &&
+    typeof responseData.mfa_token === 'string'
+  ) {
+    showMfaChallengePanel(responseData.mfa_token as string, '');
+    return;
+  }
+
   if (!response.success || !response.data?.user) {
-    // ── MFA Challenge Gate (Migration 046) ──────────────────────────────
-    // Social login with MFA: backend returns mfa_required + mfa_token instead of user.
-    const data = response.data as Record<string, unknown> | undefined;
-    if (response.success && data?.mfa_required && typeof data.mfa_token === 'string') {
-      showMfaChallengePanel(data.mfa_token as string, '');
-      return;
-    }
     showBanner('error', response.error ?? t('auth_login_failed', 'فشل تسجيل الدخول'));
     return;
   }

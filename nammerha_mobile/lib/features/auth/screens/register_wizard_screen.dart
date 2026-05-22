@@ -69,6 +69,8 @@ class _RegisterWizardBodyState extends State<_RegisterWizardBody> {
 
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
+  // P0-W14-002 FIX: Phone controller — cross-platform parity with web.
+  final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
@@ -95,6 +97,7 @@ class _RegisterWizardBodyState extends State<_RegisterWizardBody> {
     _pageController.dispose();
     _nameController.dispose();
     _emailController.dispose();
+    _phoneController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -194,6 +197,10 @@ class _RegisterWizardBodyState extends State<_RegisterWizardBody> {
             email: _emailController.text.trim(),
             password: _passwordController.text,
             fullName: _nameController.text.trim(),
+            // P0-W14-002 FIX: Pass phone to backend — cross-platform parity with web.
+            phone: _phoneController.text.trim().isEmpty
+                ? null
+                : _phoneController.text.trim(),
           ),
         );
   }
@@ -455,6 +462,25 @@ class _RegisterWizardBodyState extends State<_RegisterWizardBody> {
                 if (!RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$').hasMatch(v)) return context.tr('reg_email_invalid');
                 return null;
               },
+              textInputAction: TextInputAction.next,
+              onFieldSubmitted: (_) => _nextPage(_formKey2),
+            ),
+
+            const SizedBox(height: 16),
+
+            // P0-W14-002 FIX: Optional phone number field — cross-platform parity with web.
+            // Web frontend (auth.ts L1113) has 'reg-phone' input in Step 2.
+            // PREVIOUS: Mobile wizard had no phone field — backend received null.
+            // NOW: Optional phone field with Syrian format hint (+963).
+            // Standard: Cross-Platform Parity, Nielsen #4 (Consistency).
+            TextFormField(
+              controller: _phoneController,
+              keyboardType: TextInputType.phone,
+              decoration: _themedInputDecoration(
+                colors: colors,
+                labelText: context.tr('phone_label_optional'),
+                prefixIcon: PhosphorIconsRegular.phone,
+              ),
               textInputAction: TextInputAction.next,
               onFieldSubmitted: (_) => _nextPage(_formKey2),
             ),

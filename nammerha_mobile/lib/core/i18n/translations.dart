@@ -745,6 +745,13 @@ const Map<String, Map<String, String>> kTranslations = {
   'err_social_only_account': {'ar': 'هذا الحساب مسجّل عبر تسجيل الدخول الاجتماعي. يرجى استخدام نفس الطريقة.', 'en': 'This account uses social login. Please use your social provider to sign in.'},
   'err_token_expired': {'ar': 'انتهت صلاحية الرمز — يرجى طلب رمز جديد', 'en': 'Token has expired — please request a new one'},
 
+  // ─── P1-W14-001: MFA Translations ───────────────────────────────────────
+  'err_mfa_required': {'ar': 'يرجى إدخال رمز التحقق من تطبيق المصادقة', 'en': 'Please enter the verification code from your authenticator app'},
+  'err_mfa_invalid_code': {'ar': 'رمز التحقق غير صحيح — يرجى المحاولة مرة أخرى', 'en': 'Invalid verification code — please try again'},
+  'err_mfa_session_expired': {'ar': 'انتهت جلسة التحقق — يرجى تسجيل الدخول مرة أخرى', 'en': 'MFA session expired — please log in again'},
+  'err_mfa_verify_failed': {'ar': 'فشل التحقق من الرمز — يرجى المحاولة مرة أخرى', 'en': 'Code verification failed — please try again'},
+  'mfa_use_web_hint': {'ar': 'حسابك مُفعّل عليه التحقق بخطوتين (MFA). يرجى استخدام المنصة عبر المتصفح لتسجيل الدخول حالياً. سيتوفر الدعم في التطبيق قريباً.', 'en': 'Your account has two-factor authentication (MFA) enabled. Please use the web platform to log in for now. Mobile MFA support is coming soon.'},
+
   // P0-AUD-001 FIX: Auth success message keys for auth_repository.dart
   'msg_verification_link_sent': {'ar': 'تم إرسال رابط التحقق إلى بريدك الإلكتروني', 'en': 'Verification link sent to your email'},
   'msg_reset_link_sent': {'ar': 'إذا كان البريد مسجلاً، ستتلقى رابط إعادة تعيين كلمة المرور', 'en': 'If the email is registered, you will receive a password reset link'},
@@ -1642,6 +1649,8 @@ const Map<String, Map<String, String>> kTranslations = {
   'reg_name_required': {'ar': 'الاسم مطلوب', 'en': 'Name is required'},
   'reg_email_required': {'ar': 'البريد الإلكتروني مطلوب', 'en': 'Email is required'},
   'reg_email_invalid': {'ar': 'بريد إلكتروني غير صالح', 'en': 'Invalid email address'},
+  // P0-W14-002: Phone field label for registration wizard.
+  'phone_label_optional': {'ar': 'رقم الهاتف (اختياري)', 'en': 'Phone Number (optional)'},
   'reg_pw_required': {'ar': 'كلمة المرور مطلوبة', 'en': 'Password is required'},
   'reg_pw_min_length': {'ar': 'كلمة المرور يجب أن تكون 8 أحرف على الأقل', 'en': 'Password must be at least 8 characters'},
   'reg_pw_needs_upper': {'ar': 'يجب أن تحتوي على حرف كبير واحد', 'en': 'Must contain at least 1 uppercase letter'},
