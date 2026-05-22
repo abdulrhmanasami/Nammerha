@@ -7,6 +7,11 @@ import { showStructuredBanner, type StructuredBannerElements } from '../utils/ba
 // PREVIOUS: Only `err instanceof Error` — missed 429 rate-limit and other structured errors.
 // Standard: Error Handling Parity with auth.ts login handler.
 import { ApiError } from '../api/_client';
+// P3-W13-003 FIX: Use shared EMAIL_REGEX from validators.ts — single source of truth.
+// PREVIOUS: Inline `const EMAIL_REGEX = /^.../` at L205 — 4th duplicate across pages.
+// auth.ts was already fixed in Wave 12 (P1-W12-001). This is the last copy.
+// Standard: DRY Principle, Centralized Validation.
+import { EMAIL_REGEX } from '../utils/validators';
 // P2-W6-009 FIX: Pre-warm CSRF token for POST requests.
 // Parity with auth.ts L33 — prevents 2-5s invisible delay on Syria 2G.
 import { warmCsrf } from '../api/_client';
@@ -51,6 +56,12 @@ if (resetToken) {
   try {
     const cleanUrl = new URL(window.location.href);
     cleanUrl.searchParams.delete('token');
+    // P2-W13-002 FIX: Also strip email param from URL bar.
+    // PREVIOUS: Only token was stripped. Email remained visible in the URL bar
+    // on shared/public computers (Syrian internet cafes). While less sensitive
+    // than the token, it still leaks which email was being reset.
+    // Standard: OWASP Sensitive Data Exposure, CWE-598.
+    cleanUrl.searchParams.delete('email');
     history.replaceState(null, '', cleanUrl.toString());
   } catch {
     /* URL manipulation failed — non-critical */
@@ -200,9 +211,10 @@ requestBtn?.addEventListener('click', async () => {
     return;
   }
 
-  // P2-W6-004 FIX: Email format + length validation (RFC 5321 parity).
-  // Previously no validation — extremely long or malformed emails sent to backend.
-  const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  // P3-W13-003 FIX: Use shared EMAIL_REGEX from validators.ts (imported at top).
+  // PREVIOUS: Inline `const EMAIL_REGEX = /^.../` — 4th duplicate of the same regex.
+  // auth.ts was fixed in Wave 12. This was the last remaining inline copy.
+  // Standard: DRY Principle, Centralized Validation.
   if (email.length > 254 || !EMAIL_REGEX.test(email)) {
     showRequestFeedback('error', t('reset_invalid_email', 'صيغة البريد الإلكتروني غير صالحة'));
     requestEmailInput?.focus();
@@ -317,14 +329,39 @@ form?.addEventListener('submit', async (e) => {
       // NOW: Backend returns { data: { email } } in the success response.
       // Fallback chain: response.data.email → requestEmailInput → URL param → empty.
       // Standard: Nielsen #6 (Recognition Over Recall), verify-email.ts parity.
+      // P1-W13-002 FIX: Show fallback "Go to login" link immediately.
+      // PREVIOUS: Only setTimeout redirect at 2000ms. If redirect fails (network
+      // drop, browser extension, CSP block), user is stuck — form hidden, success
+      // banner shown, but no way to proceed. Unlike auth.ts (P2-W12-006) which
+      // has a safety restore, reset-password.ts had NO fallback.
+      // Standard: Nielsen #3 (User Control & Freedom), Defense-in-Depth.
+      const responseData = data as { data?: { email?: string } };
+      const userEmail =
+        responseData.data?.email ?? requestEmailInput?.value.trim() ?? urlParams.get('email') ?? '';
+      const emailParam = userEmail ? `?email=${encodeURIComponent(userEmail)}` : '';
+      const fallbackContainer = document.createElement('div');
+      fallbackContainer.className = 'mt-4 text-center animate-fade-in-up';
+      // AGENTS.md: ALL innerHTML MUST use escapeHtml(). Using safe DOM APIs
+      // instead to eliminate XSS surface entirely — zero innerHTML needed.
+      const fallbackLink = document.createElement('a');
+      fallbackLink.href = `/auth.html${emailParam}`;
+      fallbackLink.className =
+        'text-sm text-trust-blue font-medium hover:underline inline-flex items-center gap-1';
+      const arrowIcon = document.createElement('i');
+      arrowIcon.className = 'ph ph-arrow-left nm-icon-back-arrow';
+      arrowIcon.setAttribute('aria-hidden', 'true');
+      fallbackLink.appendChild(arrowIcon);
+      fallbackLink.appendChild(
+        document.createTextNode(t('reset_go_to_login', 'الانتقال لتسجيل الدخول')),
+      );
+      fallbackContainer.appendChild(fallbackLink);
+      // Insert after the banner
+      const bannerParent = banner?.parentNode;
+      if (bannerParent && banner) {
+        bannerParent.insertBefore(fallbackContainer, banner.nextSibling);
+      }
+
       setTimeout(() => {
-        const responseData = data as { data?: { email?: string } };
-        const userEmail =
-          responseData.data?.email ??
-          requestEmailInput?.value.trim() ??
-          urlParams.get('email') ??
-          '';
-        const emailParam = userEmail ? `?email=${encodeURIComponent(userEmail)}` : '';
         window.location.href = `/auth.html${emailParam}`;
       }, 2000);
     } else {

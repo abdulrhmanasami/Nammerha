@@ -247,6 +247,17 @@ function switchTab(mode: 'login' | 'register'): void {
   if (mode === 'login' && window.location.hash) {
     history.replaceState(null, '', window.location.pathname + window.location.search);
   }
+
+  // P1-W13-003 FIX: Clear registration draft on tab switch to Login.
+  // PREVIOUS: clearRegDraft() only called on successful registration (L1380) and
+  // successful login (L1847). If a user started registration (Step 1: filled name+email
+  // → draft saved to sessionStorage), then switched to Login tab and logged in with
+  // a DIFFERENT email — the old registration draft persisted. On next visit, the stale
+  // draft auto-filled the registration form with wrong data (ghost data).
+  // Standard: Session Data Hygiene, Nielsen #5 (Error Prevention).
+  if (mode === 'login') {
+    clearRegDraft();
+  }
 }
 
 // P2-MED-001 FIX: Removed initial anonymous listeners.
@@ -1089,7 +1100,7 @@ formLogin?.addEventListener('submit', async (e) => {
   const email = (document.getElementById('login-email') as HTMLInputElement)?.value
     .trim()
     .toLowerCase();
-  const password = (document.getElementById('login-password') as HTMLInputElement)?.value;
+  const password = (document.getElementById('login-password') as HTMLInputElement)?.value ?? '';
 
   if (!email || !password) {
     showBanner('error', t('auth_enter_email_password', 'أدخل البريد الإلكتروني وكلمة المرور'));
@@ -1163,6 +1174,13 @@ formLogin?.addEventListener('submit', async (e) => {
       showBanner('error', response.error ?? t('auth_login_failed', 'فشل تسجيل الدخول'));
     }
   } catch (err) {
+    // P2-W13-003 FIX: Haptic error feedback on login failure.
+    // PREVIOUS: haptic.medium() fired on submission start (L1122) but no tactile
+    // feedback on failure — user got a vibration suggesting action taken, then
+    // a silent error banner. Native iOS/Android apps use error haptic for failures.
+    // Uses haptic.heavy() — the error/destructive-action pattern (haptic.ts L75).
+    // Standard: Apple HIG ("Error Haptic"), Material Design Haptic Feedback.
+    haptic.heavy();
     // P0-002 FIX (Wave 2): Detect structured ApiError codes from _client.ts.
     // Previous: `err instanceof Error` only — message string available, code LOST.
     // _client.ts now throws ApiError for non-OK responses, preserving the
@@ -1397,6 +1415,9 @@ formRegister?.addEventListener('submit', async (e) => {
       showBanner('error', response.error ?? t('auth_reg_failed', 'فشل إنشاء الحساب'));
     }
   } catch (err) {
+    // P2-W13-003 FIX: Haptic error feedback on registration failure.
+    // Parity with login catch block. Standard: Apple HIG ("Error Haptic").
+    haptic.heavy();
     // P0-DEEP-001 FIX: Detect structured ApiError codes from _client.ts.
     // PREVIOUS: Only checked `err instanceof Error` — backend error codes (429 rate limit,
     // SANCTIONS_BLOCK, EMAIL_BLACKLISTED) were discarded. Users saw generic "خطأ في الشبكة"
@@ -1762,12 +1783,25 @@ function showInlineResendVerification(emailAddress: string): void {
         showBanner('error', data.error ?? t('auth_resend_failed', 'فشل إعادة الإرسال'));
       }
     } catch (err) {
-      showBanner(
-        'error',
-        err instanceof Error
-          ? err.message
-          : t('auth_network_error', 'خطأ في الشبكة. حاول مرة أخرى.'),
-      );
+      // P1-W13-005 FIX: Detect structured ApiError codes — parity with post-registration
+      // resend handler at L1672-1677. PREVIOUS: Only checked `err instanceof Error` —
+      // missed 429 rate limiting. Users saw raw English backend message instead of
+      // translated "محاولات كثيرة" for rate-limited inline resend attempts.
+      // Standard: Error Handling Parity, OWASP Error Handling.
+      if (err instanceof ApiError && err.status === 429) {
+        showBanner(
+          'error',
+          err.message ||
+            t('auth_rate_limited', 'محاولات كثيرة. يرجى الانتظار قبل المحاولة مرة أخرى.'),
+        );
+      } else {
+        showBanner(
+          'error',
+          err instanceof Error
+            ? err.message
+            : t('auth_network_error', 'خطأ في الشبكة. حاول مرة أخرى.'),
+        );
+      }
     } finally {
       btn.classList.remove('btn-loading');
       // BUG-F03 FIX: Replaced disabled + inline opacity/pointer-events with nm-btn-cooldown.

@@ -78,7 +78,7 @@ function showResult(
       icon.classList.add('nm-icon-32');
     } else if (type === 'expired') {
       iconContainer.className =
-        'inline-flex items-center justify-center size-16 bg-warning-yellow rounded-2xl shadow-lg shadow-warning-yellow/20 mb-4';
+        'inline-flex items-center justify-center size-16 bg-amber-500 rounded-2xl shadow-lg shadow-amber-500/20 mb-4';
       icon.className = 'ph ph-clock-countdown text-white';
       icon.classList.add('nm-icon-32');
     } else {
@@ -223,6 +223,17 @@ resendBtn?.addEventListener('click', async () => {
   if (!email) {
     showResendFeedback('error', t('verify_resend_enter_email', 'أدخل بريدك لإعادة الإرسال'));
     resendEmail?.focus();
+    return;
+  }
+
+  // P2-W13-004 FIX: Pre-check cooldown state before making API call.
+  // PREVIOUS: cooldown class only applied AFTER the API call completed.
+  // On slow networks (Syria 2G, 5–10s latency), users could rapid-click the
+  // button 3–5 times before the first request completes. Each click fires the
+  // API call because btn-loading class check at L232 only blocks WHILE loading.
+  // This pre-check catches clicks during the 60s cooldown window.
+  // Standard: Rate Limit UX, Debounce Pattern.
+  if (resendBtn.classList.contains('nm-btn-cooldown')) {
     return;
   }
 

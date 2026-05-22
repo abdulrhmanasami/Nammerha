@@ -1012,18 +1012,27 @@ router.post(
       }
       const { token, new_password } = parsed.data;
 
-      // Find user by reset token
-      // P2-W6-010 FIX: Also select password_hash for password-reuse check.
-      const result = await query<
-        Pick<User, 'user_id' | 'email' | 'reset_token_expires_at' | 'password_hash'>
-      >(
-        `SELECT user_id, email, reset_token_expires_at, password_hash
-             FROM users WHERE password_reset_token = $1`,
+      // P1-W13-006 FIX: Atomic token consumption using UPDATE...RETURNING.
+      // PREVIOUS: SELECT user by hashed token (L1017) → check expiry (L1034) →
+      // UPDATE to clear token (L1068). Between SELECT and UPDATE, a concurrent
+      // request with the same token could pass the SELECT check (TOCTOU race).
+      // NOW: Single UPDATE atomically claims the token AND returns user data.
+      // If no rows returned, the token was already consumed, expired, or invalid.
+      // Standard: OWASP ASVS 2.1.7, CWE-367 (TOCTOU Race Condition Prevention).
+      const claimResult = await query<Pick<User, 'user_id' | 'email' | 'password_hash'>>(
+        `UPDATE users
+             SET password_reset_token = NULL,
+                 reset_token_expires_at = NULL
+             WHERE password_reset_token = $1
+               AND (reset_token_expires_at IS NULL OR reset_token_expires_at > NOW())
+             RETURNING user_id, email, password_hash`,
         [hashToken(token)],
       );
 
-      const user = result.rows[0];
+      const user = claimResult.rows[0];
       if (!user) {
+        // Token was invalid, already consumed, or expired.
+        // We don't distinguish these to prevent information leakage.
         res.status(400).json({
           success: false,
           error: 'Invalid or expired reset token',
@@ -1031,24 +1040,11 @@ router.post(
         return;
       }
 
-      // Check token expiry
-      if (user.reset_token_expires_at && new Date(user.reset_token_expires_at) < new Date()) {
-        // Clear expired token
-        await query(
-          'UPDATE users SET password_reset_token = NULL, reset_token_expires_at = NULL WHERE user_id = $1',
-          [user.user_id],
-        );
-        res.status(410).json({
-          success: false,
-          error: 'Reset token has expired. Please request a new one.',
-        } as ApiResponse);
-        return;
-      }
-
       // P2-W6-010 FIX: Prevent password reuse on reset.
-      // change-password checks `current_password === new_password` but reset-password
-      // did NOT — a user could reset to the exact same password, undermining the
-      // security purpose of password reset (e.g., after account compromise).
+      // NOTE: Token is already consumed at this point. If password-reuse check
+      // fails, the user must request a new reset link. This is the correct
+      // security trade-off — an attacker who intercepts the token cannot
+      // keep retrying different passwords.
       if (user.password_hash) {
         const isSamePassword = await bcrypt.compare(new_password, user.password_hash);
         if (isSamePassword) {
@@ -1060,16 +1056,13 @@ router.post(
         }
       }
 
-      // Hash new password, clear reset token, and invalidate all existing JWTs
-      const password_hash = await bcrypt.hash(new_password, BCRYPT_SALT_ROUNDS);
+      // Hash new password and invalidate all existing JWTs.
       // MED-001 FIX: Setting token_invalidated_at = NOW() causes the auth
-      // middleware to reject any JWT issued before this moment. This ensures
-      // that stolen tokens become useless after a password reset.
+      // middleware to reject any JWT issued before this moment.
+      const password_hash = await bcrypt.hash(new_password, BCRYPT_SALT_ROUNDS);
       await query(
         `UPDATE users
              SET password_hash = $1,
-                 password_reset_token = NULL,
-                 reset_token_expires_at = NULL,
                  token_invalidated_at = NOW(),
                  updated_at = NOW()
              WHERE user_id = $2`,
