@@ -30,6 +30,9 @@ import { scrollToField } from '../utils/scroll-to-field';
 import { initBreadcrumb } from '../utils/breadcrumb';
 // UX-REM-J007 FIX: Unified password strength (was using divergent inline algorithm)
 import { updatePasswordStrength } from '../utils/password-strength';
+// P2-W12-001 FIX: Shared password complexity validation — single source of truth.
+// PREVIOUS: profile.ts only checked `length < 8` — no uppercase/digit/special checks.
+import { validatePasswordComplexity } from '../utils/validators';
 initPullToRefresh();
 initBackToTop();
 initSearch();
@@ -644,8 +647,14 @@ function initPasswordChangeEngine(): void {
       showToast(t('password_mismatch', 'كلمتا المرور غير متطابقتين'), 'error');
       return;
     }
-    if (new_password.length < 8) {
-      showToast(t('password_too_short', 'كلمة المرور قصيرة جداً'), 'error');
+    // P2-W12-001 FIX: Full password complexity validation — single source of truth.
+    // PREVIOUS: Only `new_password.length < 8` — accepted 'abcdefgh' (no uppercase,
+    // no digit, no special). Backend Zod rejected it with confusing generic 400 error.
+    // NOW: Uses shared validatePasswordComplexity() — parity with auth.ts and backend.
+    // Standard: DRY Principle, OWASP ASVS 2.1.1, UX Consistency.
+    const pwResult = validatePasswordComplexity(new_password);
+    if (!pwResult.valid) {
+      showToast(t('password_complexity', 'كلمة المرور لا تستوفي المتطلبات'), 'error');
       return;
     }
 
@@ -1144,7 +1153,8 @@ function init(): void {
       const res = await auth.mfaStatus();
       if (!res.success || !res.data) {
         badge.textContent = esc(t('mfa_error', 'خطأ'));
-        badge.className = 'text-xs px-2 py-0.5 rounded-full font-semibold bg-red-50 text-red-500 dark:bg-red-500/10 dark:text-red-400';
+        badge.className =
+          'text-xs px-2 py-0.5 rounded-full font-semibold bg-red-50 text-red-500 dark:bg-red-500/10 dark:text-red-400';
         return;
       }
 
@@ -1152,7 +1162,8 @@ function init(): void {
 
       if (enabled) {
         badge.textContent = esc(t('mfa_enabled', 'مفعّلة'));
-        badge.className = 'text-xs px-2 py-0.5 rounded-full font-semibold bg-smoky-jade/10 text-smoky-jade';
+        badge.className =
+          'text-xs px-2 py-0.5 rounded-full font-semibold bg-smoky-jade/10 text-smoky-jade';
 
         actionArea.innerHTML = `
           <div class="flex flex-col gap-3">
@@ -1173,14 +1184,17 @@ function init(): void {
 
         // Wire disable button
         document.getElementById('mfa-disable-btn')?.addEventListener('click', () => {
-          const password = prompt(t('mfa_enter_password', 'أدخل كلمة المرور لتأكيد إلغاء المصادقة الثنائية:'));
+          const password = prompt(
+            t('mfa_enter_password', 'أدخل كلمة المرور لتأكيد إلغاء المصادقة الثنائية:'),
+          );
           if (!password) return;
           disableMfaAction(password);
         });
 
         // Wire regenerate button
         document.getElementById('mfa-regen-codes-btn')?.addEventListener('click', async () => {
-          if (!confirm(t('mfa_regen_confirm', 'سيتم إبطال الرموز القديمة. هل تريد المتابعة؟'))) return;
+          if (!confirm(t('mfa_regen_confirm', 'سيتم إبطال الرموز القديمة. هل تريد المتابعة؟')))
+            return;
           try {
             const res = await auth.mfaRegenerateCodes();
             if (res.success && res.data) {
@@ -1192,10 +1206,10 @@ function init(): void {
             showToast(t('mfa_regen_failed', 'فشل توليد الرموز'), 'error');
           }
         });
-
       } else {
         badge.textContent = esc(t('mfa_disabled', 'معطّلة'));
-        badge.className = 'text-xs px-2 py-0.5 rounded-full font-semibold bg-slate-100 text-slate-400 dark:bg-slate-700 dark:text-slate-500';
+        badge.className =
+          'text-xs px-2 py-0.5 rounded-full font-semibold bg-slate-100 text-slate-400 dark:bg-slate-700 dark:text-slate-500';
 
         actionArea.innerHTML = `
           <button id="mfa-enable-btn" class="nm-btn nm-btn-primary text-sm w-full py-2.5 flex items-center justify-center gap-2">
@@ -1317,7 +1331,8 @@ function init(): void {
           }
         } catch (err) {
           if (errorEl) {
-            errorEl.textContent = err instanceof Error ? err.message : t('mfa_setup_failed', 'فشل التأكيد');
+            errorEl.textContent =
+              err instanceof Error ? err.message : t('mfa_setup_failed', 'فشل التأكيد');
             errorEl.classList.remove('nm-hidden');
           }
           if (codeInput) codeInput.value = '';
@@ -1338,7 +1353,6 @@ function init(): void {
       });
       // Focus code input
       document.getElementById('mfa-setup-code')?.focus();
-
     } catch {
       setupFlow.innerHTML = `<p class="text-sm text-red-500">${esc(t('mfa_setup_failed', 'فشل بدء الإعداد'))}</p>`;
     }
@@ -1354,7 +1368,10 @@ function init(): void {
         showToast(res.error ?? t('mfa_disable_failed', 'فشل إلغاء المصادقة الثنائية'), 'error');
       }
     } catch (err) {
-      showToast(err instanceof Error ? err.message : t('mfa_disable_failed', 'فشل إلغاء المصادقة الثنائية'), 'error');
+      showToast(
+        err instanceof Error ? err.message : t('mfa_disable_failed', 'فشل إلغاء المصادقة الثنائية'),
+        'error',
+      );
     }
   }
 
@@ -1370,7 +1387,12 @@ function init(): void {
     dialog.setAttribute('aria-modal', 'true');
     dialog.setAttribute('aria-label', t('mfa_recovery_codes', 'رموز الاسترداد'));
 
-    const codesHtml = codes.map((c) => `<code class="block py-1 text-sm font-mono font-bold text-slate-700 dark:text-slate-200">${esc(c)}</code>`).join('');
+    const codesHtml = codes
+      .map(
+        (c) =>
+          `<code class="block py-1 text-sm font-mono font-bold text-slate-700 dark:text-slate-200">${esc(c)}</code>`,
+      )
+      .join('');
 
     dialog.innerHTML = `
       <div class="bg-white dark:bg-slate-800 rounded-xl p-6 max-w-sm w-full mx-4 shadow-xl" style="max-height:90vh; overflow-y:auto;">
@@ -1472,7 +1494,10 @@ function init(): void {
         }
         if (dateEl) {
           const endDate = new Date(grace_period_ends);
-          dateEl.textContent = t('deletion_date', `تاريخ الحذف النهائي: ${endDate.toLocaleDateString('ar-SY')}`);
+          dateEl.textContent = t(
+            'deletion_date',
+            `تاريخ الحذف النهائي: ${endDate.toLocaleDateString('ar-SY')}`,
+          );
         }
 
         // Wire cancel button
@@ -1480,7 +1505,10 @@ function init(): void {
           try {
             const cancelRes = await auth.cancelDeletion();
             if (cancelRes.success) {
-              showToast(t('deletion_cancelled', 'تم إلغاء حذف الحساب. حسابك نشط مجدداً ✓'), 'success');
+              showToast(
+                t('deletion_cancelled', 'تم إلغاء حذف الحساب. حسابك نشط مجدداً ✓'),
+                'success',
+              );
               banner.classList.add('nm-hidden');
               if (deleteBtn) deleteBtn.classList.remove('nm-hidden');
             } else {
@@ -1571,16 +1599,21 @@ function init(): void {
 
     // Wire cancel
     document.getElementById('gdpr-cancel-dialog')?.addEventListener('click', () => dialog.remove());
-    dialog.addEventListener('click', (e) => { if (e.target === dialog) dialog.remove(); });
+    dialog.addEventListener('click', (e) => {
+      if (e.target === dialog) dialog.remove();
+    });
 
     // Wire confirm
     let isDeleting = false;
     document.getElementById('gdpr-confirm-delete')?.addEventListener('click', async () => {
       if (isDeleting) return;
 
-      const confirmText = (document.getElementById('gdpr-confirm-text') as HTMLInputElement)?.value.trim() ?? '';
-      const password = (document.getElementById('gdpr-confirm-password') as HTMLInputElement)?.value ?? '';
-      const reason = (document.getElementById('gdpr-delete-reason') as HTMLTextAreaElement)?.value.trim() ?? '';
+      const confirmText =
+        (document.getElementById('gdpr-confirm-text') as HTMLInputElement)?.value.trim() ?? '';
+      const password =
+        (document.getElementById('gdpr-confirm-password') as HTMLInputElement)?.value ?? '';
+      const reason =
+        (document.getElementById('gdpr-delete-reason') as HTMLTextAreaElement)?.value.trim() ?? '';
       const errorEl = document.getElementById('gdpr-delete-error');
 
       // Validate confirmation text
@@ -1617,8 +1650,13 @@ function init(): void {
         if (res.success) {
           dialog.remove();
           // Show success message, then redirect to auth page
-          showToast(t('account_deleted_msg', 'تم جدولة حذف حسابك. لديك 30 يوم لإلغاء القرار.'), 'success');
-          setTimeout(() => { window.location.href = '/auth.html'; }, 2500);
+          showToast(
+            t('account_deleted_msg', 'تم جدولة حذف حسابك. لديك 30 يوم لإلغاء القرار.'),
+            'success',
+          );
+          setTimeout(() => {
+            window.location.href = '/auth.html';
+          }, 2500);
         } else {
           // Handle blockers
           const data = res.data as Record<string, unknown> | undefined;
@@ -1638,7 +1676,8 @@ function init(): void {
         }
       } catch (err) {
         if (errorEl) {
-          errorEl.textContent = err instanceof Error ? err.message : t('delete_failed', 'فشل حذف الحساب');
+          errorEl.textContent =
+            err instanceof Error ? err.message : t('delete_failed', 'فشل حذف الحساب');
           errorEl.classList.remove('nm-hidden');
         }
       } finally {

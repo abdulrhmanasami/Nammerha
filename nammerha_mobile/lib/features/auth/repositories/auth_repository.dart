@@ -229,13 +229,17 @@ class AuthRepository {
     return response.message ?? ErrorKeys.resendVerificationSent;
   }
 
-  /// GET /api/auth/verify-email/:token
-  /// MOB-DI FIX: Moved from direct NammerhaApiClient.instance usage in
-  /// VerifyEmailBloc to repository layer for DI consistency and testability.
+  /// POST /api/auth/verify-email
+  /// P0-W12-004 FIX: Converted from GET /verify-email/:token to POST /verify-email.
+  /// PREVIOUS: GET with token in URL path — vulnerable to email client prefetching,
+  /// CSRF via <img> tags, and token exposure in server/CDN/proxy logs (CWE-598).
+  /// NOW: POST with token in body — parity with web frontend and reset-password.
+  /// Standard: OWASP ASVS 2.5.2, CWE-598.
   Future<void> verifyEmail(String token) async {
     await _api.request(
-      '/auth/verify-email/$token',
-      method: 'GET',
+      '/auth/verify-email',
+      method: 'POST',
+      body: {'token': token},
     );
   }
 

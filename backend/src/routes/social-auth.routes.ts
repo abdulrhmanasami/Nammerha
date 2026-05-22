@@ -36,6 +36,13 @@ const APPLE_CLIENT_ID = process.env['APPLE_CLIENT_ID'] ?? '';
 // APPLE_TEAM_ID reserved for future Apple Services Auth Key validation
 const FACEBOOK_APP_ID = process.env['FACEBOOK_APP_ID'] ?? '';
 const FACEBOOK_APP_SECRET = process.env['FACEBOOK_APP_SECRET'] ?? '';
+// P3-W12-002 FIX: Explicit Graph API version — single source of truth.
+// PREVIOUS: Unversioned URLs (graph.facebook.com/debug_token, graph.facebook.com/me)
+// defaulted to the oldest non-deprecated version — unpredictable and could break
+// when Meta deprecates old versions. v19.0 (used by frontend SDK) expires May 21, 2026.
+// NOW: Explicit v22.0 — parity with frontend FACEBOOK_SDK_VERSION.
+// Standard: Meta Graph API Versioning Policy (2-year lifecycle per version).
+const FACEBOOK_GRAPH_VERSION = 'v22.0';
 
 // Google OAuth2 client — supports web + mobile client IDs
 const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
@@ -180,7 +187,8 @@ async function verifyFacebookToken(accessToken: string): Promise<VerifiedSocialU
   }
 
   // Step 1: Verify token is valid and belongs to our app
-  const debugUrl = `https://graph.facebook.com/debug_token?input_token=${encodeURIComponent(accessToken)}&access_token=${FACEBOOK_APP_ID}|${FACEBOOK_APP_SECRET}`;
+  // P3-W12-002 FIX: Explicit versioned URL — was unversioned (unpredictable default).
+  const debugUrl = `https://graph.facebook.com/${FACEBOOK_GRAPH_VERSION}/debug_token?input_token=${encodeURIComponent(accessToken)}&access_token=${FACEBOOK_APP_ID}|${FACEBOOK_APP_SECRET}`;
   const debugResp = await fetch(debugUrl);
   if (!debugResp.ok) {
     throw new Error('Facebook token debug request failed');
@@ -194,7 +202,8 @@ async function verifyFacebookToken(accessToken: string): Promise<VerifiedSocialU
   }
 
   // Step 2: Fetch user profile
-  const meUrl = `https://graph.facebook.com/me?access_token=${encodeURIComponent(accessToken)}&fields=id,name,email,picture.type(large)`;
+  // P3-W12-002 FIX: Explicit versioned URL — was unversioned (unpredictable default).
+  const meUrl = `https://graph.facebook.com/${FACEBOOK_GRAPH_VERSION}/me?access_token=${encodeURIComponent(accessToken)}&fields=id,name,email,picture.type(large)`;
   const meResp = await fetch(meUrl);
   if (!meResp.ok) {
     throw new Error('Facebook /me request failed');

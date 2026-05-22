@@ -3,8 +3,22 @@ import { auth } from '../api';
 import { t } from '../utils/i18n';
 // P2-W6-009 FIX: Pre-warm CSRF token for POST requests (resend verification).
 // Parity with auth.ts L33 — prevents 2-5s invisible delay on Syria 2G.
-import { warmCsrf } from '../api/_client';
+import { warmCsrf, ApiError } from '../api/_client';
+// P3-AUD-002 FIX: Import haptic for tactile feedback — parity with auth.ts.
+import { haptic } from '../utils/haptic';
 warmCsrf();
+
+// P1-AUD-003 FIX: Re-warm CSRF token when tab becomes visible after background.
+// PREVIOUS: warmCsrf() fired once on page load. If user left the tab open for
+// 2+ hours (common on Syria 2G — interrupted connectivity), CSRF token expired.
+// ALL subsequent resend-verification POSTs silently failed with 403.
+// Parity with auth.ts L45-49.
+// Standard: Page Visibility API, Syria 2G Resilience.
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    warmCsrf();
+  }
+});
 
 // EDGE-6 FIX: Module-scoped timer reference for cooldown cleanup.
 // Prevents timer leak when user navigates away during 60s resend countdown.
@@ -188,30 +202,54 @@ async function verifyEmail(): Promise<void> {
       );
     }
   } catch (err) {
-    // The centralized API client throws on network errors, timeouts, and non-2xx responses
-    const message =
-      err instanceof Error ? err.message : t('verify_server_unreachable', 'لا يمكن الوصول للخادم');
-
-    if (message.includes('timeout') || message.includes('abort')) {
-      showResult(
-        'error',
-        t('verify_timeout_title', 'انقطع الاتصال'),
-        t('verify_timeout_body', 'حاول مرة أخرى لاحقاً'),
-      );
-    } else if (message.includes('expired') || message.includes('410')) {
-      showResult(
-        'expired',
-        t('verify_expired_title', 'انتهت صلاحية الرابط'),
-        t('verify_expired_body', 'يرجى طلب رابط تحقق جديد'),
-      );
-    } else if (message.includes('not found') || message.includes('404')) {
-      showResult(
-        'error',
-        t('verify_not_found_title', 'الحساب غير موجود'),
-        t('verify_not_found_body', 'لم نعثر على حساب بهذا البريد'),
-      );
+    // P0-AUD-003 FIX: Detect structured ApiError codes from _client.ts.
+    // PREVIOUS: Only `err instanceof Error` — backend error codes (410 expired,
+    // 404 not found, 429 rate limited) were discarded. String-matching on the
+    // error MESSAGE was fragile (broke on translation/wording changes).
+    // NOW: Status-code-based branching — parity with auth.ts and reset-password.ts.
+    // Standard: OWASP Error Handling, Structured Error Detection.
+    if (err instanceof ApiError) {
+      if (err.status === 410) {
+        showResult(
+          'expired',
+          t('verify_expired_title', 'انتهت صلاحية الرابط'),
+          t('verify_expired_body', 'يرجى طلب رابط تحقق جديد'),
+        );
+      } else if (err.status === 404) {
+        showResult(
+          'error',
+          t('verify_not_found_title', 'الحساب غير موجود'),
+          t('verify_not_found_body', 'لم نعثر على حساب بهذا البريد'),
+        );
+      } else if (err.status === 429) {
+        showResult(
+          'error',
+          t('verify_rate_limited_title', 'محاولات كثيرة'),
+          err.message || t('auth_rate_limited', 'يرجى الانتظار قبل المحاولة مرة أخرى.'),
+        );
+      } else {
+        showResult(
+          'error',
+          t('verify_failed_title', 'فشل التحقق'),
+          err.message || t('verify_failed_body', 'لم نتمكن من التحقق من بريدك'),
+        );
+      }
     } else {
-      showResult('error', t('verify_network_error', 'خطأ في الشبكة'), message);
+      // Fallback: non-ApiError (network failures, timeouts, etc.)
+      const message =
+        err instanceof Error
+          ? err.message
+          : t('verify_server_unreachable', 'لا يمكن الوصول للخادم');
+
+      if (message.includes('timeout') || message.includes('abort')) {
+        showResult(
+          'error',
+          t('verify_timeout_title', 'انقطع الاتصال'),
+          t('verify_timeout_body', 'حاول مرة أخرى لاحقاً'),
+        );
+      } else {
+        showResult('error', t('verify_network_error', 'خطأ في الشبكة'), message);
+      }
     }
   }
 }
@@ -250,16 +288,34 @@ resendBtn?.addEventListener('click', async () => {
         'success',
         data.message ?? t('verify_resend_success', 'تم إعادة إرسال رابط التحقق'),
       );
+      // P3-AUD-002 FIX: Haptic success feedback — parity with auth.ts.
+      haptic.success();
     } else {
       showResendFeedback('error', data.error ?? t('verify_resend_failed', 'فشلت إعادة الإرسال'));
     }
   } catch (err) {
-    showResendFeedback(
-      'error',
-      err instanceof Error
-        ? err.message
-        : t('verify_resend_network_error', 'خطأ في الشبكة أثناء الإرسال'),
-    );
+    // P2-AUD-001 FIX: Detect structured ApiError — parity with auth.ts resend handler.
+    // PREVIOUS: Only `err instanceof Error` — 429 rate limiting showed raw English message.
+    // Standard: Error Handling Parity, OWASP Error Handling.
+    if (err instanceof ApiError) {
+      if (err.status === 429) {
+        showResendFeedback(
+          'error',
+          err.message || t('auth_rate_limited', 'محاولات كثيرة. يرجى الانتظار.'),
+        );
+      } else {
+        showResendFeedback('error', err.message || t('verify_resend_failed', 'فشلت إعادة الإرسال'));
+      }
+    } else {
+      showResendFeedback(
+        'error',
+        err instanceof Error
+          ? err.message
+          : t('verify_resend_network_error', 'خطأ في الشبكة أثناء الإرسال'),
+      );
+    }
+    // P3-AUD-002 FIX: Haptic error feedback — parity with auth.ts.
+    haptic.heavy();
   } finally {
     resendBtn.classList.remove('btn-loading');
     // BUG-F06 FIX: Apply 60s cooldown to prevent spam (parity with auth.ts).

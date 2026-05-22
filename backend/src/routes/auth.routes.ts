@@ -51,6 +51,7 @@ import {
   resetPasswordSchema,
   changePasswordSchema,
   resendVerificationSchema,
+  verifyEmailSchema,
 } from '../validation/schemas';
 
 // ─── I18N-004: Locale Detection ─────────────────────────────────────────────
@@ -139,6 +140,23 @@ const logoutLimiter = rateLimit({
   } as ApiResponse,
 });
 
+// P0-W12-003 FIX: Login-specific rate limiter.
+// PREVIOUS: /login had NO Express-level rate limiter. It relied solely on the
+// audit_trail-based lockout (L396-435) which only activates after 5 failed
+// attempts per email/IP compound. An attacker could credential-stuff across
+// many different emails at ~60 req/sec without any IP-level throttling.
+// Standard: OWASP ASVS 2.2.1, CWE-307 (Improper Restriction of Auth Attempts).
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 30, // 30 login attempts per 15 min per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    error: 'Too many login attempts from this IP, please try again after 15 minutes.',
+  } as ApiResponse,
+});
+
 // P0-W6-001: EMAIL_REGEX and PASSWORD_RULES removed — Zod schemas in
 // validation/schemas.ts are now the single source of truth for input validation.
 
@@ -153,188 +171,199 @@ const AUTO_ASSIGN_ROLES: readonly string[] = [
 ] as const;
 
 // ─── POST /api/auth/register ────────────────────────────────────────────────
-router.post('/register', async (req: Request, res: Response): Promise<void> => {
-  try {
-    // P0-W6-001 FIX: Wire Zod validation — replaces 60+ lines of manual inline checks.
-    // Zod handles type coercion, trimming, format validation, complexity rules,
-    // max lengths, and unknown field stripping in a single call.
-    const parsed = registerSchema.safeParse(req.body);
-    if (!parsed.success) {
-      const firstError = parsed.error.issues[0]?.message ?? 'Invalid input';
-      res.status(400).json({ success: false, error: firstError } as ApiResponse);
-      return;
-    }
-    const { email, password, full_name, phone } = parsed.data;
+// P0-W12-001 FIX: Added sensitiveActionLimiter.
+// PREVIOUS: /register had NO rate limiter. Attacker could send unlimited
+// registration requests causing: (1) email bombing via verification emails,
+// (2) database bloat (user row + 5 profile tables + role assignments per request),
+// (3) CPU exhaustion (bcrypt hash with 12 rounds costs ~250ms/request).
+// Standard: OWASP Rate Limiting, CWE-770 (Allocation of Resources Without Limits).
+router.post(
+  '/register',
+  sensitiveActionLimiter,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      // P0-W6-001 FIX: Wire Zod validation — replaces 60+ lines of manual inline checks.
+      // Zod handles type coercion, trimming, format validation, complexity rules,
+      // max lengths, and unknown field stripping in a single call.
+      const parsed = registerSchema.safeParse(req.body);
+      if (!parsed.success) {
+        const firstError = parsed.error.issues[0]?.message ?? 'Invalid input';
+        res.status(400).json({ success: false, error: firstError } as ApiResponse);
+        return;
+      }
+      const { email, password, full_name, phone } = parsed.data;
 
-    // UNIFIED-ROLES: Role parameter is ignored — all users get all roles.
-    // Default primary role is 'homeowner' (most common use case).
-    const role: UserRole = 'homeowner';
+      // UNIFIED-ROLES: Role parameter is ignored — all users get all roles.
+      // Default primary role is 'homeowner' (most common use case).
+      const role: UserRole = 'homeowner';
 
-    // ─── PLT-AUD-001 FIX: Anti-Enumeration Canonical Response ─────────
-    // Both "email exists" and "new user" paths return an IDENTICAL 200
-    // response with the same JSON shape. This is the ONLY way to defeat
-    // email enumeration — an attacker cannot distinguish the two paths by
-    // status code, response body, or timing (bcrypt hash runs in both).
-    //
-    // JWT is NOT returned at registration. The user receives the token
-    // only after verifying their email and logging in. This also resolves
-    // PLT-AUD-008 (JWT before email verification).
-    // ──────────────────────────────────────────────────────────────────────
-    const GENERIC_REGISTRATION_RESPONSE: ApiResponse = {
-      success: true,
-      message: 'If your email is valid, you will receive a verification email shortly.',
-    };
+      // ─── PLT-AUD-001 FIX: Anti-Enumeration Canonical Response ─────────
+      // Both "email exists" and "new user" paths return an IDENTICAL 200
+      // response with the same JSON shape. This is the ONLY way to defeat
+      // email enumeration — an attacker cannot distinguish the two paths by
+      // status code, response body, or timing (bcrypt hash runs in both).
+      //
+      // JWT is NOT returned at registration. The user receives the token
+      // only after verifying their email and logging in. This also resolves
+      // PLT-AUD-008 (JWT before email verification).
+      // ──────────────────────────────────────────────────────────────────────
+      const GENERIC_REGISTRATION_RESPONSE: ApiResponse = {
+        success: true,
+        message: 'If your email is valid, you will receive a verification email shortly.',
+      };
 
-    // Check for existing user
-    const normalizedRegEmail = email.toLowerCase().trim();
-    const existing = await query<{
-      user_id: string;
-      is_email_verified: boolean;
-      email_token_expires_at: Date | null;
-    }>('SELECT user_id, is_email_verified, email_token_expires_at FROM users WHERE email = $1', [
-      normalizedRegEmail,
-    ]);
+      // Check for existing user
+      const normalizedRegEmail = email.toLowerCase().trim();
+      const existing = await query<{
+        user_id: string;
+        is_email_verified: boolean;
+        email_token_expires_at: Date | null;
+      }>('SELECT user_id, is_email_verified, email_token_expires_at FROM users WHERE email = $1', [
+        normalizedRegEmail,
+      ]);
 
-    if (existing.rows[0]) {
-      const existingUser = existing.rows[0];
+      if (existing.rows[0]) {
+        const existingUser = existing.rows[0];
 
-      // P1-W6-005 FIX: Timing equalization — bcrypt hash to match new-user path latency.
-      // Without this, existing emails return in ~5-50ms while new users take ~350ms
-      // (bcrypt.hash with 12 rounds). Attackers measure latency to enumerate valid
-      // emails (CWE-208). Parity with login route's dummy bcrypt at L430.
-      await bcrypt.hash('timing_equalization_padding', BCRYPT_SALT_ROUNDS);
+        // P1-W6-005 FIX: Timing equalization — bcrypt hash to match new-user path latency.
+        // Without this, existing emails return in ~5-50ms while new users take ~350ms
+        // (bcrypt.hash with 12 rounds). Attackers measure latency to enumerate valid
+        // emails (CWE-208). Parity with login route's dummy bcrypt at L430.
+        await bcrypt.hash('timing_equalization_padding', BCRYPT_SALT_ROUNDS);
 
-      // PLT-AUD-009 FIX: The "Black Hole" Trap
-      // If a user registers, doesn't verify, and tries to register again days later,
-      // the system used to return GENERIC_REGISTRATION_RESPONSE but NEVER sent an email,
-      // leaving the user permanently stuck. We now silently treat this as a "resend" request.
-      if (!existingUser.is_email_verified) {
-        let shouldSend = true;
+        // PLT-AUD-009 FIX: The "Black Hole" Trap
+        // If a user registers, doesn't verify, and tries to register again days later,
+        // the system used to return GENERIC_REGISTRATION_RESPONSE but NEVER sent an email,
+        // leaving the user permanently stuck. We now silently treat this as a "resend" request.
+        if (!existingUser.is_email_verified) {
+          let shouldSend = true;
 
-        // Apply cooldown to prevent email bombing via /register endpoint
-        if (existingUser.email_token_expires_at) {
-          const tokenCreatedAt = new Date(existingUser.email_token_expires_at);
-          tokenCreatedAt.setHours(tokenCreatedAt.getHours() - VERIFICATION_TOKEN_EXPIRY_HOURS);
-          const secondsSinceLastSend = (Date.now() - tokenCreatedAt.getTime()) / 1000;
-          if (secondsSinceLastSend < RESEND_COOLDOWN_SECONDS) {
-            shouldSend = false;
+          // Apply cooldown to prevent email bombing via /register endpoint
+          if (existingUser.email_token_expires_at) {
+            const tokenCreatedAt = new Date(existingUser.email_token_expires_at);
+            tokenCreatedAt.setHours(tokenCreatedAt.getHours() - VERIFICATION_TOKEN_EXPIRY_HOURS);
+            const secondsSinceLastSend = (Date.now() - tokenCreatedAt.getTime()) / 1000;
+            if (secondsSinceLastSend < RESEND_COOLDOWN_SECONDS) {
+              shouldSend = false;
+            }
+          }
+
+          if (shouldSend) {
+            const verificationToken = crypto.randomUUID();
+            const tokenExpiry = new Date();
+            tokenExpiry.setHours(tokenExpiry.getHours() + VERIFICATION_TOKEN_EXPIRY_HOURS);
+
+            await query(
+              `UPDATE users SET email_verification_token = $1, email_token_expires_at = $2, updated_at = NOW() WHERE user_id = $3`,
+              [hashToken(verificationToken), tokenExpiry, existingUser.user_id],
+            );
+
+            const baseUrl = process.env['APP_BASE_URL'] ?? 'https://nammerha.com';
+            // P1-W5-001 FIX: Include email so verify-email page pre-fills the Sign In link.
+            const verificationUrl = `${baseUrl}/verify-email.html?token=${verificationToken}&email=${encodeURIComponent(normalizedRegEmail)}`;
+            enqueueVerificationEmail(normalizedRegEmail, verificationUrl, getEmailLocale(req), {
+              sourceAction: 'register_resend',
+              sourceUserId: existingUser.user_id,
+            });
           }
         }
 
-        if (shouldSend) {
-          const verificationToken = crypto.randomUUID();
-          const tokenExpiry = new Date();
-          tokenExpiry.setHours(tokenExpiry.getHours() + VERIFICATION_TOKEN_EXPIRY_HOURS);
-
-          await query(
-            `UPDATE users SET email_verification_token = $1, email_token_expires_at = $2, updated_at = NOW() WHERE user_id = $3`,
-            [hashToken(verificationToken), tokenExpiry, existingUser.user_id],
-          );
-
-          const baseUrl = process.env['APP_BASE_URL'] ?? 'https://nammerha.com';
-          // P1-W5-001 FIX: Include email so verify-email page pre-fills the Sign In link.
-          const verificationUrl = `${baseUrl}/verify-email.html?token=${verificationToken}&email=${encodeURIComponent(normalizedRegEmail)}`;
-          enqueueVerificationEmail(normalizedRegEmail, verificationUrl, getEmailLocale(req), {
-            sourceAction: 'register_resend',
-            sourceUserId: existingUser.user_id,
-          });
-        }
+        // SEC-FT-002 + PLT-AUD-001: Identical response — no enumeration leak
+        res.status(200).json(GENERIC_REGISTRATION_RESPONSE);
+        return;
       }
 
-      // SEC-FT-002 + PLT-AUD-001: Identical response — no enumeration leak
-      res.status(200).json(GENERIC_REGISTRATION_RESPONSE);
-      return;
-    }
+      // Hash password with bcrypt
+      const password_hash = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
 
-    // Hash password with bcrypt
-    const password_hash = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
+      // Generate email verification token
+      const verificationToken = crypto.randomUUID();
+      const tokenExpiry = new Date();
+      tokenExpiry.setHours(tokenExpiry.getHours() + VERIFICATION_TOKEN_EXPIRY_HOURS);
 
-    // Generate email verification token
-    const verificationToken = crypto.randomUUID();
-    const tokenExpiry = new Date();
-    tokenExpiry.setHours(tokenExpiry.getHours() + VERIFICATION_TOKEN_EXPIRY_HOURS);
-
-    // Create user with verification token
-    // P0-W5-003 FIX: ON CONFLICT (email) DO NOTHING defends against TOCTOU race condition.
-    // Without this, two concurrent registrations for the same email could both pass the
-    // SELECT check (line ~241) and both reach INSERT. The second INSERT either creates
-    // a duplicate (no UNIQUE constraint) or throws a 500 (with UNIQUE constraint).
-    // With ON CONFLICT, the second INSERT silently returns no rows → generic response.
-    // Standard: CWE-362 (TOCTOU Race Condition), SEC-FT-002 (Anti-Enumeration).
-    const result = await query<
-      Pick<User, 'user_id' | 'email' | 'full_name' | 'role' | 'is_active' | 'is_email_verified'>
-    >(
-      `INSERT INTO users (email, password_hash, full_name, role, phone, is_active, is_email_verified, email_verification_token, email_token_expires_at)
+      // Create user with verification token
+      // P0-W5-003 FIX: ON CONFLICT (email) DO NOTHING defends against TOCTOU race condition.
+      // Without this, two concurrent registrations for the same email could both pass the
+      // SELECT check (line ~241) and both reach INSERT. The second INSERT either creates
+      // a duplicate (no UNIQUE constraint) or throws a 500 (with UNIQUE constraint).
+      // With ON CONFLICT, the second INSERT silently returns no rows → generic response.
+      // Standard: CWE-362 (TOCTOU Race Condition), SEC-FT-002 (Anti-Enumeration).
+      const result = await query<
+        Pick<User, 'user_id' | 'email' | 'full_name' | 'role' | 'is_active' | 'is_email_verified'>
+      >(
+        `INSERT INTO users (email, password_hash, full_name, role, phone, is_active, is_email_verified, email_verification_token, email_token_expires_at)
                  VALUES ($1, $2, $3, $4, $5, FALSE, FALSE, $6, $7)
                  ON CONFLICT (email) DO NOTHING
                  RETURNING user_id, email, full_name, role, is_active, is_email_verified`,
-      [
-        normalizedRegEmail,
-        password_hash,
-        full_name.trim(),
-        role,
-        phone ?? null,
-        hashToken(verificationToken),
-        tokenExpiry,
-      ],
-    );
+        [
+          normalizedRegEmail,
+          password_hash,
+          full_name.trim(),
+          role,
+          phone ?? null,
+          hashToken(verificationToken),
+          tokenExpiry,
+        ],
+      );
 
-    const user = result.rows[0];
-    if (!user) {
-      // P0-W5-003: Email was taken between SELECT check and INSERT (race condition).
-      // Return the same generic response to prevent enumeration.
-      res.status(200).json(GENERIC_REGISTRATION_RESPONSE);
-      return;
-    }
+      const user = result.rows[0];
+      if (!user) {
+        // P0-W5-003: Email was taken between SELECT check and INSERT (race condition).
+        // Return the same generic response to prevent enumeration.
+        res.status(200).json(GENERIC_REGISTRATION_RESPONSE);
+        return;
+      }
 
-    // UNIFIED-ROLES: Auto-assign ALL 5 roles to every new user.
-    // This eliminates role switching — users see all features immediately.
-    // Each role gets status='active'. homeowner is the primary role.
-    await query(
-      `INSERT INTO user_roles (user_id, role_id, status, is_primary)
+      // UNIFIED-ROLES: Auto-assign ALL 5 roles to every new user.
+      // This eliminates role switching — users see all features immediately.
+      // Each role gets status='active'. homeowner is the primary role.
+      await query(
+        `INSERT INTO user_roles (user_id, role_id, status, is_primary)
                  SELECT $1, r.role_id, 'active', (r.role_name = 'homeowner')
                  FROM roles r WHERE r.role_name = ANY($2::text[])
                  ON CONFLICT (user_id, role_id) DO NOTHING`,
-      [user.user_id, AUTO_ASSIGN_ROLES],
-    );
+        [user.user_id, AUTO_ASSIGN_ROLES],
+      );
 
-    // Create ALL role-specific profiles at registration
-    // This ensures no "profile not found" errors when accessing any feature.
-    const profileTables = [
-      'homeowner_profiles',
-      'engineer_profiles',
-      'contractor_profiles',
-      'supplier_profiles',
-      'tradesperson_profiles',
-    ] as const;
-    for (const table of profileTables) {
-      await query(`INSERT INTO ${table} (user_id) VALUES ($1) ON CONFLICT (user_id) DO NOTHING`, [
-        user.user_id,
-      ]);
+      // Create ALL role-specific profiles at registration
+      // This ensures no "profile not found" errors when accessing any feature.
+      const profileTables = [
+        'homeowner_profiles',
+        'engineer_profiles',
+        'contractor_profiles',
+        'supplier_profiles',
+        'tradesperson_profiles',
+      ] as const;
+      for (const table of profileTables) {
+        await query(`INSERT INTO ${table} (user_id) VALUES ($1) ON CONFLICT (user_id) DO NOTHING`, [
+          user.user_id,
+        ]);
+      }
+
+      // Send verification email (fire-and-forget, never blocks registration)
+      // PLT-AUD-006 FIX: Link points to frontend verify-email page, NOT the raw API.
+      // The frontend page calls the API and displays a user-friendly result.
+      const baseUrl = process.env['APP_BASE_URL'] ?? 'https://nammerha.com';
+      // P1-W5-001 FIX: Include email so verify-email page pre-fills the Sign In link.
+      const verificationUrl = `${baseUrl}/verify-email.html?token=${verificationToken}&email=${encodeURIComponent(user.email)}`;
+      enqueueVerificationEmail(user.email, verificationUrl, getEmailLocale(req), {
+        sourceAction: 'register',
+        sourceUserId: user.user_id,
+      });
+
+      // PLT-AUD-001 FIX: Return IDENTICAL response for new and existing emails.
+      // No JWT, no user data — the response is indistinguishable from the
+      // existing-email path above.
+      res.status(200).json(GENERIC_REGISTRATION_RESPONSE);
+    } catch (error) {
+      safeRouteError(res, error, 'Auth.Register');
     }
-
-    // Send verification email (fire-and-forget, never blocks registration)
-    // PLT-AUD-006 FIX: Link points to frontend verify-email page, NOT the raw API.
-    // The frontend page calls the API and displays a user-friendly result.
-    const baseUrl = process.env['APP_BASE_URL'] ?? 'https://nammerha.com';
-    // P1-W5-001 FIX: Include email so verify-email page pre-fills the Sign In link.
-    const verificationUrl = `${baseUrl}/verify-email.html?token=${verificationToken}&email=${encodeURIComponent(user.email)}`;
-    enqueueVerificationEmail(user.email, verificationUrl, getEmailLocale(req), {
-      sourceAction: 'register',
-      sourceUserId: user.user_id,
-    });
-
-    // PLT-AUD-001 FIX: Return IDENTICAL response for new and existing emails.
-    // No JWT, no user data — the response is indistinguishable from the
-    // existing-email path above.
-    res.status(200).json(GENERIC_REGISTRATION_RESPONSE);
-  } catch (error) {
-    safeRouteError(res, error, 'Auth.Register');
-  }
-});
+  },
+);
 
 // ─── POST /api/auth/login ───────────────────────────────────────────────────
-router.post('/login', async (req: Request, res: Response): Promise<void> => {
+// P0-W12-003 FIX: Added loginLimiter (defined at L142).
+router.post('/login', loginLimiter, async (req: Request, res: Response): Promise<void> => {
   try {
     // P0-W6-001 FIX: Wire Zod validation for login input.
     const parsed = loginSchema.safeParse(req.body);
@@ -659,21 +688,32 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
   }
 });
 
-// ─── GET /api/auth/verify-email/:token ──────────────────────────────────────
-router.get(
-  '/verify-email/:token',
+// ─── POST /api/auth/verify-email ────────────────────────────────────────────
+// P0-W12-004 FIX: Converted from GET /verify-email/:token to POST /verify-email.
+// PREVIOUS: GET with token in URL path was vulnerable to:
+//   1. Email client prefetching (Gmail, Outlook pre-fetch GET links)
+//   2. CSRF via <img src=".../verify-email/TOKEN"> — no user consent needed
+//   3. Token exposure in server access logs, CDN logs, proxy logs (CWE-598)
+//   4. Token leakage via Referer header to external resources
+// NOW: POST with token in request body — immune to all four attack vectors.
+// The email link URL is unchanged (loads verify-email.html page), then JS
+// extracts the token and sends POST request — same pattern as reset-password.
+// Standard: OWASP ASVS 2.5.2, CWE-598, RFC 7231 §4.3.3.
+router.post(
+  '/verify-email',
   verifyEmailLimiter,
   async (req: Request, res: Response): Promise<void> => {
     try {
-      const { token: rawToken } = req.params;
-      const token = String(rawToken);
-      if (!token || token.length < 10) {
+      // P0-W12-004: Zod validation replaces inline token.length check.
+      const parsed = verifyEmailSchema.safeParse(req.body);
+      if (!parsed.success) {
         res.status(400).json({
           success: false,
           error: 'Invalid verification token',
         } as ApiResponse);
         return;
       }
+      const { token } = parsed.data;
 
       // Find user by token and check expiry
       // SEC-PLAT-001: Hash the incoming URL token before DB lookup

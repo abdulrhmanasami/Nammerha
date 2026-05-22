@@ -11,6 +11,9 @@ import '../bloc/auth_bloc.dart';
 import '../bloc/register_wizard_cubit.dart';
 import '../widgets/password_strength_indicator.dart';
 import '../../../core/utils/animation_budget.dart';
+// P2-W12-001 FIX: Shared password complexity validator — single source of truth.
+// PREVIOUS: Inline _validatePassword() duplicated all rules from password_validator.dart.
+import '../../../core/utils/password_validator.dart';
 // P0-002 FIX: Email verification interstitial — replaces SnackBar-and-pop
 import 'email_verification_screen.dart';
 
@@ -145,32 +148,28 @@ class _RegisterWizardBodyState extends State<_RegisterWizardBody> {
     }
   }
 
-  /// UX-F027: Password validation matching web auth.ts lines 639-660.
-  /// Requires: 8+ chars, 1 uppercase, 1 lowercase, 1 number, 1 special char.
+  /// P2-W12-001 FIX: Delegates to shared validatePasswordComplexity() — single source of truth.
+  /// PREVIOUS: Inline 25-line method duplicating all rules from password_validator.dart.
+  /// NOW: Maps shared error codes to i18n keys for localized messages.
+  /// Standard: DRY Principle, OWASP ASVS 2.1.1, password_validator.dart parity.
   String? _validatePassword(String? value) {
     if (value == null || value.isEmpty) {
       return context.tr('reg_pw_required');
     }
-    if (value.length < 8) {
-      return context.tr('reg_pw_min_length');
-    }
-    // P1-AUD-005 FIX: Max length check mirrors backend SEC-003.
-    if (value.length > 128) {
-      return context.tr('reg_pw_too_long');
-    }
-    if (!RegExp(r'[A-Z]').hasMatch(value)) {
-      return context.tr('reg_pw_needs_upper');
-    }
-    if (!RegExp(r'[a-z]').hasMatch(value)) {
-      return context.tr('reg_pw_needs_lower');
-    }
-    if (!RegExp(r'[0-9]').hasMatch(value)) {
-      return context.tr('reg_pw_needs_number');
-    }
-    if (!RegExp(r'[^A-Za-z0-9]').hasMatch(value)) {
-      return context.tr('reg_pw_needs_symbol');
-    }
-    return null;
+    final result = validatePasswordComplexity(value);
+    if (result.isValid) return null;
+
+    // Map first error code to i18n key for localized user-facing message.
+    const errorKeyMap = <String, String>{
+      'password_too_short': 'reg_pw_min_length',
+      'password_too_long': 'reg_pw_too_long',
+      'password_missing_uppercase': 'reg_pw_needs_upper',
+      'password_missing_lowercase': 'reg_pw_needs_lower',
+      'password_missing_digit': 'reg_pw_needs_number',
+      'password_missing_special': 'reg_pw_needs_symbol',
+    };
+    final i18nKey = errorKeyMap[result.errors.first] ?? 'reg_pw_min_length';
+    return context.tr(i18nKey);
   }
 
   void _submit() {

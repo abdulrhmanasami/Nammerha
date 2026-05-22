@@ -109,8 +109,8 @@ class VerifyEmailBloc extends Bloc<VerifyEmailEvent, VerifyEmailState> {
     }
 
     try {
-      // W3-P0-002 FIX: Backend is GET /api/auth/verify-email/:token
-      // (token in URL path, not POST body).
+      // P0-W12-004 FIX: Backend is POST /api/auth/verify-email (token in body).
+      // PREVIOUS: Was GET /api/auth/verify-email/:token (token in URL path).
       // P1-VE-002 FIX: Uses injected _authRepository instead of singleton.
       // MOB-DI FIX: Previous code used NammerhaApiClient.instance directly,
       // bypassing the injected repository — broke testability and DI contract.

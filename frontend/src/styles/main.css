@@ -2771,6 +2771,15 @@ html[data-theme='dark'] .nm-notif-item[data-notif-href]:hover {
     overflow: hidden !important;
   }
 
+  /* P1-AUD-005 FIX: Body interaction lock during post-login redirect.
+   Previous: document.body.style.pointerEvents = 'none' — inline style violated
+   AGENTS.md (\"NEVER use inline styles for layout\").
+   Now: classList.add('nm-body-frozen') — declarative and cascade-safe.
+   Standard: P1-SST-001 governance, CSS Single Source of Truth. */
+  .nm-body-frozen {
+    pointer-events: none !important;
+  }
+
   /* P2-ICON-01 FIX: Icon sizing scale — CSS Single Source of Truth. */
   .nm-icon-22 {
     font-size: 22px;

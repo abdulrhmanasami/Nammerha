@@ -15,6 +15,15 @@ import { haptic } from '../utils/haptic';
 import { initPullToRefresh } from '../utils/pull-refresh';
 // PLT-MAR11-005 FIX: Import shared password strength utility (single source of truth)
 import { updatePasswordStrength } from '../utils/password-strength';
+// P2-W13-002 FIX: Tracked timer utilities extracted to shared module.
+// PREVIOUS: Identical timer tracking code duplicated in auth.ts and reset-password.ts.
+// Standard: DRY Principle, Timer Hygiene.
+import {
+  createTrackedInterval,
+  clearTrackedInterval,
+  clearAllTrackedTimers,
+  addTrackedTimer,
+} from '../utils/tracked-timers';
 // P1-006 FIX: Scroll-to-field on validation error — ensures failing field
 // is visible, focused, and highlighted on mobile browsers.
 import { scrollToField } from '../utils/scroll-to-field';
@@ -26,9 +35,15 @@ import { ApiError } from '../api/_client';
 // On Syria 2G, the first POST without pre-warm adds 2-5s invisible delay.
 import { warmCsrf } from '../api/_client';
 // P1-W12-001 FIX: Import shared validators — single source of truth for email regex.
-// PREVIOUS: 4 copies of the same email regex inline across auth.ts and reset-password.ts.
+// P2-W12-001 FIX: Import password complexity validators — single source of truth.
+// PREVIOUS: 4 copies of email regex + 2 copies of inline password regex blocks.
 // Standard: DRY Principle, Centralized Validation.
-import { EMAIL_REGEX } from '../utils/validators';
+import {
+  EMAIL_REGEX,
+  validatePasswordComplexity,
+  MIN_PASSWORD_LENGTH,
+  MAX_PASSWORD_LENGTH,
+} from '../utils/validators';
 
 // W3-P2-002 FIX: Pre-fetch CSRF token on page load (fire-and-forget).
 // Previous: CSRF fetched on first form submit — added invisible 2-5s delay on Syria 2G.
@@ -66,45 +81,52 @@ const state: AuthState = {
   isSubmitting: false,
 };
 
-// ─── P1-W6-001 FIX: Module-Scoped Timer Registry ───────────────────────────
-// PREVIOUS: Countdown timers used local `const resendTimer = setInterval(...)` variables.
-// These leaked if the user navigated away (SPA redirect, tab close, bfcache).
-// The timer continued ticking against orphaned DOM, wasting CPU and memory.
-//
-// FIX: All interval timers register in `_activeTimers`. Utility helpers ensure:
-//   1. Automatic registration on creation (`createTrackedInterval`)
-//   2. Automatic deregistration on clearance (`clearTrackedInterval`)
-//   3. Bulk cleanup on `pagehide` (bfcache-safe; `beforeunload` blocks bfcache)
-//
-// Standard: Web Performance (Timer Hygiene), Page Lifecycle API.
-// ─────────────────────────────────────────────────────────────────────────────
-const _activeTimers = new Set<ReturnType<typeof setInterval>>();
+// P2-W13-002: Timer tracking utilities now imported from '../utils/tracked-timers'.
+// PREVIOUS: 40 lines of timer registry code duplicated here and in reset-password.ts.
+// See import at top of file. Standard: DRY Principle.
 
-/** Create a setInterval that auto-registers in the timer registry. */
-function createTrackedInterval(
-  callback: () => void,
-  intervalMs: number,
-): ReturnType<typeof setInterval> {
-  const timerId = setInterval(callback, intervalMs);
-  _activeTimers.add(timerId);
-  return timerId;
+// P2-W12-005 FIX: SessionStorage-based cooldown persistence for resend buttons.
+// PREVIOUS: Resend verification cooldowns were purely DOM-based — opening a
+// second tab allowed unlimited resends, bypassing client-side protection.
+// NOW: Cooldown end timestamp stored in sessionStorage. Checked before allowing
+// new resend attempts across tabs/page reloads.
+// Standard: Cross-Tab State Consistency, auth.ts lockout storage pattern (L1250).
+const RESEND_COOLDOWN_KEY = 'nmh_resend_cooldown_until';
+
+function isResendOnCooldown(): boolean {
+  try {
+    const until = sessionStorage.getItem(RESEND_COOLDOWN_KEY);
+    if (!until) return false;
+    return Date.now() < parseInt(until, 10);
+  } catch {
+    return false;
+  }
 }
 
-/** Clear a tracked interval and remove from registry. No-op if null. */
-function clearTrackedInterval(timerId: ReturnType<typeof setInterval> | null): null {
-  if (timerId !== null) {
-    clearInterval(timerId);
-    _activeTimers.delete(timerId);
+function getResendCooldownRemaining(): number {
+  try {
+    const until = sessionStorage.getItem(RESEND_COOLDOWN_KEY);
+    if (!until) return 0;
+    return Math.max(0, Math.ceil((parseInt(until, 10) - Date.now()) / 1000));
+  } catch {
+    return 0;
   }
-  return null;
 }
 
-/** Clear ALL active timers — called on pagehide for bfcache-safe cleanup. */
-function clearAllTrackedTimers(): void {
-  for (const timerId of _activeTimers) {
-    clearInterval(timerId);
+function setResendCooldown(seconds: number): void {
+  try {
+    sessionStorage.setItem(RESEND_COOLDOWN_KEY, String(Date.now() + seconds * 1000));
+  } catch {
+    /* incognito */
   }
-  _activeTimers.clear();
+}
+
+function clearResendCooldown(): void {
+  try {
+    sessionStorage.removeItem(RESEND_COOLDOWN_KEY);
+  } catch {
+    /* incognito */
+  }
 }
 
 // ─── UNIFIED CITIZEN: Post-Login Redirect ─────────────────────────────────────
@@ -122,10 +144,9 @@ function clearAllTrackedTimers(): void {
 // The ?redirect= query param from auth-guard still works for deep links.
 const POST_LOGIN_REDIRECT = '/';
 
-// H2 FIX: Mirror backend SEC-003 — bcrypt truncates at 72 bytes but still
-// processes the full input. Without this check, a 1MB password from the
-// frontend would cause CPU starvation on the backend.
-const MAX_PASSWORD_LENGTH = 128;
+// P2-W12-001 FIX: MAX_PASSWORD_LENGTH moved to shared validators.ts.
+// PREVIOUS: Local `const MAX_PASSWORD_LENGTH = 128` duplicated here.
+// NOW: Imported from '../utils/validators' — single source of truth.
 
 // P1-001 FIX (Wave 2): Shared helper to read Remember Me checkbox value.
 // Social login buttons exist on both login and register forms.
@@ -182,6 +203,14 @@ function setFormFocusable(form: HTMLFormElement | null, focusable: boolean): voi
 function switchTab(mode: 'login' | 'register'): void {
   state.mode = mode;
   hideBanner();
+
+  // P1-AUD-006 FIX: Clear 'submitted' class on tab switch.
+  // PREVIOUS: .submitted persisted after a failed form submission. When switching
+  // tabs, the OTHER form inherited validation highlighting on untouched fields.
+  // CSS :invalid pseudo-classes fired immediately on empty required fields.
+  // Standard: Nielsen #9 (Error Recognition), Clean Slate on Tab Switch.
+  formLogin?.classList.remove('submitted');
+  formRegister?.classList.remove('submitted');
 
   // P0-PLAT-001 FIX: Haptic feedback on tab switch — native-app tactile response.
   haptic.light();
@@ -596,20 +625,11 @@ function validateCurrentStep(): boolean {
     const pw = (document.getElementById('reg-password') as HTMLInputElement)?.value ?? '';
     const confirmPw =
       (document.getElementById('reg-password-confirm') as HTMLInputElement)?.value ?? '';
-    if (pw.length < 8) {
-      showBanner('error', t('auth_password_weak', 'كلمة المرور ضعيفة'));
-      scrollToField(document.getElementById('reg-password'));
-      return false;
-    }
-    // H2 FIX: Max length check — mirrors backend SEC-003 (bcrypt DoS prevention).
-    // Without this gate, a user could submit a 1MB password that passes all other
-    // checks but causes CPU starvation during bcrypt hashing on the server.
-    if (pw.length > MAX_PASSWORD_LENGTH) {
-      showBanner('error', t('auth_password_too_long', 'كلمة المرور طويلة جداً (الحد ١٢٨)'));
-      scrollToField(document.getElementById('reg-password'));
-      return false;
-    }
-    if (!/[A-Z]/.test(pw) || !/[a-z]/.test(pw) || !/[0-9]/.test(pw) || !/[^A-Za-z0-9]/.test(pw)) {
+    // P2-W12-001 FIX: Use shared validatePasswordComplexity() — single source of truth.
+    // PREVIOUS: Inline `pw.length < 8` + `length > MAX` + 4 regex tests duplicated here.
+    // Standard: DRY Principle, OWASP ASVS 2.1.1, validators.ts parity.
+    const pwResult = validatePasswordComplexity(pw);
+    if (!pwResult.valid) {
       showBanner('error', t('auth_password_complexity', 'كلمة المرور لا تستوفي المتطلبات'));
       scrollToField(document.getElementById('reg-password'));
       return false;
@@ -917,7 +937,12 @@ function updateRegisterButton(): void {
 
   // FRC-002 FIX: Include password confirmation match check
   // P0-CRIT-001 FIX: Removed Boolean(state.selectedIntent) — intent cards no longer exist.
-  const valid = Boolean(name) && Boolean(email) && password.length >= 8 && password === confirmPw;
+  // P2-W12-001 FIX: Use shared MIN_PASSWORD_LENGTH instead of hardcoded 8.
+  const valid =
+    Boolean(name) &&
+    Boolean(email) &&
+    password.length >= MIN_PASSWORD_LENGTH &&
+    password === confirmPw;
   // FIX-REG-001: Use visual opacity hint instead of disabled attribute.
   // The button is ALWAYS clickable so the submit handler can show validation feedback.
   // P1-AUD4-003 FIX: Replaced inline style.opacity with CSS class toggle.
@@ -1002,30 +1027,12 @@ function validateRegisterForm(): boolean {
   }
 
   // ── Step 2 fields (Security) ──
-  // Check password length
+  // P2-W12-001 FIX: Use shared validatePasswordComplexity() — single source of truth.
+  // PREVIOUS: Inline `length < 8` + `length > MAX` + 4 regex tests duplicated here.
+  // Standard: DRY Principle, OWASP ASVS 2.1.1, validators.ts parity.
   const password = passwordInput?.value ?? '';
-  if (password.length < 8) {
-    goToRegStep(2); // PLAT-C01: Navigate to failing step
-    showBanner('error', t('auth_password_weak', 'كلمة المرور ضعيفة'));
-    scrollToField(passwordInput);
-    return false;
-  }
-
-  // H2 FIX: Max length check — mirrors backend SEC-003.
-  if (password.length > MAX_PASSWORD_LENGTH) {
-    goToRegStep(2);
-    showBanner('error', t('auth_password_too_long', 'كلمة المرور طويلة جداً (الحد ١٢٨)'));
-    scrollToField(passwordInput);
-    return false;
-  }
-
-  // Check password complexity
-  if (
-    !/[A-Z]/.test(password) ||
-    !/[a-z]/.test(password) ||
-    !/[0-9]/.test(password) ||
-    !/[^A-Za-z0-9]/.test(password)
-  ) {
+  const pwValidation = validatePasswordComplexity(password);
+  if (!pwValidation.valid) {
     goToRegStep(2); // PLAT-C01: Navigate to failing step
     showBanner('error', t('auth_password_complexity', 'كلمة المرور لا تستوفي المتطلبات'));
     scrollToField(passwordInput);
@@ -1174,13 +1181,11 @@ formLogin?.addEventListener('submit', async (e) => {
       showBanner('error', response.error ?? t('auth_login_failed', 'فشل تسجيل الدخول'));
     }
   } catch (err) {
-    // P2-W13-003 FIX: Haptic error feedback on login failure.
-    // PREVIOUS: haptic.medium() fired on submission start (L1122) but no tactile
-    // feedback on failure — user got a vibration suggesting action taken, then
-    // a silent error banner. Native iOS/Android apps use error haptic for failures.
-    // Uses haptic.heavy() — the error/destructive-action pattern (haptic.ts L75).
-    // Standard: Apple HIG ("Error Haptic"), Material Design Haptic Feedback.
-    haptic.heavy();
+    // P0-AUD-001 FIX: Removed duplicate haptic.heavy() — showBanner('error', ...)
+    // already calls haptic.heavy() internally (L784). Previous code fired TWO heavy
+    // vibrations per error — aggressive double-buzz violates Apple HIG's
+    // "single haptic per feedback event" guideline.
+    // Standard: Apple HIG (Single Haptic Per Event), Haptic Hygiene.
     // P0-002 FIX (Wave 2): Detect structured ApiError codes from _client.ts.
     // Previous: `err instanceof Error` only — message string available, code LOST.
     // _client.ts now throws ApiError for non-OK responses, preserving the
@@ -1415,9 +1420,9 @@ formRegister?.addEventListener('submit', async (e) => {
       showBanner('error', response.error ?? t('auth_reg_failed', 'فشل إنشاء الحساب'));
     }
   } catch (err) {
-    // P2-W13-003 FIX: Haptic error feedback on registration failure.
-    // Parity with login catch block. Standard: Apple HIG ("Error Haptic").
-    haptic.heavy();
+    // P0-AUD-001 FIX: Removed duplicate haptic.heavy() — showBanner('error', ...)
+    // already calls haptic.heavy() internally. See login catch block comment.
+    // Standard: Apple HIG (Single Haptic Per Event), Haptic Hygiene.
     // P0-DEEP-001 FIX: Detect structured ApiError codes from _client.ts.
     // PREVIOUS: Only checked `err instanceof Error` — backend error codes (429 rate limit,
     // SANCTIONS_BLOCK, EMAIL_BLACKLISTED) were discarded. Users saw generic "خطأ في الشبكة"
@@ -1677,6 +1682,13 @@ function showEmailSentConfirmation(emailAddress: string): void {
     if (!resendBtn || resendBtn.classList.contains('btn-loading')) {
       return;
     }
+    // P2-W12-005 FIX: Cross-tab cooldown check via sessionStorage.
+    // PREVIOUS: Cooldown was DOM-only — opening a second tab bypassed it.
+    if (isResendOnCooldown()) {
+      const remaining = getResendCooldownRemaining();
+      showBanner('error', t('auth_resend_wait', 'انتظر') + ` (${remaining}s)`);
+      return;
+    }
     resendBtn.classList.add('btn-loading');
 
     try {
@@ -1715,6 +1727,8 @@ function showEmailSentConfirmation(emailAddress: string): void {
       resendBtn.classList.add('nm-btn-cooldown');
       resendBtn.setAttribute('aria-disabled', 'true');
       let countdown = 60;
+      // P2-W12-005: Persist cooldown to sessionStorage for cross-tab consistency.
+      setResendCooldown(60);
       const countdownSpan = resendBtn.querySelector('span');
       const originalText = countdownSpan?.textContent ?? '';
       // BUG-F05 FIX: Store timer for cleanup in "Back to Login" handler.
@@ -1726,6 +1740,7 @@ function showEmailSentConfirmation(emailAddress: string): void {
         }
         if (countdown <= 0) {
           _confirmResendTimer = clearTrackedInterval(_confirmResendTimer);
+          clearResendCooldown();
           resendBtn.classList.remove('nm-btn-cooldown');
           resendBtn.removeAttribute('aria-disabled');
           if (countdownSpan) {
@@ -1772,6 +1787,12 @@ function showInlineResendVerification(emailAddress: string): void {
     if (!btn || btn.classList.contains('btn-loading')) {
       return;
     }
+    // P2-W12-005: Cross-tab cooldown check — parity with confirm resend handler.
+    if (isResendOnCooldown()) {
+      const remaining = getResendCooldownRemaining();
+      showBanner('error', t('auth_resend_wait', 'انتظر') + ` (${remaining}s)`);
+      return;
+    }
     btn.classList.add('btn-loading');
 
     try {
@@ -1809,6 +1830,8 @@ function showInlineResendVerification(emailAddress: string): void {
       btn.classList.add('nm-btn-cooldown');
       btn.setAttribute('aria-disabled', 'true');
       let countdown = 60;
+      // P2-W12-005: Persist cooldown to sessionStorage.
+      setResendCooldown(60);
       const resendSpan = btn.querySelector('span');
       const originalResendText = resendSpan?.textContent ?? '';
       // P1-W6-001 FIX: Use tracked interval instead of local-only variable.
@@ -1824,6 +1847,7 @@ function showInlineResendVerification(emailAddress: string): void {
         }
         if (countdown <= 0) {
           _inlineResendTimer = clearTrackedInterval(_inlineResendTimer);
+          clearResendCooldown();
           btn.classList.remove('nm-btn-cooldown');
           btn.removeAttribute('aria-disabled');
           if (resendSpan) {
@@ -1861,16 +1885,30 @@ async function handleLoginRedirect(
     is_active: boolean;
   };
 
-  const { setCurrentUser } = await import('../auth');
-  const userRole = userData.role as import('../auth').UserRole;
-  setCurrentUser({
-    user_id: userData.user_id,
-    full_name: userData.full_name,
-    role: userRole,
-    roles: (userData.roles ?? [userData.role]) as import('../auth').UserRole[],
-    email: userData.email,
-    kyc_verified: userData.is_active,
-  });
+  // P2-W12-004 FIX: Error boundary around dynamic import.
+  // PREVIOUS: `await import('../auth')` could fail on Syria 2G (chunk timeout,
+  // network drop, service worker cache miss). If it failed, the entire login
+  // redirect died silently — user saw success banner but nothing happened.
+  // NOW: Falls back to direct window.location.href redirect, sacrificing
+  // setCurrentUser() but ensuring the user reaches the homepage.
+  // Standard: Defense-in-Depth, Syria 2G Resilience, Graceful Degradation.
+  try {
+    const { setCurrentUser } = await import('../auth');
+    const userRole = userData.role as import('../auth').UserRole;
+    setCurrentUser({
+      user_id: userData.user_id,
+      full_name: userData.full_name,
+      role: userRole,
+      roles: (userData.roles ?? [userData.role]) as import('../auth').UserRole[],
+      email: userData.email,
+      kyc_verified: userData.is_active,
+    });
+  } catch {
+    // Dynamic import failed — user context won't be set in localStorage,
+    // but the JWT cookie is already set by the backend. On next page load,
+    // the auth module will hydrate from the cookie via /api/auth/me.
+    // This is a degraded but functional login.
+  }
 
   // P2-REM-002 FIX: Clear registration draft on successful login.
   // PREVIOUS: clearRegDraft() only called on registration success (L1100).
@@ -1942,18 +1980,22 @@ async function handleLoginRedirect(
   // PREVIOUS: 800ms window where isSubmitting was reset (in finally) but redirect
   // hadn't fired yet — user could click submit again or start another flow.
   // Standard: Dead Zone Prevention, FinTech UX (no double-submit).
-  document.body.style.pointerEvents = 'none';
+  // P1-AUD-005 FIX: CSS class replaces inline style.pointerEvents.
+  // PREVIOUS: document.body.style.pointerEvents = 'none' — inline style violated
+  // AGENTS.md ("NEVER use inline styles for layout").
+  // NOW: .nm-body-frozen class declared in main.css @layer utilities.
+  // Standard: P1-SST-001 governance, CSS Single Source of Truth.
+  document.body.classList.add('nm-body-frozen');
   setTimeout(() => {
     window.location.href = finalTarget;
   }, 800);
   // P2-W12-006 FIX: Safety restore if redirect fails.
   // PREVIOUS: If window.location.href assignment was blocked (browser extension,
-  // Content-Security-Policy, or beforeunload handler), pointerEvents stayed 'none'
-  // forever — entire page permanently non-interactive.
+  // Content-Security-Policy, or beforeunload handler), page stayed non-interactive.
   // NOW: 3s safety timeout restores interactivity.
   // Standard: Defense-in-Depth, Resilience Engineering.
   setTimeout(() => {
-    document.body.style.pointerEvents = '';
+    document.body.classList.remove('nm-body-frozen');
   }, 3000);
 }
 
@@ -1996,7 +2038,7 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
 
       <!-- TOTP Code Inputs -->
       <div id="mfa-totp-section">
-        <div id="mfa-code-inputs" class="flex gap-2 justify-center mb-4" style="direction:ltr;">
+        <div id="mfa-code-inputs" class="flex gap-2 justify-center mb-4" dir="ltr">
           <input type="text" inputmode="numeric" maxlength="1" class="nm-input nm-mfa-digit" data-mfa-digit="0" autocomplete="one-time-code" aria-label="${esc(t('mfa_digit_label', 'الرقم'))} 1 ${esc(t('mfa_of_6', 'من 6'))}" />
           <input type="text" inputmode="numeric" maxlength="1" class="nm-input nm-mfa-digit" data-mfa-digit="1" aria-label="${esc(t('mfa_digit_label', 'الرقم'))} 2 ${esc(t('mfa_of_6', 'من 6'))}" />
           <input type="text" inputmode="numeric" maxlength="1" class="nm-input nm-mfa-digit" data-mfa-digit="2" aria-label="${esc(t('mfa_digit_label', 'الرقم'))} 3 ${esc(t('mfa_of_6', 'من 6'))}" />
@@ -2109,6 +2151,21 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
       }
       if (pasted.length >= 6) {
         submitMfaTotp();
+      }
+    });
+
+    // P1-W13-001 FIX: Reject non-numeric input at beforeinput level.
+    // PREVIOUS: Non-numeric chars were visible for ~50ms on slow devices before
+    // the `input` handler stripped them with replace(/\D/g, ''). On Syria 2G
+    // devices, this flash was perceptible and confusing.
+    // NOW: preventDefault() blocks non-numeric input before it reaches the DOM.
+    // Standard: WCAG 3.3.1 (Error Prevention), Apple HIG (Keyboard Management).
+    input.addEventListener('beforeinput', (e: InputEvent) => {
+      // Allow deletion, navigation, and composition events
+      if (!e.data) return;
+      // Block non-numeric characters
+      if (/\D/.test(e.data)) {
+        e.preventDefault();
       }
     });
   });
@@ -2263,11 +2320,27 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
       totpSection?.classList.add('nm-hidden');
       recoverySection?.classList.remove('nm-hidden');
       if (toggleBtn) toggleBtn.textContent = t('mfa_use_authenticator', 'استخدم تطبيق المصادقة');
-      document.getElementById('mfa-recovery-input')?.focus();
+      // P2-W12-003 FIX: Tabindex management for hidden/visible MFA sections.
+      // PREVIOUS: Hidden section inputs remained tab-accessible — screen readers
+      // could tab into invisible fields, causing keyboard trap confusion.
+      // Standard: WCAG 2.4.3 (Focus Order), auth.ts setFormFocusable pattern.
+      totpSection?.querySelectorAll<HTMLInputElement>('input').forEach((i) => {
+        i.setAttribute('tabindex', '-1');
+      });
+      const recoveryInput = document.getElementById(
+        'mfa-recovery-input',
+      ) as HTMLInputElement | null;
+      recoveryInput?.removeAttribute('tabindex');
+      recoveryInput?.focus();
     } else {
       totpSection?.classList.remove('nm-hidden');
       recoverySection?.classList.add('nm-hidden');
       if (toggleBtn) toggleBtn.textContent = t('mfa_use_recovery', 'استخدم رمز الاسترداد');
+      // P2-W12-003: Restore TOTP input tabindex, hide recovery input.
+      totpSection?.querySelectorAll<HTMLInputElement>('input').forEach((i) => {
+        i.removeAttribute('tabindex');
+      });
+      document.getElementById('mfa-recovery-input')?.setAttribute('tabindex', '-1');
       digitInputs[0]?.focus();
     }
   });
@@ -2287,6 +2360,19 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
     if ((e as KeyboardEvent).key === 'Enter') {
       e.preventDefault();
       submitRecoveryCode();
+    }
+  });
+
+  // P1-W13-002 FIX: Escape key dismisses MFA panel — returns to login form.
+  // PREVIOUS: Only a small text button at the bottom of the MFA panel allowed
+  // returning to login. No keyboard shortcut existed. Users who accidentally
+  // triggered MFA or whose token expired had no quick escape.
+  // Standard: WCAG 2.1.1 (Keyboard), Nielsen #3 (User Control & Freedom),
+  // WAI-ARIA Dialog Practices (Escape to dismiss).
+  mfaPanel.addEventListener('keydown', (e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      document.getElementById('mfa-back-to-login')?.click();
     }
   });
 }
@@ -2503,19 +2589,19 @@ function initGoogleSignIn(): void {
           google.accounts.id.prompt((notification) => {
             if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
               setSocialBtnLoading(btn, false);
-              openGoogleOAuthPopup(googleClientId ?? '');
+              openGoogleOAuthPopup(googleClientId ?? '', btn);
             }
           });
         } catch {
           setSocialBtnLoading(btn, false);
           // GSI SDK threw — fall back to manual popup
-          openGoogleOAuthPopup(googleClientId ?? '');
+          openGoogleOAuthPopup(googleClientId ?? '', btn);
         }
         return;
       }
 
       // Strategy 2: GSI SDK not loaded (blocked by ad blocker/network) — manual popup
-      openGoogleOAuthPopup(googleClientId ?? '');
+      openGoogleOAuthPopup(googleClientId ?? '', btn);
     });
   });
 }
@@ -2527,10 +2613,19 @@ function initGoogleSignIn(): void {
  *
  * PLATINUM-002: Full CSRF protection via one-time-use state parameter.
  */
-function openGoogleOAuthPopup(clientId: string): void {
+function openGoogleOAuthPopup(clientId: string, triggerBtn?: HTMLButtonElement): void {
   if (!clientId) {
     showBanner('error', t('auth_sso_unavailable', 'تسجيل الدخول الاجتماعي غير متاح حالياً'));
     return;
+  }
+
+  // P1-AUD-004 FIX: Set loading state on the social button for visual feedback.
+  // PREVIOUS: openGoogleOAuthPopup received no btn reference — user clicked the
+  // Google button, a popup opened, but the button showed no loading indicator.
+  // Users would click multiple times, opening multiple popups.
+  // Standard: Nielsen #1 (Visibility of System Status), Social Auth UX Parity.
+  if (triggerBtn) {
+    setSocialBtnLoading(triggerBtn, true);
   }
 
   const redirectUri = `${window.location.origin}/auth.html`;
@@ -2575,6 +2670,7 @@ function openGoogleOAuthPopup(clientId: string): void {
 
   if (!popup) {
     showBanner('error', t('auth_google_popup_blocked', 'نافذة Google المنبثقة محظورة'));
+    if (triggerBtn) setSocialBtnLoading(triggerBtn, false);
     return;
   }
 
@@ -2602,6 +2698,10 @@ function openGoogleOAuthPopup(clientId: string): void {
         } catch {
           /* ignore */
         }
+        // P0-AUD-002 FIX: Reset social button loading state when popup is closed.
+        // PREVIOUS: User closed the popup → loading spinner persisted forever.
+        // Standard: Nielsen #1 (Visibility of System Status), Cleanup on Cancel.
+        if (triggerBtn) setSocialBtnLoading(triggerBtn, false);
         return;
       }
       // Check if the popup has navigated back to our origin
@@ -2692,6 +2792,9 @@ function openGoogleOAuthPopup(clientId: string): void {
   // PREVIOUS: Raw setTimeout was NOT tracked — if the user navigated away
   // before 5 minutes, this orphaned timeout survived until expiry.
   // Standard: Timer Hygiene, Page Lifecycle API.
+  // P2-AUD-005 FIX: Added triggerBtn cleanup to 5-min safety timeout.
+  // Also note: setTimeout IDs and setInterval IDs share the same ID space
+  // per HTML spec §8.6 — clearInterval() on a setTimeout ID is valid.
   const safetyTimeout = setTimeout(() => {
     clearTrackedInterval(pollTimer);
     // Clean up stale state if popup was abandoned
@@ -2700,8 +2803,9 @@ function openGoogleOAuthPopup(clientId: string): void {
     } catch {
       /* ignore */
     }
+    if (triggerBtn) setSocialBtnLoading(triggerBtn, false);
   }, 300000);
-  _activeTimers.add(safetyTimeout);
+  addTrackedTimer(safetyTimeout);
 }
 
 // ─── Apple Sign-In ──────────────────────────────────────────────────────────
@@ -2718,18 +2822,29 @@ function initAppleSignIn(): void {
       setSocialBtnLoading(btn, true);
 
       try {
-        // UX-F019 FIX: Lazy-load Apple Sign-In SDK on first click.
+        // P3-W12-003 FIX: Event-driven SDK loading — replaces busy-wait polling.
+        // PREVIOUS: loadSdkOnDemand() was wrapped in try/catch with empty `/* poll below */`
+        // catch, then a 10× for-loop polled window.AppleID every 200ms (2s total).
+        // This burned CPU on Syria 2G/3G and was redundant — loadSdkOnDemand()
+        // already resolves on script.onload, after which AppleID is on window.
+        // NOW: Properly await loadSdkOnDemand(). On resolve, read AppleID once.
+        // On reject, show user-friendly error instead of silently falling through.
+        // Standard: Event-Driven Architecture, Web Performance (no busy-wait).
         try {
           await loadSdkOnDemand(
             'https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js',
             'apple-sdk',
           );
         } catch {
-          /* poll below */
+          // Apple SDK blocked by ISP, firewall, or ad blocker
+          showBanner('info', t('auth_apple_not_configured', 'تسجيل Apple غير مهيأ بعد'));
+          setSocialBtnLoading(btn, false);
+          return;
         }
 
-        // Apple Sign In JS SDK check — poll briefly for async load
-        let AppleID = (window as unknown as Record<string, unknown>).AppleID as
+        // P3-W12-003 FIX: Single read after event-driven load — no polling needed.
+        // loadSdkOnDemand resolves on script.onload → AppleID is guaranteed on window.
+        const AppleID = (window as unknown as Record<string, unknown>).AppleID as
           | {
               auth: {
                 init: (config: Record<string, unknown>) => void;
@@ -2740,17 +2855,6 @@ function initAppleSignIn(): void {
               };
             }
           | undefined;
-
-        // Wait up to 2s for Apple SDK to load
-        if (!AppleID?.auth) {
-          for (let i = 0; i < 10; i++) {
-            await new Promise((r) => setTimeout(r, 200));
-            AppleID = (window as unknown as Record<string, unknown>).AppleID as typeof AppleID;
-            if (AppleID?.auth) {
-              break;
-            }
-          }
-        }
 
         if (!AppleID?.auth) {
           showBanner('info', t('auth_apple_not_configured', 'تسجيل Apple غير مهيأ بعد'));
@@ -2835,6 +2939,15 @@ function initAppleSignIn(): void {
 // Standard: PRPL Pattern, Web Vitals (lazy third-party), OWASP (CSP compliance).
 // ─────────────────────────────────────────────────────────────────────────────
 
+// P3-W12-002 FIX: Externalized Facebook SDK version — single source of truth.
+// PREVIOUS: 'v19.0' hardcoded in 2× FB.init() calls. v19.0 was introduced
+// January 23, 2024 and EXPIRES May 21, 2026 (TODAY). After expiry, all
+// Graph API calls using v19.0 return HTTP 400 — Facebook login breaks completely.
+// NOW: v22.0 (introduced January 21, 2025, supported until TBD ~2027).
+// We only use email+public_profile scope + /me + /debug_token — no breaking changes.
+// Standard: Meta Graph API Versioning Policy (2-year lifecycle per version).
+const FACEBOOK_SDK_VERSION = 'v22.0';
+
 /** Facebook SDK interface — only the methods we use */
 interface FacebookSDK {
   init: (config: { appId: string; cookie: boolean; xfbml: boolean; version: string }) => void;
@@ -2878,7 +2991,12 @@ function loadFacebookSDK(): Promise<FacebookSDK> {
     // If FB is already on window (e.g., loaded by another integration), init and resolve
     const existingFB = (window as unknown as Record<string, unknown>).FB as FacebookSDK | undefined;
     if (existingFB?.login) {
-      existingFB.init({ appId: fbAppId, cookie: true, xfbml: false, version: 'v19.0' });
+      existingFB.init({
+        appId: fbAppId,
+        cookie: true,
+        xfbml: false,
+        version: FACEBOOK_SDK_VERSION,
+      });
       resolve(existingFB);
       return;
     }
@@ -2890,7 +3008,7 @@ function loadFacebookSDK(): Promise<FacebookSDK> {
         reject(new Error('Facebook SDK loaded but FB object not found'));
         return;
       }
-      FB.init({ appId: fbAppId, cookie: true, xfbml: false, version: 'v19.0' });
+      FB.init({ appId: fbAppId, cookie: true, xfbml: false, version: FACEBOOK_SDK_VERSION });
       resolve(FB);
     };
 

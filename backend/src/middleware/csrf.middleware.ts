@@ -23,6 +23,7 @@ import rateLimit from 'express-rate-limit';
 // - /auth/forgot-password → Pre-auth: password recovery flow (MOB-CSRF-001)
 // - /auth/reset-password  → Pre-auth: token-based password reset (MOB-CSRF-001)
 // - /auth/resend-verification → Pre-auth: email verification flow (MOB-CSRF-001)
+// - /auth/verify-email    → Pre-auth: token-based email verification (P0-W12-004)
 // - /auth/social        → Pre-auth: social OAuth login/register (MOB-CSRF-001)
 // - /client-errors      → Browser onerror telemetry, no cookie jar access (BUG-003)
 // - /csp-report         → W3C CSP violation reporter, no CSRF token possible (BUG-003)
@@ -33,6 +34,7 @@ const CSRF_EXEMPT_PATHS: ReadonlySet<string> = new Set([
   '/auth/forgot-password',
   '/auth/reset-password',
   '/auth/resend-verification',
+  '/auth/verify-email',
   '/auth/social',
   '/client-errors',
   '/csp-report',

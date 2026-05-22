@@ -63,7 +63,15 @@ export const auth = {
     }),
 
   // PLT-MAR11-006 FIX: Centralized verifyEmail — replaces raw fetch in verify-email.ts
-  verifyEmail: (token: string) => request(`/auth/verify-email/${encodeURIComponent(token)}`),
+  // P0-W12-004 FIX: Converted from GET (token in URL) to POST (token in body).
+  // PREVIOUS: GET `/auth/verify-email/${token}` — token in URL exposed to
+  // server logs, CDN logs, Referer headers, and email client prefetching.
+  // Standard: OWASP ASVS 2.5.2, CWE-598, auth.resetPassword parity.
+  verifyEmail: (token: string) =>
+    request('/auth/verify-email', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    }),
 
   // PLT-MAR11-006 FIX: Centralized resetPassword — replaces raw fetch in reset-password.ts
   resetPassword: (data: { token: string; new_password: string }) =>
