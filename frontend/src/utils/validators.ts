@@ -33,27 +33,39 @@ export interface PasswordValidationResult {
  *   - At least one lowercase letter
  *   - At least one digit
  *   - At least one special character
+ *
+ * P2-AUDIT-005 FIX: Accepts optional `translate` function for i18n-safe error messages.
+ * PREVIOUS: Hardcoded Arabic strings — broke i18n for English users.
+ * Standard: i18n consistency, DRY pattern parity with rest of codebase.
+ *
+ * @param password The password to validate
+ * @param translate Optional i18n function (e.g., `t` from utils/i18n.ts).
+ *                  Falls back to Arabic strings if not provided.
  */
-export function validatePasswordComplexity(password: string): PasswordValidationResult {
+export function validatePasswordComplexity(
+  password: string,
+  translate?: (key: string, fallback: string) => string,
+): PasswordValidationResult {
   const errors: string[] = [];
+  const tr = translate ?? ((_key: string, fallback: string) => fallback);
 
   if (password.length < MIN_PASSWORD_LENGTH) {
-    errors.push('يجب أن تكون كلمة المرور 8 أحرف على الأقل');
+    errors.push(tr('pw_rule_min_length', 'يجب أن تكون كلمة المرور 8 أحرف على الأقل'));
   }
   if (password.length > MAX_PASSWORD_LENGTH) {
-    errors.push('يجب ألا تتجاوز كلمة المرور 128 حرفاً');
+    errors.push(tr('pw_rule_max_length', 'يجب ألا تتجاوز كلمة المرور 128 حرفاً'));
   }
   if (!/[A-Z]/.test(password)) {
-    errors.push('يجب أن تحتوي على حرف كبير واحد على الأقل');
+    errors.push(tr('pw_rule_uppercase', 'يجب أن تحتوي على حرف كبير واحد على الأقل'));
   }
   if (!/[a-z]/.test(password)) {
-    errors.push('يجب أن تحتوي على حرف صغير واحد على الأقل');
+    errors.push(tr('pw_rule_lowercase', 'يجب أن تحتوي على حرف صغير واحد على الأقل'));
   }
   if (!/[0-9]/.test(password)) {
-    errors.push('يجب أن تحتوي على رقم واحد على الأقل');
+    errors.push(tr('pw_rule_digit', 'يجب أن تحتوي على رقم واحد على الأقل'));
   }
   if (!/[^A-Za-z0-9]/.test(password)) {
-    errors.push('يجب أن تحتوي على رمز خاص واحد على الأقل');
+    errors.push(tr('pw_rule_special', 'يجب أن تحتوي على رمز خاص واحد على الأقل'));
   }
 
   return {

@@ -44,6 +44,8 @@ import { verifyMfaChallengeToken } from '../middleware/auth.middleware';
 
 // ─── Rate Limiting ──────────────────────────────────────────────────────────
 import rateLimit from 'express-rate-limit';
+import { createHash } from 'crypto';
+import { logger } from '../utils/logger';
 
 // Strict rate limit for MFA verification (prevents brute-force on 6-digit codes)
 // 10^6 combinations / 5 attempts per 15 min = impractical brute-force
@@ -68,6 +70,82 @@ const mfaVerifyLimiter = rateLimit({
     return `mfa:${ip}:${tokenSuffix}`;
   },
 });
+
+// ─── P0-AUDIT-001: Per-Challenge-Token Brute-Force Protection ───────────────
+// The IP-based rate limiter above can be bypassed by rotating proxies.
+// This layer tracks failed attempts per MFA challenge token (IP-independent).
+// After MAX_MFA_ATTEMPTS failed attempts, the token is permanently rejected
+// regardless of source IP — forcing a full re-login (email + password).
+//
+// Implementation: In-memory Map (not DB) because:
+//   1. MFA challenge tokens have short TTL (5 min) — no persistence needed
+//   2. Single-server deployment — no cross-instance sync needed
+//   3. Server restart clears the map, but also expires all challenge JWTs
+//
+// Standard: NIST SP 800-63B §5.1.3.2 (throttling), OWASP ASVS 2.8.5
+// ────────────────────────────────────────────────────────────────────────────
+const MAX_MFA_ATTEMPTS = 5;
+const MFA_ATTEMPT_TTL_MS = 15 * 60 * 1000; // 15 minutes (matches rate limiter)
+
+interface MfaAttemptRecord {
+  count: number;
+  firstAttemptAt: number;
+}
+
+/** Map<tokenHash, MfaAttemptRecord> — keyed by SHA-256 of mfa_token for privacy */
+const mfaAttemptTracker = new Map<string, MfaAttemptRecord>();
+
+/** Compute a deterministic hash of the MFA token for use as map key. */
+function hashMfaToken(token: string): string {
+  return createHash('sha256').update(token).digest('hex').slice(0, 32);
+}
+
+/**
+ * Check if a challenge token has been exhausted.
+ * Returns true if the token has exceeded MAX_MFA_ATTEMPTS.
+ */
+function isMfaChallengeExhausted(tokenHash: string): boolean {
+  const record = mfaAttemptTracker.get(tokenHash);
+  if (!record) return false;
+  // Auto-expire stale entries
+  if (Date.now() - record.firstAttemptAt > MFA_ATTEMPT_TTL_MS) {
+    mfaAttemptTracker.delete(tokenHash);
+    return false;
+  }
+  return record.count >= MAX_MFA_ATTEMPTS;
+}
+
+/**
+ * Record a failed MFA attempt for a challenge token.
+ * Returns the updated count.
+ */
+function recordMfaFailure(tokenHash: string): number {
+  const existing = mfaAttemptTracker.get(tokenHash);
+  if (existing) {
+    existing.count += 1;
+    return existing.count;
+  }
+  mfaAttemptTracker.set(tokenHash, { count: 1, firstAttemptAt: Date.now() });
+  return 1;
+}
+
+/** Remove a challenge token from the tracker (on success). */
+function clearMfaAttempts(tokenHash: string): void {
+  mfaAttemptTracker.delete(tokenHash);
+}
+
+// Periodic cleanup of stale entries (every 5 minutes)
+setInterval(
+  () => {
+    const now = Date.now();
+    for (const [key, record] of mfaAttemptTracker.entries()) {
+      if (now - record.firstAttemptAt > MFA_ATTEMPT_TTL_MS) {
+        mfaAttemptTracker.delete(key);
+      }
+    }
+  },
+  5 * 60 * 1000,
+).unref(); // .unref() prevents blocking Node.js shutdown
 
 // Rate limit for MFA setup/disable (less strict — requires auth)
 const mfaSetupLimiter = rateLimit({
@@ -216,6 +294,22 @@ router.post('/verify', mfaVerifyLimiter, async (req: Request, res: Response): Pr
 
     const { mfa_token, code } = parsed.data;
 
+    // P0-AUDIT-001: Check per-token brute-force limit BEFORE any verification.
+    // This is IP-independent — even with rotating proxies, the challenge token
+    // itself is rate-limited to MAX_MFA_ATTEMPTS total failed attempts.
+    const tokenHash = hashMfaToken(mfa_token);
+    if (isMfaChallengeExhausted(tokenHash)) {
+      logger.warn('MFA: Challenge token exhausted (brute-force protection)', {
+        tokenHash: tokenHash.slice(0, 8),
+      });
+      res.status(429).json({
+        success: false,
+        error: 'Too many failed MFA attempts. Please log in again to get a new challenge.',
+        code: 'MFA_CHALLENGE_EXHAUSTED',
+      } as ApiResponse);
+      return;
+    }
+
     // Verify MFA challenge token
     // P0-W10-001 FIX: Extract `remember` flag to restore Remember-Me behavior.
     let userId: string;
@@ -236,13 +330,27 @@ router.post('/verify', mfaVerifyLimiter, async (req: Request, res: Response): Pr
     // Verify TOTP code
     const isValid = await verifyTotpCode(userId, code);
     if (!isValid) {
+      // P0-AUDIT-001: Track the failure per challenge token.
+      const attemptCount = recordMfaFailure(tokenHash);
+      const remaining = MAX_MFA_ATTEMPTS - attemptCount;
+      logger.info('MFA: Invalid TOTP code', {
+        userId,
+        attemptCount,
+        remaining: Math.max(0, remaining),
+      });
       res.status(401).json({
         success: false,
-        error: 'Invalid verification code. Please try again.',
-        code: 'MFA_INVALID_CODE',
+        error:
+          remaining > 0
+            ? `Invalid verification code. ${remaining} attempt${remaining === 1 ? '' : 's'} remaining.`
+            : 'Too many failed MFA attempts. Please log in again to get a new challenge.',
+        code: remaining > 0 ? 'MFA_INVALID_CODE' : 'MFA_CHALLENGE_EXHAUSTED',
       } as ApiResponse);
       return;
     }
+
+    // P0-AUDIT-001: Success — clear the attempt tracker for this token.
+    clearMfaAttempts(tokenHash);
 
     // ── MFA verified — issue real JWT ──
     // Fetch full user data (same as login flow in auth.routes.ts)
@@ -358,6 +466,22 @@ router.post('/recovery', mfaVerifyLimiter, async (req: Request, res: Response): 
 
     const { mfa_token, recovery_code } = parsed.data;
 
+    // P0-AUDIT-001: Per-token brute-force check (shared tracker with /verify).
+    // Recovery codes share the same attempt budget as TOTP codes — an attacker
+    // cannot bypass the limit by switching between /verify and /recovery.
+    const tokenHash = hashMfaToken(mfa_token);
+    if (isMfaChallengeExhausted(tokenHash)) {
+      logger.warn('MFA: Challenge token exhausted on recovery (brute-force protection)', {
+        tokenHash: tokenHash.slice(0, 8),
+      });
+      res.status(429).json({
+        success: false,
+        error: 'Too many failed MFA attempts. Please log in again to get a new challenge.',
+        code: 'MFA_CHALLENGE_EXHAUSTED',
+      } as ApiResponse);
+      return;
+    }
+
     // Verify MFA challenge token
     // P0-W10-001 FIX: Extract `remember` flag for recovery path too.
     let userId: string;
@@ -378,13 +502,27 @@ router.post('/recovery', mfaVerifyLimiter, async (req: Request, res: Response): 
     // Verify recovery code
     const isValid = await verifyRecoveryCode(userId, recovery_code);
     if (!isValid) {
+      // P0-AUDIT-001: Track the failure per challenge token.
+      const attemptCount = recordMfaFailure(tokenHash);
+      const remaining = MAX_MFA_ATTEMPTS - attemptCount;
+      logger.info('MFA: Invalid recovery code', {
+        userId,
+        attemptCount,
+        remaining: Math.max(0, remaining),
+      });
       res.status(401).json({
         success: false,
-        error: 'Invalid or already used recovery code.',
-        code: 'MFA_INVALID_RECOVERY',
+        error:
+          remaining > 0
+            ? 'Invalid or already used recovery code.'
+            : 'Too many failed MFA attempts. Please log in again to get a new challenge.',
+        code: remaining > 0 ? 'MFA_INVALID_RECOVERY' : 'MFA_CHALLENGE_EXHAUSTED',
       } as ApiResponse);
       return;
     }
+
+    // P0-AUDIT-001: Success — clear the attempt tracker for this token.
+    clearMfaAttempts(tokenHash);
 
     // ── Recovery verified — issue real JWT (same as /verify) ──
     const userResult = await query<{

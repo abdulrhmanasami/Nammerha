@@ -77,6 +77,12 @@ if (verifyToken) {
   try {
     const cleanUrl = new URL(window.location.href);
     cleanUrl.searchParams.delete('token');
+    // P1-AUDIT-004 FIX: Also remove email from URL bar.
+    // PREVIOUS: Token was cleaned but email remained visible in address bar
+    // and browser history — privacy leak on shared computers (Syrian internet cafes).
+    // Parity with reset-password.ts (P2-W11-006).
+    // Standard: OWASP Token Handling, CWE-598, Privacy.
+    cleanUrl.searchParams.delete('email');
     history.replaceState(null, '', cleanUrl.toString());
   } catch {
     /* URL manipulation failed — non-critical */

@@ -13,6 +13,7 @@ import '../bloc/auth_bloc.dart';
 import '../bloc/login_form_cubit.dart';
 import 'mfa_challenge_screen.dart';
 import '../../../core/i18n/t.dart';
+import '../../../core/utils/validators.dart' as validators;
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Login Screen — Platinum Standard (Absolute Zero setState)
@@ -108,6 +109,10 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
             // Show persistent verification banner with resend action
             ScaffoldMessenger.of(context).clearSnackBars();
             _showVerificationBanner(context, state.email, state.message);
+          // P1-AUDIT-003: Social-only account — show banner with provider CTA.
+          } else if (state is AuthSocialOnlyAccount) {
+            ScaffoldMessenger.of(context).clearSnackBars();
+            _showSocialOnlyBanner(context, state.provider, state.email, state.message);
           } else if (state is AuthError) {
             // P0-AUD-004 FIX: If forgot-PW sheet is open, dismiss it first.
             final formCubit = context.read<LoginFormCubit>();
@@ -201,13 +206,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             // P1-W10-010 FIX: "Next" key moves focus to password field.
                             textInputAction: TextInputAction.next,
                             onFieldSubmitted: (_) => FocusScope.of(context).nextFocus(),
-                            validator: (v) {
-                              if (v == null || v.trim().isEmpty) return context.tr('auth_email_required');
-                              if (!RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$').hasMatch(v.trim())) {
-                                return context.tr('auth_email_invalid');
-                              }
-                              return null;
-                            },
+                            validator: (v) => validators.validateEmail(v, context.tr),
                           ),
                           const SizedBox(height: 16),
 
@@ -544,15 +543,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                               borderSide: BorderSide(color: colors.error),
                             ),
                           ),
-                          validator: (v) {
-                            if (v == null || v.trim().isEmpty) {
-                              return context.tr('auth_email_required');
-                            }
-                            if (!RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$').hasMatch(v.trim())) {
-                              return context.tr('auth_email_invalid');
-                            }
-                            return null;
-                          },
+                          validator: (v) => validators.validateEmail(v, context.tr),
                           onFieldSubmitted: (_) {
                             if (!isLoading && (formKey.currentState?.validate() ?? false)) {
                               cubit.setForgotPwLoading(true, email: emailController.text.trim());
@@ -712,6 +703,80 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
             // UX-F005 FIX: Hardcoded Arabic → i18n
             child: Text(
               context.tr('auth_resend_verify_link'),
+              style: TextStyle(
+                color: colors.primaryBrand,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // P1-AUDIT-003: Social-Only Account — Guided Recovery Banner
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PREVIOUS: Generic AuthError SnackBar — user saw 'This account uses
+  // Google sign-in' with no guidance on what to do next.
+  // NOW: MaterialBanner with provider icon + direct 'Sign in with Google/Apple'
+  // CTA button. Tapping the CTA triggers the correct OAuth flow immediately.
+  // Standard: Nielsen #9 (Error Recovery), Contextual Help.
+  // ═══════════════════════════════════════════════════════════════════════════
+  void _showSocialOnlyBanner(BuildContext context, String provider, String email, String message) {
+    final colors = context.colors;
+    final providerLabel = provider == 'apple' ? 'Apple' : 'Google';
+
+    ScaffoldMessenger.of(context).showMaterialBanner(
+      MaterialBanner(
+        backgroundColor: colors.primaryBrandLight,
+        leading: Icon(
+          provider == 'apple'
+              ? PhosphorIconsRegular.appleLogo
+              : PhosphorIconsRegular.googleLogo,
+          color: colors.primaryBrand,
+          size: 28,
+        ),
+        content: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              context.tr(message),
+              style: TextStyle(
+                color: colors.textPrimary,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              email,
+              style: TextStyle(
+                color: colors.textSecondary,
+                fontSize: 13,
+              ),
+              textDirection: TextDirection.ltr,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
+            },
+            child: Text(
+              context.tr('ok'),
+              style: TextStyle(color: colors.textSecondary),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
+              _handleSocialLogin(provider);
+            },
+            child: Text(
+              '${context.tr('auth_sign_in_with')} $providerLabel',
               style: TextStyle(
                 color: colors.primaryBrand,
                 fontWeight: FontWeight.w700,

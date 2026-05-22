@@ -220,6 +220,19 @@ class AuthMfaError extends AuthState {
   List<Object?> get props => [message, mfaToken, email];
 }
 
+/// P1-AUDIT-003: Emitted when login is attempted on a social-only account.
+/// Carries the provider name so the UI can offer a direct social login CTA
+/// instead of a generic error message.
+/// Standard: Nielsen #9 (Error Recovery), Contextual Help.
+class AuthSocialOnlyAccount extends AuthState {
+  final String provider; // 'google', 'apple', 'facebook'
+  final String email;
+  final String message;
+  const AuthSocialOnlyAccount({required this.provider, required this.email, required this.message});
+  @override
+  List<Object?> get props => [provider, email, message];
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // BLOC
 // ═══════════════════════════════════════════════════════════════════════════
@@ -389,6 +402,23 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         message.contains('EMAIL_NOT_VERIFIED');
   }
 
+  /// P1-AUDIT-003: Detects if an error message is about a social-only account.
+  static bool _isSocialOnlyError(String message) {
+    final lower = message.toLowerCase();
+    return (lower.contains('uses') && lower.contains('sign-in')) ||
+        lower.contains('social login') ||
+        lower.contains('social_only_account');
+  }
+
+  /// P1-AUDIT-003: Extracts the social provider name from the error message.
+  static String _extractSocialProvider(String message) {
+    final lower = message.toLowerCase();
+    if (lower.contains('google')) return 'google';
+    if (lower.contains('apple')) return 'apple';
+    if (lower.contains('facebook')) return 'facebook';
+    return 'google'; // Safe default
+  }
+
   Future<void> _onLogin(AuthLoginRequested event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
@@ -423,6 +453,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       // Detect email verification errors and emit specific state
       if (_isEmailVerificationError(e.message)) {
         emit(AuthEmailNotVerified(
+          email: event.email,
+          message: _localizeError(e.message),
+        ));
+      // P1-AUDIT-003: Detect social-only account errors and emit specific state.
+      // PREVIOUS: Generic AuthError — user saw cryptic error with no guidance.
+      // NOW: AuthSocialOnlyAccount carries the provider name so the UI can
+      // show a MaterialBanner with a direct 'Sign in with Google/Apple' CTA.
+      } else if (_isSocialOnlyError(e.message)) {
+        emit(AuthSocialOnlyAccount(
+          provider: _extractSocialProvider(e.message),
           email: event.email,
           message: _localizeError(e.message),
         ));

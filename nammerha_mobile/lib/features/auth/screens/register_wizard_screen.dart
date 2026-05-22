@@ -16,6 +16,7 @@ import '../../../core/utils/animation_budget.dart';
 import '../../../core/utils/password_validator.dart';
 // P0-002 FIX: Email verification interstitial — replaces SnackBar-and-pop
 import 'email_verification_screen.dart';
+import '../../../core/utils/validators.dart' as validators;
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Register Wizard Screen — Platinum Standard
@@ -455,11 +456,11 @@ class _RegisterWizardBodyState extends State<_RegisterWizardBody> {
                 // UX-F027 FIX: warningCircle → envelope for email field.
                 prefixIcon: PhosphorIconsRegular.envelope,
               ),
+              // P2-AUDIT-006 FIX: Use shared validator — DRY parity with login_screen.
+              // PREVIOUS: Inline RegExp duplicating the same pattern from validators.dart.
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return context.tr('reg_email_required');
-                // P1-AUD-006 FIX: Upgraded weak regex to match login_screen pattern.
-                // Previous: r'^[^@]+@[^@]+\.[^@]+' — accepted @@@.@ as valid.
-                if (!RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$').hasMatch(v)) return context.tr('reg_email_invalid');
+                if (!validators.isValidEmail(v)) return context.tr('reg_email_invalid');
                 return null;
               },
               textInputAction: TextInputAction.next,

@@ -149,6 +149,8 @@ const Map<String, Map<String, String>> kTranslations = {
   'auth_social_facebook_coming_soon': {'ar': 'تسجيل الدخول عبر Facebook — قريباً. استخدم Google أو Apple حالياً.', 'en': 'Facebook sign-in — coming soon. Use Google or Apple for now.'},
   'auth_social_unavailable': {'ar': 'تسجيل الدخول غير متاح حالياً', 'en': 'Sign-in currently unavailable'},
   'auth_social_login_failed': {'ar': 'فشل تسجيل الدخول', 'en': 'Sign-in failed'},
+  // P1-AUDIT-003: CTA label for social-only account recovery banner.
+  'auth_sign_in_with': {'ar': 'تسجيل الدخول عبر', 'en': 'Sign in with'},
 
   // ═══ HOMEOWNER PORTAL (C1 FIX — i18n Completeness) ═══
   'ho_portal_title': {'ar': 'بوابة المتضرر', 'en': 'Homeowner Portal'},
