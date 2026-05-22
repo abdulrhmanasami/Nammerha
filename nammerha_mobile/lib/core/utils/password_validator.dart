@@ -1,9 +1,9 @@
-/// Nammerha — Shared Password Validation Utility
-///
-/// Single source of truth for password complexity rules.
-/// Used by: RegisterWizardScreen, ResetPasswordScreen, ChangePasswordFormCubit
-///
-/// Wave 10 Fix: P1-W10-009 (eliminate validation duplication)
+// Nammerha — Shared Password Validation Utility
+//
+// Single source of truth for password complexity rules.
+// Used by: RegisterWizardScreen, ResetPasswordScreen, ChangePasswordFormCubit
+//
+// Wave 10 Fix: P1-W10-009 (eliminate validation duplication)
 
 /// Minimum password length (matches backend Zod schema)
 const int kMinPasswordLength = 8;

@@ -5,6 +5,9 @@ import 'package:mocktail/mocktail.dart';
 import 'package:nammerha_mobile/core/network/api_client.dart';
 import 'package:nammerha_mobile/features/auth/bloc/auth_bloc.dart';
 import 'package:nammerha_mobile/features/auth/repositories/auth_repository.dart';
+// P1-W15-FIX: Import LoginResult for login() mock stubs.
+// PREVIOUS: Tests returned raw NammerhaUser from login() mocks, but login()
+// was changed (P1-W14-001) to return Future<LoginResult> for MFA support.
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Auth BLoC Tests — P0 Platinum Certification
@@ -104,7 +107,7 @@ void main() {
         when(() => mockRepo.login(
               email: any(named: 'email'),
               password: any(named: 'password'),
-            )).thenAnswer((_) async => _testUser);
+            )).thenAnswer((_) async => LoginResult.authenticated(_testUser));
         return buildBloc();
       },
       act: (bloc) => bloc.add(const AuthLoginRequested(
@@ -123,7 +126,7 @@ void main() {
         when(() => mockRepo.login(
               email: any(named: 'email'),
               password: any(named: 'password'),
-            )).thenAnswer((_) async => _unverifiedUser);
+            )).thenAnswer((_) async => LoginResult.authenticated(_unverifiedUser));
         return buildBloc();
       },
       act: (bloc) => bloc.add(const AuthLoginRequested(

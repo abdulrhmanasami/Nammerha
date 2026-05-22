@@ -106,8 +106,8 @@ class AuthRepository {
 
   /// POST /api/auth/login
   /// Returns LoginResult — either authenticated user or MFA challenge.
-  /// P1-W14-002 FIX: Changed return type from Future<NammerhaUser> to
-  /// Future<LoginResult> to handle MFA challenge responses.
+  /// P1-W14-002 FIX: Changed return type from `Future<NammerhaUser>` to
+  /// `Future<LoginResult>` to handle MFA challenge responses.
   /// W3-P0-001: `remember` controls session duration (short vs long-lived JWT).
   Future<LoginResult> login({
     required String email,
@@ -154,8 +154,8 @@ class AuthRepository {
   /// POST /api/auth/social
   /// Universal social login — works for Google, Apple, Facebook.
   /// Backend verifies ID token server-side, creates/links user, returns JWT.
-  /// P1-W14-001 FIX: Changed return type from Future<NammerhaUser> to
-  /// Future<LoginResult> to handle MFA challenge responses.
+  /// P1-W14-001 FIX: Changed return type from `Future<NammerhaUser>` to
+  /// `Future<LoginResult>` to handle MFA challenge responses.
   /// W3-P2-009: `remember` controls session duration (consistent with email login).
   Future<LoginResult> loginWithSocial({
     required String provider, // 'google' | 'apple' | 'facebook'
@@ -238,7 +238,7 @@ class AuthRepository {
 
   /// POST /api/auth/forgot-password
   Future<String> forgotPassword({required String email}) async {
-    final response = await _api.request(
+    await _api.request(
       '/auth/forgot-password',
       method: 'POST',
       body: {'email': email.toLowerCase().trim()},
@@ -270,7 +270,7 @@ class AuthRepository {
 
   /// POST /api/auth/resend-verification
   Future<String> resendVerification({required String email}) async {
-    final response = await _api.request(
+    await _api.request(
       '/auth/resend-verification',
       method: 'POST',
       body: {'email': email.toLowerCase().trim()},
