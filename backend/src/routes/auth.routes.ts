@@ -863,11 +863,16 @@ router.post(
       // W3-P1-007 FIX: Also select is_email_verified so we can redirect
       // unverified users to the verification flow instead of password reset.
       // P0-W11-004 FIX: Also select password_hash to detect social-only accounts.
+      // P2-W12-005 FIX: Also select email_token_expires_at for cooldown check.
       const result = await query<
-        Pick<User, 'user_id' | 'email' | 'is_email_verified' | 'password_hash'>
-      >('SELECT user_id, email, is_email_verified, password_hash FROM users WHERE email = $1', [
-        normalizedEmail,
-      ]);
+        Pick<
+          User,
+          'user_id' | 'email' | 'is_email_verified' | 'password_hash' | 'email_token_expires_at'
+        >
+      >(
+        'SELECT user_id, email, is_email_verified, password_hash, email_token_expires_at FROM users WHERE email = $1',
+        [normalizedEmail],
+      );
 
       const user = result.rows[0];
       if (!user) {
@@ -882,6 +887,28 @@ router.post(
       // Instead, send them a fresh verification email. The response stays
       // identical (anti-enumeration).
       if (!user.is_email_verified) {
+        // P2-W12-005 FIX: Apply same cooldown as /resend-verification (L788-801).
+        // PREVIOUS: No cooldown — attacker could spam forgot-password every second
+        // for an unverified email, generating unlimited verification emails.
+        // Each call replaced the previous token, invalidating earlier email links.
+        // NOW: Same RESEND_COOLDOWN_SECONDS check. Anti-enumeration response
+        // preserved during cooldown (returns 200 successResponse, not 429).
+        // Standard: OWASP Rate Limiting, Anti-Abuse, Parity with /resend-verification.
+        if (user.email_token_expires_at) {
+          const tokenCreatedAt = new Date(user.email_token_expires_at);
+          tokenCreatedAt.setHours(tokenCreatedAt.getHours() - VERIFICATION_TOKEN_EXPIRY_HOURS);
+          const secondsSinceLastSend = (Date.now() - tokenCreatedAt.getTime()) / 1000;
+          if (secondsSinceLastSend < RESEND_COOLDOWN_SECONDS) {
+            // Silent anti-enumeration: return success without sending another email
+            logger.info('Auth: Forgot-password unverified cooldown active', {
+              email: normalizedEmail,
+              secondsSinceLastSend: Math.round(secondsSinceLastSend),
+            });
+            res.json(successResponse);
+            return;
+          }
+        }
+
         const verificationToken = crypto.randomUUID();
         const tokenExpiry = new Date();
         tokenExpiry.setHours(tokenExpiry.getHours() + VERIFICATION_TOKEN_EXPIRY_HOURS);

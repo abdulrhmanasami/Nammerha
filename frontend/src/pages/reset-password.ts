@@ -3,6 +3,10 @@ import { auth } from '../api';
 import { updatePasswordStrength } from '../utils/password-strength';
 import { t } from '../utils/i18n';
 import { showStructuredBanner, type StructuredBannerElements } from '../utils/banner';
+// P1-W12-005 FIX: Import ApiError for structured error code detection.
+// PREVIOUS: Only `err instanceof Error` — missed 429 rate-limit and other structured errors.
+// Standard: Error Handling Parity with auth.ts login handler.
+import { ApiError } from '../api/_client';
 // P2-W6-009 FIX: Pre-warm CSRF token for POST requests.
 // Parity with auth.ts L33 — prevents 2-5s invisible delay on Syria 2G.
 import { warmCsrf } from '../api/_client';
@@ -338,40 +342,59 @@ form?.addEventListener('submit', async (e) => {
       }
     }
   } catch (err) {
-    const message = err instanceof Error ? err.message : t('reset_network_error', 'خطأ في الشبكة');
-    if (message.includes('timeout') || message.includes('abort')) {
-      showBanner('error', t('reset_timeout', 'انقطع الاتصال'));
-    } else if (message.includes('410') || message.includes('expired')) {
-      showBanner('error', t('reset_token_expired', 'انتهت صلاحية الرمز'));
-      if (form) {
-        form.classList.add('nm-hidden');
-      }
-      if (requestNewSection) {
-        requestNewSection.classList.remove('nm-hidden');
-      }
-    } else if (
-      // P1-AUD-008 FIX: Handle reused/invalid token errors → show "Request New Link".
-      // PREVIOUS: "not found" / "invalid" tokens fell through to generic error banner
-      // with no recovery path — user stuck at a dead-end.
-      // Standard: Nielsen #9 (Error Recovery), WCAG 3.3.3 (Error Suggestion).
-      message.includes('not found') ||
-      message.includes('invalid') ||
-      message.includes('already used') ||
-      message.includes('غير صالح') ||
-      message.includes('غير موجود')
-    ) {
-      showBanner(
-        'error',
-        t('reset_token_invalid', 'الرمز غير صالح أو تم استخدامه — اطلب رابط جديد'),
-      );
-      if (form) {
-        form.classList.add('nm-hidden');
-      }
-      if (requestNewSection) {
-        requestNewSection.classList.remove('nm-hidden');
+    // P1-W12-005 FIX: Detect structured ApiError codes from _client.ts.
+    // PREVIOUS: Only `err instanceof Error` — missed 429 rate-limit, 410 expired,
+    // and other structured errors. Users saw raw English backend messages.
+    // NOW: Full ApiError detection with translated user-facing messages.
+    // Standard: Error Handling Parity with auth.ts (L1079-1161), OWASP Error Handling.
+    if (err instanceof ApiError) {
+      if (err.status === 429) {
+        showBanner(
+          'error',
+          err.message ||
+            t('reset_rate_limited', 'محاولات كثيرة. يرجى الانتظار قبل المحاولة مرة أخرى.'),
+        );
+      } else if (err.status === 410) {
+        // 410 Gone — token expired
+        showBanner('error', t('reset_token_expired', 'انتهت صلاحية الرمز'));
+        if (form) {
+          form.classList.add('nm-hidden');
+        }
+        if (requestNewSection) {
+          requestNewSection.classList.remove('nm-hidden');
+        }
+      } else if (err.message.includes('different') || err.message.includes('مختلفة')) {
+        // Password reuse check — backend returns 400 with "must be different"
+        showBanner(
+          'error',
+          t('reset_password_reuse', 'يجب أن تكون كلمة المرور الجديدة مختلفة عن الحالية'),
+        );
+      } else if (
+        err.status === 400 &&
+        (err.message.includes('Invalid') || err.message.includes('expired'))
+      ) {
+        showBanner(
+          'error',
+          t('reset_token_invalid', 'الرمز غير صالح أو تم استخدامه — اطلب رابط جديد'),
+        );
+        if (form) {
+          form.classList.add('nm-hidden');
+        }
+        if (requestNewSection) {
+          requestNewSection.classList.remove('nm-hidden');
+        }
+      } else {
+        showBanner('error', err.message || t('reset_network_error', 'خطأ في الشبكة'));
       }
     } else {
-      showBanner('error', message);
+      // Fallback: non-ApiError (network failures, timeouts, etc.)
+      const message =
+        err instanceof Error ? err.message : t('reset_network_error', 'خطأ في الشبكة');
+      if (message.includes('timeout') || message.includes('abort')) {
+        showBanner('error', t('reset_timeout', 'انقطع الاتصال'));
+      } else {
+        showBanner('error', message);
+      }
     }
   } finally {
     isSubmitting = false;

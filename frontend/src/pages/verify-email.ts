@@ -321,5 +321,14 @@ try {
   /* sessionStorage may be unavailable in private mode */
 }
 
-// Initialize on page load
-verifyEmail();
+// P2-W12-004 FIX: Guard against DOM not being ready.
+// PREVIOUS: verifyEmail() called synchronously during module execution.
+// With type="module" + defer on slow networks (Syria 2G), DOM refs at L31-47
+// could be null if document parsing hasn't completed.
+// NOW: readyState check ensures DOM is fully parsed before running.
+// Standard: Web Spec (Document readyState), Defense-in-Depth.
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', verifyEmail);
+} else {
+  verifyEmail();
+}

@@ -25,12 +25,28 @@ import { ApiError } from '../api/_client';
 // W3-P2-002 FIX: Import CSRF pre-warm for eager loading before user interaction.
 // On Syria 2G, the first POST without pre-warm adds 2-5s invisible delay.
 import { warmCsrf } from '../api/_client';
+// P1-W12-001 FIX: Import shared validators — single source of truth for email regex.
+// PREVIOUS: 4 copies of the same email regex inline across auth.ts and reset-password.ts.
+// Standard: DRY Principle, Centralized Validation.
+import { EMAIL_REGEX } from '../utils/validators';
 
 // W3-P2-002 FIX: Pre-fetch CSRF token on page load (fire-and-forget).
 // Previous: CSRF fetched on first form submit — added invisible 2-5s delay on Syria 2G.
 // Now: Token pre-fetched while user is still reading the page.
 // Standard: Web Vitals (TBT), PRPL Pattern, Proactive Resource Loading.
 warmCsrf();
+
+// P0-W12-001 FIX: Re-warm CSRF token when tab becomes visible after background.
+// PREVIOUS: warmCsrf() fired once on page load (L33). If the user left the tab open
+// for 2+ hours (common on Syria 2G — interrupted connectivity), CSRF token expired.
+// ALL subsequent form submissions silently failed with 403.
+// NOW: Re-fetches CSRF on tab visibility change (fire-and-forget, no UI impact).
+// Standard: Page Visibility API, Web Vitals (TBT), Syria 2G Resilience.
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    warmCsrf();
+  }
+});
 
 // PLT-MAR11-004 FIX: API_BASE removed — forgot-password now uses centralized auth.forgotPassword()
 // PLT-AUD-010: Type-safe i18n runtime lookup — now via shared utils/i18n.ts (FIX-004)
@@ -554,9 +570,10 @@ function validateCurrentStep(): boolean {
       scrollToField(document.getElementById('reg-email'));
       return false;
     }
-    // P1-W6-002 FIX: Use stricter email regex — parity with forgot-password & backend.
-    // Previous: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ — allowed non-alphanumeric in domain.
-    if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
+    // P1-W12-001 FIX: Use shared EMAIL_REGEX from validators.ts — single source of truth.
+    // Previous: Inline regex duplicated 4 times across auth.ts and reset-password.ts.
+    // Standard: DRY Principle, Centralized Validation.
+    if (!EMAIL_REGEX.test(email)) {
       showBanner('error', t('auth_email_invalid', 'البريد الإلكتروني غير صالح'));
       scrollToField(document.getElementById('reg-email'));
       return false;
@@ -633,7 +650,19 @@ formRegister?.addEventListener('keydown', (e: KeyboardEvent) => {
   if (nextBtn) {
     nextBtn.click();
   } else if (currentRegStep === 3) {
-    // Step 3 has no Next — Enter should submit the form
+    // P0-W12-003 FIX: Guard against double-submit via Enter key during in-flight request.
+    // PREVIOUS: Enter key bypassed pointer-events:none (btn-loading) and re-entered
+    // the submit handler while isSubmitting was true but formRegister?.requestSubmit()
+    // fired before the guard check at L1227.
+    // Standard: OWASP Rate Limiting, FinTech Double-Submit Prevention.
+    if (state.isSubmitting) return;
+    // P2-W12-001 FIX: Scroll to unchecked terms checkbox on Enter.
+    // PREVIOUS: Validation error shown but terms checkbox not scrolled into view.
+    // Standard: WCAG 3.3.1 (Error Identification), Material Design 3.
+    const termsCheckbox = document.getElementById('reg-terms') as HTMLInputElement | null;
+    if (termsCheckbox && !termsCheckbox.checked) {
+      termsCheckbox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
     formRegister?.requestSubmit();
   }
 });
@@ -753,6 +782,55 @@ function hideBanner(): void {
   hideStructuredBanner(banner);
 }
 
+// ─── P2-W12-008 FIX: Restore Active Lockout on Page Load ────────────────────
+// PREVIOUS: User hit 429 lockout → countdown timer started → user refreshed page
+// → countdown lost → user tried to submit → another 429 with no countdown.
+// NOW: Check sessionStorage for persisted lockout end timestamp. If still active,
+// show the countdown banner immediately.
+// Standard: Nielsen #1 (System Status Visibility), Session Persistence.
+// ─────────────────────────────────────────────────────────────────────────────
+(function restoreLockoutTimer(): void {
+  try {
+    const lockoutUntilStr = sessionStorage.getItem('nmh_lockout_until');
+    if (!lockoutUntilStr) return;
+    const lockoutUntil = parseInt(lockoutUntilStr, 10);
+    let remainingSeconds = Math.ceil((lockoutUntil - Date.now()) / 1000);
+    if (remainingSeconds <= 0) {
+      sessionStorage.removeItem('nmh_lockout_until');
+      return;
+    }
+    const lockoutMsg = () =>
+      t(
+        'auth_lockout_countdown',
+        `الحساب مقفل مؤقتاً — يمكنك المحاولة بعد ${Math.ceil(remainingSeconds / 60)} دقيقة (${remainingSeconds}s)`,
+      )
+        .replace('{minutes}', String(Math.ceil(remainingSeconds / 60)))
+        .replace('{seconds}', String(remainingSeconds));
+
+    showBanner('error', lockoutMsg());
+
+    const _restoreTimer = createTrackedInterval(() => {
+      remainingSeconds--;
+      if (remainingSeconds <= 0) {
+        clearTrackedInterval(_restoreTimer);
+        try {
+          sessionStorage.removeItem('nmh_lockout_until');
+        } catch {
+          /* ignore */
+        }
+        showBanner('success', t('auth_lockout_ended', 'يمكنك المحاولة الآن'));
+      } else {
+        const bannerTextEl = document.getElementById('auth-banner-text');
+        if (bannerTextEl) {
+          bannerTextEl.textContent = lockoutMsg();
+        }
+      }
+    }, 1000);
+  } catch {
+    /* sessionStorage unavailable */
+  }
+})();
+
 // ─── Password Toggle ────────────────────────────────────────────────────────
 function setupPasswordToggle(toggleId: string, inputId: string): void {
   const toggle = document.getElementById(toggleId);
@@ -761,6 +839,11 @@ function setupPasswordToggle(toggleId: string, inputId: string): void {
     return;
   }
 
+  // P2-W12-002 FIX: Set initial ARIA state for screen readers.
+  // Standard: WCAG 4.1.2 (Name, Role, Value), Apple HIG (Accessibility).
+  toggle.setAttribute('aria-label', t('auth_show_password', 'إظهار كلمة المرور'));
+  toggle.setAttribute('aria-pressed', 'false');
+
   toggle.addEventListener('click', () => {
     const isPassword = input.type === 'password';
     input.type = isPassword ? 'text' : 'password';
@@ -768,6 +851,17 @@ function setupPasswordToggle(toggleId: string, inputId: string): void {
     if (icon) {
       icon.className = isPassword ? 'ph ph-eye-slash' : 'ph ph-eye';
     }
+    // P2-W12-002 FIX: Update ARIA state on toggle.
+    // PREVIOUS: No ARIA state — screen readers gave no feedback on visibility change.
+    // NOW: aria-label announces "Show/Hide password", aria-pressed tracks state.
+    // Standard: WCAG 4.1.2 (Name, Role, Value), Apple HIG (Accessibility).
+    toggle.setAttribute(
+      'aria-label',
+      isPassword
+        ? t('auth_hide_password', 'إخفاء كلمة المرور')
+        : t('auth_show_password', 'إظهار كلمة المرور'),
+    );
+    toggle.setAttribute('aria-pressed', String(isPassword));
   });
 }
 
@@ -1002,12 +1096,10 @@ formLogin?.addEventListener('submit', async (e) => {
     return;
   }
 
-  // P1-DEEP-001 FIX: Email format validation — parity with registration (L470) and
-  // forgot-password (L1183). Without this, malformed emails like "user@" are sent to
-  // the backend, consuming a rate limit token and wasting 2-5s on Syria 2G.
-  // Standard: Nielsen #5 (Error Prevention), Client-Side Validation.
-  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-  if (!emailRegex.test(email)) {
+  // P1-DEEP-001 FIX: Email format validation — parity with registration and forgot-password.
+  // P1-W12-001 FIX: Use shared EMAIL_REGEX from validators.ts — single source of truth.
+  // Standard: DRY Principle, Nielsen #5 (Error Prevention), Client-Side Validation.
+  if (!EMAIL_REGEX.test(email)) {
     showBanner('error', t('auth_email_invalid', 'البريد الإلكتروني غير صالح'));
     scrollToField(document.getElementById('login-email'));
     return;
@@ -1126,6 +1218,19 @@ formLogin?.addEventListener('submit', async (e) => {
 
         if (lockoutMinutes > 0) {
           let remainingSeconds = lockoutMinutes * 60;
+          // P2-W12-008 FIX: Persist lockout end in sessionStorage.
+          // PREVIOUS: Lockout countdown lost on page refresh — user saw no
+          // indication they were locked out until another 429.
+          // NOW: Stores lockout end timestamp. On page load, checks for active lockout.
+          // Standard: Nielsen #1 (System Status Visibility), Session Persistence.
+          try {
+            sessionStorage.setItem(
+              'nmh_lockout_until',
+              String(Date.now() + remainingSeconds * 1000),
+            );
+          } catch {
+            /* Safari incognito */
+          }
           const lockoutMsg = () =>
             t(
               'auth_lockout_countdown',
@@ -1140,6 +1245,12 @@ formLogin?.addEventListener('submit', async (e) => {
             remainingSeconds--;
             if (remainingSeconds <= 0) {
               clearTrackedInterval(_lockoutTimer);
+              // P2-W12-008: Clear persisted lockout on expiry.
+              try {
+                sessionStorage.removeItem('nmh_lockout_until');
+              } catch {
+                /* ignore */
+              }
               showBanner('success', t('auth_lockout_ended', 'يمكنك المحاولة الآن'));
             } else {
               // Update banner text in-place
@@ -1160,11 +1271,21 @@ formLogin?.addEventListener('submit', async (e) => {
         showBanner('error', err.message || t('auth_login_failed', 'فشل تسجيل الدخول'));
       }
     } else {
+      // P1-W12-003 FIX: Differentiate timeout from generic network errors.
+      // PREVIOUS: AbortError (30s timeout from _client.ts) and network failures
+      // showed identical "خطأ في الشبكة" — user couldn't tell if server was down
+      // or if their Syria 2G connection just timed out (actionable: just retry).
+      // Parity with reset-password.ts which already checks for timeout/abort.
+      // Standard: Nielsen #9 (Error Recovery), OWASP Error Handling.
       const message =
         err instanceof Error
           ? err.message
           : t('auth_network_error', 'خطأ في الشبكة. حاول مرة أخرى.');
-      showBanner('error', message);
+      if (message.includes('timeout') || message.includes('abort') || err instanceof DOMException) {
+        showBanner('error', t('auth_login_timeout', 'انقطع الاتصال — حاول مرة أخرى'));
+      } else {
+        showBanner('error', message);
+      }
     }
   } finally {
     state.isSubmitting = false;
@@ -1362,8 +1483,8 @@ async function handleForgotPassword(
   }
 
   // P2-AUD-008 FIX: Validate email format before API call.
-  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-  if (!emailRegex.test(email)) {
+  // P1-W12-001 FIX: Use shared EMAIL_REGEX from validators.ts — single source of truth.
+  if (!EMAIL_REGEX.test(email)) {
     showBanner('error', t('auth_forgot_invalid_email', 'صيغة البريد الإلكتروني غير صحيحة'));
     return;
   }
@@ -1414,10 +1535,23 @@ async function handleForgotPassword(
       );
     }
   } finally {
-    // Restore original button content
+    // P1-W12-002 FIX: Add 60s cooldown after forgot-password success.
+    // PREVIOUS: No client-side cooldown — user could click 15 times in 15 minutes,
+    // each generating a real email and invalidating the previous reset token.
+    // Parity with resend-verification cooldown (L1580-1600).
+    // Standard: OWASP Rate Limiting, Email Spam Prevention, FinTech UX.
     triggerBtn.innerHTML = originalHTML;
-    triggerBtn.removeAttribute('aria-disabled');
-    triggerBtn.classList.remove('nm-btn-cooldown');
+    triggerBtn.setAttribute('aria-disabled', 'true');
+    // Keep nm-btn-cooldown class (already added at L1408)
+    let _forgotCooldown = 60;
+    const forgotCooldownInterval = createTrackedInterval(() => {
+      _forgotCooldown--;
+      if (_forgotCooldown <= 0) {
+        clearTrackedInterval(forgotCooldownInterval);
+        triggerBtn.removeAttribute('aria-disabled');
+        triggerBtn.classList.remove('nm-btn-cooldown');
+      }
+    }, 1000);
   }
 }
 
@@ -1532,12 +1666,23 @@ function showEmailSentConfirmation(emailAddress: string): void {
         showBanner('error', data.error ?? t('auth_resend_failed', 'فشل إعادة الإرسال'));
       }
     } catch (err) {
-      showBanner(
-        'error',
-        err instanceof Error
-          ? err.message
-          : t('auth_network_error', 'خطأ في الشبكة. حاول مرة أخرى.'),
-      );
+      // P2-W12-003 FIX: Detect structured ApiError codes — parity with login resend handler.
+      // PREVIOUS: Only checked `err instanceof Error` — missed 429 rate limiting.
+      // Standard: Error Handling Parity, OWASP Error Handling.
+      if (err instanceof ApiError && err.status === 429) {
+        showBanner(
+          'error',
+          err.message ||
+            t('auth_rate_limited', 'محاولات كثيرة. يرجى الانتظار قبل المحاولة مرة أخرى.'),
+        );
+      } else {
+        showBanner(
+          'error',
+          err instanceof Error
+            ? err.message
+            : t('auth_network_error', 'خطأ في الشبكة. حاول مرة أخرى.'),
+        );
+      }
     } finally {
       resendBtn.classList.remove('btn-loading');
       // BUG-F03 FIX: Replaced disabled + inline opacity/pointer-events with nm-btn-cooldown.
@@ -1767,6 +1912,15 @@ async function handleLoginRedirect(
   setTimeout(() => {
     window.location.href = finalTarget;
   }, 800);
+  // P2-W12-006 FIX: Safety restore if redirect fails.
+  // PREVIOUS: If window.location.href assignment was blocked (browser extension,
+  // Content-Security-Policy, or beforeunload handler), pointerEvents stayed 'none'
+  // forever — entire page permanently non-interactive.
+  // NOW: 3s safety timeout restores interactivity.
+  // Standard: Defense-in-Depth, Resilience Engineering.
+  setTimeout(() => {
+    document.body.style.pointerEvents = '';
+  }, 3000);
 }
 
 // ─── MFA Challenge Panel (Migration 046) ──────────────────────────────────
@@ -1809,12 +1963,12 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
       <!-- TOTP Code Inputs -->
       <div id="mfa-totp-section">
         <div id="mfa-code-inputs" class="flex gap-2 justify-center mb-4" style="direction:ltr;">
-          <input type="text" inputmode="numeric" maxlength="1" class="nm-input nm-mfa-digit" data-mfa-digit="0" autocomplete="one-time-code" />
-          <input type="text" inputmode="numeric" maxlength="1" class="nm-input nm-mfa-digit" data-mfa-digit="1" />
-          <input type="text" inputmode="numeric" maxlength="1" class="nm-input nm-mfa-digit" data-mfa-digit="2" />
-          <input type="text" inputmode="numeric" maxlength="1" class="nm-input nm-mfa-digit" data-mfa-digit="3" />
-          <input type="text" inputmode="numeric" maxlength="1" class="nm-input nm-mfa-digit" data-mfa-digit="4" />
-          <input type="text" inputmode="numeric" maxlength="1" class="nm-input nm-mfa-digit" data-mfa-digit="5" />
+          <input type="text" inputmode="numeric" maxlength="1" class="nm-input nm-mfa-digit" data-mfa-digit="0" autocomplete="one-time-code" aria-label="${esc(t('mfa_digit_label', 'الرقم'))} 1 ${esc(t('mfa_of_6', 'من 6'))}" />
+          <input type="text" inputmode="numeric" maxlength="1" class="nm-input nm-mfa-digit" data-mfa-digit="1" aria-label="${esc(t('mfa_digit_label', 'الرقم'))} 2 ${esc(t('mfa_of_6', 'من 6'))}" />
+          <input type="text" inputmode="numeric" maxlength="1" class="nm-input nm-mfa-digit" data-mfa-digit="2" aria-label="${esc(t('mfa_digit_label', 'الرقم'))} 3 ${esc(t('mfa_of_6', 'من 6'))}" />
+          <input type="text" inputmode="numeric" maxlength="1" class="nm-input nm-mfa-digit" data-mfa-digit="3" aria-label="${esc(t('mfa_digit_label', 'الرقم'))} 4 ${esc(t('mfa_of_6', 'من 6'))}" />
+          <input type="text" inputmode="numeric" maxlength="1" class="nm-input nm-mfa-digit" data-mfa-digit="4" aria-label="${esc(t('mfa_digit_label', 'الرقم'))} 5 ${esc(t('mfa_of_6', 'من 6'))}" />
+          <input type="text" inputmode="numeric" maxlength="1" class="nm-input nm-mfa-digit" data-mfa-digit="5" aria-label="${esc(t('mfa_digit_label', 'الرقم'))} 6 ${esc(t('mfa_of_6', 'من 6'))}" />
         </div>
         <button id="mfa-verify-btn" type="button" class="nm-btn nm-btn-primary w-full mb-4">
           <span id="mfa-verify-text">${esc(t('mfa_verify_btn', 'تحقق'))}</span>
@@ -1930,6 +2084,12 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
 
   // ── TOTP Submit ──
   let isMfaSubmitting = false;
+  // P0-W12-002 FIX: Track failed MFA attempts for exponential client-side delay.
+  // PREVIOUS: Zero delay between retries — a scripted attacker could exhaust
+  // 5 backend attempts in <2 seconds via DOM injection.
+  // NOW: Exponential delay (2s, 4s, 6s, 8s, 10s cap) after each failure.
+  // Standard: NIST SP 800-63B (Throttling), OWASP Brute Force Prevention.
+  let _mfaFailCount = 0;
 
   async function submitMfaTotp(): Promise<void> {
     if (isMfaSubmitting) return;
@@ -1958,11 +2118,19 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
         );
       } else {
         showMfaError(response.error ?? t('mfa_invalid_code', 'رمز غير صحيح'));
-        // Clear inputs for retry
+        // P0-W12-002 FIX: Exponential client-side delay after failed MFA attempt.
+        _mfaFailCount++;
+        const delayMs = Math.min(_mfaFailCount * 2000, 10000);
         digitInputs.forEach((inp) => {
           inp.value = '';
+          inp.disabled = true;
         });
-        digitInputs[0]?.focus();
+        setTimeout(() => {
+          digitInputs.forEach((inp) => {
+            inp.disabled = false;
+          });
+          digitInputs[0]?.focus();
+        }, delayMs);
       }
     } catch (err) {
       haptic.heavy();
@@ -1996,6 +2164,15 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
     const code = recoveryInput?.value.trim() ?? '';
     if (!code) {
       showMfaError(t('mfa_enter_recovery', 'أدخل رمز الاسترداد'));
+      return;
+    }
+    // P2-W12-007 FIX: Client-side format validation for recovery codes.
+    // PREVIOUS: Only checked `!code` (empty). Garbage input wasted a rate-limited
+    // backend attempt. Recovery codes are XXXX-XXXX (8 alphanumeric + hyphen).
+    // Standard: Nielsen #5 (Error Prevention), Client-Side Validation.
+    const RECOVERY_CODE_REGEX = /^[A-Z0-9]{4}-[A-Z0-9]{4}$/i;
+    if (!RECOVERY_CODE_REGEX.test(code)) {
+      showMfaError(t('mfa_invalid_recovery_format', 'صيغة رمز الاسترداد: XXXX-XXXX'));
       return;
     }
 
