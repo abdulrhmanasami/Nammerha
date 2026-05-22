@@ -10,7 +10,7 @@ import 'package:equatable/equatable.dart';
 //   - obscureConfirmPassword (confirm password visibility toggle) [C4 FIX]
 //   - termsAccepted (GDPR consent checkbox) [C5 FIX]
 //   - rememberMe (W3-P1-008: persistent session toggle)
-//   - isSocialLoading (P1-AUD-009: social login SDK loading state)
+//   - socialLoadingProvider (P1-W10-008: per-provider social login loading state)
 //   - isForgotPwLoading (P0-AUD-004: forgot PW sheet loading state)
 //   - forgotPwEmail (P1-W5-003: email captured from forgot-PW sheet)
 //
@@ -18,7 +18,9 @@ import 'package:equatable/equatable.dart';
 // C4 FIX: Added confirm password visibility toggle for registration parity.
 // C5 FIX: Added termsAccepted state for GDPR Art. 7 compliance.
 // W3-P1-008: Added rememberMe for login session persistence.
-// P1-AUD-009: Migrated _isSocialLoading from setState to Cubit.
+// P1-W10-008: Upgraded isSocialLoading (bool) → socialLoadingProvider (String?)
+//   to track WHICH provider is loading (google/apple/facebook).
+//   PREVIOUS: Boolean gave no per-button granularity — all 3 buttons showed spinner.
 // P0-AUD-004: Added isForgotPwLoading to keep sheet open during API call.
 // P1-W5-003: Added forgotPwEmail for interstitial screen navigation.
 // ═══════════════════════════════════════════════════════════════════════════
@@ -29,9 +31,10 @@ class LoginFormState extends Equatable {
   final bool obscureConfirmPassword;
   final bool termsAccepted;
   final bool rememberMe;
-  // P1-AUD-009 FIX: Migrated from setState in login_screen.dart.
-  // PREVIOUS: bool _isSocialLoading — violates Absolute Zero setState.
-  final bool isSocialLoading;
+  // P1-W10-008 FIX: Per-provider social loading state.
+  // Null = not loading. 'google', 'apple', or 'facebook' = that provider is loading.
+  // PREVIOUS: `bool isSocialLoading` — couldn't distinguish which button was tapped.
+  final String? socialLoadingProvider;
   // P0-AUD-004 FIX: Forgot PW sheet loading state.
   // PREVIOUS: Sheet closed immediately via Navigator.pop() before API response.
   // NOW: Sheet stays open with spinner, closes only on success/error.
@@ -45,10 +48,16 @@ class LoginFormState extends Equatable {
     this.obscureConfirmPassword = true,
     this.termsAccepted = false,
     this.rememberMe = false,
-    this.isSocialLoading = false,
+    // P1-W10-008 FIX: Null = not loading, 'google'/'apple'/'facebook' = specific provider.
+    this.socialLoadingProvider,
     this.isForgotPwLoading = false,
     this.forgotPwEmail = '',
   });
+
+  /// Convenience getter: true if ANY social provider is currently loading.
+  /// Used by existing code that only needs to know "is social login in progress?"
+  /// without caring which provider.
+  bool get isSocialLoading => socialLoadingProvider != null;
 
   LoginFormState copyWith({
     bool? isLoginMode,
@@ -56,7 +65,8 @@ class LoginFormState extends Equatable {
     bool? obscureConfirmPassword,
     bool? termsAccepted,
     bool? rememberMe,
-    bool? isSocialLoading,
+    String? socialLoadingProvider,
+    bool clearSocialLoading = false,
     bool? isForgotPwLoading,
     String? forgotPwEmail,
   }) {
@@ -66,7 +76,9 @@ class LoginFormState extends Equatable {
       obscureConfirmPassword: obscureConfirmPassword ?? this.obscureConfirmPassword,
       termsAccepted: termsAccepted ?? this.termsAccepted,
       rememberMe: rememberMe ?? this.rememberMe,
-      isSocialLoading: isSocialLoading ?? this.isSocialLoading,
+      socialLoadingProvider: clearSocialLoading
+          ? null
+          : (socialLoadingProvider ?? this.socialLoadingProvider),
       isForgotPwLoading: isForgotPwLoading ?? this.isForgotPwLoading,
       forgotPwEmail: forgotPwEmail ?? this.forgotPwEmail,
     );
@@ -79,7 +91,7 @@ class LoginFormState extends Equatable {
         obscureConfirmPassword,
         termsAccepted,
         rememberMe,
-        isSocialLoading,
+        socialLoadingProvider,
         isForgotPwLoading,
         forgotPwEmail,
       ];
@@ -112,11 +124,18 @@ class LoginFormCubit extends Cubit<LoginFormState> {
   /// W3-P1-008: Toggle "Remember Me" for persistent sessions.
   void toggleRememberMe() => emit(state.copyWith(rememberMe: !state.rememberMe));
 
-  /// P1-AUD-009 FIX: Social login loading state.
-  /// PREVIOUS: setState(() => _isSocialLoading = true) in login_screen.dart.
-  /// NOW: Cubit-managed for Absolute Zero setState compliance.
-  void setSocialLoading(bool loading) =>
-      emit(state.copyWith(isSocialLoading: loading));
+  /// P1-W10-008 FIX: Per-provider social login loading state.
+  /// Sets which provider button is in loading state (spinner).
+  /// Pass null to clear all social loading.
+  ///
+  /// Usage:
+  ///   setSocialLoading('google')  — Google button shows spinner
+  ///   setSocialLoading('apple')   — Apple button shows spinner
+  ///   setSocialLoading(null)      — Clear all spinners
+  void setSocialLoading(String? provider) => emit(state.copyWith(
+        socialLoadingProvider: provider,
+        clearSocialLoading: provider == null,
+      ));
 
   /// P0-AUD-004 FIX: Forgot password sheet loading state.
   /// Keeps the bottom sheet open with a spinner while the API call completes.

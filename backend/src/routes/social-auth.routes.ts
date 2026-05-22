@@ -486,6 +486,27 @@ router.post('/social', socialAuthLimiter, async (req: Request, res: Response): P
         is_new_user: isNewUser,
       },
     } as ApiResponse);
+
+    // P0-W10-002 FIX: Log successful social login to audit_trail.
+    const clientIp = req.ip ?? req.socket.remoteAddress ?? 'unknown';
+    query(
+      `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
+       VALUES ('login_success', 'user', $1, $1, $2)`,
+      [
+        user.user_id,
+        JSON.stringify({
+          email: user.email,
+          ip: clientIp,
+          user_agent: req.headers['user-agent'] ?? 'unknown',
+          method: `social_${provider}`,
+          is_new_user: isNewUser,
+          platform: isMobileClient ? clientPlatform : 'web',
+          timestamp: new Date().toISOString(),
+        }),
+      ],
+    ).catch((err) => {
+      logger.error('Social auth: Failed to log login_success audit', { error: err });
+    });
   } catch (error) {
     safeRouteError(res, error, 'SocialAuth.Login');
   }

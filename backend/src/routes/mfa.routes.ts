@@ -35,16 +35,12 @@ import {
   mfaRecoverySchema,
   mfaDisableSchema,
 } from '../validation/schemas';
-import {
-  enqueueSecurityAlertEmail,
-} from '../services/email-queue.service';
+import { enqueueSecurityAlertEmail } from '../services/email-queue.service';
 import type { ApiResponse } from '../types';
 
 // ─── MFA Challenge Token ────────────────────────────────────────────────────
 // Imported from auth.middleware.ts (added as part of this feature)
-import {
-  verifyMfaChallengeToken,
-} from '../middleware/auth.middleware';
+import { verifyMfaChallengeToken } from '../middleware/auth.middleware';
 
 // ─── Rate Limiting ──────────────────────────────────────────────────────────
 import rateLimit from 'express-rate-limit';
@@ -61,9 +57,15 @@ const mfaVerifyLimiter = rateLimit({
     error: 'Too many MFA attempts. Please wait 15 minutes.',
   },
   keyGenerator: (req: Request) => {
-    // Rate limit by IP + MFA token to prevent distributed attacks
+    // P1-W10-013 FIX: Key by IP + MFA token hash to prevent distributed attacks.
+    // PREVIOUS: Keyed by IP only — a stolen challenge token could be brute-forced
+    // from the attacker's own IP (fresh rate limit window).
+    // Now includes the mfa_token itself (truncated hash for efficiency) so the
+    // rate limit follows the challenge session, not just the client IP.
     const ip = req.ip ?? req.socket.remoteAddress ?? 'unknown';
-    return `mfa:${ip}`;
+    const mfaToken = (req.body as Record<string, unknown>)?.mfa_token;
+    const tokenSuffix = typeof mfaToken === 'string' ? mfaToken.slice(-16) : 'none';
+    return `mfa:${ip}:${tokenSuffix}`;
   },
 });
 
@@ -181,7 +183,8 @@ router.post(
         success: true,
         data: {
           recovery_codes: result.recovery_codes,
-          message: 'MFA enabled successfully. Save your recovery codes — they will not be shown again.',
+          message:
+            'MFA enabled successfully. Save your recovery codes — they will not be shown again.',
         },
       } as ApiResponse);
     } catch (error) {
@@ -200,231 +203,280 @@ router.post(
 
 // ─── POST /verify — Login MFA Challenge (TOTP Code) ────────────────────────
 
-router.post(
-  '/verify',
-  mfaVerifyLimiter,
-  async (req: Request, res: Response): Promise<void> => {
+router.post('/verify', mfaVerifyLimiter, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const parsed = mfaVerifySchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({
+        success: false,
+        error: 'Invalid request. Provide mfa_token and 6-digit code.',
+      } as ApiResponse);
+      return;
+    }
+
+    const { mfa_token, code } = parsed.data;
+
+    // Verify MFA challenge token
+    // P0-W10-001 FIX: Extract `remember` flag to restore Remember-Me behavior.
+    let userId: string;
+    let remember = false;
     try {
-      const parsed = mfaVerifySchema.safeParse(req.body);
-      if (!parsed.success) {
-        res.status(400).json({
-          success: false,
-          error: 'Invalid request. Provide mfa_token and 6-digit code.',
-        } as ApiResponse);
-        return;
-      }
+      const payload = verifyMfaChallengeToken(mfa_token);
+      userId = payload.userId;
+      remember = payload.remember ?? false;
+    } catch {
+      res.status(401).json({
+        success: false,
+        error: 'MFA session expired. Please log in again.',
+        code: 'MFA_TOKEN_EXPIRED',
+      } as ApiResponse);
+      return;
+    }
 
-      const { mfa_token, code } = parsed.data;
+    // Verify TOTP code
+    const isValid = await verifyTotpCode(userId, code);
+    if (!isValid) {
+      res.status(401).json({
+        success: false,
+        error: 'Invalid verification code. Please try again.',
+        code: 'MFA_INVALID_CODE',
+      } as ApiResponse);
+      return;
+    }
 
-      // Verify MFA challenge token
-      let userId: string;
-      try {
-        const payload = verifyMfaChallengeToken(mfa_token);
-        userId = payload.userId;
-      } catch {
-        res.status(401).json({
-          success: false,
-          error: 'MFA session expired. Please log in again.',
-          code: 'MFA_TOKEN_EXPIRED',
-        } as ApiResponse);
-        return;
-      }
+    // ── MFA verified — issue real JWT ──
+    // Fetch full user data (same as login flow in auth.routes.ts)
+    const userResult = await query<{
+      user_id: string;
+      email: string;
+      full_name: string;
+      role: string;
+      is_active: boolean;
+      is_email_verified: boolean;
+    }>(
+      'SELECT user_id, email, full_name, role, is_active, is_email_verified FROM users WHERE user_id = $1',
+      [userId],
+    );
 
-      // Verify TOTP code
-      const isValid = await verifyTotpCode(userId, code);
-      if (!isValid) {
-        res.status(401).json({
-          success: false,
-          error: 'Invalid verification code. Please try again.',
-          code: 'MFA_INVALID_CODE',
-        } as ApiResponse);
-        return;
-      }
+    const user = userResult.rows[0];
+    if (!user) {
+      res.status(401).json({ success: false, error: 'User not found' } as ApiResponse);
+      return;
+    }
 
-      // ── MFA verified — issue real JWT ──
-      // Fetch full user data (same as login flow in auth.routes.ts)
-      const userResult = await query<{
-        user_id: string;
-        email: string;
-        full_name: string;
-        role: string;
-        is_active: boolean;
-        is_email_verified: boolean;
-      }>(
-        'SELECT user_id, email, full_name, role, is_active, is_email_verified FROM users WHERE user_id = $1',
-        [userId],
-      );
-
-      const user = userResult.rows[0];
-      if (!user) {
-        res.status(401).json({ success: false, error: 'User not found' } as ApiResponse);
-        return;
-      }
-
-      // Fetch all active roles
-      const rolesResult = await query<{ role_name: string; is_primary: boolean }>(
-        `SELECT r.role_name, ur.is_primary FROM user_roles ur
+    // Fetch all active roles
+    const rolesResult = await query<{ role_name: string; is_primary: boolean }>(
+      `SELECT r.role_name, ur.is_primary FROM user_roles ur
          JOIN roles r ON r.role_id = ur.role_id
          WHERE ur.user_id = $1 AND ur.status = 'active'
          ORDER BY ur.is_primary DESC, r.sort_order`,
-        [userId],
-      );
-      const allRoles = rolesResult.rows.map((r) => r.role_name);
-      const primaryRole = rolesResult.rows.find((r) => r.is_primary)?.role_name ?? user.role;
+      [userId],
+    );
+    const allRoles = rolesResult.rows.map((r) => r.role_name);
+    const primaryRole = rolesResult.rows.find((r) => r.is_primary)?.role_name ?? user.role;
 
-      // Generate JWT
-      const token = generateToken(
-        user.user_id,
-        primaryRole,
-        allRoles.length > 0 ? allRoles : [user.role],
-      );
+    // Generate JWT
+    // P0-W10-001 FIX: Use 30-day expiry when Remember Me was checked at login.
+    const jwtExpiry = remember ? '30d' : undefined;
+    const token = generateToken(
+      user.user_id,
+      primaryRole,
+      allRoles.length > 0 ? allRoles : [user.role],
+      jwtExpiry,
+    );
 
-      // Set httpOnly cookie (same as auth.routes.ts)
-      const clientPlatform = req.headers['x-platform'] as string | undefined;
-      const isMobileClient = clientPlatform === 'ios' || clientPlatform === 'android';
+    // Set httpOnly cookie (same as auth.routes.ts)
+    const clientPlatform = req.headers['x-platform'] as string | undefined;
+    const isMobileClient = clientPlatform === 'ios' || clientPlatform === 'android';
 
-      if (!isMobileClient) {
-        res.cookie('nammerha_jwt', token, {
-          httpOnly: true,
-          secure: process.env['NODE_ENV'] === 'production',
-          sameSite: 'strict',
-          maxAge: 24 * 60 * 60 * 1000, // 24h default (TODO: restore remember-me from challenge token)
-          path: '/',
-        });
-      }
-
-      res.json({
-        success: true,
-        data: {
-          user: {
-            user_id: user.user_id,
-            email: user.email,
-            full_name: user.full_name,
-            role: primaryRole,
-            roles: allRoles.length > 0 ? allRoles : [user.role],
-            is_active: user.is_active,
-            is_email_verified: user.is_email_verified,
-          },
-          ...(isMobileClient ? { token } : {}),
-        },
-      } as ApiResponse);
-    } catch (error) {
-      safeRouteError(res, error, 'MFA.Verify');
+    if (!isMobileClient) {
+      res.cookie('nammerha_jwt', token, {
+        httpOnly: true,
+        secure: process.env['NODE_ENV'] === 'production',
+        sameSite: 'strict',
+        // P0-W10-001 FIX: Respect Remember Me from MFA challenge token.
+        // PREVIOUS: Always 24h — users with MFA who checked Remember Me
+        // still got 24h sessions instead of 30d. The challenge token
+        // stored the `remember` flag but it was never used here.
+        maxAge: remember ? 30 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000,
+        path: '/',
+      });
     }
-  },
-);
+
+    res.json({
+      success: true,
+      data: {
+        user: {
+          user_id: user.user_id,
+          email: user.email,
+          full_name: user.full_name,
+          role: primaryRole,
+          roles: allRoles.length > 0 ? allRoles : [user.role],
+          is_active: user.is_active,
+          is_email_verified: user.is_email_verified,
+        },
+        ...(isMobileClient ? { token } : {}),
+      },
+    } as ApiResponse);
+
+    // P0-W10-002 FIX: Log MFA-verified login to audit_trail.
+    const clientIp = req.ip ?? req.socket.remoteAddress ?? 'unknown';
+    query(
+      `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
+         VALUES ('login_success', 'user', $1, $1, $2)`,
+      [
+        user.user_id,
+        JSON.stringify({
+          email: user.email,
+          ip: clientIp,
+          user_agent: req.headers['user-agent'] ?? 'unknown',
+          method: 'mfa_totp',
+          platform: isMobileClient ? clientPlatform : 'web',
+          timestamp: new Date().toISOString(),
+        }),
+      ],
+    ).catch(() => {
+      /* fire-and-forget */
+    });
+  } catch (error) {
+    safeRouteError(res, error, 'MFA.Verify');
+  }
+});
 
 // ─── POST /recovery — Login MFA Challenge (Recovery Code) ───────────────────
 
-router.post(
-  '/recovery',
-  mfaVerifyLimiter,
-  async (req: Request, res: Response): Promise<void> => {
+router.post('/recovery', mfaVerifyLimiter, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const parsed = mfaRecoverySchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({
+        success: false,
+        error: 'Invalid request. Provide mfa_token and recovery_code.',
+      } as ApiResponse);
+      return;
+    }
+
+    const { mfa_token, recovery_code } = parsed.data;
+
+    // Verify MFA challenge token
+    // P0-W10-001 FIX: Extract `remember` flag for recovery path too.
+    let userId: string;
+    let remember = false;
     try {
-      const parsed = mfaRecoverySchema.safeParse(req.body);
-      if (!parsed.success) {
-        res.status(400).json({
-          success: false,
-          error: 'Invalid request. Provide mfa_token and recovery_code.',
-        } as ApiResponse);
-        return;
-      }
+      const payload = verifyMfaChallengeToken(mfa_token);
+      userId = payload.userId;
+      remember = payload.remember ?? false;
+    } catch {
+      res.status(401).json({
+        success: false,
+        error: 'MFA session expired. Please log in again.',
+        code: 'MFA_TOKEN_EXPIRED',
+      } as ApiResponse);
+      return;
+    }
 
-      const { mfa_token, recovery_code } = parsed.data;
+    // Verify recovery code
+    const isValid = await verifyRecoveryCode(userId, recovery_code);
+    if (!isValid) {
+      res.status(401).json({
+        success: false,
+        error: 'Invalid or already used recovery code.',
+        code: 'MFA_INVALID_RECOVERY',
+      } as ApiResponse);
+      return;
+    }
 
-      // Verify MFA challenge token
-      let userId: string;
-      try {
-        const payload = verifyMfaChallengeToken(mfa_token);
-        userId = payload.userId;
-      } catch {
-        res.status(401).json({
-          success: false,
-          error: 'MFA session expired. Please log in again.',
-          code: 'MFA_TOKEN_EXPIRED',
-        } as ApiResponse);
-        return;
-      }
+    // ── Recovery verified — issue real JWT (same as /verify) ──
+    const userResult = await query<{
+      user_id: string;
+      email: string;
+      full_name: string;
+      role: string;
+      is_active: boolean;
+      is_email_verified: boolean;
+    }>(
+      'SELECT user_id, email, full_name, role, is_active, is_email_verified FROM users WHERE user_id = $1',
+      [userId],
+    );
 
-      // Verify recovery code
-      const isValid = await verifyRecoveryCode(userId, recovery_code);
-      if (!isValid) {
-        res.status(401).json({
-          success: false,
-          error: 'Invalid or already used recovery code.',
-          code: 'MFA_INVALID_RECOVERY',
-        } as ApiResponse);
-        return;
-      }
+    const user = userResult.rows[0];
+    if (!user) {
+      res.status(401).json({ success: false, error: 'User not found' } as ApiResponse);
+      return;
+    }
 
-      // ── Recovery verified — issue real JWT (same as /verify) ──
-      const userResult = await query<{
-        user_id: string;
-        email: string;
-        full_name: string;
-        role: string;
-        is_active: boolean;
-        is_email_verified: boolean;
-      }>(
-        'SELECT user_id, email, full_name, role, is_active, is_email_verified FROM users WHERE user_id = $1',
-        [userId],
-      );
-
-      const user = userResult.rows[0];
-      if (!user) {
-        res.status(401).json({ success: false, error: 'User not found' } as ApiResponse);
-        return;
-      }
-
-      const rolesResult = await query<{ role_name: string; is_primary: boolean }>(
-        `SELECT r.role_name, ur.is_primary FROM user_roles ur
+    const rolesResult = await query<{ role_name: string; is_primary: boolean }>(
+      `SELECT r.role_name, ur.is_primary FROM user_roles ur
          JOIN roles r ON r.role_id = ur.role_id
          WHERE ur.user_id = $1 AND ur.status = 'active'
          ORDER BY ur.is_primary DESC, r.sort_order`,
-        [userId],
-      );
-      const allRoles = rolesResult.rows.map((r) => r.role_name);
-      const primaryRole = rolesResult.rows.find((r) => r.is_primary)?.role_name ?? user.role;
+      [userId],
+    );
+    const allRoles = rolesResult.rows.map((r) => r.role_name);
+    const primaryRole = rolesResult.rows.find((r) => r.is_primary)?.role_name ?? user.role;
 
-      const token = generateToken(
-        user.user_id,
-        primaryRole,
-        allRoles.length > 0 ? allRoles : [user.role],
-      );
+    // P0-W10-001 FIX: Respect Remember Me on recovery path.
+    const jwtExpiry = remember ? '30d' : undefined;
+    const token = generateToken(
+      user.user_id,
+      primaryRole,
+      allRoles.length > 0 ? allRoles : [user.role],
+      jwtExpiry,
+    );
 
-      const clientPlatform = req.headers['x-platform'] as string | undefined;
-      const isMobileClient = clientPlatform === 'ios' || clientPlatform === 'android';
+    const clientPlatform = req.headers['x-platform'] as string | undefined;
+    const isMobileClient = clientPlatform === 'ios' || clientPlatform === 'android';
 
-      if (!isMobileClient) {
-        res.cookie('nammerha_jwt', token, {
-          httpOnly: true,
-          secure: process.env['NODE_ENV'] === 'production',
-          sameSite: 'strict',
-          maxAge: 24 * 60 * 60 * 1000,
-          path: '/',
-        });
-      }
-
-      res.json({
-        success: true,
-        data: {
-          user: {
-            user_id: user.user_id,
-            email: user.email,
-            full_name: user.full_name,
-            role: primaryRole,
-            roles: allRoles.length > 0 ? allRoles : [user.role],
-            is_active: user.is_active,
-            is_email_verified: user.is_email_verified,
-          },
-          ...(isMobileClient ? { token } : {}),
-        },
-      } as ApiResponse);
-    } catch (error) {
-      safeRouteError(res, error, 'MFA.Recovery');
+    if (!isMobileClient) {
+      res.cookie('nammerha_jwt', token, {
+        httpOnly: true,
+        secure: process.env['NODE_ENV'] === 'production',
+        sameSite: 'strict',
+        // P0-W10-001 FIX: 30-day cookie when Remember Me was checked.
+        maxAge: remember ? 30 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000,
+        path: '/',
+      });
     }
-  },
-);
+
+    res.json({
+      success: true,
+      data: {
+        user: {
+          user_id: user.user_id,
+          email: user.email,
+          full_name: user.full_name,
+          role: primaryRole,
+          roles: allRoles.length > 0 ? allRoles : [user.role],
+          is_active: user.is_active,
+          is_email_verified: user.is_email_verified,
+        },
+        ...(isMobileClient ? { token } : {}),
+      },
+    } as ApiResponse);
+
+    // P0-W10-002 FIX: Log MFA-recovery login to audit_trail.
+    const clientIp = req.ip ?? req.socket.remoteAddress ?? 'unknown';
+    query(
+      `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
+         VALUES ('login_success', 'user', $1, $1, $2)`,
+      [
+        user.user_id,
+        JSON.stringify({
+          email: user.email,
+          ip: clientIp,
+          user_agent: req.headers['user-agent'] ?? 'unknown',
+          method: 'mfa_recovery',
+          platform: isMobileClient ? clientPlatform : 'web',
+          timestamp: new Date().toISOString(),
+        }),
+      ],
+    ).catch(() => {
+      /* fire-and-forget */
+    });
+  } catch (error) {
+    safeRouteError(res, error, 'MFA.Recovery');
+  }
+});
 
 // ─── POST /disable — Disable MFA (Requires Password) ───────────────────────
 
@@ -501,28 +553,24 @@ router.post(
 
 // ─── GET /status — MFA Status for Profile ───────────────────────────────────
 
-router.get(
-  '/status',
-  authMiddleware,
-  async (req: Request, res: Response): Promise<void> => {
-    try {
-      const userId = req.authUser?.user_id;
-      if (!userId) {
-        res.status(401).json({ success: false, error: 'Authentication required' } as ApiResponse);
-        return;
-      }
-
-      const status = await getMfaStatus(userId);
-
-      res.json({
-        success: true,
-        data: status,
-      } as ApiResponse);
-    } catch (error) {
-      safeRouteError(res, error, 'MFA.Status');
+router.get('/status', authMiddleware, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.authUser?.user_id;
+    if (!userId) {
+      res.status(401).json({ success: false, error: 'Authentication required' } as ApiResponse);
+      return;
     }
-  },
-);
+
+    const status = await getMfaStatus(userId);
+
+    res.json({
+      success: true,
+      data: status,
+    } as ApiResponse);
+  } catch (error) {
+    safeRouteError(res, error, 'MFA.Status');
+  }
+});
 
 // ─── POST /recovery-codes — Regenerate Recovery Codes ───────────────────────
 

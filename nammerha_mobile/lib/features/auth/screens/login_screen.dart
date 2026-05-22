@@ -172,6 +172,9 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             label: context.tr('auth_email_label'),
                             icon: PhosphorIconsRegular.envelope,
                             keyboardType: TextInputType.emailAddress,
+                            // P1-W10-010 FIX: "Next" key moves focus to password field.
+                            textInputAction: TextInputAction.next,
+                            onFieldSubmitted: (_) => FocusScope.of(context).nextFocus(),
                             validator: (v) {
                               if (v == null || v.trim().isEmpty) return context.tr('auth_email_required');
                               if (!RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$').hasMatch(v.trim())) {
@@ -188,6 +191,9 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             label: context.tr('auth_password_label'),
                             icon: PhosphorIconsRegular.lockKey,
                             obscureText: formState.obscurePassword,
+                            // P1-W10-010 FIX: "Done" key submits the login form.
+                            textInputAction: TextInputAction.done,
+                            onFieldSubmitted: (_) => _submit(),
                             suffixIcon: IconButton(
                               icon: Icon(
                                 formState.obscurePassword ? PhosphorIconsRegular.eyeSlash : PhosphorIconsRegular.eye,
@@ -318,6 +324,9 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     bool obscureText = false,
     Widget? suffixIcon,
     String? Function(String?)? validator,
+    // P1-W10-010 FIX: Keyboard flow params.
+    TextInputAction? textInputAction,
+    void Function(String)? onFieldSubmitted,
   }) {
     final colors = context.colors;
     return TextFormField(
@@ -326,6 +335,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       obscureText: obscureText,
       validator: validator,
       textDirection: TextDirection.ltr,
+      textInputAction: textInputAction,
+      onFieldSubmitted: onFieldSubmitted,
       style: TextStyle(color: colors.textPrimary),
       decoration: InputDecoration(
         labelText: label,
@@ -718,14 +729,13 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   Widget _buildSocialButtons() {
     final colors = context.colors;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    // MOB-SOCIAL FIX: Wrap in BlocBuilder for reactive isSocialLoading state.
-    // PREVIOUS: context.read<LoginFormCubit>().state.isSocialLoading — one-time
-    // snapshot, never rebuilt when loading state changed.
-    // NOW: BlocBuilder with buildWhen → UI rebuilds only on isSocialLoading changes.
+    // MOB-SOCIAL FIX: Wrap in BlocBuilder for reactive socialLoadingProvider state.
+    // P1-W10-008: Upgraded from bool → String? for per-provider spinner granularity.
     return BlocBuilder<LoginFormCubit, LoginFormState>(
-      buildWhen: (prev, curr) => prev.isSocialLoading != curr.isSocialLoading,
+      buildWhen: (prev, curr) => prev.socialLoadingProvider != curr.socialLoadingProvider,
       builder: (context, formState) {
         final isSocialLoading = formState.isSocialLoading;
+        final loadingProvider = formState.socialLoadingProvider;
         return Column(
       children: [
         // ─── Google + Apple (functional) ───────────────────────────
@@ -743,7 +753,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                 foregroundColor: isDark ? colors.textPrimary : const Color(0xFF3C4043),
                 borderColor: colors.strokeBorder,
                 onPressed: isSocialLoading ? null : () => _handleSocialLogin('google'),
-                isLoading: isSocialLoading,
+                isLoading: loadingProvider == 'google',
               ),
             ),
             const SizedBox(width: 10),
@@ -757,7 +767,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                 foregroundColor: isDark ? colors.textPrimary : Colors.white,
                 borderColor: isDark ? colors.strokeBorder : Colors.black,
                 onPressed: isSocialLoading ? null : () => _handleSocialLogin('apple'),
-                isLoading: isSocialLoading,
+                isLoading: loadingProvider == 'apple',
               ),
             ),
           ],
@@ -869,13 +879,14 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     );
   }
 
-  // P1-AUD-009 FIX: Loading state migrated to LoginFormCubit.isSocialLoading.
-  // PREVIOUS: setState(() => _isSocialLoading = true) — violated Absolute Zero.
-  // NOW: cubit.setSocialLoading(true) — BlocBuilder auto-rebuilds UI.
+  // P1-W10-008 FIX: Per-provider loading state.
+  // PREVIOUS: setSocialLoading(true) — all 3 buttons showed spinner.
+  // NOW: setSocialLoading('google') — only the tapped button shows spinner,
+  // others are visually disabled (opacity dim) but without individual spinners.
   // Standard: Nielsen #1 (Visibility of System Status), Apple HIG.
   Future<void> _handleSocialLogin(String provider) async {
     final cubit = context.read<LoginFormCubit>();
-    cubit.setSocialLoading(true);
+    cubit.setSocialLoading(provider);
     try {
       final result = await SocialAuthService.instance.signIn(provider);
 
@@ -925,7 +936,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         );
       }
     } finally {
-      if (mounted) cubit.setSocialLoading(false);
+      if (mounted) cubit.setSocialLoading(null);
     }
   }
 }

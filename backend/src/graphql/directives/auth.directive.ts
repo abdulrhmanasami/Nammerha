@@ -7,30 +7,33 @@ export const authDirectiveTypeDef = `#graphql
 `;
 
 export function authDirectiveTransformer(schema: GraphQLSchema): GraphQLSchema {
-    return mapSchema(schema, {
-        [MapperKind.OBJECT_FIELD]: (fieldConfig) => {
-            const authDirective = getDirective(schema, fieldConfig, 'auth')?.[0];
-            if (!authDirective) {return fieldConfig;}
+  return mapSchema(schema, {
+    [MapperKind.OBJECT_FIELD]: (fieldConfig) => {
+      const authDirective = getDirective(schema, fieldConfig, 'auth')?.[0];
+      if (!authDirective) {
+        return fieldConfig;
+      }
 
-            const requiredRole = authDirective['requires'] as string | undefined;
-            const originalResolve = fieldConfig.resolve ?? defaultFieldResolver;
+      const requiredRole = authDirective['requires'] as string | undefined;
+      const originalResolve = fieldConfig.resolve ?? defaultFieldResolver;
 
-            fieldConfig.resolve = async (source, args, context: GQLContext, info) => {
-                if (!context.user) {
-                    throw new Error('Authentication required. Please provide a valid Bearer token.');
-                }
-                if (requiredRole) {
-                    const normalizedRequired = requiredRole.toLowerCase();
-                    const userRoles = context.user.roles.map(r => r.toLowerCase());
-                    const primaryRole = String(context.user.role).toLowerCase();
+      fieldConfig.resolve = async (source, args, context: GQLContext, info) => {
+        if (!context.user) {
+          throw new Error('Authentication required. Please provide a valid Bearer token.');
+        }
+        if (requiredRole) {
+          const normalizedRequired = requiredRole.toLowerCase();
+          const userRoles = context.user.roles.map((r) => r.toLowerCase());
+          const primaryRole = String(context.user.role).toLowerCase();
 
-                    if (!userRoles.includes(normalizedRequired) && primaryRole !== normalizedRequired) {
-                        throw new Error(`Insufficient permissions. Required role: ${requiredRole}`);
-                    }
-                }
-                return originalResolve(source, args, context, info);
-            };
-            return fieldConfig;
-        },
-    });
+          if (!userRoles.includes(normalizedRequired) && primaryRole !== normalizedRequired) {
+            // P0-W10-003 FIX: Do NOT leak required role name.
+            throw new Error('Insufficient permissions.');
+          }
+        }
+        return originalResolve(source, args, context, info);
+      };
+      return fieldConfig;
+    },
+  });
 }

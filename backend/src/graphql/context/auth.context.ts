@@ -28,21 +28,21 @@ import { createProjectLoader } from './dataloader/project.loader';
 import { createBOQLoader } from './dataloader/boq.loader';
 
 export interface GQLDataLoaders {
-    userLoader: ReturnType<typeof createUserLoader>;
-    projectLoader: ReturnType<typeof createProjectLoader>;
-    boqLoader: ReturnType<typeof createBOQLoader>;
+  userLoader: ReturnType<typeof createUserLoader>;
+  projectLoader: ReturnType<typeof createProjectLoader>;
+  boqLoader: ReturnType<typeof createBOQLoader>;
 }
 
 /**
  * GraphQL context type available in all resolvers.
  */
 export interface GQLContext {
-    /** Authenticated user or null for public queries */
-    user: AuthUser | null;
-    /** Raw Express request for IP/user-agent access */
-    req: Request;
-    /** Per-request caching/batching loaders */
-    loaders: GQLDataLoaders;
+  /** Authenticated user or null for public queries */
+  user: AuthUser | null;
+  /** Raw Express request for IP/user-agent access */
+  req: Request;
+  /** Per-request caching/batching loaders */
+  loaders: GQLDataLoaders;
 }
 
 /**
@@ -55,15 +55,15 @@ export interface GQLContext {
  * We simply read the resolved state — no duplicate verification.
  */
 export async function buildContext({ req }: { req: Request }): Promise<GQLContext> {
-    return {
-        user: req.authUser ?? null,
-        req,
-        loaders: {
-            userLoader: createUserLoader(),
-            projectLoader: createProjectLoader(),
-            boqLoader: createBOQLoader(),
-        },
-    };
+  return {
+    user: req.authUser ?? null,
+    req,
+    loaders: {
+      userLoader: createUserLoader(),
+      projectLoader: createProjectLoader(),
+      boqLoader: createBOQLoader(),
+    },
+  };
 }
 
 /**
@@ -71,10 +71,10 @@ export async function buildContext({ req }: { req: Request }): Promise<GQLContex
  * Throws a GraphQL-friendly error if the user is not authenticated.
  */
 export function requireAuth(context: GQLContext): AuthUser {
-    if (!context.user) {
-        throw new Error('Authentication required. Please provide a valid Bearer token.');
-    }
-    return context.user;
+  if (!context.user) {
+    throw new Error('Authentication required. Please provide a valid Bearer token.');
+  }
+  return context.user;
 }
 
 /**
@@ -82,15 +82,17 @@ export function requireAuth(context: GQLContext): AuthUser {
  * Throws a GraphQL-friendly error if the user doesn't have the required role.
  */
 export function requireRole(context: GQLContext, ...roles: string[]): AuthUser {
-    const user = requireAuth(context);
-    const lowerRoles = roles.map(r => r.toLowerCase());
+  const user = requireAuth(context);
+  const lowerRoles = roles.map((r) => r.toLowerCase());
 
-    // Check both primary role and multi-role array
-    const hasRole = lowerRoles.includes(user.role) ||
-        user.roles.some(r => lowerRoles.includes(r));
+  // Check both primary role and multi-role array
+  const hasRole = lowerRoles.includes(user.role) || user.roles.some((r) => lowerRoles.includes(r));
 
-    if (!hasRole) {
-        throw new Error(`Insufficient permissions. Required roles: ${roles.join(', ')}`);
-    }
-    return user;
+  if (!hasRole) {
+    // P0-W10-003 FIX: Do NOT leak required role names in error messages.
+    // PREVIOUS: `Required roles: ${roles.join(', ')}` — attackers could map RBAC structure.
+    // REST role-guard.middleware.ts was fixed (HGH-004) but this GraphQL path was missed.
+    throw new Error('Insufficient permissions.');
+  }
+  return user;
 }

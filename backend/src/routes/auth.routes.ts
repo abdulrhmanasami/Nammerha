@@ -25,7 +25,11 @@ import { query } from '../config/database';
 function hashToken(token: string): string {
   return crypto.createHash('sha256').update(token).digest('hex');
 }
-import { generateToken, authMiddleware, generateMfaChallengeToken } from '../middleware/auth.middleware';
+import {
+  generateToken,
+  authMiddleware,
+  generateMfaChallengeToken,
+} from '../middleware/auth.middleware';
 // P1-REM-003 FIX: Replaced direct email sending with persistent queue.
 // PREVIOUS: Fire-and-forget sendXxxEmail().catch() — lost on SMTP failure.
 // NOW: Emails are queued in PostgreSQL and retried with exponential backoff.
@@ -614,15 +618,42 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
           is_active: user.is_active,
           is_email_verified: user.is_email_verified,
           // GDPR-047: If account is soft-deleted, include deletion info
-          ...(user.deleted_at ? {
-            deletion_pending: true,
-            deletion_scheduled_at: user.deletion_scheduled_at?.toISOString?.() ?? null,
-          } : {}),
+          ...(user.deleted_at
+            ? {
+                deletion_pending: true,
+                deletion_scheduled_at: user.deletion_scheduled_at?.toISOString?.() ?? null,
+              }
+            : {}),
         },
         // MOB-AUTH-001: Token only included for mobile clients
         ...(isMobileClient ? { token } : {}),
       },
     } as ApiResponse);
+
+    // P0-W10-002 FIX: Log successful login to audit_trail for forensic compliance.
+    // PREVIOUS: Only FAILED logins were logged — making it impossible to answer
+    // "When did this account last log in?" or "From which IP?".
+    // Non-blocking (no await) to avoid slowing the login response.
+    // Standard: NIST SP 800-53 AU-3 (Content of Audit Records), ISO 27001 A.12.4.1.
+    query(
+      `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
+       VALUES ('login_success', 'user', $1, $1, $2)`,
+      [
+        user.user_id,
+        JSON.stringify({
+          email: user.email,
+          ip: clientIp,
+          user_agent: req.headers['user-agent'] ?? 'unknown',
+          method: 'email',
+          remember: remember ?? false,
+          platform: clientPlatform ?? 'web',
+          timestamp: new Date().toISOString(),
+        }),
+      ],
+    ).catch((err) => {
+      // Fire-and-forget: audit failure must NEVER block login
+      logger.error('Auth: Failed to log login_success audit', { error: err });
+    });
   } catch (error) {
     safeRouteError(res, error, 'Auth.Login');
   }

@@ -1051,7 +1051,7 @@ formLogin?.addEventListener('submit', async (e) => {
       // ── MFA Challenge Gate (Migration 046) ────────────────────────────────
       // If user has MFA enabled, the backend returns mfa_required + mfa_token
       // instead of a JWT. Show the TOTP input panel.
-      const data = response.data as Record<string, unknown>;
+      const data = response.data;
       if (data.mfa_required && typeof data.mfa_token === 'string') {
         showMfaChallengePanel(data.mfa_token, email);
         return;
@@ -1060,7 +1060,7 @@ formLogin?.addEventListener('submit', async (e) => {
       // UNIFIED CITIZEN: Uses shared handleLoginRedirect — single source of truth
       // for user context setting, redirect params, and onboarding detection.
       await handleLoginRedirect(
-        response.data.user as Record<string, unknown>,
+        response.data.user as unknown as Record<string, unknown>,
         t('auth_welcome_back', 'أهلاً بعودتك!'),
       );
     } else {
@@ -1256,7 +1256,9 @@ formRegister?.addEventListener('submit', async (e) => {
       }
     } else {
       const message =
-        err instanceof Error ? err.message : t('auth_network_error', 'خطأ في الشبكة. حاول مرة أخرى.');
+        err instanceof Error
+          ? err.message
+          : t('auth_network_error', 'خطأ في الشبكة. حاول مرة أخرى.');
       showBanner('error', message);
     }
   } finally {
@@ -1369,7 +1371,9 @@ async function handleForgotPassword(
     } else {
       showBanner(
         'error',
-        err instanceof Error ? err.message : t('auth_network_error', 'خطأ في الشبكة. حاول مرة أخرى.'),
+        err instanceof Error
+          ? err.message
+          : t('auth_network_error', 'خطأ في الشبكة. حاول مرة أخرى.'),
       );
     }
   } finally {
@@ -1827,7 +1831,9 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
   }
 
   function getFullCode(): string {
-    return Array.from(digitInputs).map((inp) => inp.value).join('');
+    return Array.from(digitInputs)
+      .map((inp) => inp.value)
+      .join('');
   }
 
   digitInputs.forEach((input, idx) => {
@@ -1907,13 +1913,15 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
         // Remove MFA panel and restore UI
         mfaPanel.remove();
         await handleLoginRedirect(
-          response.data.user as Record<string, unknown>,
+          response.data.user as unknown as Record<string, unknown>,
           t('auth_welcome_back', 'أهلاً بعودتك!'),
         );
       } else {
         showMfaError(response.error ?? t('mfa_invalid_code', 'رمز غير صحيح'));
         // Clear inputs for retry
-        digitInputs.forEach((inp) => { inp.value = ''; });
+        digitInputs.forEach((inp) => {
+          inp.value = '';
+        });
         digitInputs[0]?.focus();
       }
     } catch (err) {
@@ -1927,7 +1935,9 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
       } else {
         showMfaError(t('auth_network_error_short', 'خطأ في الشبكة'));
       }
-      digitInputs.forEach((inp) => { inp.value = ''; });
+      digitInputs.forEach((inp) => {
+        inp.value = '';
+      });
       digitInputs[0]?.focus();
     } finally {
       isMfaSubmitting = false;
@@ -1962,7 +1972,7 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
         haptic.success();
         mfaPanel.remove();
         await handleLoginRedirect(
-          response.data.user as Record<string, unknown>,
+          response.data.user as unknown as Record<string, unknown>,
           t('auth_welcome_back', 'أهلاً بعودتك!'),
         );
       } else {
@@ -2216,7 +2226,10 @@ function initGoogleSignIn(): void {
                 // Standard: OWASP Error Handling, Parity with login handler.
                 if (err instanceof ApiError) {
                   if (err.status === 429) {
-                    showBanner('error', err.message || t('auth_rate_limited', 'محاولات كثيرة. يرجى الانتظار.'));
+                    showBanner(
+                      'error',
+                      err.message || t('auth_rate_limited', 'محاولات كثيرة. يرجى الانتظار.'),
+                    );
                   } else {
                     showBanner('error', err.message || t('auth_login_failed', 'فشل تسجيل الدخول'));
                   }
@@ -2318,7 +2331,11 @@ function openGoogleOAuthPopup(clientId: string): void {
   // `noopener` in window.open features string is only reliably supported in
   // Chromium. Firefox ignores it, leaving window.opener accessible to the popup.
   // Standard: OWASP Tabnabbing Prevention, Defense-in-Depth.
-  try { popup.opener = null; } catch { /* cross-origin — safe */ }
+  try {
+    popup.opener = null;
+  } catch {
+    /* cross-origin — safe */
+  }
 
   // P1-W6-001 UPGRADE: Use tracked interval for pagehide cleanup.
   const pollTimer = createTrackedInterval(async () => {
@@ -2329,7 +2346,11 @@ function openGoogleOAuthPopup(clientId: string): void {
         // PREVIOUS: sessionStorage.__google_oauth_state lingered after user closed
         // the popup without completing OAuth. Harmless but unnecessary stale data.
         // Standard: State Hygiene, Defense-in-Depth.
-        try { sessionStorage.removeItem('__google_oauth_state'); } catch { /* ignore */ }
+        try {
+          sessionStorage.removeItem('__google_oauth_state');
+        } catch {
+          /* ignore */
+        }
         return;
       }
       // Check if the popup has navigated back to our origin
@@ -2393,7 +2414,10 @@ function openGoogleOAuthPopup(clientId: string): void {
             // P1-DEEP-004 FIX: ApiError-aware catch for Google popup callback.
             if (err instanceof ApiError) {
               if (err.status === 429) {
-                showBanner('error', err.message || t('auth_rate_limited', 'محاولات كثيرة. يرجى الانتظار.'));
+                showBanner(
+                  'error',
+                  err.message || t('auth_rate_limited', 'محاولات كثيرة. يرجى الانتظار.'),
+                );
               } else {
                 showBanner('error', err.message || t('auth_login_failed', 'فشل تسجيل الدخول'));
               }
@@ -2521,7 +2545,10 @@ function initAppleSignIn(): void {
           // P1-DEEP-004 FIX: ApiError-aware catch for Apple Sign-In.
           if (err instanceof ApiError) {
             if (err.status === 429) {
-              showBanner('error', err.message || t('auth_rate_limited', 'محاولات كثيرة. يرجى الانتظار.'));
+              showBanner(
+                'error',
+                err.message || t('auth_rate_limited', 'محاولات كثيرة. يرجى الانتظار.'),
+              );
             } else {
               showBanner('error', err.message || t('auth_login_failed', 'فشل تسجيل الدخول'));
             }
@@ -2565,10 +2592,7 @@ interface FacebookSDK {
     options: { scope: string },
   ) => void;
   getLoginStatus: (
-    callback: (response: {
-      status: string;
-      authResponse?: { accessToken: string };
-    }) => void,
+    callback: (response: { status: string; authResponse?: { accessToken: string } }) => void,
   ) => void;
 }
 
@@ -2705,7 +2729,10 @@ function initFacebookLogin(): void {
               // P1-DEEP-004 FIX: ApiError-aware catch for Facebook login.
               if (err instanceof ApiError) {
                 if (err.status === 429) {
-                  showBanner('error', err.message || t('auth_rate_limited', 'محاولات كثيرة. يرجى الانتظار.'));
+                  showBanner(
+                    'error',
+                    err.message || t('auth_rate_limited', 'محاولات كثيرة. يرجى الانتظار.'),
+                  );
                 } else {
                   showBanner('error', err.message || t('auth_login_failed', 'فشل تسجيل الدخول'));
                 }
@@ -2882,6 +2909,18 @@ document.querySelectorAll<HTMLInputElement>('input[type="password"]').forEach((p
     // getModifierState is supported in all modern browsers
     if (typeof e.getModifierState === 'function') {
       showCapsWarning(e.getModifierState('CapsLock'));
+    }
+  });
+
+  // P1-W10-015 FIX: Detect Caps Lock that was already ON before field focus.
+  // PREVIOUS: Only keydown handler existed — if Caps Lock was toggled before
+  // the field received focus, no warning appeared until the first keypress.
+  // FocusEvent supports getModifierState in Chrome 130+, Firefox 127+, Safari 17.4+.
+  // Standard: Apple HIG (Input Guidance), Defense-in-Depth.
+  pwField.addEventListener('focus', (e: FocusEvent) => {
+    const kbEvent = e as unknown as { getModifierState?: (key: string) => boolean };
+    if (typeof kbEvent.getModifierState === 'function') {
+      showCapsWarning(kbEvent.getModifierState('CapsLock'));
     }
   });
 

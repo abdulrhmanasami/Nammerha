@@ -1,6 +1,47 @@
 // ─── Auth ───────────────────────────────────────────────────────────────────
 import { request } from './_client';
 
+// P2-W10-023 FIX: Typed response interfaces — replaces `{ user: unknown }`.
+// Enables compile-time validation of user field access downstream.
+
+/** Standard user object shape returned by login, social login, and MFA endpoints. */
+export interface AuthUser {
+  user_id: string;
+  email: string;
+  full_name: string;
+  role: string;
+  roles: string[];
+  is_active: boolean;
+  is_email_verified: boolean;
+  avatar_url?: string | null;
+  social_provider?: string;
+  deletion_pending?: boolean;
+  deletion_scheduled_at?: string | null;
+}
+
+/** Typed response for login endpoint */
+export interface LoginResponseData {
+  user: AuthUser;
+  token?: string; // Only for mobile clients
+  mfa_required?: boolean;
+  mfa_token?: string;
+}
+
+/** Typed response for social login */
+export interface SocialLoginResponseData {
+  user: AuthUser;
+  token?: string;
+  is_new_user?: boolean;
+  mfa_required?: boolean;
+  mfa_token?: string;
+}
+
+/** Typed response for MFA verify / recovery */
+export interface MfaVerifyResponseData {
+  user: AuthUser;
+  token?: string;
+}
+
 export const auth = {
   // UNIFIED CITIZEN: No role field — backend auto-assigns all roles.
   // W3-P2-001 FIX: Added optional phone — cross-platform registration parity.
@@ -9,7 +50,7 @@ export const auth = {
 
   login: (data: { email: string; password: string; remember?: boolean }) =>
     // FIX-02: JWT is in httpOnly cookie — not in response body (NMR-AUD-H001).
-    request<{ user: unknown }>('/auth/login', {
+    request<LoginResponseData>('/auth/login', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
@@ -74,7 +115,7 @@ export const auth = {
     // This metadata helps the backend distinguish token types for validation.
     token_type?: 'id_token' | 'access_token';
   }) =>
-    request<{ user: unknown }>('/auth/social', {
+    request<SocialLoginResponseData>('/auth/social', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
@@ -110,10 +151,9 @@ export const auth = {
 
   /** Begin MFA enrollment — returns QR code + manual secret key */
   mfaSetup: () =>
-    request<{ secret: string; otpauth_uri: string; qr_data_url: string }>(
-      '/auth/mfa/setup',
-      { method: 'POST' },
-    ),
+    request<{ secret: string; otpauth_uri: string; qr_data_url: string }>('/auth/mfa/setup', {
+      method: 'POST',
+    }),
 
   /** Confirm enrollment with first TOTP code → returns recovery codes */
   mfaConfirm: (data: { token: string }) =>
@@ -124,14 +164,14 @@ export const auth = {
 
   /** Login MFA challenge — verify TOTP code */
   mfaVerify: (data: { mfa_token: string; code: string }) =>
-    request<{ user: unknown }>('/auth/mfa/verify', {
+    request<MfaVerifyResponseData>('/auth/mfa/verify', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
 
   /** Login MFA challenge — verify recovery code */
   mfaRecovery: (data: { mfa_token: string; recovery_code: string }) =>
-    request<{ user: unknown }>('/auth/mfa/recovery', {
+    request<MfaVerifyResponseData>('/auth/mfa/recovery', {
       method: 'POST',
       body: JSON.stringify(data),
     }),

@@ -3,6 +3,14 @@
 // ============================================================================
 // Generic, reusable sliding-window rate limiter. No external dependencies.
 //
+// SCALING-DEBT (P0-W10-004): This rate limiter uses in-memory Map storage.
+// In a multi-instance deployment (horizontal scaling behind a load balancer),
+// each instance maintains independent counters. An attacker distributing
+// requests across N instances effectively gets N× the rate limit.
+// MIGRATION PATH: Replace `windows` Map with Redis INCR + EXPIRE pattern
+// when scaling beyond a single instance. See: ioredis sliding-window recipe.
+// ACCEPTED RISK for current single-instance deployment.
+//
 // Usage:
 //   router.get('/heavy-endpoint', createEndpointRateLimiter({
 //       windowMs: 60_000,     // 1 minute window
@@ -22,19 +30,19 @@ import { logger } from '../utils/logger';
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 interface RateLimiterOptions {
-    /** Window duration in milliseconds (default: 60_000 = 1 minute) */
-    windowMs?: number;
-    /** Maximum requests allowed per window (default: 10) */
-    maxRequests?: number;
-    /** Custom key extractor. Defaults to authUser.user_id or IP. */
-    keyExtractor?: (req: Request) => string;
-    /** Context label for logging (e.g., 'ReceiptPDF') */
-    context?: string;
+  /** Window duration in milliseconds (default: 60_000 = 1 minute) */
+  windowMs?: number;
+  /** Maximum requests allowed per window (default: 10) */
+  maxRequests?: number;
+  /** Custom key extractor. Defaults to authUser.user_id or IP. */
+  keyExtractor?: (req: Request) => string;
+  /** Context label for logging (e.g., 'ReceiptPDF') */
+  context?: string;
 }
 
 interface WindowEntry {
-    count: number;
-    windowStart: number;
+  count: number;
+  windowStart: number;
 }
 
 // ─── Factory ────────────────────────────────────────────────────────────────
@@ -53,93 +61,92 @@ interface WindowEntry {
  * if the process exits gracefully.
  */
 export function createEndpointRateLimiter(options: RateLimiterOptions = {}) {
-    const windowMs = options.windowMs ?? 60_000;
-    const maxRequests = options.maxRequests ?? 10;
-    const context = options.context ?? 'RateLimiter';
+  const windowMs = options.windowMs ?? 60_000;
+  const maxRequests = options.maxRequests ?? 10;
+  const context = options.context ?? 'RateLimiter';
 
-    const defaultKeyExtractor = (req: Request): string => {
-        // Prefer authenticated user ID for precision
-        if (req.authUser?.user_id) {
-            return `user:${req.authUser.user_id}`;
-        }
-        // Fallback to IP (handles proxied requests via x-forwarded-for)
-        const forwarded = req.headers['x-forwarded-for'];
-        const ip = typeof forwarded === 'string'
-            ? forwarded.split(',')[0]?.trim()
-            : req.socket.remoteAddress;
-        return `ip:${ip ?? 'unknown'}`;
-    };
+  const defaultKeyExtractor = (req: Request): string => {
+    // Prefer authenticated user ID for precision
+    if (req.authUser?.user_id) {
+      return `user:${req.authUser.user_id}`;
+    }
+    // Fallback to IP (handles proxied requests via x-forwarded-for)
+    const forwarded = req.headers['x-forwarded-for'];
+    const ip =
+      typeof forwarded === 'string' ? forwarded.split(',')[0]?.trim() : req.socket.remoteAddress;
+    return `ip:${ip ?? 'unknown'}`;
+  };
 
-    const keyExtractor = options.keyExtractor ?? defaultKeyExtractor;
-    const windows = new Map<string, WindowEntry>();
+  const keyExtractor = options.keyExtractor ?? defaultKeyExtractor;
+  const windows = new Map<string, WindowEntry>();
 
-    // ── Periodic Cleanup ────────────────────────────────────────────────
-    // Sweep expired entries every 60 seconds to prevent memory leaks
-    // from users who made requests once and never returned.
-    const sweepInterval = setInterval(() => {
-        const now = Date.now();
-        let swept = 0;
-        for (const [key, entry] of windows) {
-            if (now - entry.windowStart > windowMs) {
-                windows.delete(key);
-                swept++;
-            }
-        }
-        if (swept > 0) {
-            logger.debug(`${context}: Swept ${swept} expired rate-limit entries`, {
-                remaining: windows.size,
-            });
-        }
-    }, 60_000);
+  // ── Periodic Cleanup ────────────────────────────────────────────────
+  // Sweep expired entries every 60 seconds to prevent memory leaks
+  // from users who made requests once and never returned.
+  const sweepInterval = setInterval(() => {
+    const now = Date.now();
+    let swept = 0;
+    for (const [key, entry] of windows) {
+      if (now - entry.windowStart > windowMs) {
+        windows.delete(key);
+        swept++;
+      }
+    }
+    if (swept > 0) {
+      logger.debug(`${context}: Swept ${swept} expired rate-limit entries`, {
+        remaining: windows.size,
+      });
+    }
+  }, 60_000);
 
-    // Prevent the interval from keeping the process alive during shutdown
-    sweepInterval.unref();
+  // Prevent the interval from keeping the process alive during shutdown
+  sweepInterval.unref();
 
-    // ── Middleware ───────────────────────────────────────────────────────
+  // ── Middleware ───────────────────────────────────────────────────────
 
-    return (req: Request, res: Response, next: NextFunction): void => {
-        const key = keyExtractor(req);
-        const now = Date.now();
-        const existing = windows.get(key);
+  return (req: Request, res: Response, next: NextFunction): void => {
+    const key = keyExtractor(req);
+    const now = Date.now();
+    const existing = windows.get(key);
 
-        if (!existing || now - existing.windowStart > windowMs) {
-            // Window expired or first request — start new window
-            windows.set(key, { count: 1, windowStart: now });
-            // Set rate limit headers (RFC 6585 / draft-ietf-httpapi-ratelimit-headers)
-            res.setHeader('X-RateLimit-Limit', maxRequests);
-            res.setHeader('X-RateLimit-Remaining', maxRequests - 1);
-            next();
-            return;
-        }
+    if (!existing || now - existing.windowStart > windowMs) {
+      // Window expired or first request — start new window
+      windows.set(key, { count: 1, windowStart: now });
+      // Set rate limit headers (RFC 6585 / draft-ietf-httpapi-ratelimit-headers)
+      res.setHeader('X-RateLimit-Limit', maxRequests);
+      res.setHeader('X-RateLimit-Remaining', maxRequests - 1);
+      next();
+      return;
+    }
 
-        // Window still active — increment counter
-        existing.count++;
+    // Window still active — increment counter
+    existing.count++;
 
-        if (existing.count > maxRequests) {
-            // Rate limit exceeded
-            const retryAfterMs = windowMs - (now - existing.windowStart);
-            const retryAfterSec = Math.ceil(retryAfterMs / 1000);
+    if (existing.count > maxRequests) {
+      // Rate limit exceeded
+      const retryAfterMs = windowMs - (now - existing.windowStart);
+      const retryAfterSec = Math.ceil(retryAfterMs / 1000);
 
-            logger.warn(`${context}: Rate limit exceeded`, {
-                key,
-                count: existing.count,
-                limit: maxRequests,
-                retry_after_sec: retryAfterSec,
-            });
+      logger.warn(`${context}: Rate limit exceeded`, {
+        key,
+        count: existing.count,
+        limit: maxRequests,
+        retry_after_sec: retryAfterSec,
+      });
 
-            res.setHeader('Retry-After', retryAfterSec);
-            res.setHeader('X-RateLimit-Limit', maxRequests);
-            res.setHeader('X-RateLimit-Remaining', 0);
-            res.status(429).json({
-                success: false,
-                error: 'تم تجاوز الحد الأقصى للطلبات. يرجى المحاولة لاحقاً.',
-            });
-            return;
-        }
+      res.setHeader('Retry-After', retryAfterSec);
+      res.setHeader('X-RateLimit-Limit', maxRequests);
+      res.setHeader('X-RateLimit-Remaining', 0);
+      res.status(429).json({
+        success: false,
+        error: 'تم تجاوز الحد الأقصى للطلبات. يرجى المحاولة لاحقاً.',
+      });
+      return;
+    }
 
-        // Under limit — allow through
-        res.setHeader('X-RateLimit-Limit', maxRequests);
-        res.setHeader('X-RateLimit-Remaining', maxRequests - existing.count);
-        next();
-    };
+    // Under limit — allow through
+    res.setHeader('X-RateLimit-Limit', maxRequests);
+    res.setHeader('X-RateLimit-Remaining', maxRequests - existing.count);
+    next();
+  };
 }
