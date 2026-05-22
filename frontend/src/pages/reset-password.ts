@@ -38,6 +38,21 @@ const strengthLabel = document.getElementById('pw-strength-label');
 const urlParams = new URLSearchParams(window.location.search);
 const resetToken = urlParams.get('token');
 
+// P2-W11-006 FIX: Remove token from URL bar after extraction.
+// PREVIOUS: Reset token persisted in browser address bar and history.
+// On shared/public computers (common in Syrian internet cafes), the token is exposed
+// to the next user via browser history or the visible URL.
+// Standard: OWASP Token Handling, CWE-598 (Sensitive Info in GET Request).
+if (resetToken) {
+  try {
+    const cleanUrl = new URL(window.location.href);
+    cleanUrl.searchParams.delete('token');
+    history.replaceState(null, '', cleanUrl.toString());
+  } catch {
+    /* URL manipulation failed — non-critical */
+  }
+}
+
 // BUG-008 FIX: Mirror backend SEC-003 — bcrypt truncates at 72 bytes but still
 // processes the full input. Without this check, a 500+ char password from the
 // reset form would cause CPU starvation on the backend.

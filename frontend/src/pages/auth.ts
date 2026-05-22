@@ -1114,11 +1114,48 @@ formLogin?.addEventListener('submit', async (e) => {
         // Previous: Generic red error banner — user thought account was broken.
         // Now: Amber warning banner with clear "try again later" messaging.
         // Standard: Nielsen #9 (Error Recovery), FinTech Rate Limit UX.
-        showBanner(
-          'error',
-          err.message ||
-            t('auth_rate_limited', 'محاولات كثيرة. يرجى الانتظار قبل المحاولة مرة أخرى.'),
-        );
+        //
+        // P1-W11-008 FIX: Parse lockout minutes from backend message and show countdown.
+        // PREVIOUS: Static "try again later" — user manually checked back later.
+        // Backend message format: "Account temporarily locked. Try again in X minute(s)."
+        // NOW: Extracts X and shows a live countdown in the banner text.
+        // Standard: Nielsen #1 (System Status Visibility), FinTech Lockout UX.
+        const errorMsg = err.message || '';
+        const minuteMatch = errorMsg.match(/(\d+)\s*minute/i);
+        const lockoutMinutes = minuteMatch ? parseInt(minuteMatch[1] ?? '0', 10) : 0;
+
+        if (lockoutMinutes > 0) {
+          let remainingSeconds = lockoutMinutes * 60;
+          const lockoutMsg = () =>
+            t(
+              'auth_lockout_countdown',
+              `الحساب مقفل مؤقتاً — يمكنك المحاولة بعد ${Math.ceil(remainingSeconds / 60)} دقيقة (${remainingSeconds}s)`,
+            )
+              .replace('{minutes}', String(Math.ceil(remainingSeconds / 60)))
+              .replace('{seconds}', String(remainingSeconds));
+
+          showBanner('error', lockoutMsg());
+
+          const _lockoutTimer = createTrackedInterval(() => {
+            remainingSeconds--;
+            if (remainingSeconds <= 0) {
+              clearTrackedInterval(_lockoutTimer);
+              showBanner('success', t('auth_lockout_ended', 'يمكنك المحاولة الآن'));
+            } else {
+              // Update banner text in-place
+              const bannerTextEl = document.getElementById('auth-banner-text');
+              if (bannerTextEl) {
+                bannerTextEl.textContent = lockoutMsg();
+              }
+            }
+          }, 1000);
+        } else {
+          showBanner(
+            'error',
+            errorMsg ||
+              t('auth_rate_limited', 'محاولات كثيرة. يرجى الانتظار قبل المحاولة مرة أخرى.'),
+          );
+        }
       } else {
         showBanner('error', err.message || t('auth_login_failed', 'فشل تسجيل الدخول'));
       }
@@ -1436,6 +1473,9 @@ function showEmailSentConfirmation(emailAddress: string): void {
       <p class="text-sm font-bold text-trust-blue mb-4 break-all" dir="ltr">${esc(emailAddress)}</p>
       <p class="text-xs text-slate-400 dark:text-slate-500 mb-6" data-i18n="auth_email_sent_hint">
         ${esc(t('auth_email_sent_hint', 'تحقق من مجلد الرسائل غير المرغوب فيها (Spam) إذا لم تجد الرسالة'))}
+      </p>
+      <p class="text-3xs text-slate-400 dark:text-slate-500 mb-4" data-i18n="auth_email_sent_existing_hint">
+        ${esc(t('auth_email_sent_existing_hint', 'لم يصلك شيء خلال ٥ دقائق؟ ربما لديك حساب سابق — جرّب تسجيل الدخول'))}
       </p>
       <div class="flex flex-col gap-3">
         <button type="button" id="nm-resend-from-confirm" class="btn-secondary w-full flex items-center justify-center gap-2">

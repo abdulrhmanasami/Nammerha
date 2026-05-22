@@ -51,6 +51,19 @@ const resendFeedback = document.getElementById('verify-resend-feedback');
 const urlParams = new URLSearchParams(window.location.search);
 const verifyToken = urlParams.get('token');
 
+// P2-W11-007 FIX: Remove token from URL bar after extraction.
+// Same as P2-W11-006 for reset-password — prevents token exposure on shared computers.
+// Standard: OWASP Token Handling, CWE-598 (Sensitive Info in GET Request).
+if (verifyToken) {
+  try {
+    const cleanUrl = new URL(window.location.href);
+    cleanUrl.searchParams.delete('token');
+    history.replaceState(null, '', cleanUrl.toString());
+  } catch {
+    /* URL manipulation failed — non-critical */
+  }
+}
+
 function showResult(
   type: 'success' | 'error' | 'expired',
   titleText: string,
@@ -148,7 +161,8 @@ async function verifyEmail(): Promise<void> {
         showResult(
           'success',
           t('verify_already_title', 'تم التحقق مسبقاً'),
-          data.message ?? t('verify_already_body', 'بريدك الإلكتروني مؤكد بالفعل — يمكنك تسجيل الدخول'),
+          data.message ??
+            t('verify_already_body', 'بريدك الإلكتروني مؤكد بالفعل — يمكنك تسجيل الدخول'),
         );
       } else {
         showResult(

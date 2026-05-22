@@ -862,10 +862,12 @@ router.post(
 
       // W3-P1-007 FIX: Also select is_email_verified so we can redirect
       // unverified users to the verification flow instead of password reset.
-      const result = await query<Pick<User, 'user_id' | 'email' | 'is_email_verified'>>(
-        'SELECT user_id, email, is_email_verified FROM users WHERE email = $1',
-        [normalizedEmail],
-      );
+      // P0-W11-004 FIX: Also select password_hash to detect social-only accounts.
+      const result = await query<
+        Pick<User, 'user_id' | 'email' | 'is_email_verified' | 'password_hash'>
+      >('SELECT user_id, email, is_email_verified, password_hash FROM users WHERE email = $1', [
+        normalizedEmail,
+      ]);
 
       const user = result.rows[0];
       if (!user) {
@@ -905,6 +907,33 @@ router.post(
         return;
       }
 
+      // P0-W11-004 FIX: Social-only account guard.
+      // PREVIOUS: Social-only users (Google/Apple/Facebook) who clicked "Forgot Password?"
+      // received a legitimate password reset link. Clicking it set a password, silently
+      // creating dual-auth (social + email/password) without any warning.
+      // NOW: Send a helpful security alert email instead — tells the user their account
+      // uses social login (Google/Apple/Facebook) and guides them to use that method.
+      // Anti-enumeration response stays identical.
+      // Standard: OWASP Session Management, Nielsen #5 (Error Prevention).
+      if (!user.password_hash) {
+        enqueueSecurityAlertEmail(
+          user.email,
+          'Password Reset Attempt — Social Account',
+          'Someone attempted to reset the password for your account. Your account uses social login (Google/Apple/Facebook) — you do not have a password to reset. If you did not make this request, no action is needed. To sign in, use the same social login method you used to create your account.',
+          req.ip ?? 'unknown',
+          getEmailLocale(req),
+          {
+            sourceAction: 'forgot_password_social_only',
+            sourceUserId: user.user_id,
+          },
+        );
+        logger.info('Auth: Social-only user hit forgot-password, sent social login guidance', {
+          email: normalizedEmail,
+        });
+        res.json(successResponse);
+        return;
+      }
+
       // Generate cryptographically secure reset token
       const resetToken = crypto.randomBytes(32).toString('hex');
       const tokenExpiry = new Date();
@@ -918,7 +947,13 @@ router.post(
 
       // Send reset email
       const baseUrl = process.env['APP_BASE_URL'] ?? 'https://nammerha.com';
-      const resetUrl = `${baseUrl}/reset-password.html?token=${resetToken}`;
+      // P0-W11-006 FIX: Include email in reset URL for post-reset login pre-fill.
+      // PREVIOUS: Reset URL had no email param. After successful reset, the redirect
+      // to auth.html relied on API response data. If the response was interrupted
+      // (common on Syria 2G), the fallback chain had no email to pre-fill.
+      // NOW: Same pattern as verification URL (L895) — email in URL as fallback.
+      // Standard: Nielsen #6 (Recognition Over Recall), Defense-in-Depth.
+      const resetUrl = `${baseUrl}/reset-password.html?token=${resetToken}&email=${encodeURIComponent(user.email)}`;
       enqueuePasswordResetEmail(user.email, resetUrl, getEmailLocale(req), {
         sourceAction: 'forgot_password',
         sourceUserId: user.user_id,

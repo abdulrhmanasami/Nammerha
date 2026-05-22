@@ -150,6 +150,42 @@ if (typeof window !== 'undefined') {
                 </a>
             `;
       document.body.appendChild(banner);
+
+      // P1-W11-010 FIX: Auto-dismiss after 30s with fade animation.
+      // PREVIOUS: Banner stayed FOREVER until manually clicked.
+      // Standard: Material Design 3 (Transient Feedback), Banner Auto-Dismiss.
+      setTimeout(() => {
+        const el = document.getElementById('nm-cross-tab-logout');
+        if (el) {
+          el.style.transition = 'opacity 0.3s ease-out, transform 0.3s ease-out';
+          el.style.opacity = '0';
+          el.style.transform = 'translateY(-100%)';
+          setTimeout(() => el.remove(), 300);
+        }
+      }, 30000);
+    }
+
+    // P1-W11-010 FIX: Auto-dismiss cross-tab logout banner when user logs in from another tab.
+    // PREVIOUS: Logout banner persisted even after user re-authenticated in another tab.
+    // The banner stayed visible because we only listened for key REMOVAL, not key SETTING.
+    // Standard: Nielsen #1 (System Status Visibility), Session State Consistency.
+    if (e.key === STORAGE_KEY && e.newValue !== null) {
+      // Another tab just logged in — update local state and dismiss any logout banner
+      try {
+        currentUser = JSON.parse(e.newValue) as AuthUser;
+        if (currentUser && !currentUser.roles) {
+          currentUser.roles = [currentUser.role];
+        }
+      } catch {
+        /* malformed data — ignore */
+      }
+      const logoutBanner = document.getElementById('nm-cross-tab-logout');
+      if (logoutBanner) {
+        logoutBanner.style.transition = 'opacity 0.3s ease-out, transform 0.3s ease-out';
+        logoutBanner.style.opacity = '0';
+        logoutBanner.style.transform = 'translateY(-100%)';
+        setTimeout(() => logoutBanner.remove(), 300);
+      }
     }
   });
 }
