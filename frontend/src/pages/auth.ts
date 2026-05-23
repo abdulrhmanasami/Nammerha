@@ -1419,10 +1419,17 @@ formLogin?.addEventListener('submit', async (e) => {
           } catch {
             /* Safari incognito */
           }
+          // P2-S5-006 FIX: Use placeholder-based fallback for proper i18n interpolation.
+          // PREVIOUS: Arabic fallback used template literals (${Math.ceil(...)}) which
+          // embedded the values directly — .replace('{minutes}', ...) did nothing because
+          // the placeholders didn't exist in the interpolated string.
+          // NOW: Fallback uses {minutes} and {seconds} placeholders so both the fallback
+          // and i18n dictionary entries can be interpolated uniformly.
+          // Standard: i18n String Interpolation Parity, ICU MessageFormat Pattern.
           const lockoutMsg = () =>
             t(
               'auth_lockout_countdown',
-              `الحساب مقفل مؤقتاً — يمكنك المحاولة بعد ${Math.ceil(remainingSeconds / 60)} دقيقة (${remainingSeconds}s)`,
+              'الحساب مقفل مؤقتاً — يمكنك المحاولة بعد {minutes} دقيقة ({seconds}s)',
             )
               .replace('{minutes}', String(Math.ceil(remainingSeconds / 60)))
               .replace('{seconds}', String(remainingSeconds));
@@ -1448,6 +1455,49 @@ formLogin?.addEventListener('submit', async (e) => {
               }
             }
           }, 1000);
+
+          // P3-S5-010 FIX: Recalculate countdown on tab visibility change.
+          // PREVIOUS: setInterval drifts when tab is backgrounded (Safari throttles to
+          // 1s minimum and may pause entirely after 30s). After 15 minutes in background,
+          // the countdown shows stale "3 minutes left" when lockout already expired.
+          // NOW: On visibilitychange, recalculates from the sessionStorage timestamp.
+          // Standard: Page Visibility API, Mobile Safari Timer Throttling Resilience.
+          const _lockoutVisibilityHandler = (): void => {
+            if (document.visibilityState !== 'visible') return;
+            try {
+              const storedUntil = sessionStorage.getItem('nmh_lockout_until');
+              if (!storedUntil) {
+                // Lockout already cleared
+                clearTrackedInterval(_lockoutTimer);
+                return;
+              }
+              const msLeft = parseInt(storedUntil, 10) - Date.now();
+              if (msLeft <= 0) {
+                // Lockout expired while tab was hidden
+                clearTrackedInterval(_lockoutTimer);
+                sessionStorage.removeItem('nmh_lockout_until');
+                showBanner('success', t('auth_lockout_ended', 'يمكنك المحاولة الآن'));
+              } else {
+                // Resync the countdown variable
+                remainingSeconds = Math.ceil(msLeft / 1000);
+                const bannerTextEl = document.getElementById('auth-banner-text');
+                if (bannerTextEl) {
+                  bannerTextEl.textContent = lockoutMsg();
+                }
+              }
+            } catch {
+              /* sessionStorage unavailable */
+            }
+          };
+          document.addEventListener('visibilitychange', _lockoutVisibilityHandler);
+          // Clean up the visibility listener when lockout ends
+          addTrackedTimer(
+            createTrackedInterval(() => {
+              if (remainingSeconds <= 0) {
+                document.removeEventListener('visibilitychange', _lockoutVisibilityHandler);
+              }
+            }, 1000),
+          );
         } else {
           showBanner(
             'error',
@@ -1618,10 +1668,11 @@ formRegister?.addEventListener('submit', async (e) => {
           } catch {
             /* Safari incognito */
           }
+          // P2-S5-006 FIX: Placeholder-based fallback — parity with login lockout (L1422).
           const regLockoutMsg = () =>
             t(
               'auth_reg_lockout_countdown',
-              `تم تقييد التسجيل مؤقتاً — يمكنك المحاولة بعد ${Math.ceil(regRemainingSeconds / 60)} دقيقة (${regRemainingSeconds}s)`,
+              'تم تقييد التسجيل مؤقتاً — يمكنك المحاولة بعد {minutes} دقيقة ({seconds}s)',
             )
               .replace('{minutes}', String(Math.ceil(regRemainingSeconds / 60)))
               .replace('{seconds}', String(regRemainingSeconds));
@@ -2221,7 +2272,13 @@ async function handleLoginRedirect(
       email: userData.email,
       kyc_verified: userData.is_active,
     });
-  } catch {
+  } catch (importErr) {
+    // P3-S5-012 FIX: Log the error instead of swallowing silently.
+    // PREVIOUS: Empty catch block swallowed ALL errors — syntax errors, circular
+    // dependencies, memory failures. Impossible to debug in production.
+    // NOW: console.warn for visibility without breaking the degraded flow.
+    // Standard: Defense-in-Depth Observability, Structured Error Logging.
+    console.warn('Auth: setCurrentUser dynamic import failed — degraded login', importErr);
     // Dynamic import failed — user context won't be set in localStorage,
     // but the JWT cookie is already set by the backend. On next page load,
     // the auth module will hydrate from the cookie via /api/auth/me.

@@ -800,10 +800,18 @@ router.post(
       );
 
       const user = result.rows[0];
+      // P2-S5-004 FIX: All verify-email responses now i18n-aware.
+      // PREVIOUS: All 4 messages hardcoded English — Arabic users saw untranslated text.
+      // Session 4 fixed login/lockout/social/unverified endpoints but missed verify-email.
+      // Standard: WCAG 3.1.1 (Language of Page), Nammerha i18n Architecture.
+      const locale = getEmailLocale(req);
       if (!user) {
         res.status(404).json({
           success: false,
-          error: 'Verification token not found or already used',
+          error:
+            locale === 'ar'
+              ? 'رمز التحقق غير صالح أو تم استخدامه بالفعل'
+              : 'Verification token not found or already used',
         } as ApiResponse);
         return;
       }
@@ -811,7 +819,8 @@ router.post(
       if (user.is_email_verified) {
         res.json({
           success: true,
-          message: 'Email already verified',
+          message:
+            locale === 'ar' ? 'تم التحقق من البريد الإلكتروني بالفعل' : 'Email already verified',
         } as ApiResponse);
         return;
       }
@@ -820,7 +829,10 @@ router.post(
       if (user.email_token_expires_at && new Date(user.email_token_expires_at) < new Date()) {
         res.status(410).json({
           success: false,
-          error: 'Verification token has expired. Please request a new one.',
+          error:
+            locale === 'ar'
+              ? 'انتهت صلاحية رمز التحقق. يرجى طلب رمز جديد.'
+              : 'Verification token has expired. Please request a new one.',
         } as ApiResponse);
         return;
       }
@@ -846,7 +858,10 @@ router.post(
 
       res.json({
         success: true,
-        message: 'Email verified successfully. You can now access all platform features.',
+        message:
+          locale === 'ar'
+            ? 'تم التحقق من بريدك الإلكتروني بنجاح. يمكنك الآن الوصول لجميع ميزات المنصة.'
+            : 'Email verified successfully. You can now access all platform features.',
       } as ApiResponse);
     } catch (error) {
       safeRouteError(res, error, 'Auth.VerifyEmail');
@@ -905,12 +920,15 @@ router.post(
         tokenCreatedAt.setHours(tokenCreatedAt.getHours() - VERIFICATION_TOKEN_EXPIRY_HOURS);
         const secondsSinceLastSend = (Date.now() - tokenCreatedAt.getTime()) / 1000;
         if (secondsSinceLastSend < RESEND_COOLDOWN_SECONDS) {
-          const waitSeconds = Math.ceil(RESEND_COOLDOWN_SECONDS - secondsSinceLastSend);
-          // P2-W5-001: Removed locale ternary — clients translate via i18n.
-          res.status(429).json({
-            success: false,
-            error: `Please wait ${waitSeconds} seconds before requesting another verification email`,
-          } as ApiResponse);
+          // P1-S5-001 FIX: Return generic response during cooldown — anti-enumeration.
+          // PREVIOUS: Returned 429 with wait time. This created a status-code oracle:
+          //   - Known unverified email + cooldown → 429
+          //   - Unknown/verified email → 200 (L897-899)
+          // An attacker could distinguish registered+unverified emails from others by
+          // sending two requests 60s apart and comparing status codes.
+          // sensitiveActionLimiter already protects against IP-level abuse.
+          // Standard: OWASP Authentication Cheat Sheet (Anti-Enumeration), CWE-204.
+          res.json(GENERIC_RESPONSE);
           return;
         }
       }
@@ -1063,12 +1081,21 @@ router.post(
       // Anti-enumeration response stays identical.
       // Standard: OWASP Session Management, Nielsen #5 (Error Prevention).
       if (!user.password_hash) {
+        // P3-S5-008 FIX: i18n-aware social-only alert email.
+        // PREVIOUS: English-only subject/body — Arabic users received English security alert.
+        // Parity with lockout alert (L600-604) and reset confirmation (L1236-1239).
+        // Standard: WCAG 3.1.1, Nammerha i18n Architecture.
+        const socialAlertLocale = getEmailLocale(req);
         enqueueSecurityAlertEmail(
           user.email,
-          'Password Reset Attempt — Social Account',
-          'Someone attempted to reset the password for your account. Your account uses social login (Google/Apple/Facebook) — you do not have a password to reset. If you did not make this request, no action is needed. To sign in, use the same social login method you used to create your account.',
+          socialAlertLocale === 'ar'
+            ? 'محاولة إعادة تعيين كلمة المرور — حساب اجتماعي'
+            : 'Password Reset Attempt — Social Account',
+          socialAlertLocale === 'ar'
+            ? 'حاول شخص ما إعادة تعيين كلمة المرور لحسابك. حسابك يستخدم تسجيل الدخول عبر وسائل التواصل الاجتماعي (Google/Apple/Facebook) — ليس لديك كلمة مرور لإعادة تعيينها. إذا لم تقم بهذا الطلب، لا حاجة لاتخاذ أي إجراء. لتسجيل الدخول، استخدم نفس طريقة تسجيل الدخول الاجتماعية التي استخدمتها لإنشاء حسابك.'
+            : 'Someone attempted to reset the password for your account. Your account uses social login (Google/Apple/Facebook) — you do not have a password to reset. If you did not make this request, no action is needed. To sign in, use the same social login method you used to create your account.',
           req.ip ?? 'unknown',
-          getEmailLocale(req),
+          socialAlertLocale,
           {
             sourceAction: 'forgot_password_social_only',
             sourceUserId: user.user_id,
@@ -1350,11 +1377,19 @@ router.post(
       }
       const { current_password, new_password, remember } = parsed.data;
 
+      // P3-S5-009 FIX: All change-password errors now i18n-aware.
+      // PREVIOUS: 3 hardcoded English errors — Arabic users saw untranslated text.
+      // Standard: WCAG 3.1.1, Nammerha i18n Architecture.
+      const changePwLocale = getEmailLocale(req);
+
       // ── Validation: No password reuse ──────────────────────────
       if (current_password === new_password) {
         res.status(400).json({
           success: false,
-          error: 'New password must be different from current password',
+          error:
+            changePwLocale === 'ar'
+              ? 'يجب أن تكون كلمة المرور الجديدة مختلفة عن الحالية'
+              : 'New password must be different from current password',
         } as ApiResponse);
         return;
       }
@@ -1365,10 +1400,18 @@ router.post(
       >('SELECT user_id, email, password_hash, role FROM users WHERE user_id = $1', [userId]);
 
       const user = userResult.rows[0];
+      // P1-S5-002 FIX: Unified error for user-not-found and social-only.
+      // PREVIOUS: Differentiated 404 "User not found" and 400 "social login" errors
+      // could be used to probe account configuration after session hijacking.
+      // NOW: Single generic error for both paths.
+      // Standard: OWASP Error Handling, Information Leakage Prevention.
       if (!user) {
-        res.status(404).json({
+        res.status(400).json({
           success: false,
-          error: 'User not found',
+          error:
+            changePwLocale === 'ar'
+              ? 'تعذر تغيير كلمة المرور. يرجى المحاولة مرة أخرى.'
+              : 'Unable to change password. Please try again.',
         } as ApiResponse);
         return;
       }
@@ -1380,7 +1423,9 @@ router.post(
         res.status(400).json({
           success: false,
           error:
-            'This account uses social login and does not have a password. Use your social provider to sign in.',
+            changePwLocale === 'ar'
+              ? 'تعذر تغيير كلمة المرور. يرجى المحاولة مرة أخرى.'
+              : 'Unable to change password. Please try again.',
         } as ApiResponse);
         return;
       }
@@ -1391,7 +1436,10 @@ router.post(
         logger.warn('Auth: Change password — invalid current password', { userId });
         res.status(401).json({
           success: false,
-          error: 'Current password is incorrect',
+          error:
+            changePwLocale === 'ar'
+              ? 'كلمة المرور الحالية غير صحيحة'
+              : 'Current password is incorrect',
         } as ApiResponse);
         return;
       }
@@ -1518,6 +1566,11 @@ router.get('/me', authMiddleware, async (req: Request, res: Response): Promise<v
 // ────────────────────────────────────────────────────────────────────────────
 
 // GET /api/auth/sessions — List all active sessions for the authenticated user
+// P3-S5-011 FIX: Session endpoints now rate-limited.
+// PREVIOUS: GET/DELETE /sessions had authMiddleware but no IP-level rate limiter.
+// While auth middleware limits access to valid JWT holders, session listing could
+// be used for reconnaissance. DELETE could be used for session-invalidation DoS.
+// Standard: OWASP Rate Limiting, Defense-in-Depth.
 router.get('/sessions', authMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
     const { getActiveSessions } = await import('../services/device-auth.service');
@@ -1544,6 +1597,7 @@ router.get('/sessions', authMiddleware, async (req: Request, res: Response): Pro
 router.delete(
   '/sessions/:deviceId',
   authMiddleware,
+  sensitiveActionLimiter,
   async (req: Request, res: Response): Promise<void> => {
     try {
       const { revokeDeviceTokens } = await import('../services/device-auth.service');
@@ -1586,40 +1640,45 @@ router.delete(
 );
 
 // DELETE /api/auth/sessions — Nuclear: Revoke ALL sessions (force logout all devices)
-router.delete('/sessions', authMiddleware, async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { revokeAllUserTokens } = await import('../services/device-auth.service');
-    const authUser = getAuthUser(req);
+router.delete(
+  '/sessions',
+  authMiddleware,
+  sensitiveActionLimiter,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { revokeAllUserTokens } = await import('../services/device-auth.service');
+      const authUser = getAuthUser(req);
 
-    const revokedCount = await revokeAllUserTokens(authUser.user_id, 'user_requested');
+      const revokedCount = await revokeAllUserTokens(authUser.user_id, 'user_requested');
 
-    // Audit trail
-    await query(
-      `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
+      // Audit trail
+      await query(
+        `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
                  VALUES ('all_sessions_revoked', 'user_sessions', $1, $2, $3)`,
-      [
-        authUser.user_id,
-        authUser.user_id,
-        JSON.stringify({ revoked_count: revokedCount, reason: 'user_requested' }),
-      ],
-    );
+        [
+          authUser.user_id,
+          authUser.user_id,
+          JSON.stringify({ revoked_count: revokedCount, reason: 'user_requested' }),
+        ],
+      );
 
-    // Clear the JWT cookie for the current browser session
-    res.clearCookie('nammerha_jwt', {
-      httpOnly: true,
-      secure: process.env['NODE_ENV'] === 'production',
-      sameSite: 'strict',
-      path: '/',
-    });
+      // Clear the JWT cookie for the current browser session
+      res.clearCookie('nammerha_jwt', {
+        httpOnly: true,
+        secure: process.env['NODE_ENV'] === 'production',
+        sameSite: 'strict',
+        path: '/',
+      });
 
-    res.json({
-      success: true,
-      message: `All sessions revoked (${revokedCount} token(s)). You will need to log in again.`,
-      data: { revoked_count: revokedCount },
-    } as ApiResponse);
-  } catch (error) {
-    safeRouteError(res, error, 'Auth.RevokeAllSessions');
-  }
-});
+      res.json({
+        success: true,
+        message: `All sessions revoked (${revokedCount} token(s)). You will need to log in again.`,
+        data: { revoked_count: revokedCount },
+      } as ApiResponse);
+    } catch (error) {
+      safeRouteError(res, error, 'Auth.RevokeAllSessions');
+    }
+  },
+);
 
 export default router;

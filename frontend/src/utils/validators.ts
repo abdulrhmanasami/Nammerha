@@ -80,3 +80,57 @@ export function validatePasswordComplexity(
 export function isValidEmail(email: string): boolean {
   return EMAIL_REGEX.test(email.trim());
 }
+
+// ─── P2-S5-007: Name Validation (Backend Parity) ───────────────────────────
+// Mirrors Zod schema in backend/src/validation/schemas.ts L64-71.
+// PREVIOUS: Name validation was backend-only — users entering "12345" or "!!!"
+// passed frontend validation, submitted, and got a generic "Invalid registration
+// data" error with zero per-field guidance.
+// Standard: DRY Principle, Frontend/Backend Parity, OWASP Input Validation.
+// ────────────────────────────────────────────────────────────────────────────
+
+export interface NameValidationResult {
+  valid: boolean;
+  errors: string[];
+}
+
+/**
+ * Validates a user's full name against platform rules.
+ * Must match backend Zod schema in validation/schemas.ts.
+ *
+ * Rules:
+ *   - At least 2 characters
+ *   - At most 100 characters
+ *   - Must contain at least one Unicode letter (Arabic, Latin, etc.)
+ *   - Must NOT contain digits
+ *   - Must NOT contain dangerous characters (< > { } [ ] \)
+ *
+ * @param name The name to validate
+ * @param translate Optional i18n function for error messages
+ */
+export function validateName(
+  name: string,
+  translate?: (key: string, fallback: string) => string,
+): NameValidationResult {
+  const errors: string[] = [];
+  const tr = translate ?? ((_key: string, fallback: string) => fallback);
+  const trimmed = name.trim();
+
+  if (trimmed.length < 2) {
+    errors.push(tr('name_rule_min', 'يجب أن يكون الاسم حرفين على الأقل'));
+  }
+  if (trimmed.length > 100) {
+    errors.push(tr('name_rule_max', 'يجب ألا يتجاوز الاسم 100 حرف'));
+  }
+  if (!/\p{L}/u.test(trimmed)) {
+    errors.push(tr('name_rule_letter', 'يجب أن يحتوي الاسم على حرف واحد على الأقل'));
+  }
+  if (/[0-9]/.test(trimmed)) {
+    errors.push(tr('name_rule_no_digits', 'يجب ألا يحتوي الاسم على أرقام'));
+  }
+  if (/[<>{}[\]\\]/.test(trimmed)) {
+    errors.push(tr('name_rule_no_special', 'يجب ألا يحتوي الاسم على رموز خاصة'));
+  }
+
+  return { valid: errors.length === 0, errors };
+}
