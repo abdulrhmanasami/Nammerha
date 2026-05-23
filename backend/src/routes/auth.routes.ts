@@ -105,10 +105,21 @@ const verifyEmailLimiter = rateLimit({
   max: 20, // Limit each IP to 20 verification requests
   standardHeaders: true,
   legacyHeaders: false,
-  message: {
-    success: false,
-    error: 'Too many verification attempts from this IP, please try again later.',
-  } as ApiResponse,
+  // P1-AUD-W16-003 FIX: i18n-aware rate limit response.
+  // PREVIOUS: Hardcoded English `message` string — Arabic users saw untranslated errors.
+  // express-rate-limit's `message` sends the response BEFORE our route handler runs,
+  // bypassing all i18n infrastructure. Using `handler` gives us full control.
+  // Standard: WCAG 3.1.1 (Language of Page), Nammerha i18n Architecture.
+  handler: (req: Request, res: Response) => {
+    const locale = getEmailLocale(req);
+    res.status(429).json({
+      success: false,
+      error:
+        locale === 'ar'
+          ? 'محاولات تحقق كثيرة. يرجى الانتظار ١٥ دقيقة قبل المحاولة مرة أخرى.'
+          : 'Too many verification attempts from this IP, please try again later.',
+    } as ApiResponse);
+  },
 });
 
 const sensitiveActionLimiter = rateLimit({
@@ -116,10 +127,17 @@ const sensitiveActionLimiter = rateLimit({
   max: 15, // Limit each IP to 15 sensitive requests (resend/forgot-password/change-password)
   standardHeaders: true,
   legacyHeaders: false,
-  message: {
-    success: false,
-    error: 'Too many requests. Please try again after 15 minutes.',
-  } as ApiResponse,
+  // P1-AUD-W16-003 FIX: i18n-aware rate limit response.
+  handler: (req: Request, res: Response) => {
+    const locale = getEmailLocale(req);
+    res.status(429).json({
+      success: false,
+      error:
+        locale === 'ar'
+          ? 'محاولات كثيرة. يرجى الانتظار ١٥ دقيقة قبل المحاولة مرة أخرى.'
+          : 'Too many requests. Please try again after 15 minutes.',
+    } as ApiResponse);
+  },
 });
 
 // V-005 FIX: Separate rate limiter for logout.
@@ -134,10 +152,17 @@ const logoutLimiter = rateLimit({
   max: 30, // More generous than sensitiveActionLimiter (logout is non-destructive)
   standardHeaders: true,
   legacyHeaders: false,
-  message: {
-    success: false,
-    error: 'Too many logout requests. Please try again later.',
-  } as ApiResponse,
+  // P1-AUD-W16-003 FIX: i18n-aware rate limit response.
+  handler: (req: Request, res: Response) => {
+    const locale = getEmailLocale(req);
+    res.status(429).json({
+      success: false,
+      error:
+        locale === 'ar'
+          ? 'محاولات كثيرة. يرجى الانتظار قبل المحاولة مرة أخرى.'
+          : 'Too many logout requests. Please try again later.',
+    } as ApiResponse);
+  },
 });
 
 // P0-W12-003 FIX: Login-specific rate limiter.
@@ -151,10 +176,17 @@ const loginLimiter = rateLimit({
   max: 30, // 30 login attempts per 15 min per IP
   standardHeaders: true,
   legacyHeaders: false,
-  message: {
-    success: false,
-    error: 'Too many login attempts from this IP, please try again after 15 minutes.',
-  } as ApiResponse,
+  // P1-AUD-W16-003 FIX: i18n-aware rate limit response.
+  handler: (req: Request, res: Response) => {
+    const locale = getEmailLocale(req);
+    res.status(429).json({
+      success: false,
+      error:
+        locale === 'ar'
+          ? 'محاولات تسجيل دخول كثيرة. يرجى الانتظار ١٥ دقيقة قبل المحاولة مرة أخرى.'
+          : 'Too many login attempts from this IP, please try again after 15 minutes.',
+    } as ApiResponse);
+  },
 });
 
 // P0-W6-001: EMAIL_REGEX and PASSWORD_RULES removed — Zod schemas in

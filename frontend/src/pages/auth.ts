@@ -247,6 +247,29 @@ function switchTab(mode: 'login' | 'register'): void {
   formLogin?.classList.remove('submitted');
   formRegister?.classList.remove('submitted');
 
+  // P1-AUD-W16-005 FIX: Clean up injected inline resend verification UI.
+  // PREVIOUS: showInlineResendVerification() injected #nm-inline-resend after the
+  // login submit button. On tab switch and back, it persisted — wired to the
+  // PREVIOUS email address. If the user typed a different email and logged in,
+  // the stale resend button would send verification to the wrong email.
+  // Standard: Nielsen #5 (Error Prevention), DOM Lifecycle Hygiene.
+  document.getElementById('nm-inline-resend')?.remove();
+
+  // P2-AUD-W16-008 FIX: Reset password visibility toggles on tab switch.
+  // PREVIOUS: User toggled password visibility ON (eye-slash icon), switched tabs,
+  // switched back → input type reset to 'password' but icon still showed eye-slash.
+  // Standard: Nielsen #4 (Consistency), Visual State Consistency.
+  document
+    .querySelectorAll<HTMLInputElement>('#login-password, #reg-password, #reg-password-confirm')
+    .forEach((inp) => {
+      if (inp.type === 'text') {
+        inp.type = 'password';
+      }
+    });
+  document.querySelectorAll('.ph-eye-slash').forEach((icon) => {
+    icon.className = 'ph ph-eye';
+  });
+
   // P0-PLAT-001 FIX: Haptic feedback on tab switch — native-app tactile response.
   haptic.light();
 
@@ -897,6 +920,59 @@ function hideBanner(): void {
   }
 })();
 
+// ─── P0-AUD-W16-001 FIX: Restore Registration Lockout on Page Load ──────────
+// PREVIOUS: Login lockout was restored from sessionStorage (above), but
+// registration lockout (nmh_reg_lockout_until, stored at L1484-1487) was NOT.
+// After page refresh, the countdown disappeared — user could submit, get 429
+// with no countdown, and believe the site was broken.
+// Standard: Parity with login lockout restore, Nielsen #1 (System Status).
+// ─────────────────────────────────────────────────────────────────────────────
+(function restoreRegLockoutTimer(): void {
+  try {
+    const lockoutUntilStr = sessionStorage.getItem('nmh_reg_lockout_until');
+    if (!lockoutUntilStr) return;
+    const lockoutUntil = parseInt(lockoutUntilStr, 10);
+    let remainingSeconds = Math.ceil((lockoutUntil - Date.now()) / 1000);
+    if (remainingSeconds <= 0) {
+      sessionStorage.removeItem('nmh_reg_lockout_until');
+      return;
+    }
+
+    // Switch to register tab so user sees the lockout message
+    switchTab('register');
+
+    const lockoutMsg = () =>
+      t(
+        'auth_reg_lockout_countdown',
+        `تم تقييد التسجيل مؤقتاً — يمكنك المحاولة بعد ${Math.ceil(remainingSeconds / 60)} دقيقة (${remainingSeconds}s)`,
+      )
+        .replace('{minutes}', String(Math.ceil(remainingSeconds / 60)))
+        .replace('{seconds}', String(remainingSeconds));
+
+    showBanner('error', lockoutMsg());
+
+    const _regRestoreTimer = createTrackedInterval(() => {
+      remainingSeconds--;
+      if (remainingSeconds <= 0) {
+        clearTrackedInterval(_regRestoreTimer);
+        try {
+          sessionStorage.removeItem('nmh_reg_lockout_until');
+        } catch {
+          /* ignore */
+        }
+        showBanner('success', t('auth_lockout_ended', 'يمكنك المحاولة الآن'));
+      } else {
+        const bannerTextEl = document.getElementById('auth-banner-text');
+        if (bannerTextEl) {
+          bannerTextEl.textContent = lockoutMsg();
+        }
+      }
+    }, 1000);
+  } catch {
+    /* sessionStorage unavailable */
+  }
+})();
+
 // ─── Password Toggle ────────────────────────────────────────────────────────
 function setupPasswordToggle(toggleId: string, inputId: string): void {
   const toggle = document.getElementById(toggleId);
@@ -1016,8 +1092,29 @@ function updateRegisterButton(): void {
     // EMAIL_NOT_VERIFIED persisted while user typed corrections.
     // NOW: Check if banner is visible (not hidden) to clear all types.
     // Standard: Nielsen #9 (Error Recovery), Material Design 3 (Form Validation).
+    //
+    // P1-AUD-W16-006 FIX: Don't auto-clear lockout countdown banners.
+    // PREVIOUS: User failed login 5 times → lockout countdown banner appeared →
+    // user typed a character in email/password field → countdown banner disappeared.
+    // The timer was still running but invisible — user had no idea how long to wait.
+    // NOW: Check sessionStorage for active lockouts before clearing.
+    // Standard: Nielsen #1 (Visibility of System Status), Lockout UX.
     if (banner && !banner.classList.contains('nm-hidden')) {
-      hideBanner();
+      const hasActiveLockout = (() => {
+        try {
+          const until = sessionStorage.getItem('nmh_lockout_until');
+          const regUntil = sessionStorage.getItem('nmh_reg_lockout_until');
+          return (
+            (until !== null && Date.now() < parseInt(until, 10)) ||
+            (regUntil !== null && Date.now() < parseInt(regUntil, 10))
+          );
+        } catch {
+          return false;
+        }
+      })();
+      if (!hasActiveLockout) {
+        hideBanner();
+      }
     }
     // UX-REM-J002 FIX: Auto-save registration draft on input.
     // Only saves name + email — passwords are NEVER persisted.
@@ -1620,6 +1717,29 @@ async function handleForgotPassword(
   triggerBtn.setAttribute('aria-disabled', 'true');
   triggerBtn.classList.add('nm-btn-cooldown');
 
+  // P1-AUD-W16-004 FIX: Conditional cooldown — only on success or 429.
+  // PREVIOUS: Cooldown was in the `finally` block — applied unconditionally,
+  // even on network errors. Users on Syria 2G whose request timed out were
+  // punished with a 60-second cooldown despite the email never being sent.
+  // NOW: Cooldown only applied on success (email sent) or 429 (server already
+  // rate-limiting). Network errors allow immediate retry.
+  // Standard: Nielsen #9 (Error Recovery), Syria 2G Resilience.
+  let _forgotCooldownApplied = false;
+  const applyForgotCooldown = (): void => {
+    _forgotCooldownApplied = true;
+    setForgotPwCooldown(60);
+    triggerBtn.setAttribute('aria-disabled', 'true');
+    let _forgotCooldown = 60;
+    const forgotCooldownInterval = createTrackedInterval(() => {
+      _forgotCooldown--;
+      if (_forgotCooldown <= 0) {
+        clearTrackedInterval(forgotCooldownInterval);
+        triggerBtn.removeAttribute('aria-disabled');
+        triggerBtn.classList.remove('nm-btn-cooldown');
+      }
+    }, 1000);
+  };
+
   try {
     const data = await auth.forgotPassword({ email });
     if (data.success) {
@@ -1641,6 +1761,7 @@ async function handleForgotPassword(
         'تحقق من مجلد الرسائل غير المرغوبة (Spam) إذا لم تصلك الرسالة.',
       );
       showBanner('success', `${mainMsg} ${spamHint}`);
+      applyForgotCooldown();
     } else {
       showBanner('error', data.error ?? t('auth_forgot_error', 'فشل الإرسال. حاول مرة أخرى.'));
     }
@@ -1648,10 +1769,13 @@ async function handleForgotPassword(
     if (err instanceof ApiError) {
       if (err.status === 429) {
         showBanner('error', err.message || t('auth_rate_limited', 'محاولات كثيرة. يرجى الانتظار.'));
+        // 429: Server has its own cooldown — apply client-side too
+        applyForgotCooldown();
       } else {
         showBanner('error', err.message || t('auth_forgot_error', 'فشل الإرسال. حاول مرة أخرى.'));
       }
     } else {
+      // P1-AUD-W16-004: Network error — NO cooldown. Allow immediate retry.
       showBanner(
         'error',
         err instanceof Error
@@ -1660,31 +1784,14 @@ async function handleForgotPassword(
       );
     }
   } finally {
-    // P1-W12-002 FIX: Add 60s cooldown after forgot-password success.
-    // PREVIOUS: No client-side cooldown — user could click 15 times in 15 minutes,
-    // each generating a real email and invalidating the previous reset token.
-    // Parity with resend-verification cooldown (L1580-1600).
-    // Standard: OWASP Rate Limiting, Email Spam Prevention, FinTech UX.
-    //
-    // P1-W14-003 FIX: Persist cooldown in sessionStorage.
-    // PREVIOUS: Cooldown was purely DOM-based — opening a second tab or
-    // refreshing the page bypassed the 60s cooldown entirely.
-    // NOW: Uses separate FORGOT_PW_COOLDOWN_KEY (avoids collision with
-    // resend-verification cooldown). Cross-tab, refresh-resilient.
-    // Standard: Cross-Tab State Consistency, Parity with resend-verification.
+    // Always restore button text (regardless of outcome)
     triggerBtn.innerHTML = originalHTML;
-    triggerBtn.setAttribute('aria-disabled', 'true');
-    // Keep nm-btn-cooldown class (already added at L1408)
-    setForgotPwCooldown(60);
-    let _forgotCooldown = 60;
-    const forgotCooldownInterval = createTrackedInterval(() => {
-      _forgotCooldown--;
-      if (_forgotCooldown <= 0) {
-        clearTrackedInterval(forgotCooldownInterval);
-        triggerBtn.removeAttribute('aria-disabled');
-        triggerBtn.classList.remove('nm-btn-cooldown');
-      }
-    }, 1000);
+    if (!_forgotCooldownApplied) {
+      // P1-AUD-W16-004: No cooldown applied — fully restore button interactivity.
+      // This happens on network errors where the email was never sent.
+      triggerBtn.removeAttribute('aria-disabled');
+      triggerBtn.classList.remove('nm-btn-cooldown');
+    }
   }
 }
 
@@ -1701,6 +1808,45 @@ regForgotBtn?.addEventListener('click', async (e) => {
   e.preventDefault();
   await handleForgotPassword(regForgotBtn, 'reg-email');
 });
+
+// ─── P0-AUD-W16-002 FIX: Restore Forgot-Password Cooldown on Page Load ─────
+// PREVIOUS: isForgotPwOnCooldown() was checked as a pre-guard in
+// handleForgotPassword(), but on page load the forgot-password buttons were
+// NOT visually disabled even though the sessionStorage cooldown was active.
+// User saw a clickable link, clicked it, and got a terse "wait Xs" error
+// that appeared abruptly — no visual indication of active cooldown.
+// NOW: On page load, check cooldown and visually disable buttons with a
+// countdown timer that restores them on expiry.
+// Standard: Nielsen #1 (Visibility of System Status), Parity with resend restore.
+// ─────────────────────────────────────────────────────────────────────────────
+(function restoreForgotCooldown(): void {
+  const remaining = getForgotPwCooldownRemaining();
+  if (remaining <= 0) return;
+
+  const forgotBtns = [
+    document.getElementById('forgot-password-btn'),
+    document.getElementById('reg-forgot-password-btn'),
+  ].filter(Boolean) as HTMLElement[];
+
+  if (forgotBtns.length === 0) return;
+
+  forgotBtns.forEach((btn) => {
+    btn.classList.add('nm-btn-cooldown');
+    btn.setAttribute('aria-disabled', 'true');
+  });
+
+  let _remaining = remaining;
+  const _restoreForgotTimer = createTrackedInterval(() => {
+    _remaining--;
+    if (_remaining <= 0) {
+      clearTrackedInterval(_restoreForgotTimer);
+      forgotBtns.forEach((btn) => {
+        btn.classList.remove('nm-btn-cooldown');
+        btn.removeAttribute('aria-disabled');
+      });
+    }
+  }, 1000);
+})();
 
 // ─── P0-AUTH-003 FIX: Email Sent Confirmation Panel ─────────────────────────
 // After successful registration, instead of auto-switching to login tab with
@@ -1753,6 +1899,10 @@ function showEmailSentConfirmation(emailAddress: string): void {
           <i class="ph ph-arrow-left nm-icon-back-arrow" aria-hidden="true"></i>
           <span data-i18n="back_to_login">${esc(t('back_to_login', 'العودة لتسجيل الدخول'))}</span>
         </button>
+        <button type="button" id="nm-reregister-from-confirm" class="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors mt-1">
+          <i class="ph ph-pencil-simple" aria-hidden="true"></i>
+          <span data-i18n="auth_wrong_email">${esc(t('auth_wrong_email', 'البريد خاطئ؟ أعد التسجيل'))}</span>
+        </button>
       </div>
     </div>
   `;
@@ -1780,6 +1930,34 @@ function showEmailSentConfirmation(emailAddress: string): void {
     if (loginEmail) {
       loginEmail.value = emailAddress;
       loginEmail.focus();
+    }
+  });
+
+  // P2-AUD-W16-007 FIX: Wire "Wrong email? Re-register" button.
+  // PREVIOUS: If user mistyped their email during registration (e.g., gamil.com
+  // instead of gmail.com), they had NO way to go back and correct it.
+  // The only options were "Resend" (sends to wrong email) and "Back to Login"
+  // (wrong tab — they need registration, not login).
+  // NOW: Returns to registration wizard at step 1 with a clean slate.
+  // Standard: Nielsen #3 (User Control & Freedom), Error Recovery.
+  document.getElementById('nm-reregister-from-confirm')?.addEventListener('click', () => {
+    _confirmResendTimer = clearTrackedInterval(_confirmResendTimer);
+    panel.remove();
+    switchTab('register');
+    goToRegStep(1);
+    // Clear previously entered values for a fresh start
+    const regNameInput = document.getElementById('reg-name') as HTMLInputElement | null;
+    const regEmailInput = document.getElementById('reg-email') as HTMLInputElement | null;
+    if (regNameInput) regNameInput.value = '';
+    if (regEmailInput) {
+      regEmailInput.value = '';
+      regEmailInput.focus();
+    }
+    // Clear draft to avoid restoring wrong email
+    try {
+      sessionStorage.removeItem('nmh_reg_draft');
+    } catch {
+      /* incognito */
     }
   });
 
@@ -2116,8 +2294,14 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
   // PREVIOUS: style.display = 'none' violated P1-SST-001 (CSS Single Source of Truth)
   // and could race with switchTab() which uses CSS classes.
   // Standard: Design System Governance, CSS Single Source of Truth.
-  if (formLogin) formLogin.classList.add('nm-hidden');
-  if (formRegister) formRegister.classList.add('nm-hidden');
+  if (formLogin) {
+    formLogin.classList.add('nm-hidden');
+    setFormFocusable(formLogin, false); // P2-AUD-W16-009
+  }
+  if (formRegister) {
+    formRegister.classList.add('nm-hidden');
+    setFormFocusable(formRegister, false); // P2-AUD-W16-009
+  }
   // Hide tabs
   if (tabLogin) tabLogin.classList.add('nm-hidden');
   if (tabRegister) tabRegister.classList.add('nm-hidden');
@@ -2456,7 +2640,10 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
   document.getElementById('mfa-back-to-login')?.addEventListener('click', () => {
     mfaPanel.remove();
     // P0-DEEP-003 FIX: Restore using nm-hidden class (parity with show).
-    if (formLogin) formLogin.classList.remove('nm-hidden');
+    if (formLogin) {
+      formLogin.classList.remove('nm-hidden');
+      setFormFocusable(formLogin, true); // P2-AUD-W16-009
+    }
     if (tabLogin) tabLogin.classList.remove('nm-hidden');
     if (tabRegister) tabRegister.classList.remove('nm-hidden');
     state.isSubmitting = false;
