@@ -219,8 +219,19 @@ router.post(
       // max lengths, and unknown field stripping in a single call.
       const parsed = registerSchema.safeParse(req.body);
       if (!parsed.success) {
-        const firstError = parsed.error.issues[0]?.message ?? 'Invalid input';
-        res.status(400).json({ success: false, error: firstError } as ApiResponse);
+        // P1-S4-010 FIX: Generic error message — prevents leaking specific validation
+        // rules to attackers. Zod's default messages reveal exact password complexity
+        // rules ("must contain uppercase"), name rules ("must not contain digits"),
+        // and field-level info. Frontend validates client-side with detailed feedback.
+        // Standard: OWASP Error Handling, Anti-Enumeration parity.
+        const locale = getEmailLocale(req);
+        res.status(400).json({
+          success: false,
+          error:
+            locale === 'ar'
+              ? 'بيانات التسجيل غير صالحة. يرجى التحقق من جميع الحقول.'
+              : 'Invalid registration data. Please check all fields.',
+        } as ApiResponse);
         return;
       }
       const { email, password, full_name, phone } = parsed.data;
@@ -400,9 +411,17 @@ router.post('/login', loginLimiter, async (req: Request, res: Response): Promise
     // P0-W6-001 FIX: Wire Zod validation for login input.
     const parsed = loginSchema.safeParse(req.body);
     if (!parsed.success) {
+      // P1-S4-002 FIX: i18n-aware validation error — parity with rate limiter handlers.
+      // PREVIOUS: Hardcoded English 'Missing required fields: email, password'.
+      // Arabic users who hit this path (disabled JS, race condition) saw English text.
+      // Standard: WCAG 3.1.1 (Language of Page), Nammerha i18n Architecture.
+      const locale = getEmailLocale(req);
       res.status(400).json({
         success: false,
-        error: 'Missing required fields: email, password',
+        error:
+          locale === 'ar'
+            ? 'يرجى إدخال البريد الإلكتروني وكلمة المرور'
+            : 'Missing required fields: email, password',
       } as ApiResponse);
       return;
     }
@@ -488,9 +507,18 @@ router.post('/login', loginLimiter, async (req: Request, res: Response): Promise
       const minutesLeft = Math.ceil(
         (new Date(activeLockout.locked_until).getTime() - Date.now()) / 60_000,
       );
+      // P2-S4-004 FIX: i18n-aware lockout error — parity with rate limiter handlers.
+      // PREVIOUS: English only. Rate limiters were i18n-fixed in Wave 16
+      // (P1-AUD-W16-003) but this audit_trail-based lockout was missed.
+      // Standard: WCAG 3.1.1, Nammerha i18n Architecture.
+      const locale = getEmailLocale(req);
       res.status(429).json({
         success: false,
-        error: `Account temporarily locked. Try again in ${minutesLeft} minute(s).`,
+        error:
+          locale === 'ar'
+            ? `تم قفل الحساب مؤقتاً. حاول مرة أخرى بعد ${minutesLeft} دقيقة.`
+            : `Account temporarily locked. Try again in ${minutesLeft} minute(s).`,
+        code: 'ACCOUNT_LOCKED',
       } as ApiResponse);
       return;
     }
@@ -513,9 +541,16 @@ router.post('/login', loginLimiter, async (req: Request, res: Response): Promise
       };
       const displayName = providerDisplay[providerName] ?? providerName;
 
+      // P2-S4-003 FIX: i18n-aware social-only error — parity with rate limiter handlers.
+      // PREVIOUS: English only. Arabic users saw "This account uses Google sign-in..."
+      // Standard: WCAG 3.1.1, Nammerha i18n Architecture.
+      const locale = getEmailLocale(req);
       res.status(401).json({
         success: false,
-        error: `This account uses ${displayName} sign-in. Please use ${displayName} to log in.`,
+        error:
+          locale === 'ar'
+            ? `هذا الحساب يستخدم تسجيل الدخول عبر ${displayName}. يرجى استخدام ${displayName} لتسجيل الدخول.`
+            : `This account uses ${displayName} sign-in. Please use ${displayName} to log in.`,
         code: 'SOCIAL_ONLY_ACCOUNT',
       } as ApiResponse);
       return;
@@ -594,10 +629,17 @@ router.post('/login', loginLimiter, async (req: Request, res: Response): Promise
     // but without this gate the login path was a bypass. An attacker
     // could register, skip verification, and still access the platform.
     if (!user.is_email_verified) {
+      // P1-S4-015 FIX: i18n-aware unverified email error.
+      // PREVIOUS: English only. Frontend auth.ts displays this via showBanner()
+      // which shows raw err.message to Arabic users.
+      // Standard: WCAG 3.1.1, Nammerha i18n Architecture.
+      const locale = getEmailLocale(req);
       res.status(403).json({
         success: false,
         error:
-          'Please verify your email before signing in. Check your inbox for the verification link.',
+          locale === 'ar'
+            ? 'يرجى تفعيل بريدك الإلكتروني قبل تسجيل الدخول. تحقق من صندوق الوارد.'
+            : 'Please verify your email before signing in. Check your inbox for the verification link.',
         code: 'EMAIL_NOT_VERIFIED',
       } as ApiResponse);
       return;

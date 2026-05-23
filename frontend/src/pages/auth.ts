@@ -1085,8 +1085,19 @@ function updateRegisterButton(): void {
 
   // FRC-002: Show/hide real-time mismatch error
   const mismatchEl = document.getElementById('pw-mismatch-error');
-  if (mismatchEl && confirmPw.length > 0) {
-    mismatchEl.classList.toggle('nm-hidden', password === confirmPw);
+  // P2-S4-001 FIX: Also show/hide positive match indicator — parity with reset-password.ts.
+  // PREVIOUS: Only negative (mismatch) indicator shown. Users had no visual confirmation
+  // that passwords match until form submission — anxiety-inducing on Syria 2G (3-5s RTT).
+  // Standard: Nielsen #1 (System Status Visibility), reset-password.ts L136-174 parity.
+  const matchSuccessEl = document.getElementById('pw-match-success');
+  if (confirmPw.length > 0) {
+    const isMatch = password === confirmPw;
+    mismatchEl?.classList.toggle('nm-hidden', isMatch);
+    matchSuccessEl?.classList.toggle('nm-hidden', !isMatch);
+  } else {
+    // Both hidden when confirm field is empty
+    mismatchEl?.classList.add('nm-hidden');
+    matchSuccessEl?.classList.add('nm-hidden');
   }
 }
 
@@ -2512,8 +2523,7 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
     const mins = Math.floor(mfaSecondsRemaining / 60);
     const secs = mfaSecondsRemaining % 60;
     const timeStr = `${mins}:${String(secs).padStart(2, '0')}`;
-    mfaTimerEl.textContent = t('mfa_expires_in', 'ينتهي خلال {time}')
-      .replace('{time}', timeStr);
+    mfaTimerEl.textContent = t('mfa_expires_in', 'ينتهي خلال {time}').replace('{time}', timeStr);
     // Visual urgency: turn red when < 60 seconds
     if (mfaSecondsRemaining <= 60) {
       mfaTimerEl.classList.remove('text-slate-500', 'dark:text-slate-400');
@@ -2537,7 +2547,10 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
       if (tabLogin) tabLogin.classList.remove('nm-hidden');
       if (tabRegister) tabRegister.classList.remove('nm-hidden');
       state.isSubmitting = false;
-      showBanner('error', t('mfa_session_expired_retry', 'انتهت صلاحية رمز التحقق. سجّل الدخول مجدداً.'));
+      showBanner(
+        'error',
+        t('mfa_session_expired_retry', 'انتهت صلاحية رمز التحقق. سجّل الدخول مجدداً.'),
+      );
       haptic.heavy();
     } else {
       updateMfaTimerDisplay();
@@ -3206,14 +3219,12 @@ function openGoogleOAuthPopup(clientId: string, triggerBtn?: HTMLButtonElement):
     }
   }, 500);
 
-  // Safety timeout: stop polling after 5 minutes
-  // EDGE-3 FIX: Track the 5-minute safety timeout in _activeTimers.
-  // PREVIOUS: Raw setTimeout was NOT tracked — if the user navigated away
-  // before 5 minutes, this orphaned timeout survived until expiry.
-  // Standard: Timer Hygiene, Page Lifecycle API.
-  // P2-AUD-005 FIX: Added triggerBtn cleanup to 5-min safety timeout.
-  // Also note: setTimeout IDs and setInterval IDs share the same ID space
-  // per HTML spec §8.6 — clearInterval() on a setTimeout ID is valid.
+  // P1-S4-009 FIX: Reduced from 5 minutes to 2 minutes.
+  // PREVIOUS: 300,000ms (5 min). On Safari mobile, `popup.closed` is unreliable —
+  // if the user closes the popup, the Google button stays in loading state for the
+  // full timeout. 2 minutes is generous for Google's OAuth flow (~15-30s typical)
+  // but drastically reduces worst-case stuck-spinner duration.
+  // Standard: UX Timeout Best Practices, Safari Compatibility.
   const safetyTimeout = setTimeout(() => {
     clearTrackedInterval(pollTimer);
     // Clean up stale state if popup was abandoned
@@ -3223,7 +3234,7 @@ function openGoogleOAuthPopup(clientId: string, triggerBtn?: HTMLButtonElement):
       /* ignore */
     }
     if (triggerBtn) setSocialBtnLoading(triggerBtn, false);
-  }, 300000);
+  }, 120000);
   addTrackedTimer(safetyTimeout);
 }
 

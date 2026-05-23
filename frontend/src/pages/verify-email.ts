@@ -4,6 +4,11 @@ import { t } from '../utils/i18n';
 // P2-W6-009 FIX: Pre-warm CSRF token for POST requests (resend verification).
 // Parity with auth.ts L33 — prevents 2-5s invisible delay on Syria 2G.
 import { warmCsrf, ApiError } from '../api/_client';
+// P2-S4-007 FIX: Import shared EMAIL_REGEX for resend email format validation.
+// PREVIOUS: Resend handler only checked `if (!email)` — no format validation.
+// auth.ts and reset-password.ts both use EMAIL_REGEX.test(email) before API calls.
+// Standard: DRY Principle, Centralized Validation, Input Validation Parity.
+import { EMAIL_REGEX } from '../utils/validators';
 // P3-AUD-002 FIX: Import haptic for tactile feedback — parity with auth.ts.
 import { haptic } from '../utils/haptic';
 // P2-W15-004 FIX: Import shared tracked-timer utilities — parity with auth.ts/reset-password.ts.
@@ -280,6 +285,18 @@ resendBtn?.addEventListener('click', async () => {
   const email = resendEmail?.value.trim();
   if (!email) {
     showResendFeedback('error', t('verify_resend_enter_email', 'أدخل بريدك لإعادة الإرسال'));
+    resendEmail?.focus();
+    return;
+  }
+
+  // P2-S4-007 FIX: Validate email format before API call — parity with auth.ts and reset-password.ts.
+  // PREVIOUS: Only empty check (`!email`). Typing 'asdf' → confusing backend error.
+  // Standard: Input Validation Parity, Nielsen #9 (Error Prevention).
+  if (email.length > 254 || !EMAIL_REGEX.test(email)) {
+    showResendFeedback(
+      'error',
+      t('verify_resend_invalid_email', 'صيغة البريد الإلكتروني غير صالحة'),
+    );
     resendEmail?.focus();
     return;
   }

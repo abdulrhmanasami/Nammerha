@@ -88,6 +88,14 @@ const strengthLabel = document.getElementById('pw-strength-label');
 const urlParams = new URLSearchParams(window.location.search);
 const resetToken = urlParams.get('token');
 
+// P2-S4-005 FIX: Store email from URL BEFORE stripping params.
+// PREVIOUS: urlParams.get('email') at L467 read an already-stripped param (L105
+// deletes it). If backend response has no data.email AND requestEmailInput is
+// hidden, emailParam resolves to empty — user must re-type email after reset.
+// NOW: Module-scoped variable captures email at extraction time as last-resort fallback.
+// Standard: Nielsen #6 (Recognition Over Recall), Defense-in-Depth.
+const originalUrlEmail = urlParams.get('email') ?? '';
+
 // P2-W11-006 FIX: Remove token from URL bar after extraction.
 // PREVIOUS: Reset token persisted in browser address bar and history.
 // On shared/public computers (common in Syrian internet cafes), the token is exposed
@@ -463,8 +471,11 @@ form?.addEventListener('submit', async (e) => {
       // has a safety restore, reset-password.ts had NO fallback.
       // Standard: Nielsen #3 (User Control & Freedom), Defense-in-Depth.
       const responseData = data as { data?: { email?: string } };
+      // P2-S4-005 FIX: Use module-scoped `originalUrlEmail` (captured before URL stripping)
+      // instead of `urlParams.get('email')` which reads the already-stripped param (empty).
+      // Fallback priority: backend response > form input > pre-strip URL > empty.
       const userEmail =
-        responseData.data?.email ?? requestEmailInput?.value.trim() ?? urlParams.get('email') ?? '';
+        responseData.data?.email ?? requestEmailInput?.value.trim() ?? originalUrlEmail;
       const emailParam = userEmail ? `?email=${encodeURIComponent(userEmail)}` : '';
       const fallbackContainer = document.createElement('div');
       fallbackContainer.className = 'mt-4 text-center animate-fade-in-up';

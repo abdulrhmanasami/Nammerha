@@ -48,6 +48,10 @@
         /* FRC-002 FIX: Password confirmation i18n keys */
         'auth_pw_confirm_placeholder': { ar: 'أعد إدخال كلمة المرور', de: 'Passwort erneut eingeben', fr: 'Ressaisissez le mot de passe', tr: 'Şifreyi tekrar girin' },
         'pw_mismatch_error': { ar: 'كلمتا المرور غير متطابقتين', de: 'Passwörter stimmen nicht überein', fr: 'Les mots de passe ne correspondent pas', tr: 'Şifreler eşleşmiyor' },
+        /* P2-S4-001 FIX: Positive match indicator i18n key.
+           PREVIOUS: Missing — non-Arabic users saw Arabic fallback text.
+           Standard: i18n completeness, WCAG 3.1.2 (Language of Parts). */
+        'pw_match_success': { ar: '✓ كلمتا المرور متطابقتان', de: '✓ Passwörter stimmen überein', fr: '✓ Les mots de passe correspondent', tr: '✓ Şifreler eşleşiyor' },
 
         // P0-I18N-001 FIX: Auth orphan key remediation (13 keys)
         'auth_google_sso': { ar: 'المتابعة بحساب Google', de: 'Weiter mit Google', fr: 'Continuer avec Google', tr: 'Google ile devam et' },
@@ -130,6 +134,10 @@
         'verify_network_error': { ar: 'خطأ في الشبكة', de: 'Netzwerkfehler', fr: 'Erreur réseau', tr: 'Ağ hatası' },
         'verify_server_unreachable': { ar: 'لا يمكن الوصول للخادم', de: 'Server nicht erreichbar', fr: 'Serveur inaccessible', tr: 'Sunucuya ulaşılamıyor' },
         'verify_resend_enter_email': { ar: 'أدخل بريدك لإعادة الإرسال', de: 'E-Mail eingeben zum erneuten Senden', fr: 'Saisissez votre e-mail pour renvoyer', tr: 'Yeniden göndermek için e-postanızı girin' },
+        /* P2-S4-007 FIX: Email format validation error i18n key.
+           PREVIOUS: Missing — non-Arabic users saw Arabic fallback text.
+           Standard: i18n completeness, Input Validation Parity. */
+        'verify_resend_invalid_email': { ar: 'صيغة البريد الإلكتروني غير صالحة', de: 'Ungültiges E-Mail-Format', fr: 'Format d\'e-mail invalide', tr: 'Geçersiz e-posta formatı' },
         'verify_resend_sending': { ar: 'جاري إعادة الإرسال…', de: 'Wird erneut gesendet…', fr: 'Renvoi en cours…', tr: 'Yeniden gönderiliyor…' },
         'verify_resend_success': { ar: 'تم إعادة إرسال رابط التحقق', de: 'Verifizierungslink erneut gesendet', fr: 'Lien de vérification renvoyé', tr: 'Doğrulama bağlantısı yeniden gönderildi' },
         'verify_resend_failed': { ar: 'فشلت إعادة الإرسال', de: 'Erneutes Senden fehlgeschlagen', fr: 'Échec du renvoi', tr: 'Yeniden gönderim başarısız' },

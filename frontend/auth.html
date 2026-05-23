@@ -756,6 +756,19 @@
             >
               كلمتا المرور غير متطابقتين
             </p>
+            <!-- P2-S4-001 FIX: Positive match indicator — parity with reset-password.html.
+               PREVIOUS: Only negative (mismatch) indicator shown. Users had no positive
+               feedback that passwords match until form submission.
+               Standard: Nielsen #1 (System Status Visibility), reset-password.ts parity. -->
+            <p
+              class="text-xs text-emerald-600 mt-1 nm-hidden dark:text-emerald-400"
+              id="pw-match-success"
+              role="status"
+              aria-live="polite"
+              data-i18n="pw_match_success"
+            >
+              ✓ كلمتا المرور متطابقتان
+            </p>
           </div>
           <!-- P1-DEEP-003 FIX: "Forgot Password?" accessibility from Register tab.
              Scenario: User tries to register, realizes they already have an account,
