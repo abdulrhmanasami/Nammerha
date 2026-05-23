@@ -868,45 +868,50 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         // ─── Facebook (Coming Soon — W3-P3-005) ──────────────────
         // Disabled with opacity + 'قريباً' badge overlay.
         // Requires Meta App Review before activation.
-        Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Opacity(
-              opacity: 0.5,
-              child: _buildSocialButton(
-                label: 'Facebook',
-                icon: PhosphorIconsRegular.facebookLogo,
-                backgroundColor: const Color(0xFF1877F2),
-                foregroundColor: Colors.white,
-                borderColor: const Color(0xFF1877F2),
-                onPressed: null,
+        // MOB-R04 FIX: IgnorePointer prevents confusing taps on the disabled
+        // button area. PREVIOUS: Stack was tappable but produced no feedback.
+        // Standard: Material Design 3 (Disabled States), UX Feedback.
+        IgnorePointer(
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Opacity(
+                opacity: 0.5,
+                child: _buildSocialButton(
+                  label: 'Facebook',
+                  icon: PhosphorIconsRegular.facebookLogo,
+                  backgroundColor: const Color(0xFF1877F2),
+                  foregroundColor: Colors.white,
+                  borderColor: const Color(0xFF1877F2),
+                  onPressed: null,
+                ),
               ),
-            ),
-            // 'قريباً' (Coming Soon) badge — top-end corner
-            PositionedDirectional(
-              top: -6,
-              end: -4,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 2,
-                ),
-                decoration: BoxDecoration(
-                  color: colors.textSecondary,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                // P2-AUD-009 FIX: Was hardcoded Arabic — bypassed i18n.
-                child: Text(
-                  context.tr('coming_soon'),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
+              // 'قريباً' (Coming Soon) badge — top-end corner
+              PositionedDirectional(
+                top: -6,
+                end: -4,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colors.textSecondary,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  // P2-AUD-009 FIX: Was hardcoded Arabic — bypassed i18n.
+                  child: Text(
+                    context.tr('coming_soon'),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     );

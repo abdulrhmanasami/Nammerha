@@ -14,7 +14,12 @@ import {
   clearTrackedInterval,
   clearAllTrackedTimers,
 } from '../utils/tracked-timers';
+// AUD-R08 FIX: Pull-to-refresh — parity with auth.ts and reset-password.ts.
+// On cached/stale pages on Syria 2G, users need a way to force-refresh.
+// Standard: Apple HIG (Pull-to-Refresh), Syria 2G Resilience.
+import { initPullToRefresh } from '../utils/pull-refresh';
 warmCsrf();
+initPullToRefresh();
 
 // P1-AUD-003 FIX: Re-warm CSRF token when tab becomes visible after background.
 // PREVIOUS: warmCsrf() fired once on page load. If user left the tab open for
@@ -183,17 +188,21 @@ async function verifyEmail(): Promise<void> {
         data.message?.includes('تم التحقق مسبقاً');
 
       if (isAlreadyVerified) {
+        // SEC-R05 FIX: Always use t() translated string instead of raw data.message.
+        // PREVIOUS: `data.message ??` used the English backend string when non-null.
+        // Arabic users saw English text like "Email already verified".
+        // Standard: i18n Consistency, OWASP (No Internal Messages to Users).
         showResult(
           'success',
           t('verify_already_title', 'تم التحقق مسبقاً'),
-          data.message ??
-            t('verify_already_body', 'بريدك الإلكتروني مؤكد بالفعل — يمكنك تسجيل الدخول'),
+          t('verify_already_body', 'بريدك الإلكتروني مؤكد بالفعل — يمكنك تسجيل الدخول'),
         );
       } else {
+        // SEC-R05 FIX: Same — always use translated string.
         showResult(
           'success',
           t('verify_success_title', 'تم التحقق!'),
-          data.message ?? t('verify_success_body', 'تم تأكيد بريدك الإلكتروني بنجاح'),
+          t('verify_success_body', 'تم تأكيد بريدك الإلكتروني بنجاح'),
         );
       }
       // BUG-F13 FIX: Update "Sign In" link to include verified email for pre-fill.

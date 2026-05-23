@@ -1022,8 +1022,30 @@ const regPassword = document.getElementById('reg-password') as HTMLInputElement 
 const strengthBars = document.getElementById('pw-strength-bars')?.children;
 const strengthLabel = document.getElementById('pw-strength-label');
 
+// A11Y-R02 FIX: Add screen reader attributes to password strength elements.
+// PREVIOUS: Strength label text updated visually but never announced to screen readers.
+// Users relying on assistive technology couldn't assess password strength.
+// Standard: WCAG 1.3.1 (Info and Relationships), WCAG 4.1.3 (Status Messages).
+if (strengthLabel) {
+  strengthLabel.setAttribute('role', 'status');
+  strengthLabel.setAttribute('aria-live', 'polite');
+  strengthLabel.setAttribute('aria-atomic', 'true');
+}
+const strengthBarsContainer = document.getElementById('pw-strength-bars');
+if (strengthBarsContainer) {
+  strengthBarsContainer.setAttribute('role', 'progressbar');
+  strengthBarsContainer.setAttribute('aria-valuemin', '0');
+  strengthBarsContainer.setAttribute('aria-valuemax', '5');
+  strengthBarsContainer.setAttribute('aria-valuenow', '0');
+  strengthBarsContainer.setAttribute('aria-label', t('pw_strength_meter', 'مقياس قوة كلمة المرور'));
+}
+
 regPassword?.addEventListener('input', () => {
-  updatePasswordStrength(regPassword.value, strengthBars, strengthLabel);
+  const score = updatePasswordStrength(regPassword.value, strengthBars, strengthLabel);
+  // A11Y-R02: Update aria-valuenow for screen readers
+  if (strengthBarsContainer) {
+    strengthBarsContainer.setAttribute('aria-valuenow', String(score));
+  }
   updateRegisterButton();
 });
 
@@ -2290,6 +2312,11 @@ async function handleLoginRedirect(
 // Standard: NIST SP 800-63B (AAL2), Apple HIG (2FA Verification Screens).
 
 function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
+  // SEC-R01 FIX: Track which tab was active before MFA for correct restoration.
+  // PREVIOUS: mfa-back-to-login always restored formLogin. If user arrived at
+  // MFA via social login while on Register tab, Register form was orphaned.
+  // Standard: Nielsen #3 (User Control & Freedom), State Preservation.
+  const preMfaTab = state.mode;
   // P0-DEEP-003 FIX: Use nm-hidden class instead of style.display.
   // PREVIOUS: style.display = 'none' violated P1-SST-001 (CSS Single Source of Truth)
   // and could race with switchTab() which uses CSS classes.
@@ -2331,11 +2358,11 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
       <div id="mfa-totp-section">
         <div id="mfa-code-inputs" class="flex gap-2 justify-center mb-4" dir="ltr">
           <input type="text" inputmode="numeric" maxlength="1" class="nm-input nm-mfa-digit" data-mfa-digit="0" autocomplete="one-time-code" aria-label="${esc(t('mfa_digit_label', 'الرقم'))} 1 ${esc(t('mfa_of_6', 'من 6'))}" />
-          <input type="text" inputmode="numeric" maxlength="1" class="nm-input nm-mfa-digit" data-mfa-digit="1" aria-label="${esc(t('mfa_digit_label', 'الرقم'))} 2 ${esc(t('mfa_of_6', 'من 6'))}" />
-          <input type="text" inputmode="numeric" maxlength="1" class="nm-input nm-mfa-digit" data-mfa-digit="2" aria-label="${esc(t('mfa_digit_label', 'الرقم'))} 3 ${esc(t('mfa_of_6', 'من 6'))}" />
-          <input type="text" inputmode="numeric" maxlength="1" class="nm-input nm-mfa-digit" data-mfa-digit="3" aria-label="${esc(t('mfa_digit_label', 'الرقم'))} 4 ${esc(t('mfa_of_6', 'من 6'))}" />
-          <input type="text" inputmode="numeric" maxlength="1" class="nm-input nm-mfa-digit" data-mfa-digit="4" aria-label="${esc(t('mfa_digit_label', 'الرقم'))} 5 ${esc(t('mfa_of_6', 'من 6'))}" />
-          <input type="text" inputmode="numeric" maxlength="1" class="nm-input nm-mfa-digit" data-mfa-digit="5" aria-label="${esc(t('mfa_digit_label', 'الرقم'))} 6 ${esc(t('mfa_of_6', 'من 6'))}" />
+          <input type="text" inputmode="numeric" maxlength="1" class="nm-input nm-mfa-digit" data-mfa-digit="1" autocomplete="one-time-code" aria-label="${esc(t('mfa_digit_label', 'الرقم'))} 2 ${esc(t('mfa_of_6', 'من 6'))}" />
+          <input type="text" inputmode="numeric" maxlength="1" class="nm-input nm-mfa-digit" data-mfa-digit="2" autocomplete="one-time-code" aria-label="${esc(t('mfa_digit_label', 'الرقم'))} 3 ${esc(t('mfa_of_6', 'من 6'))}" />
+          <input type="text" inputmode="numeric" maxlength="1" class="nm-input nm-mfa-digit" data-mfa-digit="3" autocomplete="one-time-code" aria-label="${esc(t('mfa_digit_label', 'الرقم'))} 4 ${esc(t('mfa_of_6', 'من 6'))}" />
+          <input type="text" inputmode="numeric" maxlength="1" class="nm-input nm-mfa-digit" data-mfa-digit="4" autocomplete="one-time-code" aria-label="${esc(t('mfa_digit_label', 'الرقم'))} 5 ${esc(t('mfa_of_6', 'من 6'))}" />
+          <input type="text" inputmode="numeric" maxlength="1" class="nm-input nm-mfa-digit" data-mfa-digit="5" autocomplete="one-time-code" aria-label="${esc(t('mfa_digit_label', 'الرقم'))} 6 ${esc(t('mfa_of_6', 'من 6'))}" />
         </div>
         <button id="mfa-verify-btn" type="button" class="nm-btn nm-btn-primary w-full mb-4">
           <span id="mfa-verify-text">${esc(t('mfa_verify_btn', 'تحقق'))}</span>
@@ -2362,6 +2389,11 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
           ${esc(t('mfa_back_to_login', 'العودة لتسجيل الدخول'))}
         </button>
       </div>
+
+      <!-- SEC-R01 FIX: MFA Token Expiry Countdown -->
+      <!-- Backend generates a 5-minute challenge token. Without a visible timer,
+           users don't know they have a deadline, leading to cryptic MFA_TOKEN_EXPIRED errors. -->
+      <p id="mfa-expiry-timer" class="text-xs text-slate-500 dark:text-slate-400 mt-4 text-center" role="timer" aria-live="polite" aria-atomic="true"></p>
     </div>
   `;
 
@@ -2463,6 +2495,81 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
 
   // Focus first digit
   digitInputs[0]?.focus();
+
+  // ── SEC-R01 FIX: MFA Token Expiry Countdown ──────────────────────────────
+  // Backend generates a 5-minute challenge token (generateMfaChallengeToken).
+  // Without a visible timer, users don't know they have a deadline.
+  // After expiry, code submission fails with cryptic MFA_TOKEN_EXPIRED error.
+  // NOW: Show a visible countdown timer. When expired, auto-dismiss panel
+  // and show helpful "Session expired" banner.
+  // Standard: NIST SP 800-63B (AAL2 Session Timeouts), Nielsen #1 (System Status).
+  const MFA_TOKEN_TTL_SECONDS = 5 * 60; // 5 minutes — matches backend
+  let mfaSecondsRemaining = MFA_TOKEN_TTL_SECONDS;
+  const mfaTimerEl = document.getElementById('mfa-expiry-timer');
+
+  function updateMfaTimerDisplay(): void {
+    if (!mfaTimerEl) return;
+    const mins = Math.floor(mfaSecondsRemaining / 60);
+    const secs = mfaSecondsRemaining % 60;
+    const timeStr = `${mins}:${String(secs).padStart(2, '0')}`;
+    mfaTimerEl.textContent = t('mfa_expires_in', 'ينتهي خلال {time}')
+      .replace('{time}', timeStr);
+    // Visual urgency: turn red when < 60 seconds
+    if (mfaSecondsRemaining <= 60) {
+      mfaTimerEl.classList.remove('text-slate-500', 'dark:text-slate-400');
+      mfaTimerEl.classList.add('text-red-500', 'dark:text-red-400', 'font-medium');
+    }
+  }
+  updateMfaTimerDisplay();
+
+  const mfaExpiryTimer = createTrackedInterval(() => {
+    mfaSecondsRemaining--;
+    if (mfaSecondsRemaining <= 0) {
+      clearTrackedInterval(mfaExpiryTimer);
+      // Auto-dismiss MFA panel and show helpful banner
+      mfaPanel.remove();
+      // Restore UI
+      const restoreForm = preMfaTab === 'register' ? formRegister : formLogin;
+      if (restoreForm) {
+        restoreForm.classList.remove('nm-hidden');
+        setFormFocusable(restoreForm, true);
+      }
+      if (tabLogin) tabLogin.classList.remove('nm-hidden');
+      if (tabRegister) tabRegister.classList.remove('nm-hidden');
+      state.isSubmitting = false;
+      showBanner('error', t('mfa_session_expired_retry', 'انتهت صلاحية رمز التحقق. سجّل الدخول مجدداً.'));
+      haptic.heavy();
+    } else {
+      updateMfaTimerDisplay();
+    }
+  }, 1000);
+
+  // ── A11Y-R03 FIX: Focus Trap within MFA Panel ────────────────────────────
+  // PREVIOUS: Tab key could escape the MFA panel and reach hidden login form
+  // elements. Elements created dynamically (like MFA panel) aren't covered by
+  // setFormFocusable() which only runs on formLogin/formRegister.
+  // NOW: Focus cycles between first and last focusable elements within the panel.
+  // Standard: WAI-ARIA Dialog Practices, WCAG 2.1.1 (Keyboard).
+  mfaPanel.addEventListener('keydown', (e: KeyboardEvent) => {
+    if (e.key !== 'Tab') return;
+    const focusableEls = mfaPanel.querySelectorAll<HTMLElement>(
+      'input:not([tabindex="-1"]):not([disabled]), button:not([tabindex="-1"]):not([disabled])',
+    );
+    if (focusableEls.length === 0) return;
+    const firstEl = focusableEls[0];
+    const lastEl = focusableEls[focusableEls.length - 1];
+    if (e.shiftKey) {
+      if (document.activeElement === firstEl) {
+        e.preventDefault();
+        lastEl?.focus();
+      }
+    } else {
+      if (document.activeElement === lastEl) {
+        e.preventDefault();
+        firstEl?.focus();
+      }
+    }
+  });
 
   // ── TOTP Submit ──
   let isMfaSubmitting = false;
@@ -2636,13 +2743,19 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
     }
   });
 
-  // ── Back to Login ──
+  // ── Back to Login ── (UX-R01 FIX: Restore pre-MFA tab correctly)
   document.getElementById('mfa-back-to-login')?.addEventListener('click', () => {
+    // Clean up the MFA expiry timer
+    clearTrackedInterval(mfaExpiryTimer);
     mfaPanel.remove();
-    // P0-DEEP-003 FIX: Restore using nm-hidden class (parity with show).
-    if (formLogin) {
-      formLogin.classList.remove('nm-hidden');
-      setFormFocusable(formLogin, true); // P2-AUD-W16-009
+    // UX-R01 FIX: Restore the tab that was active before MFA was shown.
+    // PREVIOUS: Always restored formLogin. If user arrived at MFA via social
+    // login while on Register tab, the Register form was orphaned as nm-hidden.
+    // Standard: Nielsen #3 (User Control & Freedom), State Preservation.
+    const restoreForm = preMfaTab === 'register' ? formRegister : formLogin;
+    if (restoreForm) {
+      restoreForm.classList.remove('nm-hidden');
+      setFormFocusable(restoreForm, true);
     }
     if (tabLogin) tabLogin.classList.remove('nm-hidden');
     if (tabRegister) tabRegister.classList.remove('nm-hidden');
@@ -3308,7 +3421,19 @@ function loadFacebookSDK(): Promise<FacebookSDK> {
     }
 
     // Set up fbAsyncInit — called by the SDK when it finishes loading
+    // CODE-R03 FIX: Single fbAsyncInit with timeout clear inline.
+    // PREVIOUS: fbAsyncInit was set at one point, then re-wrapped 36 lines later
+    // to add clearTimeout. The wrapper captured the original function — fragile
+    // if any other code set fbAsyncInit between the two declarations.
+    // NOW: Single declaration with timeout clear and FB.init inline.
+    // Standard: Single Responsibility, Defense against Re-entrant Wrapping.
+    const timeoutId = setTimeout(() => {
+      fbSDKPromise = null; // Allow retry on next click
+      reject(new Error('Facebook SDK load timeout'));
+    }, 8000);
+
     (window as unknown as Record<string, unknown>).fbAsyncInit = function () {
+      clearTimeout(timeoutId);
       const FB = (window as unknown as Record<string, unknown>).FB as FacebookSDK | undefined;
       if (!FB) {
         reject(new Error('Facebook SDK loaded but FB object not found'));
@@ -3333,20 +3458,6 @@ function loadFacebookSDK(): Promise<FacebookSDK> {
       // Facebook SDK blocked by ISP, firewall, or ad blocker
       fbSDKPromise = null; // Allow retry on next click
       reject(new Error('Facebook SDK failed to load'));
-    };
-
-    // Timeout: if SDK doesn't load within 8 seconds, reject
-    // Syrian mobile networks can be extremely slow — 8s is generous but finite
-    const timeoutId = setTimeout(() => {
-      fbSDKPromise = null; // Allow retry on next click
-      reject(new Error('Facebook SDK load timeout'));
-    }, 8000);
-
-    // Clear timeout when fbAsyncInit fires (via resolve above)
-    const originalInit = (window as unknown as Record<string, unknown>).fbAsyncInit as () => void;
-    (window as unknown as Record<string, unknown>).fbAsyncInit = function () {
-      clearTimeout(timeoutId);
-      originalInit();
     };
 
     // Add fb-root div required by the SDK (if not already present)
@@ -3573,7 +3684,14 @@ document.querySelectorAll<HTMLInputElement>('input[type="password"]').forEach((p
       capsWarning.className = 'text-xs font-medium text-amber-600 dark:text-amber-400 mt-1';
       capsWarning.textContent = t('auth_caps_lock', '⚠ مفتاح Caps Lock مفعّل');
       capsWarning.setAttribute('aria-live', 'polite');
-      pwField.parentElement?.appendChild(capsWarning);
+      // A11Y-R04 FIX: Insert AFTER the input element, not at end of parent.
+      // PREVIOUS: pwField.parentElement?.appendChild(capsWarning) appended to the
+      // end of the parent container which may already contain error messages,
+      // match indicators, or strength meters. Multiple children accumulated and
+      // overlapped visually.
+      // NOW: insertAdjacentElement positions it directly after the input.
+      // Standard: DOM Positioning, Visual Hierarchy.
+      pwField.insertAdjacentElement('afterend', capsWarning);
     } else if (!show && capsWarning) {
       capsWarning.remove();
       capsWarning = null;
