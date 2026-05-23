@@ -891,10 +891,18 @@ router.post(
       const { email } = parsed.data;
 
       // Anti-enumeration: always return success regardless of outcome
+      // P3-S8-006 FIX: i18n-aware generic response.
+      // PREVIOUS: English-only success message — Arabic users saw untranslated text.
+      // Error messages were i18n-fixed in Sessions 4-5, but this success message
+      // (shown to ALL users — legitimate or not) was missed.
+      // Standard: WCAG 3.1.1 (Language of Page), Nammerha i18n Architecture.
+      const resendLocale = getEmailLocale(req);
       const GENERIC_RESPONSE: ApiResponse = {
         success: true,
         message:
-          'If your email is registered and unverified, a new verification link has been sent.',
+          resendLocale === 'ar'
+            ? 'إذا كان بريدك مسجّلاً ولم يتم التحقق منه بعد، فسيتم إرسال رابط تحقق جديد.'
+            : 'If your email is registered and unverified, a new verification link has been sent.',
       };
 
       const normalizedEmail = email.toLowerCase().trim();
@@ -979,9 +987,18 @@ router.post(
       const { email } = parsed.data;
 
       // ALWAYS return success to prevent email enumeration (SEC-009)
+      // P3-S8-007 FIX: i18n-aware generic response.
+      // PREVIOUS: English-only success message — Arabic users saw untranslated text.
+      // Error messages were i18n-fixed in Sessions 4-5, but this success message
+      // (shown to ALL users — legitimate or not) was missed.
+      // Standard: WCAG 3.1.1 (Language of Page), Nammerha i18n Architecture.
+      const forgotLocale = getEmailLocale(req);
       const successResponse = {
         success: true,
-        message: 'If an account with that email exists, a password reset link has been sent.',
+        message:
+          forgotLocale === 'ar'
+            ? 'إذا كان هناك حساب بهذا البريد، فسيتم إرسال رابط لإعادة تعيين كلمة المرور.'
+            : 'If an account with that email exists, a password reset link has been sent.',
       } as ApiResponse;
 
       const normalizedEmail = email.toLowerCase().trim();

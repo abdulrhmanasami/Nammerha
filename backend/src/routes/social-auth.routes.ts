@@ -26,6 +26,23 @@ import { safeRouteError } from '../utils/safe-error';
 import { z } from 'zod/v4';
 import type { ApiResponse, SocialProvider, UserRole } from '../types';
 
+// ─── I18N-004: Locale Detection (Duplicated from auth.routes.ts) ────────────
+// P2-S8-001 FIX: social-auth.routes.ts needs locale detection for rate limiter,
+// validation errors, and unverified email rejection.
+// Duplicated here instead of extracting to shared utility for minimal blast radius.
+// Standard: WCAG 3.1.1 (Language of Page), Nammerha i18n Architecture.
+function getEmailLocale(req: Request): 'ar' | 'en' {
+  const xLocale = (req.headers['x-locale'] as string | undefined)?.trim().toLowerCase();
+  if (xLocale === 'ar' || xLocale === 'en') {
+    return xLocale as 'ar' | 'en';
+  }
+  const acceptLang = req.headers['accept-language'] ?? '';
+  if (/\bar/i.test(acceptLang)) {
+    return 'ar';
+  }
+  return 'en';
+}
+
 const router = Router();
 
 // ─── Environment ────────────────────────────────────────────────────────────
@@ -57,15 +74,26 @@ const appleJwks = jwksClient({
 });
 
 // ─── Rate Limiting ──────────────────────────────────────────────────────────
+// P2-S8-001 FIX: i18n-aware rate limit response.
+// PREVIOUS: Static English `message` property — Arabic users saw untranslated text.
+// auth.routes.ts rate limiters were fixed in P1-AUD-W16-003 (Session 2), but
+// social-auth.routes.ts was never updated. Using `handler` gives full control.
+// Standard: WCAG 3.1.1 (Language of Page), Nammerha i18n Architecture.
 const socialAuthLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 30, // 30 social auth attempts per 15 min per IP
   standardHeaders: true,
   legacyHeaders: false,
-  message: {
-    success: false,
-    error: 'Too many authentication attempts. Please try again later.',
-  } as ApiResponse,
+  handler: (req: Request, res: Response) => {
+    const locale = getEmailLocale(req);
+    res.status(429).json({
+      success: false,
+      error:
+        locale === 'ar'
+          ? 'محاولات مصادقة كثيرة. يرجى الانتظار ١٥ دقيقة قبل المحاولة مرة أخرى.'
+          : 'Too many authentication attempts. Please try again later.',
+    } as ApiResponse);
+  },
 });
 
 // ─── Zod Schema ─────────────────────────────────────────────────────────────
@@ -247,9 +275,18 @@ router.post('/social', socialAuthLimiter, async (req: Request, res: Response): P
     // ── Step 1: Validate input ──
     const parsed = SocialAuthSchema.safeParse(req.body);
     if (!parsed.success) {
+      // P3-S8-005 FIX: Generic error message — prevents leaking Zod validation details.
+      // PREVIOUS: `parsed.error.issues.map(i => i.message).join(', ')` — revealed exact
+      // schema rules ("Token is required", field names) to attackers probing the API.
+      // auth.routes.ts was fixed in P1-S4-010 (Session 4) but social-auth was missed.
+      // Standard: OWASP Error Handling, Anti-Enumeration, P1-S4-010 Parity.
+      const socialInputLocale = getEmailLocale(req);
       res.status(400).json({
         success: false,
-        error: parsed.error.issues.map((i) => i.message).join(', '),
+        error:
+          socialInputLocale === 'ar'
+            ? 'بيانات المصادقة غير صالحة. يرجى المحاولة مرة أخرى.'
+            : 'Invalid authentication data. Please try again.',
       } as ApiResponse);
       return;
     }
@@ -312,9 +349,17 @@ router.post('/social', socialAuthLimiter, async (req: Request, res: Response): P
         provider,
         email: socialUser.email,
       });
+      // P2-S8-003 FIX: i18n-aware unverified email rejection.
+      // PREVIOUS: Hardcoded English 'Email address is not verified by the provider.'
+      // All auth.routes.ts errors were i18n-fixed in Sessions 4-5, but this file was missed.
+      // Standard: WCAG 3.1.1 (Language of Page), Nammerha i18n Architecture.
+      const unverifiedLocale = getEmailLocale(req);
       res.status(401).json({
         success: false,
-        error: 'Email address is not verified by the provider.',
+        error:
+          unverifiedLocale === 'ar'
+            ? 'لم يتم التحقق من البريد الإلكتروني بواسطة مزود الخدمة.'
+            : 'Email address is not verified by the provider.',
       } as ApiResponse);
       return;
     }
