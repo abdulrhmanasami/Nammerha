@@ -79,8 +79,14 @@ self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(SHELL_CACHE)
             .then((cache) => cache.addAll(SHELL_ASSETS))
-            .then(() => self.skipWaiting())
     );
+});
+
+// ─── Message: Skip Waiting on User Action ───────────────────────────────────
+self.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
 });
 
 // ─── Activate: Clean old caches ─────────────────────────────────────────────

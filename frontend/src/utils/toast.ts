@@ -85,6 +85,20 @@ export function showToast(
     options: ToastOptions = {}
 ): void {
     const { duration = 4000, dismissable = true } = options;
+    const resolvedMsg = resolveMessage(message);
+
+    // UXA-004 FIX: Toast Throttling (Zombie Toast Stacking protection)
+    // Prevents identical error messages from spamming the screen during rapid API failures
+    const isDuplicate = activeToasts.some(el => {
+        const hasSameType = el.classList.contains(`nm-toast-${type}`);
+        const textSpan = el.querySelector('.nm-toast-msg');
+        return hasSameType && textSpan?.textContent === resolvedMsg;
+    });
+
+    if (isDuplicate) {
+        return;
+    }
+
     const parent = ensureContainer();
 
     while (activeToasts.length >= MAX_VISIBLE) {
@@ -105,7 +119,7 @@ export function showToast(
 
     const text = document.createElement('span');
     text.className = 'nm-toast-msg';
-    text.textContent = resolveMessage(message);
+    text.textContent = resolvedMsg;
     el.appendChild(text);
 
     if (dismissable) {

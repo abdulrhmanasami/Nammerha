@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import '../api/admin_api.dart';
 import '../models/admin_models.dart';
 import '../../../core/i18n/error_keys.dart';
@@ -71,7 +72,10 @@ class AdminEscrowBloc extends Bloc<AdminEscrowEvent, AdminEscrowState> {
       : _api = api ?? AdminApi(),
         super(AdminEscrowInitial()) {
     on<LoadPendingCases>(_onLoadCases);
-    on<ReleaseEscrow>(_onRelease);
+    on<ReleaseEscrow>(
+      _onRelease,
+      transformer: droppable(), // UXA-007 FIX: Prevent double-spend from concurrent taps
+    );
     on<FlagDiscrepancy>(_onFlag);
   }
 
@@ -86,6 +90,7 @@ class AdminEscrowBloc extends Bloc<AdminEscrowEvent, AdminEscrowState> {
   }
 
   Future<void> _onRelease(ReleaseEscrow event, Emitter<AdminEscrowState> emit) async {
+    emit(AdminEscrowLoading());
     try {
       final result = await _api.releaseEscrow(proofId: event.proofId, itemId: event.itemId);
       final message = result['message'] as String? ?? ErrorKeys.escrowReleaseSuccess;

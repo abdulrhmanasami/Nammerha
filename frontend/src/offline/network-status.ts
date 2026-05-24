@@ -47,7 +47,7 @@ function createStatusBar(): HTMLElement {
   return bar;
 }
 
-function showStatus(type: StatusType, autoHideMs?: number): void {
+function showStatus(type: StatusType, autoHideMs?: number, worker?: ServiceWorker): void {
   const bar = createStatusBar();
   const isRtl = isRTL();
 
@@ -66,7 +66,11 @@ function showStatus(type: StatusType, autoHideMs?: number): void {
     // Previous: inline handler — blocked by CSP script-src 'self', making refresh button dead.
     // Standard: CONF-CSP-01 pattern, WHATWG CSP Level 3.
     bar.querySelector('#nm-sw-refresh-btn')?.addEventListener('click', () => {
-      location.reload();
+      if (worker) {
+        worker.postMessage({ type: 'SKIP_WAITING' });
+      } else {
+        location.reload();
+      }
     });
   } else {
     /* PLT-NET-001 FIX: Replaced emoji icons with Phosphor font glyphs.
@@ -148,8 +152,8 @@ function init(): void {
   });
 
   // SW update notification
-  document.addEventListener('nammerha:sw-updated', () => {
-    showStatus('swUpdate');
+  document.addEventListener('nammerha:sw-update-waiting', (event: any) => {
+    showStatus('swUpdate', undefined, event.detail?.worker);
   });
 
   // W9-001 FIX: Store interval ID and clear on page unload to prevent

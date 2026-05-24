@@ -30,11 +30,21 @@ export async function registerServiceWorker(): Promise<void> {
         }
 
             newWorker.addEventListener('statechange', () => {
-                if (newWorker.state === 'activated' && navigator.serviceWorker.controller) {
-                    // New version activated — notify user to refresh
-                    dispatchOfflineEvent('sw-updated');
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    // New version waiting — notify user to click update
+                    dispatchOfflineEvent('sw-update-waiting', { worker: newWorker });
                 }
             });
+        });
+
+        // Listen for the controlling service worker changing
+        // This fires after the new worker calls skipWaiting() and becomes the controller
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (!refreshing) {
+                refreshing = true;
+                window.location.reload();
+            }
         });
 
         // W9-001 FIX: Store interval ID and clear on page unload to prevent

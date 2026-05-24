@@ -5540,10 +5540,32 @@ html[data-theme='dark'] .nm-pano-wrapper {
 .nm-route-marker {
   width: 14px;
   height: 14px;
-  background: var(--marker-color, #3b82f6);
+  background-color: var(--marker-color, #3b82f6);
   border: 2px solid white;
   border-radius: 50%;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================================================
+   UXA-005 FIX: Map Route Marker & Snagging UI A11Y (WCAG AAA Protanopia Support)
+   Previous: Markers relied purely on color (Red vs Green) which is indistinguishable for red-green colorblind users.
+   Now: Adds SVG pattern overlays (stripes vs dots) and shape differentiation (square vs circle) to ensure WCAG AAA compliance.
+   ============================================================================ */
+.nm-route-marker.georavity-start {
+  /* Done/Start: Green with Dots pattern */
+  background-image: radial-gradient(rgba(255,255,255,0.5) 1px, transparent 1px);
+  background-size: 4px 4px;
+}
+.nm-route-marker.georavity-end {
+  /* Snag/End: Red with Diagonal Stripes pattern and Square shape */
+  border-radius: 2px !important; /* Shape differentiation */
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(255,255,255,0.4),
+    rgba(255,255,255,0.4) 2px,
+    transparent 2px,
+    transparent 4px
+  );
 }
 
 /* ============================================================================
