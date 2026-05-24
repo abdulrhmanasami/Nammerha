@@ -484,7 +484,7 @@ function initActionButtons(): void {
         updateRowBadge(selectedIndex, 'rejected');
         renderDocumentViewer(selectedIndex);
         showToast(
-          `${t('kyc_rejected_toast', 'تم رفض الطلب')}: ${esc(entry.full_name)}. ${t('kyc_resubmission', 'إعادة التقديم مطلوبة')}`,
+          `${t('kyc_rejected_toast', 'تم رفض الطلب')}: ${esc(entry.full_name)}. ${t('kyc_documents_needed', 'نحتاج إلى وثائق إضافية للتحقق من الهوية.')}`,
           'success',
         );
         loadKycStats();

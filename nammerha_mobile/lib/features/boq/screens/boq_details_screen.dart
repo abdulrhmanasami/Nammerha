@@ -231,82 +231,136 @@ class _BOQDetailsContentState extends State<_BOQDetailsContent> {
   }
 
   Widget _buildBOQCard(BOQItem item, SemanticColors colors, int index) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: colors.surfaceElevated,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colors.strokeSubtle),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  item.name,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: colors.textPrimary,
+    return _BOQCard(item: item, colors: colors, index: index);
+  }
+}
+
+class _BOQCard extends StatefulWidget {
+  final BOQItem item;
+  final SemanticColors colors;
+  final int index;
+
+  const _BOQCard({
+    required this.item,
+    required this.colors,
+    required this.index,
+  });
+
+  @override
+  State<_BOQCard> createState() => _BOQCardState();
+}
+
+class _BOQCardState extends State<_BOQCard> {
+  bool _isExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => setState(() => _isExpanded = !_isExpanded),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: widget.colors.surfaceElevated,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: _isExpanded ? widget.colors.primaryBrand : widget.colors.strokeSubtle,
+          ),
+          boxShadow: _isExpanded 
+              ? [BoxShadow(color: widget.colors.primaryBrand.withValues(alpha: 0.1), blurRadius: 8, offset: const Offset(0, 4))]
+              : [],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    widget.item.name,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: widget.colors.textPrimary,
+                    ),
                   ),
                 ),
-              ),
-              if (item.hasInflation)
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: colors.warningLight,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(PhosphorIconsRegular.trendUp,
-                          color: colors.warningText, size: 16),
-                      const SizedBox(width: 4),
-                      Text(
-                        context.tr('boq_inflation'),
-                        style: TextStyle(
-                          color: colors.warningText,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
+                if (widget.item.hasInflation)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    margin: const EdgeInsets.symmetric(horizontal: 8),
+                    decoration: BoxDecoration(
+                      color: widget.colors.warningLight,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(PhosphorIconsRegular.trendUp, color: widget.colors.warningText, size: 16),
+                        const SizedBox(width: 4),
+                        Text(
+                          context.tr('boq_inflation'),
+                          style: TextStyle(
+                            color: widget.colors.warningText,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
+                Icon(
+                  _isExpanded ? PhosphorIconsRegular.caretUp : PhosphorIconsRegular.caretDown,
+                  color: widget.colors.textMuted,
+                  size: 20,
                 ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            item.description,
-            style: TextStyle(color: colors.textBody),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildStat(context.tr('quantity'), '${item.quantity} ${item.unit}', colors),
-              _buildStat(
-                  context.tr('boq_estimated_price'), '${item.estimatedUnitPrice} USD', colors),
-              if (item.currentMarketPrice != null)
-                _buildStat(
-                  context.tr('boq_market_price'),
-                  '${item.currentMarketPrice} USD',
-                  colors,
-                  isWarning: item.hasInflation,
-                ),
-            ],
-          ),
-        ],
-      ),
-    ).nmAnimate(context, delay: (index * 80).ms).fadeIn().slideY(begin: 0.03);
+              ],
+            ),
+            AnimatedCrossFade(
+              firstChild: const SizedBox(height: 0, width: double.infinity),
+              secondChild: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 12),
+                  Text(
+                    widget.item.description,
+                    style: TextStyle(color: widget.colors.textBody),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: widget.colors.backgroundPrimary,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _buildStat(context.tr('quantity'), '${widget.item.quantity} ${widget.item.unit}', widget.colors),
+                        _buildStat(
+                            context.tr('boq_estimated_price'), '${widget.item.estimatedUnitPrice} USD', widget.colors),
+                        if (widget.item.currentMarketPrice != null)
+                          _buildStat(
+                            context.tr('boq_market_price'),
+                            '${widget.item.currentMarketPrice} USD',
+                            widget.colors,
+                            isWarning: widget.item.hasInflation,
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              crossFadeState: _isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+              duration: const Duration(milliseconds: 300),
+            ),
+          ],
+        ),
+      ).nmAnimate(context, delay: (widget.index * 80).ms).fadeIn().slideY(begin: 0.03),
+    );
   }
 
-  Widget _buildStat(String label, String val, SemanticColors colors,
-      {bool isWarning = false}) {
+  Widget _buildStat(String label, String val, SemanticColors colors, {bool isWarning = false}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

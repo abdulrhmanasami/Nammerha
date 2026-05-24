@@ -7,6 +7,7 @@ import 'dart:math';
 // P3-001: dart:typed_data removed — Uint8List provided by foundation.dart
 
 import '../offline/offline_queue.dart';
+import 'offline_interceptor.dart';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -221,6 +222,9 @@ class NammerhaApiClient {
         }
         // GAP-C2 FIX: Enqueue idempotent mutations for offline replay
         if (idempotent && method != 'GET') {
+          // PLATINUM UX FIX: Financial Lock for offline operations
+          OfflineInterceptor.validateOfflineRequest(endpoint, body);
+          
           await OfflineQueue.instance.enqueue(QueuedRequest(
             id: headers['Idempotency-Key'] ?? _generateUUID(),
             endpoint: endpoint,
@@ -243,6 +247,9 @@ class NammerhaApiClient {
         }
         // GAP-C2 FIX: Enqueue idempotent mutations on timeout
         if (idempotent && method != 'GET') {
+          // PLATINUM UX FIX: Financial Lock for offline operations
+          OfflineInterceptor.validateOfflineRequest(endpoint, body);
+          
           await OfflineQueue.instance.enqueue(QueuedRequest(
             id: headers['Idempotency-Key'] ?? _generateUUID(),
             endpoint: endpoint,
@@ -469,6 +476,10 @@ class NammerhaApiClient {
           await _exponentialBackoff(attempt);
           continue;
         }
+        
+        // PLATINUM UX FIX: Financial Lock
+        OfflineInterceptor.validateOfflineRequest(query, variables);
+
         throw const ApiException(
           'لا يوجد اتصال بالإنترنت. تحقق من الشبكة وحاول مرة أخرى.',
         );
@@ -478,6 +489,10 @@ class NammerhaApiClient {
           await _exponentialBackoff(attempt);
           continue;
         }
+
+        // PLATINUM UX FIX: Financial Lock
+        OfflineInterceptor.validateOfflineRequest(query, variables);
+
         throw const ApiException(
           'انتهت مهلة الاتصال — تحقق من اتصالك بالإنترنت وحاول مرة أخرى.',
         );

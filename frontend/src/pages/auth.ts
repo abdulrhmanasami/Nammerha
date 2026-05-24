@@ -1343,7 +1343,38 @@ formLogin?.addEventListener('submit', async (e) => {
       // res.ok was TRUE but success was false (e.g., anti-enumeration 200s).
       // Error codes like EMAIL_NOT_VERIFIED come with non-OK statuses (403),
       // which are now thrown as ApiError and caught in the catch block below.
-      showBanner('error', response.error ?? t('auth_login_failed', 'فشل تسجيل الدخول'));
+      // PLATINUM UX FIX: Guided Flows for KYC/OFAC in successful-but-error responses
+      const resErr = response.error ?? '';
+      const resErrLower = resErr.toLowerCase();
+
+      if (
+        resErrLower.includes('kyc') ||
+        resErrLower.includes('review') ||
+        resErrLower.includes('pending') ||
+        resErrLower.includes('ofac')
+      ) {
+        showBanner(
+          'info',
+          t(
+            'kyc_under_review_guided',
+            'Your application is under review. If you need help, contact support. / جاري مراجعة طلبك. إذا كنت بحاجة للمساعدة، يرجى التواصل مع الدعم.',
+          ),
+        );
+      } else if (
+        resErrLower.includes('denied') ||
+        resErrLower.includes('documents') ||
+        resErrLower.includes('reject')
+      ) {
+        showBanner(
+          'error',
+          t(
+            'kyc_documents_needed',
+            'Additional documents are needed to verify your identity. / نحتاج إلى وثائق إضافية للتحقق من هويتك.',
+          ),
+        );
+      } else {
+        showBanner('error', resErr || t('auth_login_failed', 'فشل تسجيل الدخول'));
+      }
     }
   } catch (err) {
     // P0-AUD-001 FIX: Removed duplicate haptic.heavy() — showBanner('error', ...)
@@ -1506,7 +1537,38 @@ formLogin?.addEventListener('submit', async (e) => {
           );
         }
       } else {
-        showBanner('error', err.message || t('auth_login_failed', 'فشل تسجيل الدخول'));
+        // PLATINUM UX FIX: Guided Flows for KYC/OFAC
+        const errMsg = err.message || '';
+        const msgLower = errMsg.toLowerCase();
+
+        if (
+          msgLower.includes('kyc') ||
+          msgLower.includes('review') ||
+          msgLower.includes('pending') ||
+          msgLower.includes('ofac')
+        ) {
+          showBanner(
+            'info',
+            t(
+              'kyc_under_review_guided',
+              'Your application is under review. If you need help, contact support. / جاري مراجعة طلبك. إذا كنت بحاجة للمساعدة، يرجى التواصل مع الدعم.',
+            ),
+          );
+        } else if (
+          msgLower.includes('denied') ||
+          msgLower.includes('documents') ||
+          msgLower.includes('reject')
+        ) {
+          showBanner(
+            'error',
+            t(
+              'kyc_documents_needed',
+              'Additional documents are needed to verify your identity. / نحتاج إلى وثائق إضافية للتحقق من هويتك.',
+            ),
+          );
+        } else {
+          showBanner('error', errMsg || t('auth_login_failed', 'فشل تسجيل الدخول'));
+        }
       }
     } else {
       // P1-W12-003 FIX: Differentiate timeout from generic network errors.
