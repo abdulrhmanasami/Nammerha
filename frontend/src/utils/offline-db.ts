@@ -55,12 +55,27 @@ export async function saveCameraProof(proof: CameraProofRecord): Promise<void> {
 export async function getCameraProofs(projectId?: string): Promise<CameraProofRecord[]> {
   const db = await initDB();
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, 'readonly');
+    const tx = db.transaction(STORE_NAME, 'readwrite'); // Changed to readwrite to allow deletion
     const store = tx.objectStore(STORE_NAME);
     const request = store.getAll();
     
     request.onsuccess = () => {
       let results = request.result as CameraProofRecord[];
+      const now = Date.now();
+      const MAX_AGE_MS = 48 * 60 * 60 * 1000; // 48 hours TTL
+      
+      // Filter and delete zombie proofs
+      const validResults: CameraProofRecord[] = [];
+      results.forEach(proof => {
+        if (now - proof.timestamp > MAX_AGE_MS) {
+          store.delete(proof.id); // Silently clean up zombie draft
+        } else {
+          validResults.push(proof);
+        }
+      });
+      
+      results = validResults;
+      
       if (projectId) {
         results = results.filter(r => r.projectId === projectId);
       }

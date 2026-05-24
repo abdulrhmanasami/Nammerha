@@ -960,11 +960,25 @@ async function processPhotoFile(file: File) {
           xhr.setRequestHeader('Content-Type', 'image/jpeg');
           xhr.upload.addEventListener('progress', (pe: ProgressEvent) => {
             if (pe.lengthComputable) {
-              const pct = Math.round((pe.loaded / pe.total) * 100);
+              const x = pe.loaded / pe.total;
+              // Platinum UX: Logarithmic Easing (fast start, slow finish)
+              let visualPct = Math.round(Math.log10(1 + 9 * x) * 100);
+              // Cap at 90% during TCP transit; reserve last 10% for server validation.
+              visualPct = Math.min(visualPct, 90);
+
               const ring = progressOverlay.querySelector<HTMLElement>('.nm-upload-ring');
               const label = progressOverlay.querySelector<HTMLElement>('span');
-              if (ring) ring.style.setProperty('--progress', String(pct));
-              if (label) label.textContent = `${pct}%`;
+              
+              if (ring) ring.style.setProperty('--progress', String(visualPct));
+              if (label) {
+                 if (visualPct >= 90) {
+                     // Contextual Reassurance
+                     label.innerHTML = `<i class="ph ph-shield-check text-white text-xs block mb-0.5" aria-hidden="true"></i><span class="text-3xs px-1 text-center leading-tight block">${esc(t('hr_verifying', 'جاري التشفير والمصادقة...'))}</span>`;
+                     label.classList.replace('mt-0.5', 'mt-0');
+                 } else {
+                     label.textContent = `${visualPct}%`;
+                 }
+              }
             }
           });
           xhr.onload = () =>

@@ -219,23 +219,101 @@ class _ProjectMapViewState extends State<_ProjectMapView> {
 
         // ── Marker Layer ─────────────────────────────────────────────────
         MarkerLayer(
-          markers: projects.map((p) {
-            final isSelected = p.projectId == selectedId;
-            return Marker(
-              point: p.latLng,
-              width: isSelected ? 52 : 40,
-              height: isSelected ? 52 : 40,
-              child: _ProjectMarker(
-                project: p,
-                isSelected: isSelected,
-                onTap: () => context
-                    .read<MapBloc>()
-                    .add(SelectMapProject(p.projectId)),
-              ),
-            );
-          }).toList(),
+          markers: _buildClusteredMarkers(context, projects, selectedId, colors),
         ),
       ],
+    );
+  }
+
+  List<Marker> _buildClusteredMarkers(
+    BuildContext context,
+    List<MapProjectModel> projects,
+    String? selectedId,
+    SemanticColors colors,
+  ) {
+    // Spatial Triage Overload Fix: Cluster markers if there are too many.
+    // If the map is highly zoomed in (>12) or few projects, avoid clustering.
+    // However, MapController might not have camera available before first build.
+    // So we use a safe grid clustering based on rounding coordinates.
+    if (projects.length <= 30) {
+      return projects.map((p) => _buildSingleMarker(context, p, selectedId, colors)).toList();
+    }
+
+    // Grid clustering: group by rounding lat/lng to 1 decimal place (roughly 11x11 km grid)
+    final clusters = <String, List<MapProjectModel>>{};
+    for (final p in projects) {
+       final gridId = '${p.gpsLat.toStringAsFixed(1)}_${p.gpsLng.toStringAsFixed(1)}';
+       clusters.putIfAbsent(gridId, () => []).add(p);
+    }
+
+    return clusters.values.map((group) {
+       if (group.length == 1) {
+          return _buildSingleMarker(context, group.first, selectedId, colors);
+       }
+       
+       final avgLat = group.map((p) => p.gpsLat).reduce((a, b) => a + b) / group.length;
+       final avgLng = group.map((p) => p.gpsLng).reduce((a, b) => a + b) / group.length;
+       final isSelectedGroup = selectedId != null && group.any((p) => p.projectId == selectedId);
+
+       return Marker(
+         point: LatLng(avgLat, avgLng),
+         width: isSelectedGroup ? 58 : 46,
+         height: isSelectedGroup ? 58 : 46,
+         child: GestureDetector(
+           onTap: () {
+             try {
+               _mapController.move(LatLng(avgLat, avgLng), _mapController.camera.zoom + 2.0);
+             } catch (_) {
+               // Fallback if camera isn't ready
+               _mapController.move(LatLng(avgLat, avgLng), 14.0);
+             }
+           },
+           child: AnimatedContainer(
+             duration: NammerhaAnimations.fast,
+             decoration: BoxDecoration(
+               color: colors.primaryBrand,
+               shape: BoxShape.circle,
+               border: Border.all(color: Colors.white, width: isSelectedGroup ? 3 : 2),
+               boxShadow: [
+                 BoxShadow(
+                   color: colors.primaryBrand.withAlpha(isSelectedGroup ? 150 : 80),
+                   blurRadius: isSelectedGroup ? 16 : 8,
+                   spreadRadius: isSelectedGroup ? 2 : 0,
+                 ),
+               ],
+             ),
+             child: Center(
+               child: Text(
+                 '${group.length}',
+                 style: const TextStyle(
+                   color: Colors.white,
+                   fontWeight: FontWeight.w800,
+                   fontSize: 14,
+                 ),
+               ),
+             ),
+           ),
+         ),
+       );
+    }).toList();
+  }
+
+  Marker _buildSingleMarker(
+    BuildContext context,
+    MapProjectModel p,
+    String? selectedId,
+    SemanticColors colors,
+  ) {
+    final isSelected = p.projectId == selectedId;
+    return Marker(
+      point: p.latLng,
+      width: isSelected ? 52 : 40,
+      height: isSelected ? 52 : 40,
+      child: _ProjectMarker(
+        project: p,
+        isSelected: isSelected,
+        onTap: () => context.read<MapBloc>().add(SelectMapProject(p.projectId)),
+      ),
     );
   }
 }

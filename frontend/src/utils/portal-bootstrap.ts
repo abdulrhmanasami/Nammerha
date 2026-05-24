@@ -36,6 +36,8 @@ import { REFRESH_EVENT } from './pull-refresh';
 import { initSessionTimeoutWarning } from './session-timeout';
 // P2-PLT-004 FIX: Connection quality indicator for Syria 2G networks.
 import { initConnectionQuality } from './connection-quality';
+// Platinum UX: Intercept rage taps on disabled UI elements.
+import { initRageTapInterception } from './rage-tap';
 
 /**
  * PLT-UX-AUD P2-PTR-001 FIX: Simpler event for page modules to listen to.
@@ -71,6 +73,9 @@ export function bootstrapPortal(): void {
 
   // W5-006: Desktop keyboard shortcuts for power users
   initKeyboardShortcuts();
+
+  // Platinum UX: Rage-Tap Interception & Self-Healing UI
+  initRageTapInterception();
 
   // P0-PLT-002 FIX: Proactive session timeout warning before JWT expiry.
   // Shows a native <dialog> 2 minutes before estimated session expiry,

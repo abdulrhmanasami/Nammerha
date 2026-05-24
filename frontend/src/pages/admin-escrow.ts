@@ -272,10 +272,30 @@ function initActionButtons(): void {
 
       // Loading state
       releaseBtn.disabled = true;
-      releaseBtn.innerHTML = `<i class="ph ph-lock-key text-lg animate-pulse" aria-hidden="true"></i> ${esc(t('esc_crypto_1', 'تشفير الطلب...'))}`;
-
+      
+      // [Platinum UX]: Optimistic State Reversion (Schrödinger's Escrow Fix)
+      releaseBtn.innerHTML = `<i class="ph ph-arrows-clockwise text-lg animate-spin" aria-hidden="true"></i> ${esc(t('esc_syncing', 'جاري التزامن مع حالة العقد...'))}`;
       try {
-        // [Platinum UX]: Cryptographic Theater (Artificial Trust Delay)
+        // Hash Check (fetch latest state to prevent Schrödinger's Escrow)
+        const latestStateRes = await admin.getPendingVerifications();
+        const stillPending = (latestStateRes.data as any[])?.find((v: any) => v.proof_id === c.proof_id);
+        
+        if (!stillPending) {
+            // State conflict! Another actor (e.g. Engineer) flagged/modified it.
+            // Graceful View Transition to the new state without a generic error.
+            if (document.startViewTransition) {
+                document.startViewTransition(() => {
+                    renderConflictState();
+                });
+            } else {
+                renderConflictState();
+            }
+            return;
+        }
+
+        // State is safe, proceed with Cryptographic Theater
+        releaseBtn.innerHTML = `<i class="ph ph-lock-key text-lg animate-pulse" aria-hidden="true"></i> ${esc(t('esc_crypto_1', 'تشفير الطلب...'))}`;
+        
         // Stage 1: Request sent
         const apiPromise = admin.releaseEscrow({ proof_id: c.proof_id, item_id: c.item_id });
         await new Promise(r => setTimeout(r, 400));
@@ -393,4 +413,27 @@ function initActionButtons(): void {
       }
     });
   }
+}
+
+/* ─── Optimistic Conflict Handler ─── */
+function renderConflictState(): void {
+    const panel = document.getElementById('verification-panel');
+    if (panel) {
+        panel.innerHTML = `
+            <div class="col-span-2 bg-rose-50 border-s-4 border-rose-500 p-6 rounded-lg shadow-sm">
+                <div class="flex items-center gap-4 text-rose-700">
+                    <i class="ph ph-shield-warning text-4xl" aria-hidden="true"></i>
+                    <div>
+                        <h3 class="text-xl font-bold">${esc(t('esc_conflict_title', 'تم إيقاف التسليم'))}</h3>
+                        <p class="text-sm mt-1">${esc(t('esc_conflict_desc', 'قام المهندس المشرف للتو بالإبلاغ عن تناقض في هذا المشروع. تم تجميد الرصيد لحمايتك ولم يتم إجراء أي خصم.'))}</p>
+                    </div>
+                </div>
+                <div class="mt-6 flex justify-end">
+                    <button onclick="location.reload()" class="px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors font-medium">
+                        ${esc(t('esc_refresh_queue', 'تحديث طابور العمليات'))}
+                    </button>
+                </div>
+            </div>
+        `;
+    }
 }

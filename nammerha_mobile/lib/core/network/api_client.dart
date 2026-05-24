@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -98,7 +99,28 @@ class NammerhaApiClient {
 
   Future<void> init() async {
     // Load cached token
-    _cachedToken = await _secureStorage.read(key: 'jwt_token');
+    try {
+      _cachedToken = await _secureStorage.read(key: 'jwt_token');
+    } on PlatformException catch (e) {
+      // Platinum UX: Phantom Biometric Trap Fix (Task 2)
+      // If biometrics change while logged in, the Keystore invalidates the encryption key.
+      // Trap the exception, wipe the dead storage, and force re-auth instead of crashing.
+      if (e.code == 'KeyPermanentlyInvalidatedException' ||
+          e.message?.contains('KeyPermanentlyInvalidatedException') == true ||
+          e.message?.contains('Mac check in GCM failed') == true) {
+        debugPrint('[Nammerha] Biometric Key Invalidated! Wiping secure storage...');
+        await _secureStorage.deleteAll();
+        _cachedToken = null;
+        onAuthExpired?.call();
+      } else {
+        await _secureStorage.deleteAll();
+        _cachedToken = null;
+      }
+    } catch (e) {
+      debugPrint('[Nammerha] SecureStorage read error: $e');
+      await _secureStorage.deleteAll();
+      _cachedToken = null;
+    }
 
     // Gather device info for telemetry headers
     try {
