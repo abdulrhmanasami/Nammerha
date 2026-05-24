@@ -269,8 +269,11 @@ class NammerhaMobileApp extends StatelessWidget {
                   // NOW: Every screen gets automatic offline awareness.
                   // Standard: Syria 2G resilience — user MUST know when offline.
                   builder: (context, child) {
-                    return ConnectivityBanner(
-                      child: child ?? const SizedBox.shrink(),
+                    return PrivacyOverlay(
+                      themeMode: themeMode,
+                      child: ConnectivityBanner(
+                        child: child ?? const SizedBox.shrink(),
+                      ),
                     );
                   },
                 );
@@ -560,6 +563,74 @@ class KeyboardDismissObserver extends NavigatorObserver {
   void didStartUserGesture(Route<dynamic> route, Route<dynamic>? previousRoute) {
     FocusManager.instance.primaryFocus?.unfocus();
     super.didStartUserGesture(route, previousRoute);
+  }
+}
+
+/// PLATINUM UX: App-Switcher Privacy Guard
+/// Obscures the screen with a secure overlay when the app moves to background
+/// (inactive or paused state). Prevents financial data leakage in the iOS/Android
+/// recent apps switcher.
+class PrivacyOverlay extends StatefulWidget {
+  final Widget child;
+  final ThemeMode themeMode;
+  
+  const PrivacyOverlay({
+    super.key,
+    required this.child,
+    required this.themeMode,
+  });
+
+  @override
+  State<PrivacyOverlay> createState() => _PrivacyOverlayState();
+}
+
+class _PrivacyOverlayState extends State<PrivacyOverlay> with WidgetsBindingObserver {
+  bool _isObscured = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.inactive || state == AppLifecycleState.paused) {
+      if (!_isObscured) setState(() => _isObscured = true);
+    } else if (state == AppLifecycleState.resumed) {
+      if (_isObscured) setState(() => _isObscured = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      textDirection: TextDirection.ltr,
+      children: [
+        widget.child,
+        if (_isObscured)
+          Positioned.fill(
+            child: Container(
+              color: widget.themeMode == ThemeMode.dark 
+                  ? const Color(0xFF0F1117) 
+                  : const Color(0xFF1558D6),
+              child: Center(
+                child: Icon(
+                  PhosphorIcons.lockKey(),
+                  size: 64,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
   }
 }
 

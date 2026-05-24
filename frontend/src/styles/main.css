@@ -780,11 +780,19 @@ html[data-theme='dark'] :focus-visible {
   0% { opacity: 0; visibility: hidden; }
   100% { opacity: 1; visibility: visible; }
 }
+@keyframes skeleton-timeout-bg {
+  0%, 95% { background-color: var(--surface-soft); }
+  100% { background-color: rgba(239, 68, 68, 0.1); border: 1px dashed var(--error-red); }
+}
+@keyframes skeleton-timeout-shimmer {
+  0%, 95% { opacity: 1; }
+  100% { opacity: 0; display: none; }
+}
 .animate-pulse {
-  animation: skeleton-debounce 0s 200ms backwards !important;
+  animation: skeleton-debounce 0s 200ms backwards, skeleton-timeout-bg 15s forwards !important;
   position: relative;
   overflow: hidden;
-  background-color: var(--surface-soft) !important;
+  background-color: var(--surface-soft);
 }
 .animate-pulse::after {
   content: '';
@@ -797,7 +805,7 @@ html[data-theme='dark'] :focus-visible {
     rgba(255, 255, 255, 0.5) 50%,
     transparent 100%
   );
-  animation: premium-shimmer 1.5s infinite;
+  animation: premium-shimmer 1.5s infinite, skeleton-timeout-shimmer 15s forwards;
   pointer-events: none;
   z-index: 10;
 }

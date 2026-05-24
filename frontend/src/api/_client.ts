@@ -219,49 +219,67 @@ export async function request<T>(
           // P4-UXA-006 FIX: In-Place Re-auth (Global 401 Interceptor)
           // Don't nuke the session and redirect immediately. Pause and prompt!
           if (!activeReauthPromise) {
-            activeReauthPromise = new Promise<boolean>((resolve) => {
-              import('../utils/toast')
-                .then(({ showToast }) => {
-                  showToast(t('session_expired_reauth', 'انتهت الجلسة. يرجى تسجيل الدخول مجدداً للمتابعة.'), 'warning');
-                })
-                .catch(() => {});
+            // DEMONIC UX FIX: The Offline Re-Auth Blackhole
+            // If offline when 401 hits, the iframe will show Chrome's Dinosaur.
+            // Freeze the promise until online, then let it retry (which will open the modal).
+            if (!navigator.onLine) {
+              import('../utils/toast').then(({ showToast }) => {
+                showToast(t('offline_reauth_wait', 'انتهت الجلسة والشبكة مقطوعة. يرجى الانتظار لحين عودة الاتصال.'), 'warning');
+              }).catch(() => {});
               
-              const modal = document.createElement('div');
-              modal.id = 'nm-reauth-modal';
-              modal.innerHTML = `
-                <div class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in-up">
-                  <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-md h-[550px] overflow-hidden relative mx-4">
-                    <button id="close-reauth" class="absolute top-4 end-4 z-10 text-slate-400 hover:text-slate-600 bg-white/80 dark:bg-slate-800/80 rounded-full w-8 h-8 flex items-center justify-center">
-                      <i class="ph ph-x"></i>
-                    </button>
-                    <iframe src="/auth.html?mode=modal" class="w-full h-full border-none"></iframe>
-                  </div>
-                </div>
-              `;
-              document.body.appendChild(modal);
-
-              const cleanup = () => {
-                window.removeEventListener('message', onMessage);
-                modal.remove();
-                activeReauthPromise = null;
-              };
-
-              const onMessage = (e: MessageEvent) => {
-                if (e.data === 'nm_auth_success') {
-                  cleanup();
+              activeReauthPromise = new Promise<boolean>((resolve) => {
+                const onOnline = () => {
+                  window.removeEventListener('online', onOnline);
+                  activeReauthPromise = null; 
                   resolve(true); // Retry!
-                }
-              };
-              window.addEventListener('message', onMessage);
-
-              modal.querySelector('#close-reauth')?.addEventListener('click', () => {
-                cleanup();
-                sessionExpiring = true;
-                clearAuth();
-                window.location.href = '/auth.html?reason=session_expired';
-                resolve(false);
+                };
+                window.addEventListener('online', onOnline);
               });
-            });
+            } else {
+              activeReauthPromise = new Promise<boolean>((resolve) => {
+                import('../utils/toast')
+                  .then(({ showToast }) => {
+                    showToast(t('session_expired_reauth', 'انتهت الجلسة. يرجى تسجيل الدخول مجدداً للمتابعة.'), 'warning');
+                  })
+                  .catch(() => {});
+                
+                const modal = document.createElement('div');
+                modal.id = 'nm-reauth-modal';
+                modal.innerHTML = `
+                  <div class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in-up">
+                    <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-md h-[550px] overflow-hidden relative mx-4">
+                      <button id="close-reauth" class="absolute top-4 end-4 z-10 text-slate-400 hover:text-slate-600 bg-white/80 dark:bg-slate-800/80 rounded-full w-8 h-8 flex items-center justify-center">
+                        <i class="ph ph-x"></i>
+                      </button>
+                      <iframe src="/auth.html?mode=modal" class="w-full h-full border-none"></iframe>
+                    </div>
+                  </div>
+                `;
+                document.body.appendChild(modal);
+
+                const cleanup = () => {
+                  window.removeEventListener('message', onMessage);
+                  modal.remove();
+                  activeReauthPromise = null;
+                };
+
+                const onMessage = (e: MessageEvent) => {
+                  if (e.data === 'nm_auth_success') {
+                    cleanup();
+                    resolve(true); // Retry!
+                  }
+                };
+                window.addEventListener('message', onMessage);
+
+                modal.querySelector('#close-reauth')?.addEventListener('click', () => {
+                  cleanup();
+                  sessionExpiring = true;
+                  clearAuth();
+                  window.location.href = '/auth.html?reason=session_expired';
+                  resolve(false);
+                });
+              });
+            }
           }
 
           const success = await activeReauthPromise;

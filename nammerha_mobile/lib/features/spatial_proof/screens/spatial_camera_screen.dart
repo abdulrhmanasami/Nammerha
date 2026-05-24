@@ -181,6 +181,11 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
         throw Exception('تم رصد تطبيق تزييف للموقع (Fake GPS). يُرجى إيقافه فوراً.');
       }
 
+      // PLATINUM UX FIX: Silent GPS Drift Prevention
+      if (position.accuracy > 25.0) {
+        throw Exception('دقة الـ GPS ضعيفة جداً (${position.accuracy.toStringAsFixed(1)}m). يرجى التوجه لمكان مكشوف.');
+      }
+
       _updateSignatureFromPosition(position);
       cubit.updatePosition(
         lat: position.latitude, lng: position.longitude, acc: position.accuracy,
@@ -308,6 +313,7 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
       },
       builder: (context, state) {
         final isCapturing = state is SpatialProofLoading;
+        final isGpsPoor = hwState.accuracy != null && hwState.accuracy! > 25.0;
 
         return Scaffold(
           backgroundColor: Colors.black,
@@ -427,23 +433,36 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
                         Semantics(
                           label: context.tr('capture_spatial_proof'),
                           button: true,
-                          enabled: !isCapturing,
+                          enabled: !isCapturing && !isGpsPoor,
                           child: GestureDetector(
-                            onTap: isCapturing ? null : _captureSpatialProof,
+                            onTap: (isCapturing || isGpsPoor) ? () {
+                               if (isGpsPoor) {
+                                 ScaffoldMessenger.of(context).showSnackBar(
+                                   SnackBar(
+                                     content: const Text('دقة الـ GPS ضعيفة. يرجى التوجه لمكان مكشوف.'),
+                                     backgroundColor: colors.warning,
+                                   ),
+                                 );
+                               }
+                            } : _captureSpatialProof,
                             child: Container(
                               width: 76,
                               height: 76,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white, width: 4),
-                                color: isCapturing ? Colors.grey : colors.primaryBrand.withAlpha(200),
+                                border: Border.all(color: isGpsPoor ? colors.warning : Colors.white, width: 4),
+                                color: isCapturing 
+                                    ? Colors.grey 
+                                    : isGpsPoor 
+                                        ? colors.warning.withAlpha(100) 
+                                        : colors.primaryBrand.withAlpha(200),
                               ),
                               child: isCapturing
                                   ? Padding(
                                       padding: const EdgeInsets.all(20),
                                       child: Icon(PhosphorIconsRegular.spinnerGap, color: Colors.white, size: 36).animate(onPlay: (c) => c.repeat()).rotate(duration: 1.seconds),
                                     )
-                                  : Icon(PhosphorIconsRegular.camera, color: Colors.white, size: 36),
+                                  : Icon(isGpsPoor ? PhosphorIconsRegular.warningCircle : PhosphorIconsRegular.camera, color: Colors.white, size: 36),
                             ),
                           ),
                         ),

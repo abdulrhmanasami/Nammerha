@@ -630,11 +630,11 @@ function openBidModal(projectId: string): void {
 
             <div>
                 <label for="bid-cost" class="text-xs font-bold text-slate-500 uppercase dark:text-slate-400">${esc(t('ct_label_cost', 'التكلفة'))}</label>
-                <input id="bid-cost" type="number" min="1" placeholder="25000" inputmode="decimal" enterkeyhint="next" autocomplete="off" class="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-base dark:bg-dark-elevated dark:border-dark-border dark:text-slate-100 dark:placeholder-slate-500 transition-colors duration-300" />
+                <input id="bid-cost" type="text" min="1" placeholder="25000" inputmode="decimal" enterkeyhint="next" autocomplete="off" class="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-base dark:bg-dark-elevated dark:border-dark-border dark:text-slate-100 dark:placeholder-slate-500 transition-colors duration-300" />
             </div>
             <div>
                 <label for="bid-days" class="text-xs font-bold text-slate-500 uppercase dark:text-slate-400">${esc(t('ct_label_days', 'الأيام'))}</label>
-                <input id="bid-days" type="number" min="1" placeholder="90" inputmode="numeric" enterkeyhint="next" autocomplete="off" class="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-base dark:bg-dark-elevated dark:border-dark-border dark:text-slate-100 dark:placeholder-slate-500" />
+                <input id="bid-days" type="text" min="1" placeholder="90" inputmode="numeric" enterkeyhint="next" autocomplete="off" class="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-base dark:bg-dark-elevated dark:border-dark-border dark:text-slate-100 dark:placeholder-slate-500" />
             </div>
             <div>
                 <label for="bid-letter" class="text-xs font-bold text-slate-500 uppercase dark:text-slate-400">${esc(t('ct_label_letter', 'خطاب التقديم'))}</label>
