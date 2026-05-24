@@ -126,6 +126,12 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
       final position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(timeLimit: Duration(seconds: 10)),
       );
+      
+      // PLATINUM UX FIX: Mock Location Spoofing Detection
+      if (position.isMocked) {
+        throw Exception('تم رصد تطبيق تزييف للموقع (Fake GPS). يُرجى إيقافه فوراً.');
+      }
+
       _updateSignatureFromPosition(position);
 
       if (mounted) {
@@ -169,6 +175,12 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
       Haptics.heavy();
       // 1. Refresh precise location
       final position = await Geolocator.getCurrentPosition();
+      
+      // PLATINUM UX FIX: Mock Location Spoofing Detection
+      if (position.isMocked) {
+        throw Exception('تم رصد تطبيق تزييف للموقع (Fake GPS). يُرجى إيقافه فوراً.');
+      }
+
       _updateSignatureFromPosition(position);
       cubit.updatePosition(
         lat: position.latitude, lng: position.longitude, acc: position.accuracy,

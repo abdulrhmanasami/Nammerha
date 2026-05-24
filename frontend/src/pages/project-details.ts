@@ -486,8 +486,36 @@ function markAsAdded(btn: HTMLButtonElement): void {
   btn.disabled = true;
 }
 
-// ─── UX PLATINUM FIX: Cart Lock Timer ─────────────────────────────────────────
+// ─── UX PLATINUM FIX: Cart Lock Timer (Absolute Time) ─────────────────────────
 let cartTimerInterval: number | null = null;
+
+function showExpirationModal() {
+  const modal = document.createElement('div');
+  modal.className = 'fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fade-in';
+  modal.innerHTML = `
+    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-sm shadow-xl transform scale-100 animate-pop-in border border-slate-200 dark:border-slate-700">
+      <div class="size-12 rounded-full bg-rose-50 dark:bg-rose-900/30 text-rose-500 flex items-center justify-center mb-4 mx-auto">
+        <i class="ph ph-clock-countdown text-2xl"></i>
+      </div>
+      <h3 class="text-lg font-bold text-slate-800 dark:text-white text-center mb-2">${esc(t('lock_expired_title', 'انتهت مدة الحجز'))}</h3>
+      <p class="text-sm text-slate-500 dark:text-slate-400 text-center mb-6">${esc(t('lock_expired_desc', 'عذراً، انتهت مدة الحجز أثناء انشغالك. هل ترغب بتجديد الحجز للعمليات المعلقة؟'))}</p>
+      <div class="flex gap-3">
+        <button id="btn-renew-lock" class="flex-1 bg-trust-blue text-white py-2.5 rounded-lg font-bold hover:bg-trust-blue/90 transition-colors">${esc(t('renew_lock', 'تجديد الحجز'))}</button>
+        <button id="btn-close-lock-modal" class="flex-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 py-2.5 rounded-lg font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">${esc(t('cancel', 'إلغاء'))}</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  document.getElementById('btn-renew-lock')?.addEventListener('click', () => {
+    modal.remove();
+    startCartLockTimer();
+  });
+  document.getElementById('btn-close-lock-modal')?.addEventListener('click', () => {
+    modal.remove();
+  });
+}
+
 function startCartLockTimer() {
   const timerContainer = document.getElementById('cart-lock-timer');
   const countdownEl = document.getElementById('cart-timer-countdown');
@@ -496,12 +524,17 @@ function startCartLockTimer() {
   timerContainer.classList.remove('nm-hidden');
   
   if (cartTimerInterval) {
-    clearInterval(cartTimerInterval);
+    window.clearInterval(cartTimerInterval);
   }
 
-  let timeLeft = 900; // 15 minutes
+  const LOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
+  const expiryTime = Date.now() + LOCK_DURATION_MS;
+  localStorage.setItem('cart_lock_expiry', expiryTime.toString());
   
   const updateDisplay = () => {
+    const now = Date.now();
+    const timeLeft = Math.max(0, Math.floor((expiryTime - now) / 1000));
+    
     const mins = Math.floor(timeLeft / 60).toString().padStart(2, '0');
     const secs = (timeLeft % 60).toString().padStart(2, '0');
     countdownEl.textContent = `${mins}:${secs}`;
@@ -509,27 +542,40 @@ function startCartLockTimer() {
     // Ensure warning yellow class is present initially
     countdownEl.className = 'text-xs font-black text-warning-yellow tracking-widest font-mono relative z-10 transition-colors';
 
-    if (timeLeft <= 60) {
+    if (timeLeft <= 60 && timeLeft > 0) {
       countdownEl.classList.add('text-red-500', 'animate-pulse');
       countdownEl.classList.remove('text-warning-yellow');
+    }
+
+    if (timeLeft <= 0) {
+      if (cartTimerInterval) window.clearInterval(cartTimerInterval);
+      countdownEl.textContent = "00:00";
+      showExpirationModal();
+      setTimeout(() => timerContainer.classList.add('nm-hidden'), 3000);
     }
   };
 
   updateDisplay();
-
-  cartTimerInterval = window.setInterval(() => {
-    timeLeft--;
-    if (timeLeft <= 0) {
-      clearInterval(cartTimerInterval!);
-      countdownEl.textContent = "00:00";
-      // In a real app, we would unlock the item in the backend via API
-      showToast(t('cart_lock_expired', 'انتهت مدة الحجز، يرجى إعادة المحاولة'), 'error');
-      setTimeout(() => timerContainer.classList.add('nm-hidden'), 3000);
-    } else {
-      updateDisplay();
-    }
-  }, 1000);
+  cartTimerInterval = window.setInterval(updateDisplay, 1000);
 }
+
+// Handle OS JS suspension when app comes to foreground
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && cartTimerInterval) {
+    const storedExpiry = localStorage.getItem('cart_lock_expiry');
+    if (storedExpiry) {
+      const now = Date.now();
+      const expiry = parseInt(storedExpiry, 10);
+      if (now >= expiry) {
+        // Timer expired while in background
+        if (cartTimerInterval) window.clearInterval(cartTimerInterval);
+        const timerContainer = document.getElementById('cart-lock-timer');
+        if (timerContainer) timerContainer.classList.add('nm-hidden');
+        showExpirationModal();
+      }
+    }
+  }
+});
 
 // ─── Main Data Loader ───────────────────────────────────────────────────────
 async function loadProjectData(): Promise<void> {

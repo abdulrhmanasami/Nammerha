@@ -10,5 +10,9 @@
  */
 export function setText(id: string, text: string): void {
     const el = document.getElementById(id);
-    if (el) { el.textContent = text; }
+    if (el) { 
+        el.textContent = text; 
+        // PLATINUM UX FIX: Protect Logical CSS RTL/LTR Drift
+        el.setAttribute('dir', 'auto');
+    }
 }
