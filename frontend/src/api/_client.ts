@@ -23,6 +23,17 @@ import { markSessionActivity } from '../utils/session-timeout';
 let sessionExpiring = false;
 let activeReauthPromise: Promise<boolean> | null = null;
 
+// ─── PLATINUM FIX: Async DOM Disassociation Guard ─────────────────────────
+let globalRouteAbortController = new AbortController();
+
+export function abortPendingRouteRequests() {
+  globalRouteAbortController.abort();
+  globalRouteAbortController = new AbortController();
+}
+
+// ─── PLATINUM FIX: Pessimistic Epoch Locking ──────────────────────────────
+let lastMutationEpoch = 0;
+
 export const API_BASE = '/api';
 
 // ─── P1-NEW-002 FIX: CSRF Token Management ─────────────────────────────────
@@ -180,6 +191,11 @@ export async function request<T>(
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     const startTime = Date.now();
     const controller = new AbortController();
+
+    // Wire the global route abort controller to this specific request's controller
+    const abortOnNav = () => controller.abort();
+    globalRouteAbortController.signal.addEventListener('abort', abortOnNav);
+
     // P1-UXA-007 FIX: Lie-Fi Syndrome - Reduce timeout to 8s instead of 30s
     const timeoutId = setTimeout(() => controller.abort(), 8_000);
 
@@ -192,6 +208,7 @@ export async function request<T>(
       });
 
       clearTimeout(timeoutId);
+      globalRouteAbortController.signal.removeEventListener('abort', abortOnNav);
 
       // Resilient Idempotency failover (502/503/504)
       if (!res.ok && attempt < maxRetries && [502, 503, 504].includes(res.status)) {
@@ -223,14 +240,22 @@ export async function request<T>(
             // If offline when 401 hits, the iframe will show Chrome's Dinosaur.
             // Freeze the promise until online, then let it retry (which will open the modal).
             if (!navigator.onLine) {
-              import('../utils/toast').then(({ showToast }) => {
-                showToast(t('offline_reauth_wait', 'انتهت الجلسة والشبكة مقطوعة. يرجى الانتظار لحين عودة الاتصال.'), 'warning');
-              }).catch(() => {});
-              
+              import('../utils/toast')
+                .then(({ showToast }) => {
+                  showToast(
+                    t(
+                      'offline_reauth_wait',
+                      'انتهت الجلسة والشبكة مقطوعة. يرجى الانتظار لحين عودة الاتصال.',
+                    ),
+                    'warning',
+                  );
+                })
+                .catch(() => {});
+
               activeReauthPromise = new Promise<boolean>((resolve) => {
                 const onOnline = () => {
                   window.removeEventListener('online', onOnline);
-                  activeReauthPromise = null; 
+                  activeReauthPromise = null;
                   resolve(true); // Retry!
                 };
                 window.addEventListener('online', onOnline);
@@ -239,10 +264,16 @@ export async function request<T>(
               activeReauthPromise = new Promise<boolean>((resolve) => {
                 import('../utils/toast')
                   .then(({ showToast }) => {
-                    showToast(t('session_expired_reauth', 'انتهت الجلسة. يرجى تسجيل الدخول مجدداً للمتابعة.'), 'warning');
+                    showToast(
+                      t(
+                        'session_expired_reauth',
+                        'انتهت الجلسة. يرجى تسجيل الدخول مجدداً للمتابعة.',
+                      ),
+                      'warning',
+                    );
                   })
                   .catch(() => {});
-                
+
                 const modal = document.createElement('div');
                 modal.id = 'nm-reauth-modal';
                 modal.innerHTML = `
@@ -285,7 +316,7 @@ export async function request<T>(
           const success = await activeReauthPromise;
           if (success) {
             // Replay the request!
-            maxRetries++; 
+            maxRetries++;
             continue;
           }
           return { success: false, error: 'Session expired' } as ApiResponse<T>;
@@ -293,6 +324,17 @@ export async function request<T>(
       }
 
       const body = (await res.json()) as ApiResponse<T>;
+
+      if (method === 'GET' && startTime < lastMutationEpoch) {
+        console.warn(
+          `[State Guard] Discarding stale GET response from ${endpoint} due to concurrent mutation.`,
+        );
+        throw new DOMException('Stale GET response due to concurrent mutation', 'AbortError');
+      }
+
+      if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
+        lastMutationEpoch = Date.now();
+      }
 
       // P0-002 FIX (Wave 2): Throw ApiError instead of Error.
       // Previous: throw new Error(body.error) — discarded status, code, and full body.
@@ -320,6 +362,7 @@ export async function request<T>(
       return body;
     } catch (err) {
       clearTimeout(timeoutId);
+      globalRouteAbortController.signal.removeEventListener('abort', abortOnNav);
 
       // Retry on Network failure or Timeout if idempotent
       if (

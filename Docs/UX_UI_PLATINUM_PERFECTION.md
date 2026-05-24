@@ -75,3 +75,13 @@
 
 **Problem:** If a visually impaired user sets their OS font size to 300% (Dynamic Type), every Flutter layout mathematically shatters into a wall of Yellow/Black "RenderFlex Overflow" errors.
 **Permanent Rule:** The root `MaterialApp.builder` MUST wrap the app in a `MediaQuery` that restricts the `textScaler.clamp(minScaleFactor: 1.0, maxScaleFactor: 1.3)`. This guarantees layout integrity while maintaining reasonable accessibility scaling.
+
+### 14. Async DOM Disassociation (Zombie Callback Protection)
+
+**Problem:** In Vanilla TS (no Virtual DOM), changing the active tab in the hash router destroyed DOM elements. In-flight requests initiated from the previous tab would later resolve and attempt to manipulate those dead elements (`Cannot read properties of null`), causing ghost memory leaks and global error spam.
+**Permanent Rule:** The global `api/_client.ts` exports an `abortPendingRouteRequests()` function that severs an active `AbortController`. This MUST be called synchronously in `hash-router.ts` during any `setActiveTab` or `popstate` transition to annihilate pending network requests from the outgoing page.
+
+### 15. Chronological State Regression (Pessimistic Epoch Lock)
+
+**Problem:** Severe network latency caused stale `GET` requests (e.g., fetching escrow status) to arrive _after_ a fast `POST` request (e.g., releasing escrow) had already updated the UI. This overwrote the UI with old data, causing users to panic and double-submit financial mutations.
+**Permanent Rule:** All state-mutating requests (`POST/PUT/DELETE`) must update a `lastMutationEpoch` timestamp in `_client.ts`. Any `GET` request must record its `startTime`. If the `GET` response arrives and its `startTime < lastMutationEpoch`, it MUST be discarded as an `AbortError` to prevent state staleness.
