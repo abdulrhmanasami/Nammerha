@@ -98,7 +98,11 @@ class NotificationNavigator {
       final projectId = _extractId(data, 'project_id', notification);
       if (projectId == null) return null;
       final title = data['project_title']?.toString() ?? notification['title']?.toString();
-      return ProjectDetailsScreen(projectId: projectId, projectTitle: title);
+      return ProjectDetailsScreen(
+        projectId: projectId, 
+        projectTitle: title,
+        preHydratedData: data,
+      );
     }
 
     // ── Contract/Payment-centric types ──
@@ -111,13 +115,30 @@ class NotificationNavigator {
       // Fallback: if there's a project_id, go to project
       final projectId = _extractId(data, 'project_id', notification);
       if (projectId != null) {
-        return ProjectDetailsScreen(projectId: projectId);
+        return ProjectDetailsScreen(
+          projectId: projectId,
+          preHydratedData: data,
+        );
       }
       return null;
     }
 
     // ── Bid/Matchmaking types ──
     if (_isBidType(type)) {
+      // UX PLATINUM FIX: Pre-hydrated Notification Routing (WSOD Prevention)
+      // When a contractor receives a 'bid_accepted' notification, we extract
+      // the project data from the payload and inject it immediately into the State.
+      if (type == 'bid_accepted') {
+        final projectId = _extractId(data, 'project_id', notification);
+        if (projectId != null) {
+          final title = data['project_title']?.toString() ?? notification['title']?.toString();
+          return ProjectDetailsScreen(
+            projectId: projectId,
+            projectTitle: title,
+            preHydratedData: data, // Instant hydration payload
+          );
+        }
+      }
       return const BidsScreen();
     }
 

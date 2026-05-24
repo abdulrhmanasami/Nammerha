@@ -1216,11 +1216,53 @@ async function loadEscrow(): Promise<void> {
             ${
               (e.held_in_escrow ?? 0) > 0
                 ? `
-                <div class="mt-4 p-4 bg-trust-blue/5 rounded-xl border border-trust-blue/10">
-                    <div class="flex items-center gap-2 text-trust-blue">
-                        <i class="ph ph-shield-check text-xl" aria-hidden="true"></i>
-                        <p class="text-sm font-medium">${esc(t('ho_escrow_guarantee', 'ضمان الأمانة'))}</p>
+                <!-- [Platinum UX]: Tripartite Arbitration UI (Ghost State) -->
+                <div class="mt-4 p-5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-1 bg-trust-blue h-full"></div>
+                    <div class="flex items-center gap-2 text-slate-800 dark:text-slate-200 mb-4">
+                        <i class="ph-fill ph-scales text-trust-blue text-xl" aria-hidden="true"></i>
+                        <h4 class="text-sm font-bold">${esc(t('ho_arbitration_status', 'حالة الأموال والتحكيم'))}</h4>
                     </div>
+                    
+                    <div class="flex items-center justify-between relative z-10 px-2" dir="ltr">
+                        <!-- Step 1: Held -->
+                        <div class="flex flex-col items-center z-10" style="width: 70px;">
+                            <div class="size-8 rounded-full bg-trust-blue text-white flex items-center justify-center shadow-md shadow-trust-blue/30 mb-2">
+                                <i class="ph-bold ph-lock-key text-base"></i>
+                            </div>
+                            <span class="text-3xs font-bold text-slate-700 dark:text-slate-300 text-center leading-tight">${esc(t('arb_held', 'معلقة'))}</span>
+                        </div>
+                        
+                        <!-- Line 1 -->
+                        <div class="flex-1 h-0.5 bg-trust-blue/30 mx-1 mt-[-20px]"></div>
+                        
+                        <!-- Step 2: Arbitration (Ghost State) -->
+                        <div class="flex flex-col items-center z-10 opacity-50 grayscale hover:opacity-100 hover:grayscale-0 transition-all cursor-help" style="width: 70px;" title="${esc(t('arb_tooltip', 'يتم تفعيل التحكيم الثلاثي في حال النزاع'))}">
+                            <div class="size-8 rounded-full bg-warning-yellow text-white flex items-center justify-center shadow-md mb-2 relative">
+                                <i class="ph-bold ph-gavel text-base"></i>
+                                <span class="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-warning-yellow opacity-75"></span>
+                                  <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-warning-yellow"></span>
+                                </span>
+                            </div>
+                            <span class="text-3xs font-bold text-slate-500 dark:text-slate-400 text-center leading-tight">${esc(t('arb_active', 'تحكيم'))}</span>
+                        </div>
+                        
+                        <!-- Line 2 -->
+                        <div class="flex-1 h-0.5 bg-slate-200 dark:bg-slate-700 mx-1 mt-[-20px]"></div>
+                        
+                        <!-- Step 3: Released -->
+                        <div class="flex flex-col items-center z-10 opacity-40 grayscale" style="width: 70px;">
+                            <div class="size-8 rounded-full bg-smoky-jade text-white flex items-center justify-center shadow-md mb-2">
+                                <i class="ph-bold ph-check-circle text-base"></i>
+                            </div>
+                            <span class="text-3xs font-bold text-slate-400 text-center leading-tight">${esc(t('arb_released', 'مفرج عنها'))}</span>
+                        </div>
+                    </div>
+                    
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-5 leading-relaxed text-center sm:text-start">
+                      ${esc(t('ho_escrow_guarantee_desc', 'أموالك محمية. لا تُسلّم للمقاول إلا بموافقتك أو بقرار التحكيم الهندسي.'))}
+                    </p>
                 </div>
             `
                 : ''

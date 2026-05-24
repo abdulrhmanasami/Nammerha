@@ -31,6 +31,7 @@ import '../../../core/kyc/kyc_level.dart';
 class ProjectDetailsScreen extends StatefulWidget {
   final String projectId;
   final String? projectTitle;
+  final Map<String, dynamic>? preHydratedData;
   /// P3-003 FIX: Only enable Hero animation when navigating from a screen
   /// that defines matching source Heroes (marketplace). Push notifications,
   /// project map, and deep links don't have source Heroes — orphan
@@ -41,6 +42,7 @@ class ProjectDetailsScreen extends StatefulWidget {
     super.key,
     required this.projectId,
     this.projectTitle,
+    this.preHydratedData,
     this.enableHero = false,
   });
 
@@ -53,7 +55,11 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ProjectDetailsBloc>().add(LoadProjectDetailsRequested(widget.projectId));
+      if (widget.preHydratedData != null) {
+        context.read<ProjectDetailsBloc>().add(PreHydrateProjectRequested(widget.projectId, widget.preHydratedData!));
+      } else {
+        context.read<ProjectDetailsBloc>().add(LoadProjectDetailsRequested(widget.projectId));
+      }
     });
   }
 

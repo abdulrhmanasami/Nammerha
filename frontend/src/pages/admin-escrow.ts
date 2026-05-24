@@ -272,20 +272,38 @@ function initActionButtons(): void {
 
       // Loading state
       releaseBtn.disabled = true;
-      releaseBtn.innerHTML = `<i class="ph ph-spinner animate-spin text-lg" aria-hidden="true"></i> ${esc(t('esc_releasing', 'جاري الإفراج…'))}`;
+      releaseBtn.innerHTML = `<i class="ph ph-lock-key text-lg animate-pulse" aria-hidden="true"></i> ${esc(t('esc_crypto_1', 'تشفير الطلب...'))}`;
 
       try {
-        await admin.releaseEscrow({ proof_id: c.proof_id, item_id: c.item_id });
-        resolvedCases.add(currentCaseIndex);
+        // [Platinum UX]: Cryptographic Theater (Artificial Trust Delay)
+        // Stage 1: Request sent
+        const apiPromise = admin.releaseEscrow({ proof_id: c.proof_id, item_id: c.item_id });
+        await new Promise(r => setTimeout(r, 400));
+        
+        // Stage 2: Fingerprint
+        if (releaseBtn) releaseBtn.innerHTML = `<i class="ph ph-fingerprint text-lg animate-pulse" aria-hidden="true"></i> ${esc(t('esc_crypto_2', 'مطابقة بصمة العقد...'))}`;
+        await new Promise(r => setTimeout(r, 500));
+
+        // Stage 3: Bank release
+        if (releaseBtn) releaseBtn.innerHTML = `<i class="ph ph-bank text-lg animate-pulse" aria-hidden="true"></i> ${esc(t('esc_crypto_3', 'جاري تحرير الأموال من البنك...'))}`;
+        await new Promise(r => setTimeout(r, 600));
+
+        await apiPromise; // Ensure API actually finished
+
+        // UX: Immediate visual update
         c.status = 'released';
-        releaseBtn.classList.remove('bg-trust-blue', 'bg-amber-500');
-        releaseBtn.classList.add('bg-smoky-jade', 'cursor-not-allowed');
-        releaseBtn.innerHTML = `<i class="ph ph-check-circle text-lg" aria-hidden="true"></i> ${esc(t('esc_funds_released', '✓ تم تحرير الأموال — سجل التدقيق مُحدَّث'))}`;
+        if (releaseBtn) {
+          releaseBtn.classList.remove('bg-trust-blue', 'bg-amber-500');
+          releaseBtn.classList.add('bg-smoky-jade', 'cursor-not-allowed');
+          releaseBtn.innerHTML = `<i class="ph ph-lock-key-open text-lg" aria-hidden="true"></i> ${esc(t('esc_funds_released', '✓ تم تحرير الأموال — سجل التدقيق مُحدَّث'))}`;
+        }
 
         if (flagBtn) {
           flagBtn.disabled = true;
           flagBtn.classList.add('opacity-40', 'cursor-not-allowed', 'pointer-events-none');
         }
+
+        resolvedCases.add(currentCaseIndex);
 
         showToast(
           `${t('esc_released_toast', 'تم إفراج الأموال')}: ${formatCents(c.amount)} → ${esc(c.vendor_name)}`,

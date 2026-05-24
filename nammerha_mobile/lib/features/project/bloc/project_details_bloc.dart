@@ -11,6 +11,7 @@ class ProjectDetailsBloc extends Bloc<ProjectDetailsEvent, ProjectDetailsState> 
       : _repository = repository ?? ProjectRepository(),
         super(ProjectDetailsInitial()) {
     on<LoadProjectDetailsRequested>(_onLoadProjectDetails);
+    on<PreHydrateProjectRequested>(_onPreHydrateProject);
     on<UpdateBOQQuantityRequested>(_onUpdateBOQQuantity);
     on<ClearBOQSelectionsRequested>(_onClearBOQSelections);
   }
@@ -49,6 +50,28 @@ class ProjectDetailsBloc extends Bloc<ProjectDetailsEvent, ProjectDetailsState> 
       debugPrint('[Nammerha] bloc/project_details_bloc: $e');
       emit(const ProjectDetailsError('err_project_details_load'));
     }
+  }
+
+  Future<void> _onPreHydrateProject(
+      PreHydrateProjectRequested event, Emitter<ProjectDetailsState> emit) async {
+    // 1. Inject payload immediately into state (WSOD Prevention)
+    emit(ProjectDetailsLoaded(
+      project: {
+        'id': event.projectId,
+        'project_title': event.payload['project_title'] ?? event.payload['title'] ?? '...',
+        'total_estimated_cost': event.payload['amount'] ?? event.payload['total_amount'] ?? 0,
+        // Fill defaults for UI safety
+        'funded_percentage': 0.0,
+        'description': '...',
+        'address_text': '...',
+        'damage_type': '...',
+      },
+      boqItems: const [],
+      selectedQuantities: const {},
+    ));
+
+    // 2. Background Sync
+    add(LoadProjectDetailsRequested(event.projectId));
   }
 
   void _onUpdateBOQQuantity(

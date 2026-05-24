@@ -499,13 +499,16 @@ function startCartLockTimer() {
     clearInterval(cartTimerInterval);
   }
 
-  let timeLeft = 300; // 5 minutes
+  let timeLeft = 900; // 15 minutes
   
   const updateDisplay = () => {
     const mins = Math.floor(timeLeft / 60).toString().padStart(2, '0');
     const secs = (timeLeft % 60).toString().padStart(2, '0');
     countdownEl.textContent = `${mins}:${secs}`;
     
+    // Ensure warning yellow class is present initially
+    countdownEl.className = 'text-xs font-black text-warning-yellow tracking-widest font-mono relative z-10 transition-colors';
+
     if (timeLeft <= 60) {
       countdownEl.classList.add('text-red-500', 'animate-pulse');
       countdownEl.classList.remove('text-warning-yellow');

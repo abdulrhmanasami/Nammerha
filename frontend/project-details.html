@@ -435,14 +435,15 @@
         class="fixed bottom-24 start-4 end-4 max-w-[416px] mx-auto z-50 nm-hidden animate-fade-in-up"
       >
         <!-- PLATINUM UX FIX: Cart Lock Timer Banner -->
-        <div id="cart-lock-timer" class="mb-2 glass-card p-3 rounded-xl border border-warning-yellow/50 shadow-md flex items-center justify-between bg-warning-yellow/10 nm-hidden">
-          <div class="flex items-center gap-2">
-            <i class="ph ph-timer text-warning-yellow text-lg animate-pulse" aria-hidden="true"></i>
+        <div id="cart-lock-timer" class="mb-2 glass-card p-3 rounded-xl border border-warning-yellow shadow-md flex items-center justify-between bg-warning-yellow/10 nm-hidden relative overflow-hidden">
+          <div class="absolute inset-0 bg-warning-yellow/5 animate-pulse"></div>
+          <div class="flex items-center gap-2 relative z-10">
+            <i class="ph ph-timer text-warning-yellow text-lg" aria-hidden="true"></i>
             <span class="text-xs font-bold text-slate-800 dark:text-slate-200" data-i18n="cart_lock_timer">
-              تم حجز المواد لضمان الدفع:
+              الكمية والأسعار محجوزة لمدة 15 دقيقة فقط
             </span>
           </div>
-          <span id="cart-timer-countdown" class="text-xs font-black text-warning-yellow tracking-widest font-mono">05:00</span>
+          <span id="cart-timer-countdown" class="text-xs font-black text-warning-yellow tracking-widest font-mono relative z-10">15:00</span>
         </div>
 
         <div

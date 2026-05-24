@@ -15,6 +15,17 @@ class LoadProjectDetailsRequested extends ProjectDetailsEvent {
   List<Object?> get props => [projectId];
 }
 
+class PreHydrateProjectRequested extends ProjectDetailsEvent {
+  final String projectId;
+  final Map<String, dynamic> payload;
+
+  const PreHydrateProjectRequested(this.projectId, this.payload);
+
+  @override
+  List<Object?> get props => [projectId, payload];
+}
+
+
 class UpdateBOQQuantityRequested extends ProjectDetailsEvent {
   final String itemId;
   final int quantity;

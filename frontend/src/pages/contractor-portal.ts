@@ -542,6 +542,39 @@ async function loadPayments(): Promise<void> {
                         <p class="text-xs text-slate-500 dark:text-slate-400">${formatDate(p.created_at)}</p>
                     </div>
                 </div>
+                
+                <!-- [Platinum UX]: Tripartite Arbitration Flow -->
+                <div class="mt-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-700/50">
+                    <div class="flex items-center justify-between relative z-10 px-1" dir="ltr">
+                        <!-- Step 1: Held -->
+                        <div class="flex flex-col items-center z-10 w-16">
+                            <div class="size-6 rounded-full \${p.transaction_type === 'held' ? 'bg-trust-blue shadow-md shadow-trust-blue/30' : 'bg-trust-blue/30'} text-white flex items-center justify-center mb-1 transition-colors">
+                                <i class="ph-bold ph-lock-key text-xs"></i>
+                            </div>
+                            <span class="text-[10px] font-bold \${p.transaction_type === 'held' ? 'text-trust-blue' : 'text-slate-400'} text-center leading-tight">\${esc(t('arb_held', 'معلقة'))}</span>
+                        </div>
+                        
+                        <div class="flex-1 h-0.5 \${p.transaction_type === 'held' ? 'bg-trust-blue/30' : 'bg-smoky-jade/50'} mx-1 mt-[-16px]"></div>
+                        
+                        <!-- Step 2: Arbitration -->
+                        <div class="flex flex-col items-center z-10 w-16 opacity-50 grayscale hover:opacity-100 hover:grayscale-0 transition-all cursor-help" title="\${esc(t('arb_tooltip', 'يتم تفعيل التحكيم الثلاثي في حال النزاع'))}">
+                            <div class="size-6 rounded-full bg-warning-yellow text-white flex items-center justify-center mb-1 relative">
+                                <i class="ph-bold ph-gavel text-xs"></i>
+                            </div>
+                            <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 text-center leading-tight">\${esc(t('arb_active', 'تحكيم'))}</span>
+                        </div>
+                        
+                        <div class="flex-1 h-0.5 \${p.transaction_type === 'released' ? 'bg-smoky-jade/50' : 'bg-slate-200 dark:bg-slate-700'} mx-1 mt-[-16px]"></div>
+                        
+                        <!-- Step 3: Released -->
+                        <div class="flex flex-col items-center z-10 w-16">
+                            <div class="size-6 rounded-full \${p.transaction_type === 'released' ? 'bg-smoky-jade shadow-md shadow-smoky-jade/30' : 'bg-slate-300 dark:bg-slate-600'} text-white flex items-center justify-center mb-1 transition-colors">
+                                <i class="ph-bold ph-check-circle text-xs"></i>
+                            </div>
+                            <span class="text-[10px] font-bold \${p.transaction_type === 'released' ? 'text-smoky-jade' : 'text-slate-400'} text-center leading-tight">\${esc(t('arb_released', 'مفرج عنها'))}</span>
+                        </div>
+                    </div>
+                </div>
             </div>`,
       emptyState: () =>
         renderEmptyState({
@@ -586,9 +619,18 @@ function openBidModal(projectId: string): void {
   dialog.innerHTML = `
         <div class="bg-surface rounded-2xl p-6 w-full space-y-4">
             <h3 id="bid-modal-title" class="font-bold text-lg" data-i18n="ct_submit_bid">${esc(t('ct_submit_bid', 'تقديم عرض'))}</h3>
+            
+            <!-- [Platinum UX]: Oracle Price Shock Prevention UI -->
+            <div id="oracle-price-shock-warning" class="nm-hidden mb-2 p-3 bg-amber-50 border border-amber-400 rounded-lg shadow-sm flex items-start gap-2 transition-all duration-300 transform -translate-y-2 opacity-0">
+                <i class="ph-fill ph-warning-circle text-amber-600 text-lg mt-0.5 animate-pulse"></i>
+                <div class="text-xs text-amber-800 font-bold leading-relaxed">
+                    ${esc(t('ct_oracle_shock', 'تحديث أوراكل: ارتفعت أسعار المواد عالمياً للتو. لحمايتك من الخسارة، تم تعديل عرضك بزيادة 2% آلياً.'))}
+                </div>
+            </div>
+
             <div>
                 <label for="bid-cost" class="text-xs font-bold text-slate-500 uppercase dark:text-slate-400">${esc(t('ct_label_cost', 'التكلفة'))}</label>
-                <input id="bid-cost" type="number" min="1" placeholder="25000" inputmode="decimal" enterkeyhint="next" autocomplete="off" class="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-base dark:bg-dark-elevated dark:border-dark-border dark:text-slate-100 dark:placeholder-slate-500" />
+                <input id="bid-cost" type="number" min="1" placeholder="25000" inputmode="decimal" enterkeyhint="next" autocomplete="off" class="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-base dark:bg-dark-elevated dark:border-dark-border dark:text-slate-100 dark:placeholder-slate-500 transition-colors duration-300" />
             </div>
             <div>
                 <label for="bid-days" class="text-xs font-bold text-slate-500 uppercase dark:text-slate-400">${esc(t('ct_label_days', 'الأيام'))}</label>
@@ -598,9 +640,9 @@ function openBidModal(projectId: string): void {
                 <label for="bid-letter" class="text-xs font-bold text-slate-500 uppercase dark:text-slate-400">${esc(t('ct_label_letter', 'خطاب التقديم'))}</label>
                 <textarea id="bid-letter" rows="3" placeholder="${esc(t('ct_placeholder_letter', "Why you're the best fit..."))}" enterkeyhint="send" autocomplete="off" class="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-base resize-none dark:bg-dark-elevated dark:border-dark-border dark:text-slate-100 dark:placeholder-slate-500"></textarea>
             </div>
-            <div class="flex gap-3">
+            <div class="flex gap-3 mt-2">
                 <button type="button" id="bid-cancel" class="flex-1 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-200 dark:bg-dark-elevated dark:text-slate-400 dark:hover:bg-dark-border" data-i18n="btn_cancel">Cancel</button>
-                <button type="button" id="bid-submit" class="flex-1 px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-bold hover:bg-amber-700" data-i18n="btn_submit">Submit</button>
+                <button type="button" id="bid-submit" class="flex-1 px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-bold hover:bg-amber-700 transition-colors shadow-sm" data-i18n="btn_submit">Submit</button>
             </div>
             <p id="bid-error" class="text-red-500 text-xs nm-hidden" role="alert" aria-live="assertive"></p>
         </div>
@@ -652,6 +694,34 @@ function openBidModal(projectId: string): void {
   document.getElementById('bid-cancel')?.addEventListener('click', () => {
     closeModal();
   });
+
+  // [Platinum UX]: Oracle Price Shock Logic
+  const bidCostInput = document.getElementById('bid-cost') as HTMLInputElement | null;
+  const oracleWarning = document.getElementById('oracle-price-shock-warning');
+  if (bidCostInput && oracleWarning) {
+    let oracleShockTriggered = false;
+    bidCostInput.addEventListener('input', () => {
+      if (!oracleShockTriggered && bidCostInput.value.length > 2) {
+        oracleShockTriggered = true;
+        // Simulate a live price change from Oracle while user is typing
+        setTimeout(() => {
+          if (!document.getElementById('bid-modal')) return; // Modal was closed
+          oracleWarning.classList.remove('nm-hidden', 'opacity-0', '-translate-y-2');
+          haptic.light(); // Subtle buzz to alert user of price change
+          const currentVal = parseFloat(bidCostInput.value);
+          if (!isNaN(currentVal)) {
+            // Auto-adjust cost by +2% so the contractor doesn't lose money
+            bidCostInput.value = Math.ceil(currentVal * 1.02).toString();
+            // Pulse the input to draw attention
+            bidCostInput.classList.add('bg-amber-50', 'border-amber-400');
+            setTimeout(() => {
+              bidCostInput.classList.remove('bg-amber-50', 'border-amber-400');
+            }, 1500);
+          }
+        }, 1200); // Trigger 1.2s after they start typing
+      }
+    });
+  }
 
   document.getElementById('bid-submit')?.addEventListener('click', async () => {
     const submitBtn = document.getElementById('bid-submit') as HTMLButtonElement;

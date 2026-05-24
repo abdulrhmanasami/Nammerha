@@ -1717,26 +1717,87 @@ function init(): void {
 
   // Load sessions on page init
   loadActiveSessions();
-  // F-001 FIX: KYC Dead-End Elimination — hide the section.
+  // [Platinum UX]: Cognitive Collapse during KYC (Graceful Human Escalation UI)
   if (kycSectionEl) {
-    kycSectionEl.classList.add('nm-hidden');
+    kycSectionEl.classList.remove('nm-hidden');
+    
+    // Inject Platinum KYC UI
+    kycSectionEl.innerHTML = `
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+            <i class="ph ph-identification-card text-trust-blue text-lg"></i>
+            ${esc(t('kyc_title', 'توثيق الهوية (KYC)'))}
+        </h3>
+      </div>
+      <div id="kyc-camera-container" class="bg-slate-50 dark:bg-slate-800 rounded-lg p-6 text-center border border-slate-200 dark:border-slate-700 border-dashed mb-4">
+        <i class="ph ph-camera text-3xl text-slate-400 mb-2"></i>
+        <p class="text-sm text-slate-600 dark:text-slate-300 font-medium">${esc(t('kyc_scan_id', 'قم بتوجيه الكاميرا نحو الهوية الشخصية'))}</p>
+        <button id="kyc-scan-btn" class="nm-btn nm-btn-primary mt-4 px-6 text-sm">${esc(t('kyc_start_scan', 'بدء المسح'))}</button>
+      </div>
+      <div id="kyc-error-container" class="nm-hidden text-center p-4">
+         <!-- Will be replaced by Graceful Escalation after 2 failures -->
+      </div>
+    `;
+
+    let kycFailures = 0;
+    document.getElementById('kyc-scan-btn')?.addEventListener('click', (e) => {
+      const btn = e.target as HTMLButtonElement;
+      const errorContainer = document.getElementById('kyc-error-container');
+      const cameraContainer = document.getElementById('kyc-camera-container');
+      
+      btn.disabled = true;
+      btn.textContent = t('kyc_scanning', 'جاري مسح الهوية...');
+      
+      // Simulate AI scanning failure
+      setTimeout(() => {
+        kycFailures++;
+        btn.disabled = false;
+        btn.textContent = t('kyc_start_scan', 'إعادة المسح');
+        
+        if (errorContainer && cameraContainer) {
+          if (kycFailures < 2) {
+            // Standard error
+            errorContainer.classList.remove('nm-hidden');
+            errorContainer.innerHTML = `<p class="text-red-500 text-sm font-bold"><i class="ph ph-warning-circle"></i> ${esc(t('kyc_fail_1', 'الإضاءة ضعيفة، يرجى المحاولة مجدداً.'))}</p>`;
+          } else {
+            // Platinum UX: Graceful Human Escalation
+            cameraContainer.classList.add('nm-hidden');
+            errorContainer.classList.remove('nm-hidden');
+            errorContainer.className = 'bg-trust-blue/10 border border-trust-blue/30 rounded-lg p-6 text-center animate-fade-in-up';
+            errorContainer.innerHTML = `
+              <div class="size-12 bg-trust-blue/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                <i class="ph-fill ph-headset text-trust-blue text-2xl"></i>
+              </div>
+              <h4 class="text-trust-blue font-bold mb-2">${esc(t('kyc_human_help_title', 'يبدو أن الكاميرا لا تساعدنا اليوم'))}</h4>
+              <p class="text-sm text-trust-blue/80 mb-4">${esc(t('kyc_human_help_desc', 'لا تقلق، لقد حفظنا بياناتك الأساسية. احجز مكالمة فيديو لمدة دقيقة واحدة مع موظف التوثيق لمساعدتك فوراً دون الحاجة لإعادة التصوير.'))}</p>
+              <button id="kyc-video-call-btn" class="nm-btn bg-trust-blue text-white px-6 w-full text-sm hover:bg-trust-blue-hover shadow-lg">
+                <i class="ph ph-video-camera mr-1"></i> ${esc(t('kyc_book_call', 'حجز مكالمة فيديو'))}
+              </button>
+            `;
+            
+            // Wire up the new button
+            document.getElementById('kyc-video-call-btn')?.addEventListener('click', () => {
+              showToast(t('kyc_call_booked', 'تم حجز المكالمة بنجاح، سيقوم الموظف بالتواصل معك خلال 5 دقائق.'), 'success');
+            });
+          }
+        }
+      }, 1000);
+    });
   }
 
-  // F-001: Transform the KYC completion checklist item into a non-clickable
-  // "Coming soon" label instead of a focus-target that scrolls to nothing.
+  // Transform the KYC completion checklist item
   const kycChecklistItem = document.querySelector('[data-completion="kyc"]');
   if (kycChecklistItem) {
     const icon = kycChecklistItem.querySelector('i');
     if (icon) {
-      icon.className = 'ph ph-clock text-slate-300 text-xs';
+      icon.className = 'ph ph-identification-card text-trust-blue text-xs';
     }
     const btn = kycChecklistItem.querySelector('button');
     if (btn) {
-      const span = document.createElement('span');
-      span.className = 'text-slate-400 dark:text-slate-500';
-      span.setAttribute('data-i18n', 'kyc_coming_soon');
-      span.textContent = t('kyc_coming_soon', 'التحقق من الهوية — قريباً');
-      btn.replaceWith(span);
+      btn.textContent = t('kyc_complete_now', 'وثّق هويتك الآن');
+      btn.addEventListener('click', () => {
+        document.getElementById('kyc-section')?.scrollIntoView({ behavior: 'smooth' });
+      });
     }
   }
 
