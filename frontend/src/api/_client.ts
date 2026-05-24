@@ -116,6 +116,18 @@ export async function request<T>(
   endpoint: string,
   options: RequestOptions = {},
 ): Promise<ApiResponse<T>> {
+  // P1-UX FIX: Offline Form Submission Blackhole Prevention
+  // Intercept offline state before attempting fetch, avoiding generic
+  // "network error" states that don't explain to users their connection dropped.
+  if (!navigator.onLine) {
+    import('../utils/toast')
+      .then(({ showToast }) => {
+        showToast(t('error_offline', 'لا يوجد اتصال بالإنترنت. يرجى التحقق من الشبكة.'), 'error');
+      })
+      .catch(() => {});
+    throw new Error(t('error_offline', 'لا يوجد اتصال بالإنترنت. يرجى التحقق من الشبكة.'));
+  }
+
   const { skipAntiFlicker, ...fetchOptions } = options;
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',

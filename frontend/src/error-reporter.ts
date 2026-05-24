@@ -232,4 +232,21 @@ export function initErrorReporter(): void {
 
     // Flush any remaining reports when the page unloads
     window.addEventListener('beforeunload', flushReports);
+
+    // P0-UX FIX: Bfcache Zombie Form Prevention
+    // When returning via browser back button (Bfcache), elements may be frozen in
+    // a "processing" state. This ensures forms and UI locks are cleared on pageshow.
+    window.addEventListener('pageshow', (e) => {
+        if (e.persisted) {
+            document.querySelectorAll('.is-loading, [aria-disabled="true"]').forEach(el => {
+                el.classList.remove('is-loading');
+                el.removeAttribute('aria-disabled');
+                el.removeAttribute('disabled');
+            });
+            const activeLock = document.getElementById('nm-ui-lock');
+            if (activeLock) activeLock.remove();
+            const originalOverflow = document.body.style.overflow;
+            if (originalOverflow === 'hidden') document.body.style.overflow = '';
+        }
+    });
 }

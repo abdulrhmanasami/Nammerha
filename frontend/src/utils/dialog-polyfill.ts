@@ -153,6 +153,14 @@ export function polyfillDialog(dialog: HTMLDialogElement): void {
 
         // Prevent body scroll
         document.body.style.overflow = 'hidden';
+
+        // P2-A11y FIX: Modal Focus Leakage Prevention
+        // Make the main app inert so screen readers and keyboards are 
+        // strictly trapped inside the polyfilled dialog.
+        const appMain = document.getElementById('app') || document.querySelector('main');
+        if (appMain) {
+            appMain.setAttribute('inert', '');
+        }
     };
 
     // ── close() ──
@@ -178,6 +186,13 @@ export function polyfillDialog(dialog: HTMLDialogElement): void {
 
         // Restore body scroll
         document.body.style.overflow = '';
+
+        // P2-A11y FIX: Modal Focus Leakage Prevention
+        // Remove inert from the main app when dialog closes.
+        const appMain = document.getElementById('app') || document.querySelector('main');
+        if (appMain) {
+            appMain.removeAttribute('inert');
+        }
 
         // Fire 'close' event (matches native behavior)
         dialog.dispatchEvent(new Event('close'));
