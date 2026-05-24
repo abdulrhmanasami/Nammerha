@@ -18,6 +18,9 @@ import { confirmAction } from '../utils/confirm-action';
 // HIGH-UX-002 FIX: Breadcrumb for spatial orientation on inner pages.
 import { initBreadcrumb } from '../utils/breadcrumb';
 import { DirtyStateGuard } from '../utils/dirty-guard';
+import { initAutoSaveTextareas } from '../utils/auto-save';
+
+initAutoSaveTextareas();
 
 const wizardGuard = new DirtyStateGuard();
 

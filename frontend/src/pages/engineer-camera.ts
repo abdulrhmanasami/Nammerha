@@ -203,8 +203,28 @@ async function initCamera(): Promise<void> {
       action: 'init_camera',
       error: err instanceof Error ? err.message : String(err),
     });
-    // W13-003 FIX: Show user-facing error when camera fails to initialize.
-    showToast(t('cam_init_failed', 'فشل تهيئة الكاميرا'));
+    
+    if (err instanceof Error && (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError')) {
+      if (viewfinder) {
+        viewfinder.innerHTML = `
+          <div class="flex flex-col items-center justify-center h-full bg-slate-900 text-white p-6 text-center z-50 rounded-2xl">
+            <i class="ph ph-camera-slash text-error nm-icon-64 mb-4" aria-hidden="true"></i>
+            <h3 class="text-lg font-bold mb-2">\${esc(t('cam_permission_denied', 'تم رفض صلاحية الكاميرا'))}</h3>
+            <p class="text-slate-400 text-sm mb-6 max-w-xs">\${esc(t('cam_permission_instruction', 'يتطلب التطبيق صلاحية الكاميرا لالتقاط الإثباتات المكانية. يرجى تفعيلها من إعدادات المتصفح ثم إعادة المحاولة.'))}</p>
+            <button onclick="window.location.reload()" class="btn-primary w-full max-w-[200px]">
+              <i class="ph ph-arrows-clockwise nm-icon-gap-end" aria-hidden="true"></i>
+              \${esc(t('cam_retry', 'إعادة المحاولة'))}
+            </button>
+          </div>
+        `;
+      }
+      if (cameraReady) {
+        cameraReady.classList.add('nm-hidden');
+      }
+    } else {
+      // W13-003 FIX: Show user-facing error when camera fails to initialize.
+      showToast(t('cam_init_failed', 'فشل تهيئة الكاميرا'));
+    }
   }
 }
 

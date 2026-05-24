@@ -2574,8 +2574,30 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
   digitInputs.forEach((input, idx) => {
     input.addEventListener('input', () => {
       clearMfaError();
-      // Only allow digits
-      input.value = input.value.replace(/\D/g, '').slice(0, 1);
+      const rawValue = input.value.replace(/\D/g, '');
+      
+      // P1-UXA-008 FIX: OTP Paste Splintering & SMS Autofill Support
+      // iOS Safari and Android Gboard insert the entire OTP into the focused input,
+      // bypassing maxlength="1". If we don't distribute it here, the user loses the code.
+      if (rawValue.length > 1) {
+        for (let i = 0; i < Math.min(rawValue.length, digitInputs.length); i++) {
+          const target = digitInputs[i];
+          if (target) {
+            target.value = rawValue[i] ?? '';
+          }
+        }
+        const lastIdx = Math.min(rawValue.length, digitInputs.length) - 1;
+        if (lastIdx >= 0) {
+          digitInputs[lastIdx]?.focus();
+        }
+        if (getFullCode().length === 6) {
+          submitMfaTotp();
+        }
+        return;
+      }
+
+      // Single digit input
+      input.value = rawValue;
       // Auto-advance to next input
       if (input.value && idx < digitInputs.length - 1) {
         digitInputs[idx + 1]?.focus();

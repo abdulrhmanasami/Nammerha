@@ -180,7 +180,8 @@ export async function request<T>(
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     const startTime = Date.now();
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30_000);
+    // P1-UXA-007 FIX: Lie-Fi Syndrome - Reduce timeout to 8s instead of 30s
+    const timeoutId = setTimeout(() => controller.abort(), 8_000);
 
     try {
       const res = await fetch(`${API_BASE}${endpoint}`, {

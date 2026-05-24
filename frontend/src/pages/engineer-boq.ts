@@ -10,6 +10,9 @@ import { showToast } from '../utils/toast';
 import { initBreadcrumb } from '../utils/breadcrumb';
 // W5-001 FIX: Auth guard — was missing on this engineer page.
 import { requireAuth } from '../utils/auth-guard';
+import { initAutoSaveTextareas } from '../utils/auto-save';
+
+initAutoSaveTextareas();
 
 // ============================================================================
 // Nammerha — Engineer BOQ Builder Page Engine

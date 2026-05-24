@@ -48,6 +48,9 @@ initPrefetchEngine();
 // GAP-O2: Initialize RUM after error reporter (non-blocking, production-only)
 initRUM();
 
+import { initAutoSaveTextareas } from './utils/auto-save';
+initAutoSaveTextareas();
+
 // Register Service Worker for offline capabilities (field operations)
 registerServiceWorker();
 

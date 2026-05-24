@@ -8,6 +8,7 @@ import '../models/admin_models.dart';
 import '../../../core/i18n/t.dart';
 import '../../../core/utils/date_utils.dart';
 import 'package:nammerha_mobile/core/widgets/shimmer_loader.dart';
+import '../../../core/widgets/swipe_to_confirm.dart';
 
 /// Admin Escrow Verification — Review spatial proofs & release/flag escrow.
 class AdminEscrowScreen extends StatelessWidget {
@@ -202,15 +203,10 @@ class _EscrowView extends StatelessWidget {
             child: Row(
               children: [
                 Expanded(
-                  child: FilledButton.icon(
-                    onPressed: () => _confirmRelease(context, c),
-                    icon: Icon(PhosphorIconsRegular.checkCircle, size: 18),
-                    label: Text(context.tr('admin_release_escrow')),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: colors.success,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
+                  child: SwipeToConfirm(
+                    onConfirm: () => _confirmRelease(context, c),
+                    label: context.tr('admin_release_escrow'),
+                    activeColor: colors.success,
                   ),
                 ),
                 const SizedBox(width: 8),

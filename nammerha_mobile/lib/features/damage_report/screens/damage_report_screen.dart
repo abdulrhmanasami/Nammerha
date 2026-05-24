@@ -10,6 +10,8 @@ import '../../../core/widgets/gradient_button.dart';
 import '../widgets/wizard_stepper.dart';
 import '../widgets/damage_type_selector.dart';
 import '../widgets/photo_uploader.dart';
+import '../../../core/widgets/keyboard_occlusion_guard.dart';
+
 
 import 'package:geolocator/geolocator.dart';
 
@@ -53,6 +55,11 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
   final PageController _pageController = PageController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
+  
+  final FocusNode _neighborhoodFocus = FocusNode();
+  final FocusNode _addressFocus = FocusNode();
+  final FocusNode _descriptionFocus = FocusNode();
+
 
   // C2 FIX: Step labels use i18n keys — cannot be const (runtime resolved)
   List<String> _stepLabels(BuildContext context) => [
@@ -71,6 +78,9 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
     _pageController.dispose();
     _descriptionController.dispose();
     _addressController.dispose();
+    _neighborhoodFocus.dispose();
+    _addressFocus.dispose();
+    _descriptionFocus.dispose();
     super.dispose();
   }
 
@@ -380,36 +390,44 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
           ),
           const SizedBox(height: 16),
 
-          TextFormField(
-            initialValue: data.neighborhood,
-            onChanged: (val) {
-              context.read<DamageReportBloc>().add(UpdateFormDataEvent(data.copyWith(neighborhood: val)));
-            },
-            // HIGH-MOB-004 FIX: Optimized keyboard and autofill hints
-            textInputAction: TextInputAction.next,
-            decoration: InputDecoration(
-              labelText: context.tr('neighborhood'),
-              hintText: context.tr('dr_neighborhood_hint'),
-              filled: true,
-              fillColor: colors.surfaceElevated,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(NammerhaTheme.radiusMd)),
+          KeyboardOcclusionGuard(
+            focusNode: _neighborhoodFocus,
+            child: TextFormField(
+              initialValue: data.neighborhood,
+              focusNode: _neighborhoodFocus,
+              onChanged: (val) {
+                context.read<DamageReportBloc>().add(UpdateFormDataEvent(data.copyWith(neighborhood: val)));
+              },
+              // HIGH-MOB-004 FIX: Optimized keyboard and autofill hints
+              textInputAction: TextInputAction.next,
+              decoration: InputDecoration(
+                labelText: context.tr('neighborhood'),
+                hintText: context.tr('dr_neighborhood_hint'),
+                filled: true,
+                fillColor: colors.surfaceElevated,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(NammerhaTheme.radiusMd)),
+              ),
             ),
           ),
           const SizedBox(height: 16),
 
-          TextField(
-            controller: _addressController,
-            onChanged: (_) => _updateTextData(context, data),
-            // HIGH-MOB-004 FIX: Optimized keyboard type and input action
-            keyboardType: TextInputType.streetAddress,
-            textInputAction: TextInputAction.done,
-            autofillHints: const [AutofillHints.fullStreetAddress],
-            decoration: InputDecoration(
-              labelText: context.tr('dr_address_detail'),
-              hintText: context.tr('dr_address_hint'),
-              filled: true,
-              fillColor: colors.surfaceElevated,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(NammerhaTheme.radiusMd)),
+          KeyboardOcclusionGuard(
+            focusNode: _addressFocus,
+            child: TextField(
+              controller: _addressController,
+              focusNode: _addressFocus,
+              onChanged: (_) => _updateTextData(context, data),
+              // HIGH-MOB-004 FIX: Optimized keyboard type and input action
+              keyboardType: TextInputType.streetAddress,
+              textInputAction: TextInputAction.done,
+              autofillHints: const [AutofillHints.fullStreetAddress],
+              decoration: InputDecoration(
+                labelText: context.tr('dr_address_detail'),
+                hintText: context.tr('dr_address_hint'),
+                filled: true,
+                fillColor: colors.surfaceElevated,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(NammerhaTheme.radiusMd)),
+              ),
             ),
           ),
         ],
@@ -509,17 +527,21 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
               ),
             ),
           ),
-          TextField(
-            controller: _descriptionController,
-            maxLines: 4,
-            onChanged: (_) => _updateTextData(context, data),
-            decoration: InputDecoration(
-              labelText: '${context.tr('dr_damage_desc')} *',
-              hintText: context.tr('dr_damage_desc_hint'),
-              filled: true,
-              fillColor: colors.surfaceElevated,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(NammerhaTheme.radiusMd)),
-              alignLabelWithHint: true,
+          KeyboardOcclusionGuard(
+            focusNode: _descriptionFocus,
+            child: TextField(
+              controller: _descriptionController,
+              focusNode: _descriptionFocus,
+              maxLines: 4,
+              onChanged: (_) => _updateTextData(context, data),
+              decoration: InputDecoration(
+                labelText: '${context.tr('dr_damage_desc')} *',
+                hintText: context.tr('dr_damage_desc_hint'),
+                filled: true,
+                fillColor: colors.surfaceElevated,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(NammerhaTheme.radiusMd)),
+                alignLabelWithHint: true,
+              ),
             ),
           ),
         ],

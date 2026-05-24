@@ -14,6 +14,8 @@ import '../bloc/login_form_cubit.dart';
 import 'mfa_challenge_screen.dart';
 import '../../../core/i18n/t.dart';
 import '../../../core/utils/validators.dart' as validators;
+import '../../../core/widgets/keyboard_occlusion_guard.dart';
+
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Login Screen — Platinum Standard (Absolute Zero setState)
@@ -35,6 +37,8 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStateMixin {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _emailFocus = FocusNode();
+  final _passwordFocus = FocusNode();
   final _formKey = GlobalKey<FormState>();
 
   late AnimationController _animController;
@@ -52,6 +56,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _emailFocus.dispose();
+    _passwordFocus.dispose();
     _animController.dispose();
     super.dispose();
   }
@@ -198,38 +204,46 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           const SizedBox(height: 36),
 
                           // Email
-                          _buildTextField(
-                            controller: _emailController,
-                            label: context.tr('auth_email_label'),
-                            icon: PhosphorIconsRegular.envelope,
-                            keyboardType: TextInputType.emailAddress,
-                            // P1-W10-010 FIX: "Next" key moves focus to password field.
-                            textInputAction: TextInputAction.next,
-                            onFieldSubmitted: (_) => FocusScope.of(context).nextFocus(),
-                            validator: (v) => validators.validateEmail(v, context.tr),
+                          KeyboardOcclusionGuard(
+                            focusNode: _emailFocus,
+                            child: _buildTextField(
+                              controller: _emailController,
+                              focusNode: _emailFocus,
+                              label: context.tr('auth_email_label'),
+                              icon: PhosphorIconsRegular.envelope,
+                              keyboardType: TextInputType.emailAddress,
+                              // P1-W10-010 FIX: "Next" key moves focus to password field.
+                              textInputAction: TextInputAction.next,
+                              onFieldSubmitted: (_) => FocusScope.of(context).nextFocus(),
+                              validator: (v) => validators.validateEmail(v, context.tr),
+                            ),
                           ),
                           const SizedBox(height: 16),
 
                           // Password
-                          _buildTextField(
-                            controller: _passwordController,
-                            label: context.tr('auth_password_label'),
-                            icon: PhosphorIconsRegular.lockKey,
-                            obscureText: formState.obscurePassword,
-                            // P1-W10-010 FIX: "Done" key submits the login form.
-                            textInputAction: TextInputAction.done,
-                            onFieldSubmitted: (_) => _submit(),
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                formState.obscurePassword ? PhosphorIconsRegular.eyeSlash : PhosphorIconsRegular.eye,
-                                color: colors.textSecondary,
+                          KeyboardOcclusionGuard(
+                            focusNode: _passwordFocus,
+                            child: _buildTextField(
+                              controller: _passwordController,
+                              focusNode: _passwordFocus,
+                              label: context.tr('auth_password_label'),
+                              icon: PhosphorIconsRegular.lockKey,
+                              obscureText: formState.obscurePassword,
+                              // P1-W10-010 FIX: "Done" key submits the login form.
+                              textInputAction: TextInputAction.done,
+                              onFieldSubmitted: (_) => _submit(),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  formState.obscurePassword ? PhosphorIconsRegular.eyeSlash : PhosphorIconsRegular.eye,
+                                  color: colors.textSecondary,
+                                ),
+                                onPressed: () => context.read<LoginFormCubit>().togglePasswordVisibility(),
                               ),
-                              onPressed: () => context.read<LoginFormCubit>().togglePasswordVisibility(),
+                              validator: (v) {
+                                if (v == null || v.isEmpty) return context.tr('auth_password_required');
+                                return null;
+                              },
                             ),
-                            validator: (v) {
-                              if (v == null || v.isEmpty) return context.tr('auth_password_required');
-                              return null;
-                            },
                           ),
 
                           // W3-P1-008: Remember Me checkbox
@@ -345,6 +359,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     required TextEditingController controller,
     required String label,
     required IconData icon,
+    FocusNode? focusNode,
     TextInputType keyboardType = TextInputType.text,
     bool obscureText = false,
     Widget? suffixIcon,
@@ -356,6 +371,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     final colors = context.colors;
     return TextFormField(
       controller: controller,
+      focusNode: focusNode,
       keyboardType: keyboardType,
       obscureText: obscureText,
       validator: validator,
