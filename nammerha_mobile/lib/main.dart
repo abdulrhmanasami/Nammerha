@@ -269,10 +269,24 @@ class NammerhaMobileApp extends StatelessWidget {
                   // NOW: Every screen gets automatic offline awareness.
                   // Standard: Syria 2G resilience — user MUST know when offline.
                   builder: (context, child) {
-                    return PrivacyOverlay(
-                      themeMode: themeMode,
-                      child: ConnectivityBanner(
-                        child: child ?? const SizedBox.shrink(),
+                    // PLATINUM UX FIX: RenderFlex Overflow Protection
+                    // Caps Dynamic Type (Text Scale) to 1.3x to preserve layout integrity
+                    // while still respecting accessibility needs.
+                    final mediaQueryData = MediaQuery.of(context);
+                    final constrainedTextScale = mediaQueryData.textScaler.clamp(
+                      minScaleFactor: 1.0, 
+                      maxScaleFactor: 1.3
+                    );
+
+                    return MediaQuery(
+                      data: mediaQueryData.copyWith(
+                        textScaler: constrainedTextScale,
+                      ),
+                      child: PrivacyOverlay(
+                        themeMode: themeMode,
+                        child: ConnectivityBanner(
+                          child: child ?? const SizedBox.shrink(),
+                        ),
                       ),
                     );
                   },

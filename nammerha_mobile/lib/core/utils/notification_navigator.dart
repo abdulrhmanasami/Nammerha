@@ -8,6 +8,7 @@ import '../../features/notifications/bloc/notifications_event.dart';
 import '../../features/payments/screens/contract_details_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
 import '../../features/project/screens/project_details_screen.dart';
+import 'debounced_navigator.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
 /// P0-003: Notification Navigation Router
@@ -66,7 +67,7 @@ class NotificationNavigator {
 
     // 4. Navigate with haptic feedback
     HapticFeedback.lightImpact();
-    Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
+    DebouncedNavigator.push(context, MaterialPageRoute(builder: (_) => screen));
     return true;
   }
 

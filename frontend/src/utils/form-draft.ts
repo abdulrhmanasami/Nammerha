@@ -11,6 +11,8 @@
 // Debounce: 500ms — balances storage writes vs responsiveness.
 // ============================================================================
 
+import { safeSessionStorageSet } from './safe-storage';
+
 /**
  * Debounce timer handle — module-scoped to prevent memory leaks.
  */
@@ -23,24 +25,28 @@ const timers = new Map<string, ReturnType<typeof setTimeout>>();
  * @param debounceMs Debounce delay in milliseconds (default: 500ms)
  */
 export function saveDraft<T extends Record<string, unknown>>(
-    key: string,
-    data: T,
-    debounceMs = 500,
+  key: string,
+  data: T,
+  debounceMs = 500,
 ): void {
-    // Clear previous debounce timer
-    const existing = timers.get(key);
-    if (existing) { clearTimeout(existing); }
+  // Clear previous debounce timer
+  const existing = timers.get(key);
+  if (existing) {
+    clearTimeout(existing);
+  }
 
-    timers.set(key, setTimeout(() => {
-        try {
-            sessionStorage.setItem(`nm_draft_${key}`, JSON.stringify({
-                data,
-                savedAt: Date.now(),
-            }));
-        } catch {
-            // sessionStorage full or unavailable — silent degradation
-        }
-    }, debounceMs));
+  timers.set(
+    key,
+    setTimeout(() => {
+      safeSessionStorageSet(
+        `nm_draft_${key}`,
+        JSON.stringify({
+          data,
+          savedAt: Date.now(),
+        }),
+      );
+    }, debounceMs),
+  );
 }
 
 /**
@@ -52,32 +58,34 @@ export function saveDraft<T extends Record<string, unknown>>(
  * @returns The saved data or null
  */
 export function loadDraft<T extends Record<string, unknown>>(
-    key: string,
-    maxAgeMs = 30 * 60 * 1000,
+  key: string,
+  maxAgeMs = 30 * 60 * 1000,
 ): T | null {
-    try {
-        const raw = sessionStorage.getItem(`nm_draft_${key}`);
-        if (!raw) { return null; }
-
-        const parsed = JSON.parse(raw) as { data: T; savedAt: number };
-
-        // Expire stale drafts
-        if (Date.now() - parsed.savedAt > maxAgeMs) {
-            sessionStorage.removeItem(`nm_draft_${key}`);
-            return null;
-        }
-
-        return parsed.data;
-    } catch {
-        return null;
+  try {
+    const raw = sessionStorage.getItem(`nm_draft_${key}`);
+    if (!raw) {
+      return null;
     }
+
+    const parsed = JSON.parse(raw) as { data: T; savedAt: number };
+
+    // Expire stale drafts
+    if (Date.now() - parsed.savedAt > maxAgeMs) {
+      sessionStorage.removeItem(`nm_draft_${key}`);
+      return null;
+    }
+
+    return parsed.data;
+  } catch {
+    return null;
+  }
 }
 
 /**
  * Checks if a draft exists for the given key.
  */
 export function hasDraft(key: string): boolean {
-    return loadDraft(key) !== null;
+  return loadDraft(key) !== null;
 }
 
 /**
@@ -85,12 +93,14 @@ export function hasDraft(key: string): boolean {
  * @param key Unique identifier matching the saveDraft() call
  */
 export function clearDraft(key: string): void {
-    try {
-        sessionStorage.removeItem(`nm_draft_${key}`);
-        const timer = timers.get(key);
-        if (timer) {
-            clearTimeout(timer);
-            timers.delete(key);
-        }
-    } catch { /* sessionStorage unavailable */ }
+  try {
+    sessionStorage.removeItem(`nm_draft_${key}`);
+    const timer = timers.get(key);
+    if (timer) {
+      clearTimeout(timer);
+      timers.delete(key);
+    }
+  } catch {
+    /* sessionStorage unavailable */
+  }
 }

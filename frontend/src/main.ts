@@ -470,6 +470,35 @@ function initDashboard(): void {
 
   // PLATINUM UX FIX: Dynamic Glass Nav Blur
   initGlassNavScroll();
+
+  // PLATINUM UX FIX: Pinch-to-zoom Demonic Blocker
+  // Prevents iOS Safari from zooming and breaking the layout, forcing a Native App feel.
+  initPinchToZoomBlocker();
+}
+
+function initPinchToZoomBlocker(): void {
+  document.addEventListener(
+    'touchmove',
+    function (event: TouchEvent) {
+      if ((event as any).scale !== 1 || event.touches.length > 1) {
+        event.preventDefault();
+      }
+    },
+    { passive: false },
+  );
+
+  let lastTouchEnd = 0;
+  document.addEventListener(
+    'touchend',
+    function (event) {
+      const now = new Date().getTime();
+      if (now - lastTouchEnd <= 300) {
+        event.preventDefault();
+      }
+      lastTouchEnd = now;
+    },
+    false,
+  );
 }
 
 function initGlassNavScroll(): void {
