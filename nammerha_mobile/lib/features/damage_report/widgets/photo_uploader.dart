@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -219,23 +220,15 @@ class _PhotoUploaderState extends State<PhotoUploader> {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(11),
-            child: FutureBuilder<String>(
-              future: Future.value(widget.photos[index].path),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  return Image.asset(
-                    snapshot.data!,
-                    width: 100,
-                    height: 100,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => Container(
-                      color: colors.backgroundSecondary,
-                      child: Icon(PhosphorIconsRegular.image, color: colors.textSubtle),
-                    ),
-                  );
-                }
-                return Container(color: colors.backgroundSecondary);
-              },
+            child: Image.file(
+              File(widget.photos[index].path),
+              width: 100,
+              height: 100,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Container(
+                color: colors.backgroundSecondary,
+                child: Icon(PhosphorIconsRegular.image, color: colors.textSubtle),
+              ),
             ),
           ),
           // Remove button

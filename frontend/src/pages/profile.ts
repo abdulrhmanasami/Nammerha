@@ -33,6 +33,10 @@ import { updatePasswordStrength } from '../utils/password-strength';
 // P2-W12-001 FIX: Shared password complexity validation — single source of truth.
 // PREVIOUS: profile.ts only checked `length < 8` — no uppercase/digit/special checks.
 import { validatePasswordComplexity } from '../utils/validators';
+import { DirtyStateGuard } from '../utils/dirty-guard';
+
+const profileGuard = new DirtyStateGuard();
+
 initPullToRefresh();
 initBackToTop();
 initSearch();
@@ -480,6 +484,7 @@ function toggleEditMode(show: boolean): void {
     editForm.classList.remove('nm-hidden');
     document.getElementById('edit-name')?.focus();
   } else {
+    profileGuard.markClean();
     displayMode.classList.remove('nm-hidden');
     editForm.classList.add('nm-hidden');
     hideEditBanner();
@@ -581,6 +586,7 @@ async function saveProfile(): Promise<void> {
       'success',
       t('profile_saved_locally', "✓ Saved to this device — won't appear on other devices yet"),
     );
+    profileGuard.markClean();
     setTimeout(() => toggleEditMode(false), 800);
   } catch (err) {
     restoreBtn?.('error');
@@ -596,6 +602,9 @@ async function saveProfile(): Promise<void> {
 // Wire edit/cancel buttons
 document.getElementById('edit-profile-btn')?.addEventListener('click', () => toggleEditMode(true));
 document.getElementById('cancel-edit-btn')?.addEventListener('click', () => toggleEditMode(false));
+document
+  .getElementById('profile-edit-form')
+  ?.addEventListener('input', () => profileGuard.markDirty());
 document.getElementById('profile-edit-form')?.addEventListener('submit', (e) => {
   e.preventDefault();
   saveProfile();
@@ -620,10 +629,13 @@ function initPasswordChangeEngine(): void {
       formPanel.classList.remove('nm-hidden');
       caretIcon?.classList.add('rotate-180');
     } else {
+      profileGuard.markClean();
       formPanel.classList.add('nm-hidden');
       caretIcon?.classList.remove('rotate-180');
     }
   });
+
+  formPanel.addEventListener('input', () => profileGuard.markDirty());
 
   const currentInput = document.getElementById('current-password') as HTMLInputElement | null;
   const newPasswordInput = document.getElementById('new-password') as HTMLInputElement | null;
@@ -668,6 +680,7 @@ function initPasswordChangeEngine(): void {
       }
       restoreBtn('success');
       showToast(t('password_changed_success', 'تم تغيير كلمة المرور'), 'success');
+      profileGuard.markClean();
       formPanel.classList.add('nm-hidden');
       caretIcon?.classList.remove('rotate-180');
       // Clean up fields
@@ -1720,7 +1733,7 @@ function init(): void {
   // [Platinum UX]: Cognitive Collapse during KYC (Graceful Human Escalation UI)
   if (kycSectionEl) {
     kycSectionEl.classList.remove('nm-hidden');
-    
+
     // Inject Platinum KYC UI
     kycSectionEl.innerHTML = `
       <div class="flex items-center justify-between mb-4">
@@ -1744,16 +1757,16 @@ function init(): void {
       const btn = e.target as HTMLButtonElement;
       const errorContainer = document.getElementById('kyc-error-container');
       const cameraContainer = document.getElementById('kyc-camera-container');
-      
+
       btn.disabled = true;
       btn.textContent = t('kyc_scanning', 'جاري مسح الهوية...');
-      
+
       // Simulate AI scanning failure
       setTimeout(() => {
         kycFailures++;
         btn.disabled = false;
         btn.textContent = t('kyc_start_scan', 'إعادة المسح');
-        
+
         if (errorContainer && cameraContainer) {
           if (kycFailures < 2) {
             // Standard error
@@ -1763,7 +1776,8 @@ function init(): void {
             // Platinum UX: Graceful Human Escalation
             cameraContainer.classList.add('nm-hidden');
             errorContainer.classList.remove('nm-hidden');
-            errorContainer.className = 'bg-trust-blue/10 border border-trust-blue/30 rounded-lg p-6 text-center animate-fade-in-up';
+            errorContainer.className =
+              'bg-trust-blue/10 border border-trust-blue/30 rounded-lg p-6 text-center animate-fade-in-up';
             errorContainer.innerHTML = `
               <div class="size-12 bg-trust-blue/20 rounded-full flex items-center justify-center mx-auto mb-3">
                 <i class="ph-fill ph-headset text-trust-blue text-2xl"></i>
@@ -1774,10 +1788,16 @@ function init(): void {
                 <i class="ph ph-video-camera mr-1"></i> ${esc(t('kyc_book_call', 'حجز مكالمة فيديو'))}
               </button>
             `;
-            
+
             // Wire up the new button
             document.getElementById('kyc-video-call-btn')?.addEventListener('click', () => {
-              showToast(t('kyc_call_booked', 'تم حجز المكالمة بنجاح، سيقوم الموظف بالتواصل معك خلال 5 دقائق.'), 'success');
+              showToast(
+                t(
+                  'kyc_call_booked',
+                  'تم حجز المكالمة بنجاح، سيقوم الموظف بالتواصل معك خلال 5 دقائق.',
+                ),
+                'success',
+              );
             });
           }
         }

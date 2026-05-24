@@ -17,6 +17,9 @@ import { requireAuth } from '../utils/auth-guard';
 import { confirmAction } from '../utils/confirm-action';
 // HIGH-UX-002 FIX: Breadcrumb for spatial orientation on inner pages.
 import { initBreadcrumb } from '../utils/breadcrumb';
+import { DirtyStateGuard } from '../utils/dirty-guard';
+
+const wizardGuard = new DirtyStateGuard();
 
 // W6-003 FIX: Module-level guard — prevent wizard from initializing for unauthenticated users.
 // P1-WIZARD-001 FIX: Throw is correct at ES module top-level (only way to abort initialization),
@@ -45,14 +48,6 @@ function hasWizardData(): boolean {
   // Check if the wizard state has any meaningful user input
   return !!(state?.damageType || state?.governorate || state?.photoCount > 0 || state?.description);
 }
-
-window.addEventListener('beforeunload', (e: BeforeUnloadEvent) => {
-  // Only warn if wizard has meaningful data AND we're NOT on the success step
-  if (hasWizardData() && state.currentStep < 4) {
-    e.preventDefault();
-    // Modern browsers ignore custom messages but still show the dialog
-  }
-});
 
 // ═══════════════════════════════════════════════════════════════════════════
 // WIZARD STATE
@@ -95,6 +90,11 @@ const WIZARD_STORAGE_KEY = 'nmr_wizard_state';
 
 function saveWizardState(): void {
   try {
+    if (hasWizardData() && state.currentStep < 4) {
+      wizardGuard.markDirty();
+    } else {
+      wizardGuard.markClean();
+    }
     const serializable = {
       currentStep: state.currentStep,
       damageType: state.damageType,
@@ -159,6 +159,7 @@ function restoreWizardState(): boolean {
 }
 
 function clearWizardState(): void {
+  wizardGuard.markClean();
   try {
     sessionStorage.removeItem(WIZARD_STORAGE_KEY);
   } catch {
@@ -409,7 +410,10 @@ if (backBtn) {
       if (hasWizardData()) {
         confirmAction({
           title: t('hr_leave_title', 'مغادرة النموذج؟'),
-          message: t('hr_leave_msg', 'لديك بيانات غير مُرسلة. ستُفقد إذا غادرت الآن. (يتم حفظ المسودة تلقائياً ويمكنك استئنافها لاحقاً)'),
+          message: t(
+            'hr_leave_msg',
+            'لديك بيانات غير مُرسلة. ستُفقد إذا غادرت الآن. (يتم حفظ المسودة تلقائياً ويمكنك استئنافها لاحقاً)',
+          ),
           confirmLabel: t('hr_leave_confirm', 'مغادرة'),
           icon: 'sign-out',
           variant: 'warning',
@@ -960,7 +964,8 @@ async function processPhotoFile(file: File) {
               if (label) label.textContent = `${pct}%`;
             }
           });
-          xhr.onload = () => (xhr.status >= 200 && xhr.status < 300 ? resolveUpload() : rejectUpload());
+          xhr.onload = () =>
+            xhr.status >= 200 && xhr.status < 300 ? resolveUpload() : rejectUpload();
           xhr.onerror = rejectUpload;
           xhr.send(blob);
         });
@@ -991,7 +996,8 @@ async function processPhotoFile(file: File) {
     const reader = new FileReader();
     reader.onload = (e) => {
       const thumb = document.createElement('div');
-      thumb.className = 'size-20 rounded-lg overflow-hidden bg-slate-200 border border-slate-200 shrink-0 relative';
+      thumb.className =
+        'size-20 rounded-lg overflow-hidden bg-slate-200 border border-slate-200 shrink-0 relative';
       thumb.innerHTML = `
         <img src="${esc(e.target?.result as string)}" class="w-full h-full object-cover" alt="${esc(t('hr_damage_photo_alt', 'صورة توثيق الأضرار'))}" />
         <div class="absolute top-0.5 end-0.5 size-6 rounded-full bg-smoky-jade flex items-center justify-center">
@@ -1037,7 +1043,7 @@ if (photoUploadZone && photoInput) {
           updateMaxPhotosUI();
         } catch {}
       },
-      onCancel: () => photoInput.click()
+      onCancel: () => photoInput.click(),
     });
     scanner.start().catch(() => photoInput.click());
   });

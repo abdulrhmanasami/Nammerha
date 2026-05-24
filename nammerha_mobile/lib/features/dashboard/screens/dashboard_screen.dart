@@ -1304,7 +1304,7 @@ class _DashboardHomeView extends StatelessWidget {
       headerIcon: PhosphorIconsRegular.camera,
       headerTitleKey: 'select_project_for_camera',
       leadingColor: colors.success,
-      projectsFuture: _fetchUserProjects(),
+      fetchProjects: _fetchUserProjects,
       onProjectSelected: (projectId, _) {
         Navigator.push(
           context,
@@ -1343,7 +1343,7 @@ class _DashboardHomeView extends StatelessWidget {
       headerIcon: PhosphorIconsRegular.cube,
       headerTitleKey: 'select_project_for_capture',
       leadingColor: colors.success,
-      projectsFuture: _fetchUserProjects(),
+      fetchProjects: _fetchUserProjects,
       onProjectSelected: (projectId, title) {
         Navigator.push(
           context,
