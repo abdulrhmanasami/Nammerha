@@ -12,6 +12,10 @@ import { formatCents } from '../utils/format';
 // instead of broken skeleton loaders with cryptic API errors.
 import { requireAuth } from '../utils/auth-guard';
 import { initBreadcrumb } from '../utils/breadcrumb';
+// P0-JRN-001 FIX: Confirmation dialog before logout — parity with homeowner portal.
+import { confirmAction } from '../utils/confirm-action';
+// P0-PLT-001 FIX: Error boundary wraps page init to catch initialization failures.
+import { guardPageInit } from '../utils/error-boundary';
 // GAP-002 + GAP-005 + GAP-010 FIX: Infrastructure wiring
 import { initPullToRefresh } from '../utils/pull-refresh';
 import { autoTriggerTour } from '../components/tour-engine';
@@ -105,45 +109,71 @@ const ALL_TABS: TabName[] = ['dashboard', 'marketplace', 'bids', 'payments'];
 const hashRouter = createHashRouter(ALL_TABS, 'dashboard');
 
 // ─── DOM Init ───────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  // BLOCKER-1 FIX: Guard all protected content behind auth check.
-  if (!requireAuth()) {
-    return;
-  }
-  bootstrapPortal();
-  mountContextSwitcher();
-  initBreadcrumb();
-
-  setupTabs();
-  const initialTab = hashRouter.getInitialTab();
-  switchTab(initialTab);
-  hashRouter.onHashChange(switchTab);
-
-  // P3-003 FIX: Guard skeleton loaders with timeout fallback
-  guardSkeleton({
-    container: 'main-content',
-    onRetry: () => switchTab(hashRouter.getInitialTab()),
-  });
-
-  // P1-MOB-003 FIX: Swipe gestures for native-app tab navigation
-  initSwipeTabs({
-    containerSelector: '.dashboard-main',
-    tabs: ALL_TABS as unknown as readonly string[],
-    onSwitch: switchTab as (tab: string) => void,
-    getCurrentTab: () => hashRouter.getInitialTab(),
-  });
-
-  // ─── Secure Logout ──────────────────────────────────────────────────
-  document.getElementById('portal-logout-btn')?.addEventListener('click', async () => {
-    try {
-      await authApi.logout();
-    } catch {
-      /* best-effort */
+// P0-PLT-001 FIX: guardPageInit wraps entire init in error boundary.
+// If any import, DOM query, or API call throws during initialization,
+// the error boundary renders a clear recovery UI instead of stuck skeletons.
+document.addEventListener(
+  'DOMContentLoaded',
+  guardPageInit(() => {
+    // BLOCKER-1 FIX: Guard all protected content behind auth check.
+    if (!requireAuth()) {
+      return;
     }
-    clearAuth(true); // P2-W5-002: skipServerLogout — authApi.logout() already called above
-    window.location.href = '/auth.html';
-  });
-});
+    bootstrapPortal();
+    mountContextSwitcher();
+    initBreadcrumb();
+
+    setupTabs();
+    const initialTab = hashRouter.getInitialTab();
+    switchTab(initialTab);
+    hashRouter.onHashChange(switchTab);
+
+    // P3-003 FIX: Guard skeleton loaders with timeout fallback
+    guardSkeleton({
+      container: 'main-content',
+      onRetry: () => switchTab(hashRouter.getInitialTab()),
+    });
+
+    // P1-MOB-003 FIX: Swipe gestures for native-app tab navigation
+    initSwipeTabs({
+      containerSelector: '.dashboard-main',
+      tabs: ALL_TABS as unknown as readonly string[],
+      onSwitch: switchTab as (tab: string) => void,
+      getCurrentTab: () => hashRouter.getInitialTab(),
+    });
+
+    // ─── Secure Logout ──────────────────────────────────────────────────
+    // P0-JRN-001 FIX: Confirmation dialog before logout — parity with homeowner portal.
+    // PREVIOUS: Immediate logout on click — one accidental tap on 2G = 30s wasted re-authenticating.
+    // NOW: confirmAction dialog protects against accidental taps.
+    // Standard: Destructive Action Protection, Nielsen #5 (Error Prevention).
+    document.getElementById('portal-logout-btn')?.addEventListener('click', () => {
+      haptic.medium();
+      confirmAction({
+        title: t('confirm_logout_title', 'تسجيل الخروج'),
+        message: t('confirm_logout_msg', 'هل أنت متأكد أنك تريد تسجيل الخروج؟'),
+        confirmLabel: t('confirm_logout_btn', 'تسجيل الخروج'),
+        icon: 'sign-out',
+        variant: 'warning',
+        i18n: {
+          title: 'confirm_logout_title',
+          message: 'confirm_logout_msg',
+          confirm: 'confirm_logout_btn',
+          cancel: 'common_cancel',
+        },
+        onConfirm: async () => {
+          try {
+            await authApi.logout();
+          } catch {
+            /* best-effort */
+          }
+          clearAuth(true); // P2-W5-002: skipServerLogout — authApi.logout() already called above
+          window.location.href = '/auth.html';
+        },
+      });
+    });
+  }),
+);
 
 // ─── Tab Switching ──────────────────────────────────────────────────────────
 function setupTabs(): void {
@@ -424,7 +454,10 @@ async function loadBids(): Promise<void> {
   }
 
   try {
-    const res = await contractor.getBids();
+    // P1-STM-001 FIX: SWR cache for bids — parity with dashboard/marketplace/projects tabs.
+    // PREVIOUS: Fresh API call on every tab switch → spinner flash on bids tab.
+    // NOW: 30s SWR cache for perceived-instant tab switching.
+    const res = await swrFetch('ct-bids', () => contractor.getBids(), { maxAge: 30_000 });
     const bids = res.data ?? [];
 
     // P1-UXA-002 FIX: Progressive rendering for bids list
@@ -545,24 +578,24 @@ function openBidModal(projectId: string): void {
   dialog.setAttribute('aria-labelledby', 'bid-modal-title');
   dialog.innerHTML = `
         <div class="bg-surface rounded-2xl p-6 w-full space-y-4">
-            <h3 id="bid-modal-title" class="font-bold text-lg" data-i18n="submit_bid">${esc(t('ct_submit_bid', 'تقديم عرض'))}</h3>
+            <h3 id="bid-modal-title" class="font-bold text-lg" data-i18n="ct_submit_bid">${esc(t('ct_submit_bid', 'تقديم عرض'))}</h3>
             <div>
                 <label for="bid-cost" class="text-xs font-bold text-slate-500 uppercase dark:text-slate-400">${esc(t('ct_label_cost', 'التكلفة'))}</label>
-                <input id="bid-cost" type="number" min="1" placeholder="25000" inputmode="decimal" enterkeyhint="next" autocomplete="off" class="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-base" />
+                <input id="bid-cost" type="number" min="1" placeholder="25000" inputmode="decimal" enterkeyhint="next" autocomplete="off" class="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-base dark:bg-dark-elevated dark:border-dark-border dark:text-slate-100 dark:placeholder-slate-500" />
             </div>
             <div>
                 <label for="bid-days" class="text-xs font-bold text-slate-500 uppercase dark:text-slate-400">${esc(t('ct_label_days', 'الأيام'))}</label>
-                <input id="bid-days" type="number" min="1" placeholder="90" inputmode="numeric" enterkeyhint="next" autocomplete="off" class="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-base" />
+                <input id="bid-days" type="number" min="1" placeholder="90" inputmode="numeric" enterkeyhint="next" autocomplete="off" class="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-base dark:bg-dark-elevated dark:border-dark-border dark:text-slate-100 dark:placeholder-slate-500" />
             </div>
             <div>
                 <label for="bid-letter" class="text-xs font-bold text-slate-500 uppercase dark:text-slate-400">${esc(t('ct_label_letter', 'خطاب التقديم'))}</label>
-                <textarea id="bid-letter" rows="3" placeholder="${esc(t('ct_placeholder_letter', "Why you're the best fit..."))}" enterkeyhint="send" autocomplete="off" class="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-base resize-none"></textarea>
+                <textarea id="bid-letter" rows="3" placeholder="${esc(t('ct_placeholder_letter', "Why you're the best fit..."))}" enterkeyhint="send" autocomplete="off" class="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-base resize-none dark:bg-dark-elevated dark:border-dark-border dark:text-slate-100 dark:placeholder-slate-500"></textarea>
             </div>
             <div class="flex gap-3">
-                <button type="button" id="bid-cancel" class="flex-1 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-200 dark:text-slate-400" data-i18n="btn_cancel">Cancel</button>
+                <button type="button" id="bid-cancel" class="flex-1 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-200 dark:bg-dark-elevated dark:text-slate-400 dark:hover:bg-dark-border" data-i18n="btn_cancel">Cancel</button>
                 <button type="button" id="bid-submit" class="flex-1 px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-bold hover:bg-amber-700" data-i18n="btn_submit">Submit</button>
             </div>
-            <p id="bid-error" class="text-red-500 text-xs nm-hidden"></p>
+            <p id="bid-error" class="text-red-500 text-xs nm-hidden" role="alert" aria-live="assertive"></p>
         </div>
     `;
   document.body.appendChild(dialog);
@@ -704,6 +737,19 @@ function openBidModal(projectId: string): void {
       // Re-enable cancel so user can dismiss after error
       cancelBtn.disabled = false;
       cancelBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+  });
+
+  // P0-JRN-003 FIX: Enter key submits bid form from input fields.
+  // PREVIOUS: No keydown handler — mobile keyboard's 'Send' button and desktop
+  // Enter key did nothing. Users had to mouse/tap the Submit button.
+  // NOW: Enter on <input> fields triggers bid-submit. Enter on <textarea> is
+  // preserved for newlines (cover letter multi-line input).
+  // Standard: WCAG 2.1.1 (Keyboard), HTML Implicit Form Submission.
+  dialog.addEventListener('keydown', (e: KeyboardEvent) => {
+    if (e.key === 'Enter' && (e.target as HTMLElement).tagName !== 'TEXTAREA') {
+      e.preventDefault();
+      document.getElementById('bid-submit')?.click();
     }
   });
 

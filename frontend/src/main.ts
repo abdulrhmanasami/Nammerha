@@ -688,9 +688,10 @@ function initSearchInput(): void {
         noResults.innerHTML = `
                     <i class="ph ph-magnifying-glass nm-icon-32" aria-hidden="true"></i>
                     <p class="mt-2 text-sm font-medium" data-i18n="search_no_results">No featured projects match your search</p>
-                    <a href="/projects.html?q=${encodeURIComponent(query)}" class="inline-flex items-center gap-1 mt-3 text-trust-blue text-sm font-bold hover:underline">
+                    <a href="/projects.html?q=${encodeURIComponent(query)}" class="inline-flex items-center gap-2 mt-4 px-5 py-2.5 bg-trust-blue text-white text-sm font-bold rounded-xl hover:bg-trust-blue-hover transition-colors shadow-sm">
+                        <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
                         <span data-i18n="search_all_projects">Search all projects</span>
-                        <i class="ph ph-arrow-right ph-sm" aria-hidden="true"></i>
+                        <i class="ph ph-arrow-right ph-sm nm-dir-shift" aria-hidden="true"></i>
                     </a>`;
         carousel.appendChild(noResults);
       }

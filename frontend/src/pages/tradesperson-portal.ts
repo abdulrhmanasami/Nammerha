@@ -4,6 +4,10 @@ import { escapeHtml as esc } from '../utils/xss';
 import { renderErrorWithRetry } from '../utils/error-retry';
 import { clearAuth } from '../auth';
 import { requireAuth } from '../utils/auth-guard';
+// P0-JRN-001 FIX: Confirmation dialog before logout — parity with homeowner portal.
+import { confirmAction } from '../utils/confirm-action';
+// P0-PLT-001 FIX: Error boundary wraps page init to catch initialization failures.
+import { guardPageInit } from '../utils/error-boundary';
 import { initBreadcrumb } from '../utils/breadcrumb';
 import { guardSkeleton } from '../utils/skeleton-guard';
 import { auth as authApi } from '../api';
@@ -71,47 +75,71 @@ const hashRouter = createHashRouter(ALL_TABS, 'dashboard');
 const delegationWired = { requests: false, assignments: false } as Record<string, boolean>;
 
 // ─── Init ───────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  // BLOCKER-1 FIX: Guard all protected content behind auth check.
-  if (!requireAuth()) {
-    return;
-  }
-  bootstrapPortal();
-  mountContextSwitcher();
-  initBreadcrumb();
-
-  // E2b FIX: Skeleton timeout guard — prevents infinite loading on Syria 2G/3G.
-  // Tradesperson portal was MISSING guardSkeleton.
-  guardSkeleton({
-    container: 'main-content',
-    onRetry: () => switchTab(hashRouter.getInitialTab()),
-  });
-
-  setupTabs();
-  setupAvailability();
-  const initialTab = hashRouter.getInitialTab();
-  switchTab(initialTab);
-  hashRouter.onHashChange(switchTab);
-
-  // P1-MOB-003 FIX: Swipe gestures for native-app tab navigation
-  initSwipeTabs({
-    containerSelector: '.dashboard-main',
-    tabs: ALL_TABS as unknown as readonly string[],
-    onSwitch: switchTab as (tab: string) => void,
-    getCurrentTab: () => hashRouter.getInitialTab(),
-  });
-
-  // ─── Secure Logout ──────────────────────────────────────────────────
-  document.getElementById('portal-logout-btn')?.addEventListener('click', async () => {
-    try {
-      await authApi.logout();
-    } catch {
-      /* best-effort */
+// P0-PLT-001 FIX: guardPageInit wraps entire init in error boundary.
+document.addEventListener(
+  'DOMContentLoaded',
+  guardPageInit(() => {
+    // BLOCKER-1 FIX: Guard all protected content behind auth check.
+    if (!requireAuth()) {
+      return;
     }
-    clearAuth(true); // P2-W5-002: skipServerLogout — authApi.logout() already called above
-    window.location.href = '/auth.html';
-  });
-});
+    bootstrapPortal();
+    mountContextSwitcher();
+    initBreadcrumb();
+
+    // E2b FIX: Skeleton timeout guard — prevents infinite loading on Syria 2G/3G.
+    // Tradesperson portal was MISSING guardSkeleton.
+    guardSkeleton({
+      container: 'main-content',
+      onRetry: () => switchTab(hashRouter.getInitialTab()),
+    });
+
+    setupTabs();
+    setupAvailability();
+    const initialTab = hashRouter.getInitialTab();
+    switchTab(initialTab);
+    hashRouter.onHashChange(switchTab);
+
+    // P1-MOB-003 FIX: Swipe gestures for native-app tab navigation
+    initSwipeTabs({
+      containerSelector: '.dashboard-main',
+      tabs: ALL_TABS as unknown as readonly string[],
+      onSwitch: switchTab as (tab: string) => void,
+      getCurrentTab: () => hashRouter.getInitialTab(),
+    });
+
+    // ─── Secure Logout ──────────────────────────────────────────────────
+    // P0-JRN-001 FIX: Confirmation dialog before logout — parity with homeowner portal.
+    // PREVIOUS: Immediate logout on click — one accidental tap on 2G = 30s wasted re-authenticating.
+    // NOW: confirmAction dialog protects against accidental taps.
+    // Standard: Destructive Action Protection, Nielsen #5 (Error Prevention).
+    document.getElementById('portal-logout-btn')?.addEventListener('click', () => {
+      haptic.medium();
+      confirmAction({
+        title: t('confirm_logout_title', 'تسجيل الخروج'),
+        message: t('confirm_logout_msg', 'هل أنت متأكد أنك تريد تسجيل الخروج؟'),
+        confirmLabel: t('confirm_logout_btn', 'تسجيل الخروج'),
+        icon: 'sign-out',
+        variant: 'warning',
+        i18n: {
+          title: 'confirm_logout_title',
+          message: 'confirm_logout_msg',
+          confirm: 'confirm_logout_btn',
+          cancel: 'common_cancel',
+        },
+        onConfirm: async () => {
+          try {
+            await authApi.logout();
+          } catch {
+            /* best-effort */
+          }
+          clearAuth(true); // P2-W5-002: skipServerLogout — authApi.logout() already called above
+          window.location.href = '/auth.html';
+        },
+      });
+    });
+  }),
+);
 
 // ─── Tab Navigation ─────────────────────────────────────────────────────────
 function setupTabs(): void {

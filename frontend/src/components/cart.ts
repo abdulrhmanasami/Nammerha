@@ -10,113 +10,121 @@ import { reportWarning } from '../error-reporter';
 import { isRTL } from '../utils/i18n';
 
 export interface CartItem {
-    id: string;
-    name: string;
-    unitPrice: number;
-    quantity: number;
-    category: string;
-    projectId: string;
-    iconClass: string; // Phosphor icon class, e.g. "ph-package"
+  id: string;
+  name: string;
+  unitPrice: number;
+  quantity: number;
+  category: string;
+  projectId: string;
+  iconClass: string; // Phosphor icon class, e.g. "ph-package"
 }
 
 const STORAGE_KEY = 'nmrh_cart';
 const CART_EVENT = 'cart:updated';
 
 class CartStoreImpl {
-    private items: CartItem[] = [];
+  private items: CartItem[] = [];
 
-    constructor() {
-        this.hydrate();
-    }
+  constructor() {
+    this.hydrate();
+  }
 
-    /** Load cart state from localStorage */
-    private hydrate(): void {
-        try {
-            const raw = localStorage.getItem(STORAGE_KEY);
-            if (raw) {
-                const parsed: unknown = JSON.parse(raw);
-                if (Array.isArray(parsed)) {
-                    this.items = parsed as CartItem[];
-                }
-            }
-        } catch (err) {
-            reportWarning('[Cart] Failed to hydrate cart from localStorage', { component: 'cart', action: 'hydrate', error: err instanceof Error ? err.message : String(err) });
-            this.items = [];
+  /** Load cart state from localStorage */
+  private hydrate(): void {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const parsed: unknown = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          this.items = parsed as CartItem[];
         }
+      }
+    } catch (err) {
+      reportWarning('[Cart] Failed to hydrate cart from localStorage', {
+        component: 'cart',
+        action: 'hydrate',
+        error: err instanceof Error ? err.message : String(err),
+      });
+      this.items = [];
+    }
+  }
+
+  /** Persist cart state to localStorage and emit event */
+  private persist(): void {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.items));
+    } catch (err) {
+      reportWarning('[Cart] Failed to persist cart to localStorage', {
+        component: 'cart',
+        action: 'persist',
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+    window.dispatchEvent(new CustomEvent(CART_EVENT, { detail: { items: this.items } }));
+  }
+
+  /** Add an item or increment quantity if already in cart */
+  addItem(item: Omit<CartItem, 'quantity'>, qty = 1): void {
+    const existing = this.items.find((i) => i.id === item.id);
+    if (existing) {
+      existing.quantity += qty;
+    } else {
+      this.items.push({ ...item, quantity: qty });
+    }
+    this.persist();
+  }
+
+  /** Remove an item entirely from cart */
+  removeItem(id: string): void {
+    this.items = this.items.filter((i) => i.id !== id);
+    this.persist();
+  }
+
+  /** Update quantity for a specific item */
+  updateQuantity(id: string, qty: number): void {
+    const item = this.items.find((i) => i.id === id);
+    if (!item) {
+      return;
     }
 
-    /** Persist cart state to localStorage and emit event */
-    private persist(): void {
-        try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(this.items));
-        } catch (err) {
-            reportWarning('[Cart] Failed to persist cart to localStorage', { component: 'cart', action: 'persist', error: err instanceof Error ? err.message : String(err) });
-        }
-        window.dispatchEvent(new CustomEvent(CART_EVENT, { detail: { items: this.items } }));
+    if (qty <= 0) {
+      this.removeItem(id);
+      return;
     }
+    item.quantity = qty;
+    this.persist();
+  }
 
-    /** Add an item or increment quantity if already in cart */
-    addItem(item: Omit<CartItem, 'quantity'>, qty = 1): void {
-        const existing = this.items.find((i) => i.id === item.id);
-        if (existing) {
-            existing.quantity += qty;
-        } else {
-            this.items.push({ ...item, quantity: qty });
-        }
-        this.persist();
-    }
+  /** Get all items in cart */
+  getItems(): ReadonlyArray<CartItem> {
+    return this.items;
+  }
 
-    /** Remove an item entirely from cart */
-    removeItem(id: string): void {
-        this.items = this.items.filter((i) => i.id !== id);
-        this.persist();
-    }
+  /** Get total item count */
+  getCount(): number {
+    return this.items.reduce((sum, i) => sum + i.quantity, 0);
+  }
 
-    /** Update quantity for a specific item */
-    updateQuantity(id: string, qty: number): void {
-        const item = this.items.find((i) => i.id === id);
-        if (!item) {
-            return;
-        }
+  /** Get total price (integer-safe for FinTech precision) */
+  getTotal(): number {
+    // P1-008 FIX (Wave 2): IEEE 754 floating-point arithmetic can produce
+    // rounding errors (e.g., 19.99 × 3 = 59.97000000000001). For a construction
+    // materials ordering system handling Syrian pounds, financial calculations
+    // MUST produce exact results. Math.round normalizes sub-cent deviations.
+    // Standard: FinTech Precision, IEEE 754 Avoidance in Financial Calculations.
+    return this.items.reduce((sum, i) => sum + Math.round(i.unitPrice * i.quantity), 0);
+  }
 
-        if (qty <= 0) {
-            this.removeItem(id);
-            return;
-        }
-        item.quantity = qty;
-        this.persist();
-    }
+  /** Check if an item is in the cart */
+  hasItem(id: string): boolean {
+    return this.items.some((i) => i.id === id);
+  }
 
-    /** Get all items in cart */
-    getItems(): ReadonlyArray<CartItem> {
-        return this.items;
-    }
-
-    /** Get total item count */
-    getCount(): number {
-        return this.items.reduce((sum, i) => sum + i.quantity, 0);
-    }
-
-    /** Get total price (integer-safe for FinTech precision) */
-    getTotal(): number {
-        // P1-008 FIX (Wave 2): IEEE 754 floating-point arithmetic can produce
-        // rounding errors (e.g., 19.99 × 3 = 59.97000000000001). For a construction
-        // materials ordering system handling Syrian pounds, financial calculations
-        // MUST produce exact results. Math.round normalizes sub-cent deviations.
-        // Standard: FinTech Precision, IEEE 754 Avoidance in Financial Calculations.
-        return this.items.reduce((sum, i) => sum + Math.round(i.unitPrice * i.quantity), 0);
-    }
-
-    /** Check if an item is in the cart */
-    hasItem(id: string): boolean {
-        return this.items.some((i) => i.id === id);
-    }
-
-    /** Clear all items */
-    clear(): void {
-        this.items = [];
-        this.persist();
-    }
+  /** Clear all items */
+  clear(): void {
+    this.items = [];
+    this.persist();
+  }
 }
 
 /** Singleton cart store instance */
@@ -125,18 +133,37 @@ export const CartStore = new CartStoreImpl();
 /**
  * Render a cart badge count into a target element.
  * Call this on page load and on `cart:updated` events.
+ *
+ * P3-PLT-010 FIX: Now plays nm-cart-bounce animation when count changes,
+ * providing visual feedback even without the fly-to-cart animation.
  */
 export function renderCartBadge(badgeEl: HTMLElement | null): void {
-    if (!badgeEl) {
-        return;
+  if (!badgeEl) {
+    return;
+  }
+  const count = CartStore.getCount();
+  const prevText = badgeEl.textContent ?? '';
+  const newText = count > 99 ? '99+' : String(count);
+  if (count > 0) {
+    badgeEl.textContent = newText;
+    badgeEl.classList.remove('nm-hidden');
+    // P3-PLT-010: Bounce animation on count change (not just initial show)
+    if (prevText !== newText && prevText !== '') {
+      badgeEl.classList.remove('nm-cart-bounce');
+      // Force reflow to restart animation
+      void badgeEl.offsetHeight;
+      badgeEl.classList.add('nm-cart-bounce');
+      badgeEl.addEventListener(
+        'animationend',
+        () => {
+          badgeEl.classList.remove('nm-cart-bounce');
+        },
+        { once: true },
+      );
     }
-    const count = CartStore.getCount();
-    if (count > 0) {
-        badgeEl.textContent = count > 99 ? '99+' : String(count);
-        badgeEl.classList.remove('nm-hidden');
-    } else {
-        badgeEl.classList.add('nm-hidden');
-    }
+  } else {
+    badgeEl.classList.add('nm-hidden');
+  }
 }
 
 /**
@@ -144,73 +171,85 @@ export function renderCartBadge(badgeEl: HTMLElement | null): void {
  * Clones a source element and animates it toward a target element.
  */
 export function flyToCart(
-    sourceEl: HTMLElement,
-    targetEl: HTMLElement,
-    onComplete?: () => void
+  sourceEl: HTMLElement,
+  targetEl: HTMLElement,
+  onComplete?: () => void,
 ): void {
-    // P2-016 FIX (Wave 2): Respect prefers-reduced-motion for cart animation.
-    // PREVIOUS: flyToCart always animated regardless of user preference.
-    // Other platform animations (auth.ts L69) check this, but cart did NOT.
-    // NOW: Users who prefer reduced motion skip the fly animation entirely.
-    // Standard: WCAG 2.3.3 (Animation from Interactions), Apple HIG.
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        targetEl.classList.add('nm-cart-bounce');
-        targetEl.addEventListener('animationend', () => {
-            targetEl.classList.remove('nm-cart-bounce');
-        }, { once: true });
-        onComplete?.();
-        return;
+  // P2-016 FIX (Wave 2): Respect prefers-reduced-motion for cart animation.
+  // PREVIOUS: flyToCart always animated regardless of user preference.
+  // Other platform animations (auth.ts L69) check this, but cart did NOT.
+  // NOW: Users who prefer reduced motion skip the fly animation entirely.
+  // Standard: WCAG 2.3.3 (Animation from Interactions), Apple HIG.
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    targetEl.classList.add('nm-cart-bounce');
+    targetEl.addEventListener(
+      'animationend',
+      () => {
+        targetEl.classList.remove('nm-cart-bounce');
+      },
+      { once: true },
+    );
+    onComplete?.();
+    return;
+  }
+
+  const sourceRect = sourceEl.getBoundingClientRect();
+  const targetRect = targetEl.getBoundingClientRect();
+
+  const flyEl = document.createElement('i');
+  flyEl.className = sourceEl.className;
+  flyEl.setAttribute('aria-hidden', 'true');
+  // DEF-UX-005 FIX: CSS custom properties replace inline style.cssText.
+  // Previous: 7 inline style mutations — violated P1-SST-001.
+  // Now: Start position via CSS custom properties, animation via CSS class.
+  // Standard: CSS Single Source of Truth, Custom Property-driven animation.
+  flyEl.classList.add('nm-fly-item');
+  // FRIC-2026-F04 FIX: Compute inset-inline-start-aware position.
+  // In RTL, inset-inline-start maps to physical `right`, so we compute
+  // distance from the inline-start edge (right edge in RTL, left in LTR).
+  const rtl = isRTL();
+  const vw = window.innerWidth;
+  const sourceInlineStart = rtl ? vw - sourceRect.right : sourceRect.left;
+  flyEl.style.setProperty('--fly-x', `${sourceInlineStart}px`);
+  flyEl.style.setProperty('--fly-y', `${sourceRect.top}px`);
+  flyEl.style.setProperty('--fly-size', getComputedStyle(sourceEl).fontSize);
+
+  document.body.appendChild(flyEl);
+
+  // Force reflow before applying transition
+  void flyEl.offsetHeight;
+
+  // DEF-UX-005 FIX: Target position via CSS custom properties + class toggle.
+  // FRIC-2026-F04 FIX: RTL-aware target center computation.
+  const targetCenterPhysical = targetRect.left + targetRect.width / 2 - 10;
+  const targetInlineStart = rtl ? vw - targetCenterPhysical - 20 : targetCenterPhysical;
+  flyEl.style.setProperty('--fly-x', `${targetInlineStart}px`);
+  flyEl.style.setProperty('--fly-y', `${targetRect.top + targetRect.height / 2 - 10}px`);
+  flyEl.classList.add('nm-fly-item--landing');
+
+  flyEl.addEventListener(
+    'transitionend',
+    () => {
+      flyEl.remove();
+      // DEF-UX-005 FIX: CSS class replaces inline style for target bounce.
+      targetEl.classList.add('nm-cart-bounce');
+      targetEl.addEventListener(
+        'animationend',
+        () => {
+          targetEl.classList.remove('nm-cart-bounce');
+        },
+        { once: true },
+      );
+      onComplete?.();
+    },
+    { once: true },
+  );
+
+  // Fallback cleanup
+  setTimeout(() => {
+    if (flyEl.parentNode) {
+      flyEl.remove();
+      onComplete?.();
     }
-
-    const sourceRect = sourceEl.getBoundingClientRect();
-    const targetRect = targetEl.getBoundingClientRect();
-
-    const flyEl = document.createElement('i');
-    flyEl.className = sourceEl.className;
-    flyEl.setAttribute('aria-hidden', 'true');
-    // DEF-UX-005 FIX: CSS custom properties replace inline style.cssText.
-    // Previous: 7 inline style mutations — violated P1-SST-001.
-    // Now: Start position via CSS custom properties, animation via CSS class.
-    // Standard: CSS Single Source of Truth, Custom Property-driven animation.
-    flyEl.classList.add('nm-fly-item');
-    // FRIC-2026-F04 FIX: Compute inset-inline-start-aware position.
-    // In RTL, inset-inline-start maps to physical `right`, so we compute
-    // distance from the inline-start edge (right edge in RTL, left in LTR).
-    const rtl = isRTL();
-    const vw = window.innerWidth;
-    const sourceInlineStart = rtl ? (vw - sourceRect.right) : sourceRect.left;
-    flyEl.style.setProperty('--fly-x', `${sourceInlineStart}px`);
-    flyEl.style.setProperty('--fly-y', `${sourceRect.top}px`);
-    flyEl.style.setProperty('--fly-size', getComputedStyle(sourceEl).fontSize);
-
-    document.body.appendChild(flyEl);
-
-    // Force reflow before applying transition
-    void flyEl.offsetHeight;
-
-    // DEF-UX-005 FIX: Target position via CSS custom properties + class toggle.
-    // FRIC-2026-F04 FIX: RTL-aware target center computation.
-    const targetCenterPhysical = targetRect.left + targetRect.width / 2 - 10;
-    const targetInlineStart = rtl ? (vw - targetCenterPhysical - 20) : targetCenterPhysical;
-    flyEl.style.setProperty('--fly-x', `${targetInlineStart}px`);
-    flyEl.style.setProperty('--fly-y', `${targetRect.top + targetRect.height / 2 - 10}px`);
-    flyEl.classList.add('nm-fly-item--landing');
-
-    flyEl.addEventListener('transitionend', () => {
-        flyEl.remove();
-        // DEF-UX-005 FIX: CSS class replaces inline style for target bounce.
-        targetEl.classList.add('nm-cart-bounce');
-        targetEl.addEventListener('animationend', () => {
-            targetEl.classList.remove('nm-cart-bounce');
-        }, { once: true });
-        onComplete?.();
-    }, { once: true });
-
-    // Fallback cleanup
-    setTimeout(() => {
-        if (flyEl.parentNode) {
-            flyEl.remove();
-            onComplete?.();
-        }
-    }, 800);
+  }, 800);
 }

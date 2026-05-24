@@ -10,6 +10,8 @@
 
 import { reportError } from '../error-reporter';
 import { t } from '../utils/i18n';
+// P0-PLT-002 FIX: Track session freshness for timeout warning.
+import { markSessionActivity } from '../utils/session-timeout';
 
 // ─── P0-UXA-002 FIX: Session Expiry Mutex ───────────────────────────────────
 // When JWT expires, multiple concurrent API calls all receive 401.
@@ -250,6 +252,10 @@ export async function request<T>(
           await new Promise((r) => setTimeout(r, 300 - elapsed));
         }
       }
+
+      // P0-PLT-002 FIX: Mark session activity on every successful API response.
+      // This resets the session timeout warning countdown.
+      markSessionActivity();
 
       return body;
     } catch (err) {

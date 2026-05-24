@@ -24,7 +24,11 @@ import { initBackToTop } from '../components/back-to-top';
 // CRIT-UX-003 FIX: Tour Replay FAB — help button to restart onboarding
 import { mountTourReplayFAB } from '../components/tour-replay-fab';
 import { requireAuth } from '../utils/auth-guard';
+// P0-JRN-001 FIX: Confirmation dialog before logout — parity with homeowner portal.
+import { confirmAction } from '../utils/confirm-action';
 import { initBreadcrumb } from '../utils/breadcrumb';
+// P0-PLT-001 FIX: Error boundary wraps page init to catch initialization failures.
+import { guardPageInit } from '../utils/error-boundary';
 import { guardSkeleton } from '../utils/skeleton-guard';
 import { haptic } from '../utils/haptic';
 import { animateKPI } from '../utils/kpi-animation';
@@ -494,41 +498,64 @@ function bidStatusLabel(status: string): string {
 // F-019 FIX: Local setKPI() replaced with shared animateKPI() from utils/kpi-animation.ts.
 
 // ─── Init ───────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  if (!requireAuth()) {
-    return;
-  }
-  bootstrapPortal();
-  mountContextSwitcher();
-  initLiveTimestamp();
-  initBreadcrumb();
-  setupTabs();
-
-  // E2a FIX: Skeleton timeout guard — prevents infinite loading on Syria 2G/3G.
-  // Portals WITH guardSkeleton: homeowner ✅, contractor ✅, supplier ✅, wallet ✅.
-  // Engineer was MISSING — skeleton could animate forever on timeout.
-  guardSkeleton({
-    container: 'main-content',
-    onRetry: () => {
-      loadKPIs();
-      loadProjects();
-    },
-  });
-
-  // Load initial data — signal hydration when primary content renders
-  Promise.allSettled([loadKPIs(), loadProjects()]).then(signalHydrated);
-
-  // Secure Logout (parity with contractor-portal.ts)
-  document.getElementById('portal-logout-btn')?.addEventListener('click', async () => {
-    haptic.medium();
-    try {
-      await authApi.logout();
-    } catch {
-      /* best-effort */
+// P0-PLT-001 FIX: guardPageInit wraps entire init in error boundary.
+document.addEventListener(
+  'DOMContentLoaded',
+  guardPageInit(() => {
+    if (!requireAuth()) {
+      return;
     }
-    clearAuth(true); // P2-W5-002: skipServerLogout — authApi.logout() already called above
-    window.location.href = '/auth.html';
-  });
+    bootstrapPortal();
+    mountContextSwitcher();
+    initLiveTimestamp();
+    initBreadcrumb();
+    setupTabs();
 
-  applyI18n();
-});
+    // E2a FIX: Skeleton timeout guard — prevents infinite loading on Syria 2G/3G.
+    // Portals WITH guardSkeleton: homeowner ✅, contractor ✅, supplier ✅, wallet ✅.
+    // Engineer was MISSING — skeleton could animate forever on timeout.
+    guardSkeleton({
+      container: 'main-content',
+      onRetry: () => {
+        loadKPIs();
+        loadProjects();
+      },
+    });
+
+    // Load initial data — signal hydration when primary content renders
+    Promise.allSettled([loadKPIs(), loadProjects()]).then(signalHydrated);
+
+    // Secure Logout
+    // P0-JRN-001 FIX: Confirmation dialog before logout — parity with homeowner portal.
+    // PREVIOUS: Immediate logout on click — one accidental tap on 2G = 30s wasted re-authenticating.
+    // NOW: confirmAction dialog protects against accidental taps.
+    // Standard: Destructive Action Protection, Nielsen #5 (Error Prevention).
+    document.getElementById('portal-logout-btn')?.addEventListener('click', () => {
+      haptic.medium();
+      confirmAction({
+        title: t('confirm_logout_title', 'تسجيل الخروج'),
+        message: t('confirm_logout_msg', 'هل أنت متأكد أنك تريد تسجيل الخروج؟'),
+        confirmLabel: t('confirm_logout_btn', 'تسجيل الخروج'),
+        icon: 'sign-out',
+        variant: 'warning',
+        i18n: {
+          title: 'confirm_logout_title',
+          message: 'confirm_logout_msg',
+          confirm: 'confirm_logout_btn',
+          cancel: 'common_cancel',
+        },
+        onConfirm: async () => {
+          try {
+            await authApi.logout();
+          } catch {
+            /* best-effort */
+          }
+          clearAuth(true); // P2-W5-002: skipServerLogout — authApi.logout() already called above
+          window.location.href = '/auth.html';
+        },
+      });
+    });
+
+    applyI18n();
+  }),
+);

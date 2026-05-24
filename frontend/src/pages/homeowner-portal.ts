@@ -32,6 +32,8 @@ import { createHashRouter } from '../utils/hash-router';
 import { initSwipeTabs } from '../utils/swipe-tabs';
 // P3-003 FIX: Skeleton timeout guard
 import { guardSkeleton } from '../utils/skeleton-guard';
+// P0-PLT-001 FIX: Error boundary wraps page init to catch initialization failures.
+import { guardPageInit } from '../utils/error-boundary';
 // P0-UX-004 FIX: Auto-save form drafts to prevent data loss on network failure.
 import { saveDraft, loadDraft, clearDraft, hasDraft } from '../utils/form-draft';
 // P1-UX-003 FIX: Service Worker registration on all portal pages
@@ -125,37 +127,53 @@ const delegationWired = { requests: false, approvals: false } as Record<string, 
 const hashRouter = createHashRouter(ALL_TABS, 'dashboard');
 
 // ─── Init ───────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  // BLOCKER-1 FIX: Guard all protected content behind auth check.
-  if (!requireAuth()) {
-    return;
-  }
-  bootstrapPortal();
-  mountContextSwitcher();
-  // B7 FIX: Breadcrumb on homeowner portal
-  initBreadcrumb();
+// P0-PLT-001 FIX: guardPageInit wraps entire init in error boundary.
+document.addEventListener(
+  'DOMContentLoaded',
+  guardPageInit(() => {
+    // BLOCKER-1 FIX: Guard all protected content behind auth check.
+    if (!requireAuth()) {
+      return;
+    }
+    bootstrapPortal();
+    mountContextSwitcher();
+    // B7 FIX: Breadcrumb on homeowner portal
+    initBreadcrumb();
 
-  // ═══════════════════════════════════════════════════════════════════════
-  // CRIT-UX-003 FIX: KYC Completion Banner for new homeowners.
-  // PREVIOUS: New homeowner registers → lands on portal → has NO idea that
-  // KYC verification is required before escrow can release funds. They submit
-  // a damage report, wait weeks, then discover KYC is blocking payment.
-  // NOW: Non-blocking banner at top of main content with CTA to profile.
-  // Standard: Nielsen #1 (System Status Visibility), FinTech Compliance UX.
-  // ═══════════════════════════════════════════════════════════════════════
-  const user = getCurrentUser();
-  if (user && !user.kyc_verified) {
-    const mainContent = document.getElementById('main-content');
-    if (mainContent) {
-      const kycBanner = document.createElement('div');
-      kycBanner.id = 'nm-kyc-banner';
-      kycBanner.className =
-        'mx-4 mt-4 mb-2 rounded-xl p-4 flex items-start gap-3 ' +
-        'bg-warning-yellow/10 border border-warning-yellow/25 ' +
-        'dark:bg-warning-yellow/5 dark:border-warning-yellow/15 ' +
-        'animate-fade-in-up';
-      kycBanner.setAttribute('role', 'alert');
-      kycBanner.innerHTML = `
+    // ═══════════════════════════════════════════════════════════════════════
+    // CRIT-UX-003 FIX: KYC Completion Banner for new homeowners.
+    // PREVIOUS: New homeowner registers → lands on portal → has NO idea that
+    // KYC verification is required before escrow can release funds. They submit
+    // a damage report, wait weeks, then discover KYC is blocking payment.
+    // NOW: Non-blocking banner at top of main content with CTA to profile.
+    // Standard: Nielsen #1 (System Status Visibility), FinTech Compliance UX.
+    // ═══════════════════════════════════════════════════════════════════════
+    const user = getCurrentUser();
+    if (user && !user.kyc_verified) {
+      const mainContent = document.getElementById('main-content');
+      // P2-STM-003 FIX: Check dismissal BEFORE rendering (prevents flash-of-banner).
+      // Uses localStorage with 24h TTL — user is reminded daily until KYC completes.
+      let kycDismissed = false;
+      try {
+        const dismissed = localStorage.getItem('nm_kyc_banner_dismissed');
+        if (dismissed) {
+          const dismissedAt = parseInt(dismissed, 10);
+          const DAY_MS = 24 * 60 * 60 * 1000;
+          kycDismissed = Date.now() - dismissedAt < DAY_MS;
+        }
+      } catch {
+        /* quota */
+      }
+      if (mainContent && !kycDismissed) {
+        const kycBanner = document.createElement('div');
+        kycBanner.id = 'nm-kyc-banner';
+        kycBanner.className =
+          'mx-4 mt-4 mb-2 rounded-xl p-4 flex items-start gap-3 ' +
+          'bg-warning-yellow/10 border border-warning-yellow/25 ' +
+          'dark:bg-warning-yellow/5 dark:border-warning-yellow/15 ' +
+          'animate-fade-in-up';
+        kycBanner.setAttribute('role', 'alert');
+        kycBanner.innerHTML = `
         <div class="size-10 rounded-full bg-warning-yellow/20 flex items-center justify-center shrink-0 mt-0.5">
           <i class="ph ph-identification-card text-warning-yellow nm-icon-20" aria-hidden="true"></i>
         </div>
@@ -178,82 +196,74 @@ document.addEventListener('DOMContentLoaded', () => {
           <i class="ph ph-x text-sm" aria-hidden="true"></i>
         </button>
       `;
-      // Insert as the first child of main-content (above tabs/dashboard)
-      mainContent.insertBefore(kycBanner, mainContent.firstChild);
+        // Insert as the first child of main-content (above tabs/dashboard)
+        mainContent.insertBefore(kycBanner, mainContent.firstChild);
 
-      // Dismiss handler — persists dismissal for this session
-      document.getElementById('nm-kyc-banner-dismiss')?.addEventListener('click', () => {
-        kycBanner.classList.add('animate-fade-out');
-        setTimeout(() => kycBanner.remove(), 300);
-        try {
-          sessionStorage.setItem('nm_kyc_banner_dismissed', '1');
-        } catch {
-          /* quota */
-        }
-      });
-
-      // Don't show again if dismissed this session
-      try {
-        if (sessionStorage.getItem('nm_kyc_banner_dismissed') === '1') {
-          kycBanner.remove();
-        }
-      } catch {
-        /* quota */
+        // P2-STM-003 FIX: Dismiss handler — persists to localStorage with timestamp.
+        document.getElementById('nm-kyc-banner-dismiss')?.addEventListener('click', () => {
+          kycBanner.classList.add('animate-fade-out');
+          setTimeout(() => kycBanner.remove(), 300);
+          try {
+            localStorage.setItem('nm_kyc_banner_dismissed', String(Date.now()));
+          } catch {
+            /* quota */
+          }
+        });
       }
     }
-  }
 
-  setupTabs();
-  setupServiceRequestForm();
-  setupToggleDetails(); // CONF-N04 FIX
-  const initialTab = hashRouter.getInitialTab();
-  switchTab(initialTab);
-  hashRouter.onHashChange(switchTab);
+    setupTabs();
+    setupServiceRequestForm();
+    setupToggleDetails(); // CONF-N04 FIX
+    const initialTab = hashRouter.getInitialTab();
+    switchTab(initialTab);
+    hashRouter.onHashChange(switchTab);
 
-  // P3-003 FIX: Guard skeleton loaders with timeout fallback
-  guardSkeleton({
-    container: 'main-content',
-    onRetry: () => switchTab(hashRouter.getInitialTab()),
-  });
-
-  // P1-MOB-003 FIX: Swipe gestures for native-app tab navigation
-  initSwipeTabs({
-    containerSelector: '.dashboard-main',
-    tabs: ALL_TABS as unknown as readonly string[],
-    onSwitch: switchTab as (tab: string) => void,
-    getCurrentTab: () => hashRouter.getInitialTab(),
-  });
-
-  // ─── Secure Logout ──────────────────────────────────────────────────
-  // MED-UX-009 FIX: Confirmation before logout to prevent accidental sign-out.
-  // PREVIOUS: Immediate logout on click — one accidental tap on 2G = 30s wasted re-authenticating.
-  // NOW: confirmAction dialog protects against accidental taps.
-  // Standard: Destructive Action Protection, Nielsen #5 (Error Prevention).
-  document.getElementById('portal-logout-btn')?.addEventListener('click', () => {
-    confirmAction({
-      title: t('confirm_logout_title', 'تسجيل الخروج'),
-      message: t('confirm_logout_msg', 'هل أنت متأكد أنك تريد تسجيل الخروج؟'),
-      confirmLabel: t('confirm_logout_btn', 'تسجيل الخروج'),
-      icon: 'sign-out',
-      variant: 'warning',
-      i18n: {
-        title: 'confirm_logout_title',
-        message: 'confirm_logout_msg',
-        confirm: 'confirm_logout_btn',
-        cancel: 'common_cancel',
-      },
-      onConfirm: async () => {
-        try {
-          await authApi.logout();
-        } catch {
-          /* best-effort */
-        }
-        clearAuth(true); // P2-W5-002: skipServerLogout — authApi.logout() already called above
-        window.location.href = '/auth.html';
-      },
+    // P3-003 FIX: Guard skeleton loaders with timeout fallback
+    guardSkeleton({
+      container: 'main-content',
+      onRetry: () => switchTab(hashRouter.getInitialTab()),
     });
-  });
-});
+
+    // P1-MOB-003 FIX: Swipe gestures for native-app tab navigation
+    initSwipeTabs({
+      containerSelector: '.dashboard-main',
+      tabs: ALL_TABS as unknown as readonly string[],
+      onSwitch: switchTab as (tab: string) => void,
+      getCurrentTab: () => hashRouter.getInitialTab(),
+    });
+
+    // ─── Secure Logout ──────────────────────────────────────────────────
+    // MED-UX-009 FIX: Confirmation before logout to prevent accidental sign-out.
+    // PREVIOUS: Immediate logout on click — one accidental tap on 2G = 30s wasted re-authenticating.
+    // NOW: confirmAction dialog protects against accidental taps.
+    // Standard: Destructive Action Protection, Nielsen #5 (Error Prevention).
+    document.getElementById('portal-logout-btn')?.addEventListener('click', () => {
+      confirmAction({
+        title: t('confirm_logout_title', 'تسجيل الخروج'),
+        message: t('confirm_logout_msg', 'هل أنت متأكد أنك تريد تسجيل الخروج؟'),
+        confirmLabel: t('confirm_logout_btn', 'تسجيل الخروج'),
+        icon: 'sign-out',
+        variant: 'warning',
+        i18n: {
+          title: 'confirm_logout_title',
+          message: 'confirm_logout_msg',
+          confirm: 'confirm_logout_btn',
+          cancel: 'common_cancel',
+        },
+        onConfirm: async () => {
+          try {
+            await authApi.logout();
+          } catch {
+            /* best-effort */
+          }
+          clearAuth(true); // P2-W5-002: skipServerLogout — authApi.logout() already called above
+          window.location.href = '/auth.html';
+        },
+      });
+    });
+  }),
+);
 
 // ─── CONF-N04 FIX: Toggle Details via addEventListener ──────────────────────
 // Previous: inline onclick in HTML — violated CSP script-src 'self'.

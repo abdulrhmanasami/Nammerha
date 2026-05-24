@@ -27,6 +27,8 @@ import { t, isRTL } from '../utils/i18n';
 import { escapeHtml as esc } from '../utils/xss';
 // P1-001 REFACTOR: Import from shared workspace map (SSoT).
 import { WS_STORAGE_KEY } from '../utils/workspace-map';
+// P0-JRN-002 FIX: Donor role gated behind donation feature flag.
+import { DONATIONS_ENABLED } from '../utils/feature-flags';
 
 const CHOOSER_SHOWN_KEY = 'nm_welcome_chooser_shown';
 const ONBOARDING_PARAM = 'onboarding';
@@ -117,6 +119,27 @@ const WORKSPACE_OPTIONS: WorkspaceOption[] = [
     bgClass: 'bg-warm-earth/10 dark:bg-warm-earth/20',
   },
 ];
+
+// P0-JRN-002 FIX: Donor workspace option — conditionally added when donations are enabled.
+// PREVIOUS: 6 registration roles (homeowner, contractor, engineer, tradesperson, supplier, donor)
+// but only 5 welcome chooser cards. Donors registered → saw no matching task → picked
+// "explore projects" → couldn't find donation flow.
+// NOW: Donor card appears when DONATIONS_ENABLED is true. Vite tree-shakes when false.
+// Standard: Feature Flag Governance, Nielsen #2 (Match System ↔ Real World).
+if (DONATIONS_ENABLED) {
+  // Insert donor card before "explore" (last position) for logical ordering
+  WORKSPACE_OPTIONS.splice(WORKSPACE_OPTIONS.length - 1, 0, {
+    id: 'donor',
+    icon: 'hand-heart',
+    titleKey: 'wc_task_donor',
+    titleFallback: 'I want to support reconstruction',
+    descKey: 'wc_desc_donor',
+    descFallback: 'Fund verified projects, track your impact, and help rebuild Syria',
+    href: '/donor-portal.html',
+    colorClass: 'text-rose-600 dark:text-rose-400',
+    bgClass: 'bg-rose-600/10 dark:bg-rose-400/20',
+  });
+}
 
 // ─── State ──────────────────────────────────────────────────────────────────
 let chooserEl: HTMLElement | null = null;
@@ -212,7 +235,7 @@ function showChooser(): void {
                 <h3 class="nm-wc-card-title" data-i18n="${esc(opt.titleKey)}">${esc(t(opt.titleKey, opt.titleFallback))}</h3>
                 <p class="nm-wc-card-desc" data-i18n="${esc(opt.descKey)}">${esc(t(opt.descKey, opt.descFallback))}</p>
             </div>
-            <i class="ph ph-caret-${rtl ? 'left' : 'right'} nm-wc-card-arrow ${opt.colorClass}" aria-hidden="true"></i>
+            <i class="ph ph-caret-right nm-wc-card-arrow nm-dir-shift ${opt.colorClass}" aria-hidden="true"></i>
         </button>
     `,
   ).join('');

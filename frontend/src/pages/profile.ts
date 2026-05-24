@@ -774,14 +774,16 @@ function initPhotoPreview(): void {
           // UX-REM-J003 FIX: Preview-only warning badge.
           // PREVIOUS: No indication that photo is client-side only.
           // User sees photo → leaves → returns → photo gone. Confusion.
-          // NOW: Shows a subtle 'Preview only' badge so users know.
+          // P1-JRN-005 FIX: Badge made more prominent — upgraded from text-3xs
+          // to text-xs with icon and pulse animation. On mobile, the original
+          // 8px text was nearly invisible on a 64px avatar circle.
           // Standard: Nielsen #1 (Visibility of System Status).
           let badge = avatarEl.querySelector('.nm-preview-badge');
           if (!badge) {
             badge = document.createElement('span');
             badge.className =
-              'nm-preview-badge absolute bottom-0 inset-x-0 text-center text-3xs font-bold py-0.5 bg-amber-500/90 text-white rounded-b-full';
-            badge.textContent = t('photo_preview_only', 'معاينة فقط');
+              'nm-preview-badge absolute bottom-0 inset-x-0 text-center text-xs font-bold py-1 bg-amber-500 text-white rounded-b-full animate-pulse flex items-center justify-center gap-1';
+            badge.innerHTML = `<i class="ph ph-eye text-xs" aria-hidden="true"></i>${escapeHtml(t('photo_preview_only', 'معاينة فقط'))}`;
             badge.setAttribute('data-i18n', 'photo_preview_only');
             avatarEl.style.position = 'relative';
             avatarEl.appendChild(badge);
