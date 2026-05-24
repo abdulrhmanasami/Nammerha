@@ -59,6 +59,16 @@ const NEVER_CACHE_PATHS = [
     '/api/csp-report',
 ];
 
+// P0-FIN-UX-001 FIX: Financial mutations MUST NOT be queued silently offline.
+// If a user releases Escrow offline, it should fail immediately rather than 
+// executing days later when they reconnect.
+const NEVER_QUEUE_PATHS = [
+    '/api/escrow/',
+    '/api/wallet/',
+    '/api/payments/',
+    '/api/checkout/',
+];
+
 // ─── DB Constants for Offline Queue ─────────────────────────────────────────
 const DB_NAME    = 'nammerha-offline';
 const DB_VERSION = 1;
@@ -99,7 +109,11 @@ self.addEventListener('fetch', (event) => {
         if (event.request.method === 'GET') {
             event.respondWith(networkFirstWithCache(event.request));
         } else {
-            // POST/PUT/DELETE: try network, queue if offline
+            // POST/PUT/DELETE: try network, queue if offline (except financial paths)
+            if (NEVER_QUEUE_PATHS.some((p) => url.pathname.startsWith(p))) {
+                // Return browser default behavior (will fail immediately if offline)
+                return;
+            }
             event.respondWith(networkOrQueue(event.request));
         }
         return;
