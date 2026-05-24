@@ -279,6 +279,17 @@ export function initNotificationPanel(): void {
         pollTimer = setInterval(updateBadge, POLL_INTERVAL_MS);
       }
     });
+
+    // P5-UXA-007 FIX: Phantom Notification Desync (Silent SWR Refresh)
+    // Listen for state changes from other tabs to instantly update badge and panel list.
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'nm_notif_refresh') {
+        updateBadge();
+        if (isOpen) {
+          loadNotifications();
+        }
+      }
+    });
   };
 
   // Try immediately, fallback to DOMContentLoaded

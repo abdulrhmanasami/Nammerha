@@ -172,7 +172,19 @@ if (typeof window !== 'undefined') {
     if (e.key === STORAGE_KEY && e.newValue !== null) {
       // Another tab just logged in — update local state and dismiss any logout banner
       try {
-        currentUser = JSON.parse(e.newValue) as AuthUser;
+        const newUser = JSON.parse(e.newValue) as AuthUser;
+        const oldUser = e.oldValue ? JSON.parse(e.oldValue) as AuthUser : null;
+
+        // P5-UXA-005 FIX: Cross-Tab State Schizophrenia Lock
+        // If the user logs in as someone else in another tab (or logs in from a logged-out state),
+        // the current tab's DOM represents stale/wrong user data. We MUST force reload
+        // to prevent actions being taken under the new user's HttpOnly JWT.
+        if (!oldUser || oldUser.user_id !== newUser.user_id) {
+          window.location.reload();
+          return;
+        }
+
+        currentUser = newUser;
         if (currentUser && !currentUser.roles) {
           currentUser.roles = [currentUser.role];
         }

@@ -26,12 +26,17 @@ export function formatCents(
     const resolvedLocale = locale
         ?? (document.documentElement.lang || navigator.language || 'en-US');
 
-    return new Intl.NumberFormat(resolvedLocale, {
+    const formatted = new Intl.NumberFormat(resolvedLocale, {
         style: 'currency',
         currency,
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
     }).format(safeCents / 100);
+    
+    // UX PLATINUM FIX V3: Typographic Orphans
+    // Replace all normal spaces with non-breaking spaces (\u00A0)
+    // Ensures numbers and currency symbols never break across lines.
+    return formatted.replace(/\s/g, '\u00A0');
 }
 
 /**
@@ -56,12 +61,15 @@ export function formatDollars(
     const resolvedLocale = locale
         ?? (document.documentElement.lang || navigator.language || 'en-US');
 
-    return new Intl.NumberFormat(resolvedLocale, {
+    const formatted = new Intl.NumberFormat(resolvedLocale, {
         style: 'currency',
         currency,
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
     }).format(safeDollars);
+
+    // UX PLATINUM FIX V3: Typographic Orphans
+    return formatted.replace(/\s/g, '\u00A0');
 }
 
 /**

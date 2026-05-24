@@ -2423,6 +2423,18 @@ async function handleLoginRedirect(
   // NOW: .nm-body-frozen class declared in main.css @layer utilities.
   // Standard: P1-SST-001 governance, CSS Single Source of Truth.
   document.body.classList.add('nm-body-frozen');
+  
+  // P4-UXA-006 FIX: In-Place Re-auth (Global 401 Interceptor) Modal Support
+  // If the auth page is loaded inside an iframe (modal mode) triggered by _client.ts,
+  // we do NOT redirect the iframe. We post a success message to the parent window
+  // so it can destroy the iframe and replay the paused API request.
+  // Standard: Single Page App (SPA) seamless re-auth pattern, Nielsen #3.
+  const isModal = new URLSearchParams(window.location.search).get('mode') === 'modal';
+  if (isModal && window.self !== window.top) {
+    window.parent.postMessage('nm_auth_success', '*');
+    return;
+  }
+
   setTimeout(() => {
     window.location.href = finalTarget;
   }, 800);

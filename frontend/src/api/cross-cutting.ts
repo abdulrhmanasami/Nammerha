@@ -4,10 +4,19 @@ import { request } from './_client';
 export const notifications = {
     getAll: () => request('/notifications'),
     getUnreadCount: () => request<{ unread_count: number }>('/notifications/unread-count'),
-    markAsRead: (id: string) =>
-        request(`/notifications/${id}/read`, { method: 'PATCH' }),
-    markAllAsRead: () =>
-        request('/notifications/read-all', { method: 'PATCH' }),
+    markAsRead: async (id: string) => {
+        const res = await request(`/notifications/${id}/read`, { method: 'PATCH' });
+        // P5-UXA-007 FIX: Phantom Notification Desync (Silent SWR Refresh)
+        // Broadcasts state change to other open tabs to instantly mark as read.
+        // Standard: Multi-Tab State Consistency, Nielsen #1 (System Status).
+        try { localStorage.setItem('nm_notif_refresh', Date.now().toString()); } catch {}
+        return res;
+    },
+    markAllAsRead: async () => {
+        const res = await request('/notifications/read-all', { method: 'PATCH' });
+        try { localStorage.setItem('nm_notif_refresh', Date.now().toString()); } catch {}
+        return res;
+    },
 };
 
 // ─── Health Check ───────────────────────────────────────────────────────────

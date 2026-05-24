@@ -21,6 +21,7 @@ import { markSessionActivity } from '../utils/session-timeout';
 // This flag ensures only the FIRST 401 response handles the session cleanup.
 // Standard: Single Responsibility, Race Condition Prevention.
 let sessionExpiring = false;
+let activeReauthPromise: Promise<boolean> | null = null;
 
 export const API_BASE = '/api';
 
@@ -155,7 +156,7 @@ export async function request<T>(
   }
 
   const isIdempotent = !!headers['Idempotency-Key'] || method === 'GET';
-  const maxRetries = isIdempotent ? 2 : 0;
+  let maxRetries = isIdempotent ? 2 : 0;
 
   // P0-UXA-002 FIX: If session is already expiring, short-circuit immediately.
   // Don't fire another clearAuth/redirect/toast — the first 401 handler owns it.
@@ -202,32 +203,60 @@ export async function request<T>(
 
         const { isAuthenticated, clearAuth } = await import('../auth');
         if (isAuthenticated()) {
-          // P0-UXA-002: Acquire mutex BEFORE any async work
-          sessionExpiring = true;
+          // P4-UXA-006 FIX: In-Place Re-auth (Global 401 Interceptor)
+          // Don't nuke the session and redirect immediately. Pause and prompt!
+          if (!activeReauthPromise) {
+            activeReauthPromise = new Promise<boolean>((resolve) => {
+              import('../utils/toast')
+                .then(({ showToast }) => {
+                  showToast(t('session_expired_reauth', 'انتهت الجلسة. يرجى تسجيل الدخول مجدداً للمتابعة.'), 'warning');
+                })
+                .catch(() => {});
+              
+              const modal = document.createElement('div');
+              modal.id = 'nm-reauth-modal';
+              modal.innerHTML = `
+                <div class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in-up">
+                  <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-md h-[550px] overflow-hidden relative mx-4">
+                    <button id="close-reauth" class="absolute top-4 end-4 z-10 text-slate-400 hover:text-slate-600 bg-white/80 dark:bg-slate-800/80 rounded-full w-8 h-8 flex items-center justify-center">
+                      <i class="ph ph-x"></i>
+                    </button>
+                    <iframe src="/auth.html?mode=modal" class="w-full h-full border-none"></iframe>
+                  </div>
+                </div>
+              `;
+              document.body.appendChild(modal);
 
-          clearAuth();
-          // Show session expired notification (dynamic import to avoid circular deps)
-          try {
-            const { showToast } = await import('../utils/toast');
-            showToast(t('session_expired', 'انتهت جلستك. يرجى تسجيل الدخول مجدداً.'), 'warning');
-          } catch {
-            /* Toast module may not be available — non-critical */
+              const cleanup = () => {
+                window.removeEventListener('message', onMessage);
+                modal.remove();
+                activeReauthPromise = null;
+              };
+
+              const onMessage = (e: MessageEvent) => {
+                if (e.data === 'nm_auth_success') {
+                  cleanup();
+                  resolve(true); // Retry!
+                }
+              };
+              window.addEventListener('message', onMessage);
+
+              modal.querySelector('#close-reauth')?.addEventListener('click', () => {
+                cleanup();
+                sessionExpiring = true;
+                clearAuth();
+                window.location.href = '/auth.html?reason=session_expired';
+                resolve(false);
+              });
+            });
           }
-          // Redirect to login with return URL after brief delay (let toast show)
-          // PLT-UX-AUD P0-SESSION-003 FIX: Added &reason=session_expired as URL fallback.
-          // On Syria 2G, the dynamic toast import above may fail silently. The auth page
-          // reads this parameter to display a persistent banner — independent of any import.
-          // W3-P3-002 FIX: Include hash in returnPath to preserve tab context.
-          // Previous: Only pathname + search saved — hash (#projects, #wallet) lost.
-          // After re-login, user landed on portal's default tab instead of where they were.
-          // Standard: Nielsen #3 (User Control), Principle of Least Surprise.
-          const returnPath = encodeURIComponent(
-            window.location.pathname + window.location.search + window.location.hash,
-          );
-          setTimeout(() => {
-            window.location.href = `/auth.html?redirect=${returnPath}&reason=session_expired`;
-          }, 1500);
-          // Return a typed error response instead of throwing
+
+          const success = await activeReauthPromise;
+          if (success) {
+            // Replay the request!
+            maxRetries++; 
+            continue;
+          }
           return { success: false, error: 'Session expired' } as ApiResponse<T>;
         }
       }

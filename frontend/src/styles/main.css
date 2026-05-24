@@ -1817,7 +1817,11 @@ html[data-theme='dark'] .text-red-400 {
   /* PLT-W3-001 FIX: Migrated #e2e8f0 → var(--border-subtle).
        Standard: Design System Token Governance. */
   background: var(--border-subtle);
-  animation: skeletonPulse 1.5s ease-in-out infinite;
+  /* P4-UXA-004 FIX: Skeleton FOUC Prevention (200ms delay).
+     Starts invisible and waits 200ms before pulsing.
+     Standard: Perceived Performance, Nielsen #6. */
+  opacity: 0;
+  animation: skeletonPulse 1.5s ease-in-out 0.2s infinite forwards;
 }
 .nm-skeleton-bar--narrow {
   width: 3rem;
@@ -1838,7 +1842,8 @@ html[data-theme='dark'] .text-red-400 {
    Uses the existing skeletonPulse keyframe — all skeleton elements share the same rhythm.
    Standard: Material Design 3 (Content Placeholders), Animation Consistency. */
 .nm-skeleton-pulse {
-  animation: skeletonPulse 1.5s ease-in-out infinite;
+  opacity: 0;
+  animation: skeletonPulse 1.5s ease-in-out 0.2s infinite forwards;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
