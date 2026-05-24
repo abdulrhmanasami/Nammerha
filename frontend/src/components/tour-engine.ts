@@ -93,7 +93,11 @@ export function autoTriggerTour(): void {
     tourId = 'homeowner';
   } else if (path.includes('contractor-portal') || path.includes('contractor-dashboard')) {
     tourId = 'contractor';
-  } else if (path.includes('engineer-camera') || path.includes('engineer-boq')) {
+  } else if (
+    path.includes('engineer-portal') ||
+    path.includes('engineer-camera') ||
+    path.includes('engineer-boq')
+  ) {
     tourId = 'engineer';
   } else if (path.includes('supplier-dashboard')) {
     tourId = 'supplier';

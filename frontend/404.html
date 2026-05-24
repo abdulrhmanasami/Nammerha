@@ -362,6 +362,74 @@
           bottom: 0;
         }
       }
+
+      /* CRIT-UX-012: Smart Recovery Suggestions */
+      .error-suggestions {
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(148, 163, 184, 0.15);
+        text-align: start;
+      }
+      .suggestions-title {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.75rem;
+      }
+      html[data-theme='light'] .suggestions-title,
+      html:not([data-theme]) .suggestions-title {
+        color: #94a3b8;
+      }
+      html[data-theme='dark'] .suggestions-title {
+        color: #64748b;
+      }
+      .suggestions-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .suggestion-link {
+        display: flex;
+        align-items: center;
+        gap: 0.625rem;
+        padding: 0.625rem 0.75rem;
+        border-radius: 0.75rem;
+        text-decoration: none;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        transition: all 0.15s ease;
+      }
+      html[data-theme='light'] .suggestion-link,
+      html:not([data-theme]) .suggestion-link {
+        color: #334155;
+        background: rgba(241, 245, 249, 0.8);
+      }
+      html[data-theme='light'] .suggestion-link:hover,
+      html:not([data-theme]) .suggestion-link:hover {
+        background: rgba(21, 88, 214, 0.08);
+        color: #1558d6;
+      }
+      html[data-theme='dark'] .suggestion-link {
+        color: #cbd5e1;
+        background: rgba(30, 41, 59, 0.5);
+      }
+      html[data-theme='dark'] .suggestion-link:hover {
+        background: rgba(37, 99, 235, 0.12);
+        color: #60a5fa;
+      }
+      .suggestion-link i {
+        font-size: 1.125rem;
+        opacity: 0.7;
+        flex-shrink: 0;
+      }
+      .suggestion-link .suggestion-desc {
+        font-size: 0.6875rem;
+        font-weight: 400;
+        opacity: 0.6;
+        display: block;
+        margin-top: 1px;
+      }
     </style>
   </head>
   <body>
@@ -407,6 +475,21 @@
           العودة للخلف
         </button>
       </div>
+
+      <!-- CRIT-UX-012 FIX: Contextual Smart Recovery Links.
+           Previous: Only "Go Home" + "Go Back" — users lost context entirely.
+           Now: Analyzes the attempted URL path and suggests the most relevant pages.
+           Also includes a search shortcut to find projects directly.
+           Standard: Nielsen #9 (Help users recover from errors), Google 404 best practices. -->
+      <div
+        id="nm-404-suggestions"
+        class="error-suggestions"
+        role="navigation"
+        aria-label="Suggested pages"
+      >
+        <p class="suggestions-title" data-i18n="error_404_try_instead">جرّب بدلاً من ذلك:</p>
+        <div id="nm-404-links" class="suggestions-grid"></div>
+      </div>
     </main>
 
     <!-- GAP-2026-003 FIX: Decorative gradient orbs — visual consistency with all platform pages -->
@@ -422,6 +505,249 @@
       </nav>
     </footer>
 
+    <!-- CRIT-UX-012: Smart Recovery Engine -->
+    <script>
+      (function () {
+        'use strict';
+        var path = window.location.pathname.toLowerCase();
+
+        /* URL-to-suggestion mapping: each pattern maps to an array of
+           { href, icon, label, labelAr, desc, descAr } objects */
+        var ROUTE_HINTS = [
+          {
+            pattern: 'project',
+            suggestions: [
+              {
+                href: '/projects.html',
+                icon: 'ph-buildings',
+                label: 'Browse Projects',
+                labelAr: 'تصفّح المشاريع',
+                desc: 'Explore reconstruction projects',
+                descAr: 'استكشف مشاريع إعادة الإعمار',
+              },
+              {
+                href: '/homeowner-report.html',
+                icon: 'ph-wrench',
+                label: 'Report Damage',
+                labelAr: 'الإبلاغ عن أضرار',
+                desc: 'Submit a repair request',
+                descAr: 'تقديم طلب إصلاح',
+              },
+            ],
+          },
+          {
+            pattern: 'wallet',
+            suggestions: [
+              {
+                href: '/wallet.html',
+                icon: 'ph-wallet',
+                label: 'Wallet',
+                labelAr: 'المحفظة',
+                desc: 'View your balance & transactions',
+                descAr: 'عرض رصيدك ومعاملاتك',
+              },
+            ],
+          },
+          {
+            pattern: 'admin',
+            suggestions: [
+              {
+                href: '/admin-dashboard.html',
+                icon: 'ph-shield-check',
+                label: 'Admin Dashboard',
+                labelAr: 'لوحة الإدارة',
+                desc: 'Platform management',
+                descAr: 'إدارة المنصة',
+              },
+            ],
+          },
+          {
+            pattern: 'auth',
+            suggestions: [
+              {
+                href: '/auth.html',
+                icon: 'ph-user',
+                label: 'Sign In',
+                labelAr: 'تسجيل الدخول',
+                desc: 'Access your account',
+                descAr: 'الدخول لحسابك',
+              },
+            ],
+          },
+          {
+            pattern: 'profile',
+            suggestions: [
+              {
+                href: '/profile.html',
+                icon: 'ph-user-circle-gear',
+                label: 'Profile',
+                labelAr: 'الملف الشخصي',
+                desc: 'Settings & preferences',
+                descAr: 'الإعدادات والتفضيلات',
+              },
+            ],
+          },
+          {
+            pattern: 'engineer',
+            suggestions: [
+              {
+                href: '/engineer-boq.html',
+                icon: 'ph-clipboard-text',
+                label: 'BOQ Builder',
+                labelAr: 'إنشاء جدول كميات',
+                desc: 'Build bill of quantities',
+                descAr: 'إنشاء جدول كميات تفصيلي',
+              },
+              {
+                href: '/contractor-portal.html',
+                icon: 'ph-briefcase',
+                label: 'Contractor Portal',
+                labelAr: 'بوابة المقاول',
+                desc: 'Find work & manage projects',
+                descAr: 'لاقي شغل وأدر مشاريعك',
+              },
+            ],
+          },
+          {
+            pattern: 'contractor',
+            suggestions: [
+              {
+                href: '/contractor-portal.html',
+                icon: 'ph-briefcase',
+                label: 'Contractor Portal',
+                labelAr: 'بوابة المقاول',
+                desc: 'Find work & manage projects',
+                descAr: 'لاقي شغل وأدر مشاريعك',
+              },
+            ],
+          },
+          {
+            pattern: 'supplier',
+            suggestions: [
+              {
+                href: '/supplier-dashboard.html',
+                icon: 'ph-storefront',
+                label: 'Supplier Dashboard',
+                labelAr: 'لوحة المورّد',
+                desc: 'Manage your catalog',
+                descAr: 'إدارة كتالوج منتجاتك',
+              },
+            ],
+          },
+          {
+            pattern: 'homeowner',
+            suggestions: [
+              {
+                href: '/homeowner-portal.html',
+                icon: 'ph-house',
+                label: 'Homeowner Portal',
+                labelAr: 'بوابة صاحب المنزل',
+                desc: 'Track your repair project',
+                descAr: 'تابع مشروع الإصلاح',
+              },
+            ],
+          },
+          {
+            pattern: 'escrow',
+            suggestions: [
+              {
+                href: '/admin-escrow.html',
+                icon: 'ph-lock-key',
+                label: 'Escrow Management',
+                labelAr: 'إدارة الأمانات',
+                desc: 'Release & verify funds',
+                descAr: 'صرف وتحقق من الأموال',
+              },
+            ],
+          },
+          {
+            pattern: 'price',
+            suggestions: [
+              {
+                href: '/admin-oracle.html',
+                icon: 'ph-chart-line-up',
+                label: 'Price Oracle',
+                labelAr: 'مؤشر الأسعار',
+                desc: 'Construction material prices',
+                descAr: 'أسعار مواد البناء',
+              },
+              {
+                href: '/pricing.html',
+                icon: 'ph-tag',
+                label: 'Pricing Plans',
+                labelAr: 'خطط الأسعار',
+                desc: 'Platform pricing tiers',
+                descAr: 'مستويات أسعار المنصة',
+              },
+            ],
+          },
+        ];
+
+        /* Default suggestions when no pattern matches */
+        var DEFAULT_SUGGESTIONS = [
+          {
+            href: '/projects.html',
+            icon: 'ph-buildings',
+            label: 'Browse Projects',
+            labelAr: 'تصفّح المشاريع',
+            desc: 'Explore reconstruction projects',
+            descAr: 'استكشف مشاريع إعادة الإعمار',
+          },
+          {
+            href: '/about.html',
+            icon: 'ph-info',
+            label: 'About Nammerha',
+            labelAr: 'عن نعمّرها',
+            desc: 'Our mission & transparency',
+            descAr: 'مهمتنا والشفافية',
+          },
+          {
+            href: '/contact.html',
+            icon: 'ph-envelope',
+            label: 'Contact Us',
+            labelAr: 'اتصل بنا',
+            desc: 'Get in touch',
+            descAr: 'تواصل معنا',
+          },
+        ];
+
+        /* Find matching suggestions */
+        var suggestions = null;
+        for (var i = 0; i < ROUTE_HINTS.length; i++) {
+          if (path.indexOf(ROUTE_HINTS[i].pattern) !== -1) {
+            suggestions = ROUTE_HINTS[i].suggestions;
+            break;
+          }
+        }
+        if (!suggestions) suggestions = DEFAULT_SUGGESTIONS;
+
+        /* Detect language */
+        var isAr = (document.documentElement.lang || 'ar') === 'ar';
+
+        /* Render links */
+        var container = document.getElementById('nm-404-links');
+        if (container) {
+          var html = '';
+          for (var j = 0; j < suggestions.length; j++) {
+            var s = suggestions[j];
+            html +=
+              '<a href="' +
+              s.href +
+              '" class="suggestion-link" data-haptic="tap">' +
+              '<i class="ph ' +
+              s.icon +
+              '" aria-hidden="true"></i>' +
+              '<span>' +
+              (isAr ? s.labelAr : s.label) +
+              '<span class="suggestion-desc">' +
+              (isAr ? s.descAr : s.desc) +
+              '</span>' +
+              '</span></a>';
+          }
+          container.innerHTML = html;
+        }
+      })();
+    </script>
     <script src="/i18n.js?v=7" defer></script>
     <!-- GAP-2026-003 FIX: Bottom navigation bar — users are no longer stranded on 404.
        nav.js auto-injects the unified bottom nav + dynamically loads theme-toggle.js.

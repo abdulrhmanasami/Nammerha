@@ -5081,6 +5081,34 @@ html[data-theme='dark'] .nm-back-to-top {
   inset-inline-end: 12px;
   z-index: var(--z-dropdown, 10);
 }
+/* CRIT-UX-009 FIX: Mobile language widget — compact for h-14 mobile header.
+   The desktop widget is inside `hidden md:flex` nav — invisible on mobile.
+   This mobile instance lives in the mobile header (header.md:hidden).
+   Standard: Nielsen #4 (Consistency), Apple HIG (Feature Parity). */
+#nm-lang-widget-mobile {
+  position: relative;
+  z-index: 10;
+  font-family: 'Plus Jakarta Sans', 'IBM Plex Sans Arabic', system-ui, sans-serif;
+  flex-shrink: 0;
+}
+#nm-lang-widget-mobile #nm-lang-btn {
+  padding: 4px 8px;
+  font-size: 11px;
+  gap: 4px;
+}
+#nm-lang-widget-mobile #nm-lang-label {
+  /* On mobile, show only the language code-like short name */
+  max-width: 52px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#nm-lang-widget-mobile #nm-lang-dd {
+  /* Ensure dropdown doesn't overflow mobile screen */
+  inset-inline-start: 0;
+  inset-inline-end: auto;
+  min-width: 140px;
+}
 #nm-lang-btn {
   display: flex;
   align-items: center;
@@ -6406,4 +6434,704 @@ html[data-theme='dark'] .nm-wc-card-title {
 /* ── Icon Size Utility (used by welcome chooser) ── */
 .nm-icon-28 {
   font-size: 28px;
+}
+
+/* ============================================================================
+   CRIT-UX-001 FIX: Project Status Timeline — Horizontal Stepper
+   Previous: Project status was a single badge — homeowners couldn't see where
+   their project was in the lifecycle or what comes next.
+   Now: Visual timeline showing 8 stages from "Reported" → "Complete".
+   Standard: Nielsen #1 (Visibility of System Status), Apple HIG (Progress),
+   Material Design (Stepper), Logical CSS Properties.
+   ============================================================================ */
+.nm-timeline {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 8px 0;
+  /* Hide scrollbar for clean look */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.nm-timeline::-webkit-scrollbar {
+  display: none;
+}
+
+/* Individual step */
+.nm-tl-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  min-width: 56px;
+  position: relative;
+}
+
+/* Step dot/circle */
+.nm-tl-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 1;
+}
+
+/* Step label */
+.nm-tl-label {
+  font-size: 9px;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.2;
+  max-width: 64px;
+  word-wrap: break-word;
+}
+
+/* Connector line */
+.nm-tl-connector {
+  display: block;
+  width: 20px;
+  height: 2px;
+  margin-top: 14px; /* center with dot */
+  flex-shrink: 0;
+  border-radius: 1px;
+}
+
+/* ── State: Completed ── */
+.nm-tl-step--done .nm-tl-dot {
+  background: var(--smoky-jade, #109173);
+  color: white;
+}
+.nm-tl-step--done .nm-tl-label {
+  color: var(--smoky-jade, #109173);
+}
+.nm-tl-connector--done {
+  background: var(--smoky-jade, #109173);
+}
+
+/* ── State: Active / Current ── */
+.nm-tl-step--active .nm-tl-dot {
+  background: var(--trust-blue, #1558d6);
+  color: white;
+  box-shadow: 0 0 0 4px rgba(21, 88, 214, 0.15);
+  animation: nm-tl-pulse 2s ease-in-out infinite;
+}
+.nm-tl-step--active .nm-tl-label {
+  color: var(--trust-blue, #1558d6);
+  font-weight: 700;
+}
+.nm-tl-connector--active {
+  background: linear-gradient(
+    to var(--_tl-dir, right),
+    var(--smoky-jade, #109173),
+    var(--trust-blue, #1558d6)
+  );
+}
+/* RTL direction for gradient */
+html[dir='rtl'] .nm-tl-connector--active {
+  --_tl-dir: left;
+}
+
+/* ── State: Future ── */
+.nm-tl-step--future .nm-tl-dot {
+  background: #e2e8f0;
+  color: #94a3b8;
+}
+.nm-tl-step--future .nm-tl-label {
+  color: #94a3b8;
+}
+.nm-tl-connector:not(.nm-tl-connector--done):not(.nm-tl-connector--active) {
+  background: #e2e8f0;
+  /* Dashed via repeating gradient since border-style on pseudo is fragile */
+  background-image: repeating-linear-gradient(
+    to var(--_tl-dir, right),
+    #cbd5e1 0 4px,
+    transparent 4px 8px
+  );
+  background-color: transparent;
+}
+html[dir='rtl'] .nm-tl-connector:not(.nm-tl-connector--done):not(.nm-tl-connector--active) {
+  --_tl-dir: left;
+}
+
+/* ── Pulse animation ── */
+@keyframes nm-tl-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 4px rgba(21, 88, 214, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(21, 88, 214, 0.08);
+  }
+}
+
+/* ── Dark Mode ── */
+html[data-theme='dark'] .nm-tl-step--future .nm-tl-dot {
+  background: #334155;
+  color: #64748b;
+}
+html[data-theme='dark'] .nm-tl-step--future .nm-tl-label {
+  color: #64748b;
+}
+html[data-theme='dark'] .nm-tl-connector:not(.nm-tl-connector--done):not(.nm-tl-connector--active) {
+  background-image: repeating-linear-gradient(
+    to var(--_tl-dir, right),
+    #475569 0 4px,
+    transparent 4px 8px
+  );
+  background-color: transparent;
+}
+html[data-theme='dark'] .nm-tl-step--active .nm-tl-dot {
+  box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.2);
+}
+@keyframes nm-tl-pulse-dark {
+  0%,
+  100% {
+    box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(96, 165, 250, 0.1);
+  }
+}
+html[data-theme='dark'] .nm-tl-step--active .nm-tl-dot {
+  animation-name: nm-tl-pulse-dark;
+}
+
+/* ── Reduced Motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .nm-tl-step--active .nm-tl-dot {
+    animation: none;
+  }
+}
+
+/* ── Mobile: Compact layout ── */
+@media (max-width: 639px) {
+  .nm-timeline {
+    padding: 6px 4px;
+  }
+  .nm-tl-step {
+    min-width: 44px;
+  }
+  .nm-tl-dot {
+    width: 24px;
+    height: 24px;
+    font-size: 11px;
+  }
+  .nm-tl-label {
+    font-size: 8px;
+    max-width: 48px;
+  }
+  .nm-tl-connector {
+    width: 12px;
+    margin-top: 12px;
+  }
+}
+
+/* ============================================================================
+   CRIT-UX-004 FIX: Transaction Filter Chips — Wallet Page
+   Previous: Flat list with no way to filter by status.
+   Now: Pill-shaped filter chips for All/Locked/Released/Refunded/Pending.
+   Standard: Material Design (Filter Chips), FinTech UX (Transaction Filtering).
+   ============================================================================ */
+.nm-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: transparent;
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.nm-filter-chip:hover {
+  border-color: var(--trust-blue, #1558d6);
+  color: var(--trust-blue, #1558d6);
+}
+.nm-filter-chip--active {
+  background: var(--trust-blue, #1558d6);
+  border-color: var(--trust-blue, #1558d6);
+  color: white;
+}
+.nm-filter-chip--active:hover {
+  background: var(--trust-blue-hover, #0d47a1);
+  border-color: var(--trust-blue-hover, #0d47a1);
+  color: white;
+}
+/* Dark mode */
+html[data-theme='dark'] .nm-filter-chip {
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #94a3b8;
+}
+html[data-theme='dark'] .nm-filter-chip:hover {
+  border-color: var(--trust-blue);
+  color: var(--trust-blue);
+}
+html[data-theme='dark'] .nm-filter-chip--active {
+  background: var(--trust-blue);
+  border-color: var(--trust-blue);
+  color: white;
+}
+/* Hide scrollbar on filter row */
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ============================================================================
+   CRIT-UX-002 FIX: Proof Indicator — Approval Card Photo Preview Link
+   Previous: Plain text link "View Project & Proofs" — users ignored it.
+   Now: Distinct visual card with photo/GPS icons that demands attention.
+   Standard: Nielsen #6 (Recognition over Recall), Trust UX, FinTech Verification.
+   ============================================================================ */
+.nm-proof-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgba(21, 88, 214, 0.05);
+  border: 1px solid rgba(21, 88, 214, 0.12);
+  text-decoration: none;
+  color: var(--trust-blue, #1558d6);
+  transition: all 0.2s ease;
+}
+.nm-proof-indicator:hover {
+  background: rgba(21, 88, 214, 0.1);
+  border-color: rgba(21, 88, 214, 0.25);
+  transform: translateY(-1px);
+}
+.nm-proof-icon-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 16px;
+  opacity: 0.8;
+}
+.nm-proof-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.nm-proof-label {
+  font-size: 11px;
+  font-weight: 700;
+}
+.nm-proof-hint {
+  font-size: 9px;
+  opacity: 0.6;
+  font-weight: 500;
+}
+/* Dark mode */
+html[data-theme='dark'] .nm-proof-indicator {
+  background: rgba(96, 165, 250, 0.08);
+  border-color: rgba(96, 165, 250, 0.15);
+}
+html[data-theme='dark'] .nm-proof-indicator:hover {
+  background: rgba(96, 165, 250, 0.15);
+  border-color: rgba(96, 165, 250, 0.3);
+}
+
+/* ============================================================================
+   CRIT-UX-011 FIX: Upload Progress Indicator
+   Previous: No visual feedback during file uploads on Syrian 3G — users
+   submitted duplicates or abandoned sessions thinking nothing happened.
+   Now: Animated progress bar with file info, percentage, and cancel button.
+   Standard: Nielsen #1 (System Status), Apple HIG (Progress Indicators).
+   ============================================================================ */
+.nm-upload-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+.nm-upload-indicator {
+  border-radius: 10px;
+  background: white;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  padding: 10px 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+.nm-upload-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.nm-upload-icon {
+  font-size: 18px;
+  color: var(--trust-blue, #1558d6);
+  flex-shrink: 0;
+  animation: nm-upload-bounce 1.5s ease-in-out infinite;
+}
+.nm-upload-header.nm-upload--complete .nm-upload-icon {
+  color: var(--smoky-jade, #109173);
+  animation: none;
+}
+.nm-upload-header.nm-upload--error .nm-upload-icon {
+  color: #ef4444;
+  animation: none;
+}
+.nm-upload-header.nm-upload--cancelled .nm-upload-icon {
+  color: #94a3b8;
+  animation: none;
+}
+.nm-upload-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+.nm-upload-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.nm-upload-meta {
+  font-size: 9px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+.nm-upload-cancel {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.nm-upload-cancel:hover {
+  background: #fee2e2;
+  color: #ef4444;
+}
+/* Progress track */
+.nm-upload-track {
+  height: 3px;
+  border-radius: 2px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+.nm-upload-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--trust-blue, #1558d6);
+  transition: width 0.3s ease;
+}
+.nm-upload-fill.nm-upload--complete {
+  background: var(--smoky-jade, #109173);
+}
+.nm-upload-fill.nm-upload--error {
+  background: #ef4444;
+}
+.nm-upload-fill.nm-upload--cancelled {
+  background: #94a3b8;
+}
+/* Animation: icon bounce during upload */
+@keyframes nm-upload-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+/* Fade out animation */
+.nm-upload--fade-out {
+  animation: nm-upload-fade 0.3s ease forwards;
+}
+@keyframes nm-upload-fade {
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+/* Dark mode */
+html[data-theme='dark'] .nm-upload-indicator {
+  background: #1e293b;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+html[data-theme='dark'] .nm-upload-name {
+  color: #e2e8f0;
+}
+html[data-theme='dark'] .nm-upload-track {
+  background: #334155;
+}
+html[data-theme='dark'] .nm-upload-cancel:hover {
+  background: rgba(239, 68, 68, 0.15);
+}
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .nm-upload-icon {
+    animation: none;
+  }
+  .nm-upload-fill {
+    transition: none;
+  }
+}
+
+/* ============================================================================
+   CRIT-UX-003 FIX: Tour Replay FAB — Floating Help Button
+   Previous: No way to restart onboarding tour after completion or skip.
+   Now: Small help icon at bottom-end corner, with tooltip hint on mount.
+   Standard: Nielsen #10 (Help), Material Design 3 (FAB), iOS HIG (Accessible).
+   ============================================================================ */
+.nm-tour-fab {
+  position: fixed;
+  inset-block-end: calc(env(safe-area-inset-bottom, 0px) + 100px);
+  inset-inline-end: 16px;
+  z-index: 40;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(21, 88, 214, 0.15);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--trust-blue, #1558d6);
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.nm-tour-fab:hover {
+  transform: scale(1.12);
+  box-shadow: 0 4px 16px rgba(21, 88, 214, 0.2);
+  background: rgba(21, 88, 214, 0.08);
+}
+.nm-tour-fab:active {
+  transform: scale(0.95);
+}
+/* Tooltip hint */
+.nm-tour-fab-tooltip {
+  position: absolute;
+  inset-inline-end: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 600;
+  color: white;
+  background: rgba(30, 41, 59, 0.9);
+  padding: 4px 10px;
+  border-radius: 6px;
+  pointer-events: none;
+  animation: nm-fab-tooltip-in 0.3s ease;
+}
+.nm-tour-fab-tooltip--hidden {
+  animation: nm-fab-tooltip-out 0.3s ease forwards;
+}
+@keyframes nm-fab-tooltip-in {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) translateX(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+}
+@keyframes nm-fab-tooltip-out {
+  to {
+    opacity: 0;
+    transform: translateY(-50%) translateX(8px);
+  }
+}
+/* Dark mode */
+html[data-theme='dark'] .nm-tour-fab {
+  background: rgba(30, 41, 59, 0.85);
+  border-color: rgba(96, 165, 250, 0.2);
+  color: #60a5fa;
+}
+html[data-theme='dark'] .nm-tour-fab:hover {
+  background: rgba(96, 165, 250, 0.15);
+  box-shadow: 0 4px 16px rgba(96, 165, 250, 0.2);
+}
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .nm-tour-fab {
+    transition: none;
+  }
+  .nm-tour-fab-tooltip {
+    animation: none;
+  }
+  .nm-tour-fab-tooltip--hidden {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+/* ============================================================================
+   CRIT-UX-010 FIX: GPS Mini-Map Preview — Engineer Camera
+   Previous: GPS shown as text coordinates — engineers couldn't verify position.
+   Now: Live OpenStreetMap tile with pulsing marker and accuracy circle.
+   Standard: Nielsen #1 (System Status), FinTech GPS Verification, OSM Tiles.
+   ============================================================================ */
+.nm-minimap {
+  border-radius: 12px;
+  overflow: hidden;
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+}
+.nm-minimap--active {
+  opacity: 1;
+}
+.nm-minimap--error {
+  border-color: rgba(239, 68, 68, 0.3);
+}
+/* Map tile container */
+.nm-minimap-tile {
+  position: relative;
+  width: 100%;
+  height: 160px;
+  overflow: hidden;
+  background: #0f172a;
+}
+.nm-minimap-img {
+  width: 256px;
+  height: 256px;
+  /* Center the tile and let the marker position show the actual location */
+  position: absolute;
+  top: 50%;
+  inset-inline-start: 50%;
+  transform: translate(-50%, -50%);
+  image-rendering: auto;
+}
+/* Pulsing location marker */
+.nm-minimap-marker {
+  position: absolute;
+  inset-inline-start: var(--marker-x, 50%);
+  top: var(--marker-y, 50%);
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  pointer-events: none;
+}
+.nm-minimap-marker-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--trust-blue, #1558d6);
+  border: 2px solid white;
+  box-shadow: 0 0 6px rgba(21, 88, 214, 0.5);
+}
+.nm-minimap-marker-pulse {
+  position: absolute;
+  top: 50%;
+  inset-inline-start: 50%;
+  transform: translate(-50%, -50%);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(21, 88, 214, 0.2);
+  animation: nm-gps-pulse 2s ease-out infinite;
+}
+@keyframes nm-gps-pulse {
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(2.5);
+    opacity: 0;
+  }
+}
+/* Accuracy circle */
+.nm-minimap-accuracy {
+  position: absolute;
+  inset-inline-start: var(--marker-x, 50%);
+  top: var(--marker-y, 50%);
+  width: var(--accuracy-size, 30px);
+  height: var(--accuracy-size, 30px);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: rgba(21, 88, 214, 0.08);
+  border: 1px dashed rgba(21, 88, 214, 0.25);
+  z-index: 2;
+  pointer-events: none;
+  transition:
+    width 0.5s ease,
+    height 0.5s ease;
+}
+/* Footer with coordinates and quality */
+.nm-minimap-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  background: rgba(15, 23, 42, 0.8);
+}
+.nm-minimap-coords {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  color: #94a3b8;
+}
+.nm-minimap-badge {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+}
+/* GPS quality states */
+.nm-gps-good {
+  background: rgba(16, 145, 115, 0.15);
+  color: var(--smoky-jade, #109173);
+}
+.nm-gps-fair {
+  background: rgba(252, 201, 52, 0.15);
+  color: var(--warning-yellow, #fcc934);
+}
+.nm-gps-poor {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .nm-minimap-marker-pulse {
+    animation: none;
+  }
+  .nm-minimap-accuracy {
+    transition: none;
+  }
 }

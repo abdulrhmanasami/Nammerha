@@ -21,6 +21,8 @@ import { initSwipeTabs } from '../utils/swipe-tabs';
 import { initPullToRefresh } from '../utils/pull-refresh';
 import { autoTriggerTour } from '../components/tour-engine';
 import { initBackToTop } from '../components/back-to-top';
+// CRIT-UX-003 FIX: Tour Replay FAB — help button to restart onboarding
+import { mountTourReplayFAB } from '../components/tour-replay-fab';
 import { requireAuth } from '../utils/auth-guard';
 import { initBreadcrumb } from '../utils/breadcrumb';
 import { guardSkeleton } from '../utils/skeleton-guard';
@@ -47,6 +49,7 @@ import { staggerDelay } from '../constants/animation';
 initPullToRefresh();
 initBackToTop();
 autoTriggerTour();
+mountTourReplayFAB();
 
 // ─── Types (local rendering shapes) ─────────────────────────────────────────
 interface EngineerProject {

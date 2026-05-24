@@ -88,6 +88,7 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
 
       if (statuses[Permission.camera] != PermissionStatus.granted ||
           statuses[Permission.locationWhenInUse] != PermissionStatus.granted) {
+        if (!mounted) return;
         hwCubit.setPermissionDenied(context.tr('sc_perm_required'));
         return;
       }
@@ -98,7 +99,8 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
       // On slow 2G devices, availableCameras() can hang indefinitely.
       final cameras = await availableCameras()
           .timeout(const Duration(seconds: 15),
-              onTimeout: () => throw TimeoutException(context.tr('sc_camera_timeout')));
+              onTimeout: () => throw TimeoutException('Camera timeout'));
+      if (!mounted) return;
       if (cameras.isEmpty) {
         throw Exception(context.tr('no_camera_available'));
       }
@@ -117,7 +119,7 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
       // AUD-009 FIX: Timeout on camera initialization (15s).
       await _cameraController!.initialize()
           .timeout(const Duration(seconds: 15),
-              onTimeout: () => throw TimeoutException(context.tr('sc_camera_init_timeout')));
+              onTimeout: () => throw TimeoutException('Camera init timeout'));
 
       // AUD-009 FIX: Timeout on GPS acquisition (10s).
       // Cold GPS start on older devices can take 30s+ without timeout.

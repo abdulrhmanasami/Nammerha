@@ -43,9 +43,12 @@ import { formatCents } from '../utils/format';
 import { initPullToRefresh } from '../utils/pull-refresh';
 import { autoTriggerTour } from '../components/tour-engine';
 import { initBackToTop } from '../components/back-to-top';
+// CRIT-UX-003 FIX: Tour Replay FAB — help button to restart onboarding
+import { mountTourReplayFAB } from '../components/tour-replay-fab';
 initPullToRefresh();
 initBackToTop();
 autoTriggerTour();
+mountTourReplayFAB();
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Supplier Dashboard — Material Supply & Revenue Engine

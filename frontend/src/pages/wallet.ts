@@ -61,6 +61,43 @@ interface Transaction {
 // Standard: Event Delegation Best Practice, Nielsen #5 (Error Prevention).
 let receiptDelegationWired = false;
 
+// CRIT-UX-004: Module-level state for transaction filtering
+let allTransactions: Transaction[] = [];
+let filterDelegationWired = false;
+
+/**
+ * CRIT-UX-004: Render a filtered subset of transactions using progressive rendering.
+ */
+function renderFilteredTransactions(container: HTMLElement, transactions: Transaction[]): void {
+  renderProgressive({
+    items: transactions,
+    containerEl: container,
+    pageSize: 20,
+    renderItem: (tx) => renderTransaction(tx),
+    emptyState: () =>
+      renderEmptyState({
+        icon: 'wallet',
+        title: t('wallet_no_transactions', 'لا توجد معاملات بعد'),
+        subtitle: t(
+          DONATIONS_ENABLED ? 'wallet_history_description_full' : 'wallet_history_description',
+          DONATIONS_ENABLED
+            ? 'Your donation and payment history will appear here'
+            : 'Your payment and escrow history will appear here',
+        ),
+      }),
+  });
+}
+
+/**
+ * CRIT-UX-004: Update the transaction count display.
+ */
+function updateTxCount(count: number): void {
+  const countEl = document.getElementById('tx-count');
+  if (countEl) {
+    countEl.textContent = count > 0 ? `(${count})` : '';
+  }
+}
+
 // HIGH-001 FIX: formatCents() consolidated — imported from utils/format.ts.
 
 // P1-001 FIX: formatDate() deduplicated — imported from utils/locale.ts.
@@ -266,27 +303,44 @@ async function loadTransactions(): Promise<void> {
       (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
     );
 
+    // CRIT-UX-004: Store transactions for filtering
+    allTransactions = transactions;
+
     // P1-UXA-002 FIX: Progressive rendering for wallet transactions
-    renderProgressive({
-      items: transactions,
-      containerEl: listEl,
-      pageSize: 20,
-      renderItem: (tx) => renderTransaction(tx),
-      // F-022 FIX: Use standardized renderEmptyState() instead of inline HTML.
-      // Previous: Custom inline empty state with different styling from portals.
-      // Standard: Visual consistency, Design System Single Source of Truth.
-      emptyState: () =>
-        renderEmptyState({
-          icon: 'wallet',
-          title: t('wallet_no_transactions', 'لا توجد معاملات بعد'),
-          subtitle: t(
-            DONATIONS_ENABLED ? 'wallet_history_description_full' : 'wallet_history_description',
-            DONATIONS_ENABLED
-              ? 'Your donation and payment history will appear here'
-              : 'Your payment and escrow history will appear here',
-          ),
-        }),
-    });
+    renderFilteredTransactions(listEl, transactions);
+
+    // CRIT-UX-004: Show transaction count
+    updateTxCount(transactions.length);
+
+    // CRIT-UX-004: Wire filter chips — event delegation on filter container
+    if (!filterDelegationWired) {
+      filterDelegationWired = true;
+      const filtersEl = document.getElementById('tx-filters');
+      if (filtersEl) {
+        filtersEl.addEventListener('click', (e: Event) => {
+          const chip = (e.target as HTMLElement).closest<HTMLButtonElement>('.nm-filter-chip');
+          if (!chip) return;
+          haptic.light();
+          const filterVal = chip.dataset['filter'] ?? 'all';
+
+          // Update active chip
+          filtersEl.querySelectorAll('.nm-filter-chip').forEach((c) => {
+            c.classList.remove('nm-filter-chip--active');
+            c.setAttribute('aria-checked', 'false');
+          });
+          chip.classList.add('nm-filter-chip--active');
+          chip.setAttribute('aria-checked', 'true');
+
+          // Filter and re-render
+          const filtered =
+            filterVal === 'all'
+              ? allTransactions
+              : allTransactions.filter((tx) => tx.status === filterVal);
+          renderFilteredTransactions(listEl, filtered);
+          updateTxCount(filtered.length);
+        });
+      }
+    }
 
     // V-003 FIX: Receipt download — event delegation on the transaction list.
     // Opens PDF receipt in a new tab. Uses homeowner receipt endpoint.

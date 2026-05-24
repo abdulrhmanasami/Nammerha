@@ -15,6 +15,8 @@ import { requireAuth } from '../utils/auth-guard';
 import { escapeHtml as esc } from '../utils/xss';
 // IMP-007: Client-side SHA-256 image integrity hashing
 import { computeImageHash } from '../utils/image-hash';
+// CRIT-UX-010 FIX: GPS Mini-Map preview — visual GPS verification
+import { createGPSMiniMap, updateGPSMiniMap, showGPSError } from '../components/gps-minimap';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Engineer Camera — Site Verification & Spatial Proof Engine
@@ -61,6 +63,8 @@ document.addEventListener('DOMContentLoaded', () => {
   projectId = new URLSearchParams(window.location.search).get('project');
   initBreadcrumb(); // GAP-007: Breadcrumb navigation
   initTimestamp();
+  // CRIT-UX-010 FIX: Create GPS Mini-Map mount point before initGPS()
+  injectMiniMapMount();
   initGPS();
   initCamera();
   setupCapture();
@@ -85,6 +89,30 @@ function initTimestamp(): void {
   window.addEventListener('beforeunload', () => clearInterval(intervalId));
 }
 
+// ─── CRIT-UX-010: GPS Mini-Map Mount Point ──────────────────────────────────
+// Injects the mini-map container into the camera HUD.
+// Positioned between GPS coordinates and capture controls for quick glance.
+function injectMiniMapMount(): void {
+  // Try to mount after the GPS coordinates section
+  const gpsSection = gpsCoordsEl?.closest('.flex, .grid, div') ?? document.querySelector('main');
+  if (!gpsSection) return;
+
+  // Create mount wrapper
+  const mount = document.createElement('div');
+  mount.id = 'nm-gps-map-mount';
+  mount.className = 'px-4 mt-3';
+
+  // Insert after the GPS section's parent (or append to main)
+  const parentSection = gpsSection.parentElement;
+  if (parentSection && parentSection !== document.body) {
+    parentSection.insertBefore(mount, gpsSection.nextElementSibling);
+  } else {
+    gpsSection.appendChild(mount);
+  }
+
+  createGPSMiniMap('nm-gps-map-mount');
+}
+
 // ─── GPS Acquisition ────────────────────────────────────────────────────────
 function initGPS(): void {
   if (!('geolocation' in navigator)) {
@@ -105,6 +133,8 @@ function initGPS(): void {
       if (gpsAccuracyEl) {
         gpsAccuracyEl.textContent = `${t('cam_accuracy', 'الدقة')}: ±${pos.coords.accuracy.toFixed(1)}m`;
       }
+      // CRIT-UX-010 FIX: Update mini-map with live GPS coordinates
+      updateGPSMiniMap(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
     },
     () => {
       if (gpsCoordsEl) {
@@ -113,6 +143,8 @@ function initGPS(): void {
       if (gpsAccuracyEl) {
         gpsAccuracyEl.textContent = t('cam_gps_fallback', 'GPS: وضع بديل');
       }
+      // CRIT-UX-010 FIX: Show GPS error on mini-map
+      showGPSError(t('cam_gps_denied', 'تم رفض إذن GPS'));
     },
     { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 },
   );

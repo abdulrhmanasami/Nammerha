@@ -755,9 +755,12 @@
         // §6.2: Apply bilingual typography
         applyTypography(cfg.code);
 
-        // Update selector label
+        // Update selector label (desktop + mobile widgets)
         var lbl = document.getElementById('nm-lang-label');
         if (lbl) lbl.textContent = cfg.name;
+        // CRIT-UX-009: Sync mobile widget label
+        var mLbl = document.getElementById('nm-lang-label-mobile');
+        if (mLbl) mLbl.textContent = cfg.name;
 
         // Update active option
         var opts = document.querySelectorAll('.nm-lang-opt');
@@ -971,21 +974,30 @@
 
     function toggleDropdown() {
         dropdownOpen = !dropdownOpen;
+        // CRIT-UX-009: Toggle BOTH desktop and mobile dropdowns
         var dd = document.getElementById('nm-lang-dd');
         var btn = document.getElementById('nm-lang-btn');
+        var ddM = document.getElementById('nm-lang-dd-mobile');
+        var btnM = document.getElementById('nm-lang-btn-mobile');
         // DT-1 FIX: CSS class toggle replaces 3 inline style assignments.
-        // Previous: style.opacity, style.transform, style.pointerEvents.
         if (dd) dd.classList.toggle('nm-lang-dd-open', dropdownOpen);
         if (btn) btn.setAttribute('aria-expanded', String(dropdownOpen));
+        if (ddM) ddM.classList.toggle('nm-lang-dd-open', dropdownOpen);
+        if (btnM) btnM.setAttribute('aria-expanded', String(dropdownOpen));
     }
 
     function closeDropdown() {
         dropdownOpen = false;
+        // CRIT-UX-009: Close BOTH desktop and mobile dropdowns
         var dd = document.getElementById('nm-lang-dd');
         var btn = document.getElementById('nm-lang-btn');
+        var ddM = document.getElementById('nm-lang-dd-mobile');
+        var btnM = document.getElementById('nm-lang-btn-mobile');
         // DT-1 FIX: CSS class toggle replaces 3 inline style assignments.
         if (dd) dd.classList.remove('nm-lang-dd-open');
         if (btn) btn.setAttribute('aria-expanded', 'false');
+        if (ddM) ddM.classList.remove('nm-lang-dd-open');
+        if (btnM) btnM.setAttribute('aria-expanded', 'false');
     }
 
     // DT-4 FIX: Removed updateWidgetPosition() function.
@@ -1083,6 +1095,30 @@
                 navbar.insertBefore(widget, userAvatar);
             } else {
                 navbar.appendChild(widget);
+            }
+
+            // CRIT-UX-009 FIX: Also inject into the mobile header.
+            // The desktop nav has `hidden md:flex` — invisible on mobile.
+            // The mobile header (header.md\:hidden) is the only visible nav on mobile.
+            // We create a SECOND widget instance for mobile with a distinct ID.
+            // Inner element IDs are suffixed with '-mobile' to avoid HTML duplicate IDs.
+            // Standard: Nielsen #4 (Consistency), Apple HIG (Feature Parity).
+            var mobileHeader = document.querySelector('header');
+            if (mobileHeader) {
+                var mobileGroup = mobileHeader.querySelector('.flex.items-center');
+                if (mobileGroup) {
+                    var mobileWidget = createSelector();
+                    mobileWidget.id = 'nm-lang-widget-mobile';
+                    // Rename inner IDs to avoid duplicates (HTML5 §3.2.6)
+                    var mBtn = mobileWidget.querySelector('#nm-lang-btn');
+                    if (mBtn) mBtn.id = 'nm-lang-btn-mobile';
+                    var mLabel = mobileWidget.querySelector('#nm-lang-label');
+                    if (mLabel) mLabel.id = 'nm-lang-label-mobile';
+                    var mDd = mobileWidget.querySelector('#nm-lang-dd');
+                    if (mDd) mDd.id = 'nm-lang-dd-mobile';
+                    // Insert before the first button in the mobile group
+                    mobileGroup.insertBefore(mobileWidget, mobileGroup.firstChild);
+                }
             }
         } else {
             // Admin dashboard pages: inject into the header bar

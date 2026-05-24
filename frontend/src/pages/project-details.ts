@@ -29,6 +29,8 @@ import { initBackToTop } from '../components/back-to-top';
 import { showToast } from '../utils/toast';
 // UX-004 FIX: Haptic feedback for native-app tactile response
 import { haptic } from '../utils/haptic';
+// CRIT-UX-007 FIX: Role-aware CTA — user context for contextual actions
+import { getCurrentUser } from '../auth';
 // GAP-N03 FIX: Global search overlay on inner pages
 import { initSearch } from '../utils/search-overlay';
 initPullToRefresh();
@@ -490,12 +492,101 @@ async function loadProjectData(): Promise<void> {
     // Wire up cart buttons AFTER rendering
     initCartButtons();
 
+    // CRIT-UX-007 FIX: Role-Aware CTA — show contextual action based on user's role.
+    // Previous: All users saw the same page — contractors couldn't bid, engineers
+    // couldn't submit proofs, homeowners couldn't see approval status.
+    // Now: Role-specific CTA banner appears below BOQ section.
+    // Standard: Nielsen #6 (Recognition over Recall), RBAC UX.
+    renderRoleCTA(projectId);
+
     // V-004 FIX: Load activity timeline (non-blocking)
     renderActivityTimeline(projectId);
   } catch {
     /* Intentional: API client already logs via reportWarning.
            Show user-facing error state — no duplicate logging needed. */
     showError();
+  }
+}
+
+// ─── CRIT-UX-007 FIX: Role-Aware CTA Banner ────────────────────────────────
+// Shows a contextual action banner based on the authenticated user's role.
+// Homeowner → Approval status. Contractor → Submit Bid. Engineer → Upload Proof.
+// Standard: Nielsen #6 (Recognition over Recall), RBAC UX, Role-Specific Actions.
+// ─────────────────────────────────────────────────────────────────────────────
+function renderRoleCTA(projectId: string): void {
+  const user = getCurrentUser();
+  if (!user) return; // Unauthenticated → no CTA
+
+  const main = document.querySelector('main');
+  if (!main) return;
+
+  // Determine primary role CTA
+  interface RoleCTA {
+    icon: string;
+    label: string;
+    href: string;
+    bgClass: string;
+    textClass: string;
+  }
+
+  const roles = user.roles;
+  let cta: RoleCTA | null = null;
+
+  if (roles.includes('contractor')) {
+    cta = {
+      icon: 'ph-gavel',
+      label: t('cta_submit_bid', 'تقديم عرض سعر لهذا المشروع'),
+      href: `/contractor-portal.html#bids?project=${encodeURIComponent(projectId)}`,
+      bgClass: 'bg-trust-blue/5 border-trust-blue/15',
+      textClass: 'text-trust-blue',
+    };
+  } else if (roles.includes('engineer')) {
+    cta = {
+      icon: 'ph-camera',
+      label: t('cta_upload_proof', 'رفع إثبات مرئي لهذا المشروع'),
+      href: `/engineer-portal.html#captures?project=${encodeURIComponent(projectId)}`,
+      bgClass: 'bg-smoky-jade/5 border-smoky-jade/15',
+      textClass: 'text-smoky-jade',
+    };
+  } else if (roles.includes('homeowner')) {
+    cta = {
+      icon: 'ph-check-square',
+      label: t('cta_view_approvals', 'عرض الموافقات المعلّقة'),
+      href: `/homeowner-portal.html#approvals`,
+      bgClass: 'bg-warm-earth/5 border-warm-earth/15',
+      textClass: 'text-warm-earth',
+    };
+  } else if (roles.includes('tradesperson')) {
+    cta = {
+      icon: 'ph-wrench',
+      label: t('cta_view_assignments', 'عرض مهامك في المشاريع'),
+      href: `/tradesperson-portal.html#assignments`,
+      bgClass: 'bg-trust-blue/5 border-trust-blue/15',
+      textClass: 'text-trust-blue',
+    };
+  }
+
+  if (!cta) return;
+
+  const section = document.createElement('section');
+  section.id = 'nm-role-cta';
+  section.className = 'mt-4 px-4 animate-fade-in-up';
+  section.innerHTML = `
+    <a href="${esc(cta.href)}" class="flex items-center gap-3 p-4 rounded-xl border ${cta.bgClass} no-underline transition-all hover:shadow-md group">
+      <div class="size-10 rounded-lg ${cta.bgClass} flex items-center justify-center shrink-0">
+        <i class="ph ${esc(cta.icon)} ${cta.textClass} text-xl" aria-hidden="true"></i>
+      </div>
+      <span class="flex-1 text-sm font-semibold ${cta.textClass}">${esc(cta.label)}</span>
+      <i class="ph ph-arrow-right nm-dir-shift ${cta.textClass} group-hover:translate-x-1 transition-transform" aria-hidden="true"></i>
+    </a>
+  `;
+
+  // Insert before activity timeline if it exists, otherwise append to main
+  const activitySection = document.getElementById('v004-activity-section');
+  if (activitySection) {
+    main.insertBefore(section, activitySection);
+  } else {
+    main.appendChild(section);
   }
 }
 

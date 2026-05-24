@@ -6,6 +6,7 @@ import { clearAuth, getCurrentUser } from '../auth';
 import { requireAuth } from '../utils/auth-guard';
 import { auth as authApi } from '../api';
 import { statusColor, statusLabel, tradeColor, urgencyColor } from '../utils/status-colors';
+import { renderProjectTimeline } from '../components/project-timeline';
 import { homeowner } from '../api';
 import { formatCents, relativeTimeAgo } from '../utils/format';
 import { t } from '../utils/i18n';
@@ -19,9 +20,12 @@ import { haptic } from '../utils/haptic';
 import { initPullToRefresh } from '../utils/pull-refresh';
 import { autoTriggerTour } from '../components/tour-engine';
 import { initBackToTop } from '../components/back-to-top';
+// CRIT-UX-003 FIX: Tour Replay FAB — help button to restart onboarding
+import { mountTourReplayFAB } from '../components/tour-replay-fab';
 initPullToRefresh();
 initBackToTop();
 autoTriggerTour();
+mountTourReplayFAB();
 import { setText } from '../utils/dom';
 import { animateKPI } from '../utils/kpi-animation';
 import { createHashRouter } from '../utils/hash-router';
@@ -183,7 +187,9 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => kycBanner.remove(), 300);
         try {
           sessionStorage.setItem('nm_kyc_banner_dismissed', '1');
-        } catch { /* quota */ }
+        } catch {
+          /* quota */
+        }
       });
 
       // Don't show again if dismissed this session
@@ -191,7 +197,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (sessionStorage.getItem('nm_kyc_banner_dismissed') === '1') {
           kycBanner.remove();
         }
-      } catch { /* quota */ }
+      } catch {
+        /* quota */
+      }
     }
   }
 
@@ -458,6 +466,7 @@ async function loadDashboardProjects(): Promise<void> {
                             <h4 class="font-medium group-hover:text-trust-blue transition-colors">${esc(p.title)}</h4>
                             <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${statusColor(p.status)}">${esc(statusLabel(p.status))}</span>
                         </div>
+                        ${renderProjectTimeline(p.status)}
                         <div class="flex flex-wrap items-center gap-3 mt-2 text-3xs text-slate-400 dark:text-slate-500">
                             <span><i class="ph ph-tag" aria-hidden="true"></i> ${esc(p.damage_type)}</span>
                             ${p.engineer_name ? `<span><i class="ph ph-hard-hat" aria-hidden="true"></i> ${esc(p.engineer_name)}</span>` : ''}
@@ -949,9 +958,21 @@ async function loadApprovals(): Promise<void> {
                             <span><i class="ph ph-hard-hat" aria-hidden="true"></i> ${esc(a.engineer_name)}</span>
                             <span><i class="ph ph-clock" aria-hidden="true"></i> ${relativeTimeAgo(a.created_at)}</span>
                         </div>
-                        <a href="/project-details.html?id=${esc(a.project_id)}" class="inline-flex items-center gap-1 mt-2 text-3xs font-bold text-trust-blue hover:underline">
-                            <i class="ph ph-eye" aria-hidden="true"></i>
-                            ${esc(t('ho_view_project_proofs', 'عرض المشروع والإثباتات'))}
+                        <!-- CRIT-UX-002 FIX: Visual proof indicator — encourages homeowners to
+                             review photo evidence BEFORE approving/rejecting milestones.
+                             Previous: Plain text link — users often approved without checking proofs.
+                             Now: Distinct visual card with photo icon draws attention to evidence.
+                             Standard: Nielsen #6 (Recognition over Recall), Trust UX. -->
+                        <a href="/project-details.html?id=${esc(a.project_id)}&tab=proofs" class="nm-proof-indicator mt-3">
+                            <span class="nm-proof-icon-group">
+                                <i class="ph ph-images-square" aria-hidden="true"></i>
+                                <i class="ph ph-map-pin" aria-hidden="true"></i>
+                            </span>
+                            <span class="nm-proof-text">
+                                <span class="nm-proof-label">${esc(t('ho_view_proofs', 'عرض الإثباتات المرئية'))}</span>
+                                <span class="nm-proof-hint">${esc(t('ho_proofs_hint', 'صور + إحداثيات GPS'))}</span>
+                            </span>
+                            <i class="ph ph-arrow-right nm-dir-shift" aria-hidden="true"></i>
                         </a>
                     </div>
                     ${

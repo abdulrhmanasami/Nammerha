@@ -295,11 +295,77 @@
          Previous: h1 (Wallet) → h3 (Recent Transactions) — skipped h2.
          Standard: WCAG 1.3.1 (Info and Relationships), HTML5 §4.3.10. -->
         <h2
-          class="text-sm font-bold uppercase tracking-wider text-slate-900 mb-3 dark:text-slate-100"
+          class="text-sm font-bold uppercase tracking-wider text-slate-900 mb-1 dark:text-slate-100"
           data-i18n="recent_transactions"
         >
           المعاملات الأخيرة
         </h2>
+        <!-- CRIT-UX-004 FIX: Transaction filter chips.
+           Previous: Flat list with no filtering — users couldn't find specific transactions.
+           Now: Status filter chips + transaction count for quick scanning.
+           Standard: FinTech UX (Filter Transactions), Material Design (Filter Chips). -->
+        <div class="flex items-center gap-2 mb-3 overflow-x-auto scrollbar-hide">
+          <span
+            id="tx-count"
+            class="text-3xs text-slate-400 dark:text-slate-500 shrink-0 font-mono tabular-nums"
+          ></span>
+          <div
+            id="tx-filters"
+            class="flex items-center gap-1.5 flex-1"
+            role="radiogroup"
+            aria-label="Filter transactions"
+          >
+            <button
+              type="button"
+              class="nm-filter-chip nm-filter-chip--active"
+              data-filter="all"
+              aria-checked="true"
+              role="radio"
+            >
+              <span data-i18n="filter_all">الكل</span>
+            </button>
+            <button
+              type="button"
+              class="nm-filter-chip"
+              data-filter="locked"
+              aria-checked="false"
+              role="radio"
+            >
+              <i class="ph ph-lock-simple text-xs" aria-hidden="true"></i>
+              <span data-i18n="filter_locked">محجوز</span>
+            </button>
+            <button
+              type="button"
+              class="nm-filter-chip"
+              data-filter="released"
+              aria-checked="false"
+              role="radio"
+            >
+              <i class="ph ph-check-circle text-xs" aria-hidden="true"></i>
+              <span data-i18n="filter_released">محرّر</span>
+            </button>
+            <button
+              type="button"
+              class="nm-filter-chip"
+              data-filter="refunded"
+              aria-checked="false"
+              role="radio"
+            >
+              <i class="ph ph-arrow-counter-clockwise text-xs" aria-hidden="true"></i>
+              <span data-i18n="filter_refunded">مُستردّ</span>
+            </button>
+            <button
+              type="button"
+              class="nm-filter-chip"
+              data-filter="pending"
+              aria-checked="false"
+              role="radio"
+            >
+              <i class="ph ph-clock text-xs" aria-hidden="true"></i>
+              <span data-i18n="filter_pending">معلّق</span>
+            </button>
+          </div>
+        </div>
         <!-- FRC-NEW-04 FIX: Added temporal grouping infrastructure.
          Previous: flat list — no date context for financial transactions.
          Now: JS can insert date headers ("Today", "Yesterday", "March 15") between groups.

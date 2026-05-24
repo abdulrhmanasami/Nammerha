@@ -85,7 +85,7 @@ class _ServicePaymentViewState extends State<_ServicePaymentView> {
               Navigator.pop(context, true);
             }
           }
-          if (state is ContractPaymentError) {
+          if (state is ContractPaymentError && context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.message), backgroundColor: colors.error),
             );

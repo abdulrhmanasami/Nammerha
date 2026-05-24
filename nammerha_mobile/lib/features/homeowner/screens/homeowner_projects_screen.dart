@@ -68,6 +68,7 @@ class _HomeownerProjectsContentState extends State<_HomeownerProjectsContent> {
       cubit.setError(localizeApiError(e.message));
     } catch (e) {
       debugPrint('[Nammerha] screens/homeowner_projects_screen: $e');
+      if (!mounted) return;
       cubit.setError(context.tr('load_projects_error'));
     }
   }
