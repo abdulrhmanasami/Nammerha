@@ -269,7 +269,7 @@ async function loadProjects(): Promise<void> {
       containerEl: container,
       pageSize: 20,
       renderItem: (p, i) => `
-            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
+            <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
                 <div class="flex justify-between items-start mb-3">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(p.title)}</h3>
                     <span class="text-3xs font-bold px-2 py-0.5 rounded-full uppercase ${phaseColor(p.phase)}">${esc(phaseLabel(p.phase))}</span>
@@ -327,7 +327,7 @@ async function loadBids(): Promise<void> {
       containerEl: container,
       pageSize: 20,
       renderItem: (b, i) => `
-            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
+            <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(b.project_title)}</h3>
                     <span class="text-3xs font-bold px-2 py-0.5 rounded-full uppercase ${bidStatusColor(b.status)}">${esc(bidStatusLabel(b.status))}</span>
@@ -390,7 +390,7 @@ async function loadCaptures(): Promise<void> {
                         ${
                           c.is_verified
                             ? `<span class="text-3xs font-bold px-1.5 py-0.5 rounded-full bg-smoky-jade/10 text-smoky-jade flex items-center gap-0.5"><i class="ph ph-seal-check text-xs" aria-hidden="true"></i> ${esc(t('eng_verified', 'موثق'))}</span>`
-                            : `<span class="text-3xs font-bold px-1.5 py-0.5 rounded-full bg-warning-yellow/10 text-warning-yellow">${esc(t('eng_pending', 'معلق'))}</span>`
+                            : `<span class="text-3xs font-bold px-1.5 py-0.5 rounded-full bg-warm-earth/10 text-warm-earth">${esc(t('eng_pending', 'معلق'))}</span>`
                         }
                     </div>
                     <p class="text-xs text-slate-500 mt-0.5 dark:text-slate-400">${esc(c.project_title)}</p>
@@ -440,7 +440,7 @@ function phaseColor(phase: string): string {
       return 'bg-trust-blue/10 text-trust-blue';
     case 'in_progress':
     case 'construction':
-      return 'bg-warning-yellow/10 text-warning-yellow';
+      return 'bg-warm-earth/10 text-warm-earth';
     case 'completed':
     case 'delivered':
       return 'bg-smoky-jade/10 text-smoky-jade';
@@ -471,7 +471,7 @@ function phaseLabel(phase: string): string {
 function bidStatusColor(status: string): string {
   switch (status?.toLowerCase()) {
     case 'pending':
-      return 'bg-warning-yellow/10 text-warning-yellow';
+      return 'bg-warm-earth/10 text-warm-earth';
     case 'accepted':
       return 'bg-smoky-jade/10 text-smoky-jade';
     case 'rejected':

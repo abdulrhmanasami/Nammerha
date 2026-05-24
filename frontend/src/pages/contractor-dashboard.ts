@@ -219,9 +219,9 @@ async function loadProjectTimeline(): Promise<void> {
       renderItem: (p) => {
         const progress = Number(p['progress'] ?? 0);
         const progressColor =
-          progress >= 75 ? 'bg-smoky-jade' : progress >= 40 ? 'bg-trust-blue' : 'bg-warning-yellow';
+          progress >= 75 ? 'bg-smoky-jade' : progress >= 40 ? 'bg-trust-blue' : 'bg-warm-earth';
         return `
-            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border">
+            <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(String(p['title'] ?? ''))}</h3>
                     <span class="text-3xs font-bold px-2 py-0.5 rounded-full ${phaseColor(String(p['phase'] ?? ''))} inline-flex items-center gap-1 uppercase">
@@ -309,7 +309,7 @@ async function loadBids(): Promise<void> {
         const daysLabel = t('unit_days', 'يوم');
 
         return `
-            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border">
+            <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(String(b['project_title'] ?? ''))}</h3>
                     <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${bidColor(String(b['status'] ?? ''))}">

@@ -314,38 +314,69 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
                   ),
                 ),
 
-              // GPS Telemetry Overlay
+              // GPS Telemetry Overlay & Graceful Degradation UI
               PositionedDirectional(
                 top: 60,
                 start: 16,
-                child: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.black54,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        context.tr('sc_latitude').replaceAll('\$1', '${hwState.latitude?.toStringAsFixed(5)}'),
-                        style: TextStyle(color: colors.success, fontFamily: 'monospace', fontSize: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.black54,
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      Text(
-                        context.tr('sc_longitude').replaceAll('\$1', '${hwState.longitude?.toStringAsFixed(5)}'),
-                        style: TextStyle(color: colors.success, fontFamily: 'monospace', fontSize: 12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            context.tr('sc_latitude').replaceAll('\$1', '${hwState.latitude?.toStringAsFixed(5)}'),
+                            style: TextStyle(color: colors.success, fontFamily: 'monospace', fontSize: 12),
+                          ),
+                          Text(
+                            context.tr('sc_longitude').replaceAll('\$1', '${hwState.longitude?.toStringAsFixed(5)}'),
+                            style: TextStyle(color: colors.success, fontFamily: 'monospace', fontSize: 12),
+                          ),
+                          Text(
+                            context.tr('sc_accuracy').replaceAll('\$1', '${hwState.accuracy?.toStringAsFixed(1)}'),
+                            style: TextStyle(
+                              color: (hwState.accuracy ?? 0) > 20 ? colors.warning : colors.success, 
+                              fontFamily: 'monospace', 
+                              fontSize: 12
+                            ),
+                          ),
+                          if (_currentSignature != null)
+                            Text(
+                              context.tr('sc_signature_secured'),
+                              style: TextStyle(color: colors.textSubtle, fontFamily: 'monospace', fontSize: 10),
+                            ),
+                        ],
                       ),
-                      Text(
-                        context.tr('sc_accuracy').replaceAll('\$1', '${hwState.accuracy?.toStringAsFixed(1)}'),
-                        style: TextStyle(color: colors.warning, fontFamily: 'monospace', fontSize: 12),
-                      ),
-                      if (_currentSignature != null)
-                        Text(
-                          context.tr('sc_signature_secured'),
-                          style: TextStyle(color: colors.textSubtle, fontFamily: 'monospace', fontSize: 10),
+                    ),
+                    // UX PLATINUM FIX: Graceful GPS Degradation UI
+                    if (hwState.accuracy != null && hwState.accuracy! > 20)
+                      Container(
+                        margin: const EdgeInsets.only(top: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: colors.warning.withAlpha(40),
+                          border: Border.all(color: colors.warning.withAlpha(100)),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                    ],
-                  ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(PhosphorIconsRegular.warningCircle, color: colors.warning, size: 16),
+                            const SizedBox(width: 8),
+                            Text(
+                              context.tr('sc_gps_degraded'),
+                              style: TextStyle(color: colors.warning, fontSize: 12, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ).animate().fade(duration: 300.ms).slideX(begin: -0.1, duration: 300.ms),
+                  ],
                 ),
               ),
 

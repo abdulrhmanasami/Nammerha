@@ -491,6 +491,24 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
           ),
           const SizedBox(height: 20),
 
+          // UX PLATINUM FIX: One-Tap Snag Macros
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _macroChip(context.tr('macro_cracks'), colors),
+                  const SizedBox(width: 8),
+                  _macroChip(context.tr('macro_plumbing'), colors),
+                  const SizedBox(width: 8),
+                  _macroChip(context.tr('macro_electrical'), colors),
+                  const SizedBox(width: 8),
+                  _macroChip(context.tr('macro_roof'), colors),
+                ],
+              ),
+            ),
+          ),
           TextField(
             controller: _descriptionController,
             maxLines: 4,
@@ -507,6 +525,29 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
         ],
       ),
     ).nmAnimate(context).fadeIn(duration: 300.ms);
+  }
+
+  Widget _macroChip(String text, SemanticColors colors) {
+    return GestureDetector(
+      onTap: () {
+        Haptics.light();
+        final currentText = _descriptionController.text;
+        _descriptionController.text = currentText.isEmpty ? text : '$currentText\n- $text';
+        _updateTextData(context, context.read<DamageReportBloc>().state.formData);
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: colors.primaryBrand.withAlpha(20),
+          border: Border.all(color: colors.primaryBrand.withAlpha(50)),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          text,
+          style: TextStyle(color: colors.primaryBrand, fontSize: 12, fontWeight: FontWeight.bold),
+        ),
+      ),
+    );
   }
 
   Widget _reviewRow(String label, String value, SemanticColors colors) {

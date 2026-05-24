@@ -45,6 +45,11 @@
 
 ## 🚫 ABSOLUTE PROHIBITIONS
 
+### Architectural Paradigms
+
+- **NEVER** reference, implement, or suggest the "Donor" (المانح) role or donation systems. The donation system is permanently suspended.
+- **NEVER** use the concept of "Siloed Roles" (e.g., Role Switcher). The platform strictly operates on a **Unified Citizen Model** (نمط المواطن الموحد) where a single user can access multiple "Workspaces" (Homeowner, Contractor, Engineer, Tradesperson, Supplier).
+
 ### State Management (Flutter)
 
 - **NEVER** suggest switching from BLoC to Riverpod, Provider, or GetX.

@@ -169,13 +169,13 @@ document.addEventListener(
         kycBanner.id = 'nm-kyc-banner';
         kycBanner.className =
           'mx-4 mt-4 mb-2 rounded-xl p-4 flex items-start gap-3 ' +
-          'bg-warning-yellow/10 border border-warning-yellow/25 ' +
-          'dark:bg-warning-yellow/5 dark:border-warning-yellow/15 ' +
+          'bg-warm-earth/10 border border-warm-earth/25 ' +
+          'dark:bg-warm-earth/5 dark:border-warm-earth/15 ' +
           'animate-fade-in-up';
         kycBanner.setAttribute('role', 'alert');
         kycBanner.innerHTML = `
-        <div class="size-10 rounded-full bg-warning-yellow/20 flex items-center justify-center shrink-0 mt-0.5">
-          <i class="ph ph-identification-card text-warning-yellow nm-icon-20" aria-hidden="true"></i>
+        <div class="size-10 rounded-full bg-warm-earth/20 flex items-center justify-center shrink-0 mt-0.5">
+          <i class="ph ph-identification-card text-warm-earth nm-icon-20" aria-hidden="true"></i>
         </div>
         <div class="flex-1 min-w-0">
           <p class="text-sm font-bold text-slate-800 dark:text-slate-200" data-i18n="kyc_banner_title">
@@ -469,7 +469,7 @@ async function loadDashboardProjects(): Promise<void> {
       containerEl: container,
       pageSize: 20,
       renderItem: (p, i) => `
-            <a href="/project-details.html?project=${encodeURIComponent(p.project_id)}" class="block p-5 hover:bg-slate-50/50 transition-colors animate-fade-in-up no-underline text-inherit cursor-pointer group" style="animation-delay:${staggerDelay(i)}">
+            <a href="/project-details.html?project=${encodeURIComponent(p.project_id)}" class="block p-4 hover:bg-slate-50/50 transition-colors animate-fade-in-up no-underline text-inherit cursor-pointer group" style="animation-delay:${staggerDelay(i)}">
                 <div class="flex items-start justify-between gap-4">
                     <div class="flex-1">
                         <div class="flex items-center gap-2">
@@ -542,7 +542,7 @@ async function loadProjects(): Promise<void> {
       containerEl: tbody,
       pageSize: 20,
       renderItem: (p, i) => `
-            <a href="/project-details.html?project=${encodeURIComponent(p.project_id)}" class="block bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all tracking-tight no-underline text-inherit cursor-pointer group hover:shadow-md hover:border-trust-blue/30 dark:bg-dark-surface dark:border-dark-border dark:hover:border-trust-blue/40 animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
+            <a href="/project-details.html?project=${encodeURIComponent(p.project_id)}" class="block bg-white rounded-xl border border-slate-200 p-4 shadow-sm relative transition-all tracking-tight no-underline text-inherit cursor-pointer group hover:shadow-md hover:border-trust-blue/30 dark:bg-dark-surface dark:border-dark-border dark:hover:border-trust-blue/40 animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
                 <div class="flex justify-between items-start mb-2">
                     <div>
                         <h3 class="font-bold text-sm text-slate-900 group-hover:text-trust-blue transition-colors dark:text-slate-100">${esc(p.title)}</h3>
@@ -760,7 +760,7 @@ async function loadServiceRequests(): Promise<void> {
       containerEl: tbody,
       pageSize: 20,
       renderItem: (r, i) => `
-            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" data-sr-card="${esc(r.request_id)}" style="animation-delay:${staggerDelay(i)}">
+            <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" data-sr-card="${esc(r.request_id)}" style="animation-delay:${staggerDelay(i)}">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(r.title)}</h3>
                     <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${statusColor(r.status)}">${esc(statusLabel(r.status))}</span>
@@ -955,7 +955,7 @@ async function loadApprovals(): Promise<void> {
       containerEl: container,
       pageSize: 20,
       renderItem: (a, i) => `
-            <div class="p-5 hover:bg-slate-50/50 transition-colors animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
+            <div class="p-4 hover:bg-slate-50/50 transition-colors animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
                 <div class="flex items-start justify-between gap-4">
                     <div class="flex-1">
                         <div class="flex items-center gap-2">
@@ -1203,9 +1203,9 @@ async function loadEscrow(): Promise<void> {
                     <p class="text-3xs font-bold text-smoky-jade/60 uppercase">${esc(t('ho_released', 'تم الإفراج'))}</p>
                     <p class="text-xl font-black mt-1 text-smoky-jade dark:text-emerald-400" aria-label="${esc(t('ho_released', 'تم الإفراج'))}: ${formatCents(e.total_released ?? 0)}">${formatCents(e.total_released ?? 0)}</p>
                 </div>
-                <div class="bg-warning-yellow/5 rounded-xl p-4 dark:bg-warning-yellow/10">
-                    <p class="text-3xs font-bold text-warning-yellow/60 uppercase" aria-hidden="true">${esc(t('ho_held_in_escrow', 'محتجز في الضمان'))}</p>
-                    <p class="text-xl font-black mt-1 text-warning-yellow" data-kpi aria-label="${esc(t('ho_held_in_escrow', 'محتجز في الضمان'))}: ${formatCents(e.held_in_escrow ?? 0)}">${formatCents(e.held_in_escrow ?? 0)}</p>
+                <div class="bg-warm-earth/5 rounded-xl p-4 dark:bg-warm-earth/10">
+                    <p class="text-3xs font-bold text-warm-earth/60 uppercase" aria-hidden="true">${esc(t('ho_held_in_escrow', 'محتجز في الضمان'))}</p>
+                    <p class="text-xl font-black mt-1 text-warm-earth" data-kpi aria-label="${esc(t('ho_held_in_escrow', 'محتجز في الضمان'))}: ${formatCents(e.held_in_escrow ?? 0)}">${formatCents(e.held_in_escrow ?? 0)}</p>
                 </div>
                 <div class="bg-slate-50 rounded-xl p-4 dark:bg-dark-elevated">
                     <p class="text-3xs font-bold text-slate-400 uppercase dark:text-slate-500">${esc(t('ho_projects', 'المشاريع'))}</p>

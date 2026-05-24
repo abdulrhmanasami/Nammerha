@@ -1,9 +1,10 @@
 import '../styles/main.css';
 import { initPullToRefresh } from '../utils/pull-refresh';
 initPullToRefresh();
-import { projects } from '../api';
+import { projects, storage } from '../api';
 import { escapeHtml as esc } from '../utils/xss';
 import { t } from '../utils/i18n';
+import { SmartScanner } from '../components/smart-scanner';
 // FRC-NEW-06: Loading state feedback for submit button
 import { setLoadingState } from '../utils/loading-state';
 // DEF-REM-007 FIX: Centralized haptic module replaces raw navigator.vibrate.
@@ -818,16 +819,6 @@ function stopVoice(): void {
     } catch {
       /* already stopped */
     }
-
-    // Collect final transcript from recognition results
-    // The onresult handler updates in real-time; we wait a tick for final results
-    setTimeout(() => {
-      // Extract all final results accumulated during the session
-      if (recognition) {
-        // Trigger one more extraction — the recognition object may have buffered finals
-        recognition = null;
-      }
-    }, 100);
   }
 
   if (voiceTimerEl) {
@@ -860,8 +851,6 @@ if (voiceStopBtn) {
 const photoUploadZone = document.getElementById('photo-upload-zone');
 const photoInput = document.getElementById('photo-input') as HTMLInputElement | null;
 const photoThumbnails = document.getElementById('photo-thumbnails');
-
-import { storage } from '../api'; // P1-FIX-007: Implemented real storage API
 
 /**
  * GAP-08 FIX: Compress image via Canvas before upload.
@@ -924,219 +913,145 @@ function compressImage(
   });
 }
 
+async function processPhotoFile(file: File) {
+  if (!photoThumbnails) return;
+  try {
+    const { dataUrl, blob } = await compressImage(file);
+
+    const thumb = document.createElement('div');
+    thumb.className =
+      'size-20 rounded-lg overflow-hidden bg-slate-200 border border-slate-200 shrink-0 relative flex items-center justify-center';
+    thumb.innerHTML = `
+      <img src="${esc(dataUrl)}" class="w-full h-full object-cover opacity-50 transition-opacity duration-300" alt="${esc(t('hr_damage_photo_alt', 'صورة توثيق الأضرار'))}" />
+      <i class="ph ph-spinner ph-spin absolute text-slate-500 text-xl" aria-hidden="true"></i>
+    `;
+    photoThumbnails.appendChild(thumb);
+
+    try {
+      const uploadData = await storage.getUploadUrl({
+        project_id: 'pending',
+        category: 'proof',
+        filename: file.name || 'photo.jpg',
+        content_type: 'image/jpeg',
+        file_size_bytes: blob.size,
+      });
+
+      if (uploadData.success && uploadData.data) {
+        const progressOverlay = document.createElement('div');
+        progressOverlay.className =
+          'absolute inset-0 flex flex-col items-center justify-center bg-slate-900/50 rounded-lg transition-opacity';
+        progressOverlay.innerHTML = `
+          <div class="nm-upload-ring" style="--progress: 0"></div>
+          <span class="text-white text-3xs font-bold mt-0.5">0%</span>
+        `;
+        thumb.appendChild(progressOverlay);
+        thumb.querySelector('.ph-spinner')?.parentElement?.remove();
+
+        await new Promise<void>((resolveUpload, rejectUpload) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('PUT', uploadData.data!.upload_url);
+          xhr.setRequestHeader('Content-Type', 'image/jpeg');
+          xhr.upload.addEventListener('progress', (pe: ProgressEvent) => {
+            if (pe.lengthComputable) {
+              const pct = Math.round((pe.loaded / pe.total) * 100);
+              const ring = progressOverlay.querySelector<HTMLElement>('.nm-upload-ring');
+              const label = progressOverlay.querySelector<HTMLElement>('span');
+              if (ring) ring.style.setProperty('--progress', String(pct));
+              if (label) label.textContent = `${pct}%`;
+            }
+          });
+          xhr.onload = () => (xhr.status >= 200 && xhr.status < 300 ? resolveUpload() : rejectUpload());
+          xhr.onerror = rejectUpload;
+          xhr.send(blob);
+        });
+
+        state.uploadedPhotoUrls.push(uploadData.data.public_url);
+        state.photoCount++;
+        progressOverlay.remove();
+        thumb.innerHTML = `
+          <img src="${esc(dataUrl)}" class="w-full h-full object-cover" alt="${esc(t('hr_damage_photo_alt', 'صورة توثيق الأضرار'))}" />
+          <div class="absolute top-0.5 end-0.5 size-6 rounded-full bg-smoky-jade flex items-center justify-center">
+            <i class="ph ph-check text-white text-sm" aria-hidden="true"></i>
+          </div>
+        `;
+        const countEl = document.getElementById('photo-count');
+        if (countEl) countEl.textContent = String(state.photoCount);
+      } else {
+        throw new Error();
+      }
+    } catch {
+      thumb.remove();
+      const errDiv = document.createElement('div');
+      errDiv.className = 'w-full rounded bg-red-50 text-red-700 text-xs p-2 mt-2';
+      errDiv.textContent = t('hr_upload_failed', 'فشل الرفع');
+      photoThumbnails.parentElement?.appendChild(errDiv);
+      setTimeout(() => errDiv.remove(), 4000);
+    }
+  } catch {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const thumb = document.createElement('div');
+      thumb.className = 'size-20 rounded-lg overflow-hidden bg-slate-200 border border-slate-200 shrink-0 relative';
+      thumb.innerHTML = `
+        <img src="${esc(e.target?.result as string)}" class="w-full h-full object-cover" alt="${esc(t('hr_damage_photo_alt', 'صورة توثيق الأضرار'))}" />
+        <div class="absolute top-0.5 end-0.5 size-6 rounded-full bg-smoky-jade flex items-center justify-center">
+          <i class="ph ph-check text-white text-sm" aria-hidden="true"></i>
+        </div>
+      `;
+      photoThumbnails.appendChild(thumb);
+      state.photoCount++;
+      const countEl = document.getElementById('photo-count');
+      if (countEl) countEl.textContent = String(state.photoCount);
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+function updateMaxPhotosUI() {
+  const maxPhotos = 5;
+  if (state.photoCount >= maxPhotos && photoUploadZone) {
+    photoUploadZone.classList.add('pointer-events-none');
+    photoUploadZone.classList.remove('border-dashed', 'border-slate-200', 'cursor-pointer');
+    photoUploadZone.classList.add('border-solid', 'border-smoky-jade/30', 'bg-smoky-jade/5');
+    photoUploadZone.innerHTML = `
+      <div class="size-12 rounded-full bg-smoky-jade/15 flex items-center justify-center">
+          <i class="ph ph-check-circle text-smoky-jade nm-icon-28" aria-hidden="true"></i>
+      </div>
+      <p class="text-smoky-jade text-sm font-bold" role="status">${esc(t('hr_max_photos_reached', 'تم رفع الحد الأقصى ٥ صور'))}</p>
+    `;
+  }
+}
+
 if (photoUploadZone && photoInput) {
-  photoUploadZone.addEventListener('click', () => photoInput.click());
+  photoUploadZone.addEventListener('click', () => {
+    if (state.photoCount >= 5) return;
+    const scanner = new SmartScanner({
+      containerId: 'main-content',
+      mode: 'document',
+      onCapture: async (dataUrl) => {
+        try {
+          const res = await fetch(dataUrl);
+          const blob = await res.blob();
+          const file = new File([blob], `scan_${Date.now()}.jpg`, { type: 'image/jpeg' });
+          await processPhotoFile(file);
+          updateMaxPhotosUI();
+        } catch {}
+      },
+      onCancel: () => photoInput.click()
+    });
+    scanner.start().catch(() => photoInput.click());
+  });
 
   photoInput.addEventListener('change', async () => {
     const files = photoInput.files;
-    if (!files || !photoThumbnails) {
-      return;
-    }
+    if (!files || !photoThumbnails) return;
 
-    const maxPhotos = 5;
-    const count = Math.min(files.length, maxPhotos - state.photoCount);
-
-    // P1-002 FIX (Wave 2): Warn when selected files exceed remaining slots.
-    // PREVIOUS: Excess files were SILENTLY dropped — Math.min() truncated them
-    // with zero feedback. User selects 5 photos, only 2 are added, no explanation.
-    // NOW: Transient warning banner with role="alert" for screen readers.
-    // Standard: Nielsen #1 (System Status Visibility), WCAG 4.1.3 (Status Messages).
-    const droppedCount = files.length - count;
-    if (droppedCount > 0 && photoThumbnails) {
-      const remaining = maxPhotos - state.photoCount;
-      const warnDiv = document.createElement('div');
-      warnDiv.className =
-        'w-full rounded-lg bg-warning-yellow/10 border border-warning-yellow/20 text-slate-700 text-xs p-2.5 mt-2 flex items-center gap-2 dark:text-slate-300 dark:border-warning-yellow/15 animate-fade-in-up';
-      warnDiv.setAttribute('role', 'alert');
-      warnDiv.innerHTML = `<i class="ph ph-warning text-warning-yellow shrink-0" aria-hidden="true"></i> ${esc(t('hr_photos_limit_exceeded', `Only ${remaining} of ${files.length} photos added — limit is ${maxPhotos}`))}`;
-      photoThumbnails.parentElement?.appendChild(warnDiv);
-      setTimeout(() => warnDiv.remove(), 5000);
-    }
-
+    const count = Math.min(files.length, 5 - state.photoCount);
     for (let i = 0; i < count; i++) {
-      const file = files[i];
-      if (!file) {
-        continue;
-      }
-
-      try {
-        // GAP-08: Compress before display — saves bandwidth on upload
-        const { dataUrl, blob } = await compressImage(file);
-
-        const thumb = document.createElement('div');
-        // P3-PHOTO-001 FIX: Enlarged from size-16 (64px) to size-20 (80px).
-        // Previous: 64×64px thumbnails with 16×16px check icons were barely visible on mobile.
-        // Standard: Apple HIG (Minimum Tap Area), Mobile Photography UX.
-        thumb.className =
-          'size-20 rounded-lg overflow-hidden bg-slate-200 border border-slate-200 shrink-0 relative flex items-center justify-center';
-        thumb.innerHTML = `
-          <img src="${esc(dataUrl)}" class="w-full h-full object-cover opacity-50 transition-opacity duration-300" alt="${esc(t('hr_damage_photo_alt', 'صورة توثيق الأضرار'))}" />
-          <i class="ph ph-spinner ph-spin absolute text-slate-500 text-xl" aria-hidden="true"></i>
-        `;
-        photoThumbnails.appendChild(thumb);
-
-        // P1-FIX-007: Immediate Pre-Signed Upload to MinIO/S3
-        // HIGH-UX-005 FIX: XMLHttpRequest with progress tracking replaces fetch().
-        // PREVIOUS: fetch() PUT gave ZERO progress feedback. On Syrian 3G, a 300KB
-        // compressed photo takes 15-30 seconds. Users saw only a spinner, assumed
-        // failure, and either abandoned or re-submitted (duplicating uploads).
-        // NOW: Real-time conic-gradient progress ring on thumbnail + percentage text.
-        // Standard: Nielsen #1 (System Status Visibility), Material Design 3 (Progress).
-        try {
-          const uploadData = await storage.getUploadUrl({
-            project_id: 'pending', // Special case allowed by routes for pre-creation uploads
-            category: 'proof',
-            filename: file.name || 'photo.jpg',
-            content_type: 'image/jpeg',
-            file_size_bytes: blob.size,
-          });
-
-          if (uploadData.success && uploadData.data) {
-            // HIGH-UX-005: Create progress overlay on thumbnail
-            const progressOverlay = document.createElement('div');
-            progressOverlay.className =
-              'absolute inset-0 flex flex-col items-center justify-center bg-slate-900/50 rounded-lg transition-opacity';
-            progressOverlay.innerHTML = `
-              <div class="nm-upload-ring" style="--progress: 0"></div>
-              <span class="text-white text-3xs font-bold mt-0.5">0%</span>
-            `;
-            thumb.appendChild(progressOverlay);
-
-            // Remove initial spinner — progress ring replaces it
-            const initialSpinner = thumb.querySelector('.ph-spinner');
-            initialSpinner?.parentElement?.remove();
-
-            await new Promise<void>((resolveUpload, rejectUpload) => {
-              const xhr = new XMLHttpRequest();
-              xhr.open('PUT', uploadData.data!.upload_url);
-              xhr.setRequestHeader('Content-Type', 'image/jpeg');
-
-              // Track upload progress
-              xhr.upload.addEventListener('progress', (pe: ProgressEvent) => {
-                if (pe.lengthComputable) {
-                  const pct = Math.round((pe.loaded / pe.total) * 100);
-                  const ring = progressOverlay.querySelector<HTMLElement>('.nm-upload-ring');
-                  const label = progressOverlay.querySelector<HTMLElement>('span');
-                  if (ring) {
-                    ring.style.setProperty('--progress', String(pct));
-                  }
-                  if (label) {
-                    label.textContent = `${pct}%`;
-                  }
-                }
-              });
-
-              xhr.addEventListener('load', () => {
-                if (xhr.status >= 200 && xhr.status < 300) {
-                  resolveUpload();
-                } else {
-                  rejectUpload(new Error(`S3 Upload Failed: ${xhr.status}`));
-                }
-              });
-
-              xhr.addEventListener('error', () => rejectUpload(new Error('Network error')));
-              xhr.addEventListener('abort', () => rejectUpload(new Error('Upload aborted')));
-
-              xhr.send(blob);
-            });
-
-            state.uploadedPhotoUrls.push(uploadData.data.public_url);
-            state.photoCount++;
-
-            // Remove progress overlay and show success
-            progressOverlay.remove();
-            const imgEl = thumb.querySelector('img');
-            if (imgEl) {
-              imgEl.classList.remove('opacity-50');
-            }
-            thumb.innerHTML = `
-                            <img src="${esc(dataUrl)}" class="w-full h-full object-cover" alt="${esc(t('hr_damage_photo_alt', 'صورة توثيق الأضرار'))}" />
-                            <div class="absolute top-0.5 end-0.5 size-6 rounded-full bg-smoky-jade flex items-center justify-center">
-                                <i class="ph ph-check text-white text-sm" aria-hidden="true"></i>
-                            </div>
-                        `;
-            const photoCountEl = document.getElementById('photo-count');
-            if (photoCountEl) {
-              photoCountEl.textContent = String(state.photoCount);
-            }
-          } else {
-            throw new Error('No upload token');
-          }
-        } catch {
-          thumb.remove();
-          // HIGH-002 FIX: Replace alert() with inline error banner
-          const errDiv = document.createElement('div');
-          errDiv.className = 'w-full rounded bg-red-50 text-red-700 text-xs p-2 mt-2';
-          errDiv.textContent = t('hr_upload_failed', 'فشل الرفع');
-          photoThumbnails.parentElement?.appendChild(errDiv);
-          setTimeout(() => errDiv.remove(), 4000);
-        }
-      } catch {
-        // Fallback: use raw FileReader if compression fails
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const thumb = document.createElement('div');
-          // P3-PHOTO-001 FIX: Fallback path also uses enlarged thumbnails.
-          thumb.className =
-            'size-20 rounded-lg overflow-hidden bg-slate-200 border border-slate-200 shrink-0 relative';
-          thumb.innerHTML = `
-            <img src="${esc(e.target?.result as string)}" class="w-full h-full object-cover" alt="${esc(t('hr_damage_photo_alt', 'صورة توثيق الأضرار'))}" />
-            <div class="absolute top-0.5 end-0.5 size-6 rounded-full bg-smoky-jade flex items-center justify-center">
-              <i class="ph ph-check text-white text-sm" aria-hidden="true"></i>
-            </div>
-          `;
-          photoThumbnails.appendChild(thumb);
-          state.photoCount++;
-          // GAP-AUD-06 FIX: Update dynamic photo counter
-          const photoCountEl = document.getElementById('photo-count');
-          if (photoCountEl) {
-            photoCountEl.textContent = String(state.photoCount);
-          }
-        };
-        reader.readAsDataURL(file);
-      }
+      const f = files[i];
+      if (f) await processPhotoFile(f);
     }
-
-    // P1-002 FIX (Wave 2): Clear visual feedback when max photos reached.
-    // PREVIOUS: Upload zone dimmed to 50% opacity + pointer-events-none.
-    //   - The "0/5" counter was INSIDE the dimmed zone — nearly unreadable
-    //   - No text explanation of WHY the zone is disabled
-    //   - Users thought the feature was broken, not that they hit the limit
-    // NOW: Zone transforms into a clear success state with Smoky Jade branding.
-    //   - Camera icon → check-circle icon
-    //   - "Tap to upload" → "Maximum 5 photos uploaded"
-    //   - Dashed border → solid Smoky Jade border
-    //   - role="status" for ARIA live region (WCAG 4.1.3)
-    //   - File input disabled as belt-and-suspenders guard
-    // Standard: Nielsen #1 (System Status), WCAG 4.1.3 (Status Messages),
-    //           Apple HIG (Success State Feedback).
-    if (state.photoCount >= maxPhotos) {
-      photoUploadZone.classList.add('pointer-events-none');
-      photoUploadZone.classList.remove(
-        'border-dashed',
-        'border-slate-200',
-        'cursor-pointer',
-        'active:border-trust-blue/40',
-        'dark:border-dark-border',
-      );
-      photoUploadZone.classList.add(
-        'border-solid',
-        'border-smoky-jade/30',
-        'bg-smoky-jade/5',
-        'dark:bg-smoky-jade/10',
-        'dark:border-smoky-jade/20',
-      );
-      photoUploadZone.innerHTML = `
-                <div class="size-12 rounded-full bg-smoky-jade/15 flex items-center justify-center">
-                    <i class="ph ph-check-circle text-smoky-jade nm-icon-28 dark:text-emerald-400" aria-hidden="true"></i>
-                </div>
-                <p class="text-smoky-jade text-sm font-bold dark:text-emerald-400" role="status">${esc(t('hr_max_photos_reached', 'تم رفع الحد الأقصى ٥ صور'))}</p>
-                <p class="text-slate-400 text-3xs dark:text-slate-500">${state.photoCount}/${maxPhotos} • ${esc(t('hr_all_photos_ready', 'جميع الصور جاهزة'))}</p>
-            `;
-      if (photoInput) {
-        photoInput.disabled = true;
-      }
-    }
+    updateMaxPhotosUI();
   });
 }
 

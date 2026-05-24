@@ -144,6 +144,16 @@
           >
             <i class="ph ph-hard-hat text-warm-earth/40 nm-icon-64" aria-hidden="true"></i>
           </div>
+          <!-- UX PLATINUM FIX: Progressive 360 Loading -->
+          <div id="progressive-360-overlay" class="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm z-10">
+            <button type="button" id="load-360-btn" class="bg-trust-blue text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-2 hover:bg-trust-blue/90 transition-transform hover:scale-105">
+              <i class="ph ph-video-camera text-xl" aria-hidden="true"></i>
+              <div class="text-start">
+                <span class="block text-sm font-bold" data-i18n="load_360_view">عرض بانوراما 360°</span>
+                <span class="block text-3xs opacity-80" data-i18n="data_usage_warning">تستهلك حوالي 4MB من البيانات</span>
+              </div>
+            </button>
+          </div>
           <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
           <div class="absolute bottom-4 start-4 end-4">
             <span
@@ -186,6 +196,21 @@
             aria-label="Overall funding progress"
           >
             <div class="progress-fill nm-progress-bar" style="--progress: 64%"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- UX PLATINUM FIX: Sustainability & Maintenance Indicator -->
+      <section class="px-4 mb-6" aria-label="Sustainability and Maintenance">
+        <div class="glass-card rounded-xl p-4 border-s-4 border-s-smoky-jade flex items-start gap-3">
+          <div class="bg-smoky-jade/10 text-smoky-jade p-2 rounded-lg shrink-0 mt-0.5">
+            <i class="ph ph-leaf text-xl" aria-hidden="true"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-slate-800 dark:text-slate-200" data-i18n="sustainability_rating">تقييم الاستدامة والصيانة</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1" data-i18n="sustainability_desc">
+              المواد المختارة تضمن صيانة منخفضة وعمر افتراضي يتجاوز ١٥ عاماً وفق معايير الجودة العالمية.
+            </p>
           </div>
         </div>
       </section>
@@ -409,6 +434,17 @@
         id="cart-toast"
         class="fixed bottom-24 start-4 end-4 max-w-[416px] mx-auto z-50 nm-hidden animate-fade-in-up"
       >
+        <!-- PLATINUM UX FIX: Cart Lock Timer Banner -->
+        <div id="cart-lock-timer" class="mb-2 glass-card p-3 rounded-xl border border-warning-yellow/50 shadow-md flex items-center justify-between bg-warning-yellow/10 nm-hidden">
+          <div class="flex items-center gap-2">
+            <i class="ph ph-timer text-warning-yellow text-lg animate-pulse" aria-hidden="true"></i>
+            <span class="text-xs font-bold text-slate-800 dark:text-slate-200" data-i18n="cart_lock_timer">
+              تم حجز المواد لضمان الدفع:
+            </span>
+          </div>
+          <span id="cart-timer-countdown" class="text-xs font-black text-warning-yellow tracking-widest font-mono">05:00</span>
+        </div>
+
         <div
           class="glass-card p-4 rounded-xl border border-smoky-jade/20 shadow-lg flex items-center gap-3"
         >

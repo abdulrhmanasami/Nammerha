@@ -182,7 +182,7 @@ async function loadEscrowReviewQueue(): Promise<void> {
                             ${
                               r['has_spatial_proof']
                                 ? `<span class="text-3xs font-bold text-smoky-jade bg-smoky-jade/10 px-2 py-0.5 rounded-full dark:text-emerald-400">${esc(t('compliance_verified', 'تم التحقق'))}</span>`
-                                : `<span class="text-3xs font-bold text-warning-yellow bg-warning-yellow/10 px-2 py-0.5 rounded-full">${esc(t('compliance_pending', 'معلّق'))}</span>`
+                                : `<span class="text-3xs font-bold text-warm-earth bg-warm-earth/10 px-2 py-0.5 rounded-full">${esc(t('compliance_pending', 'معلّق'))}</span>`
                             }
                         </div>
                         <h3 class="font-bold text-sm text-slate-900 mt-1 dark:text-slate-100">${esc(String(r['project_title'] ?? ''))}</h3>

@@ -22,6 +22,8 @@ import { autoTriggerTour } from '../components/tour-engine';
 import { initBackToTop } from '../components/back-to-top';
 // CRIT-UX-003 FIX: Tour Replay FAB — help button to restart onboarding
 import { mountTourReplayFAB } from '../components/tour-replay-fab';
+import { LiveOracleTicker } from '../components/live-oracle-ticker';
+
 initPullToRefresh();
 initBackToTop();
 autoTriggerTour();
@@ -122,6 +124,11 @@ document.addEventListener(
     bootstrapPortal();
     mountContextSwitcher();
     initBreadcrumb();
+    
+    // Initialize Oracle Ticker for transparent material pricing
+    const ticker = new LiveOracleTicker('oracle-ticker-container');
+    ticker.render();
+    ticker.startUpdates();
 
     setupTabs();
     const initialTab = hashRouter.getInitialTab();
@@ -317,7 +324,7 @@ async function loadProjects(): Promise<void> {
       containerEl: tbody,
       pageSize: 20,
       renderItem: (p, i) => `
-            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
+            <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(p.title)}</h3>
                     <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${phaseColor(p.phase)}">${esc(ctPhaseLabel(p.phase))}</span>
@@ -377,7 +384,7 @@ async function loadMarketplace(): Promise<void> {
       containerEl: tbody,
       pageSize: 20,
       renderItem: (p, i) => `
-            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
+            <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-sm text-slate-900 line-clamp-2 pe-12 dark:text-slate-100">${esc(p.title)}</h3>
                     <div class="text-end">
@@ -466,7 +473,7 @@ async function loadBids(): Promise<void> {
       containerEl: tbody,
       pageSize: 20,
       renderItem: (b, i) => `
-            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
+            <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(b.project_title)}</h3>
                     <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${bidColor(b.status)}">${esc(ctBidStatusLabel(b.status))}</span>
@@ -519,7 +526,7 @@ async function loadPayments(): Promise<void> {
       containerEl: tbody,
       pageSize: 20,
       renderItem: (p, i) => `
-            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
+            <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm relative transition-all dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-sm text-slate-900 dark:text-slate-100">${esc(p.project_title)}</h3>
                     <span class="px-2 py-0.5 rounded-full text-3xs font-bold uppercase ${escrowColor(p.transaction_type)}">${esc(ctEscrowStatusLabel(p.transaction_type))}</span>

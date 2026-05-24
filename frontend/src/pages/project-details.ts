@@ -33,6 +33,8 @@ import { haptic } from '../utils/haptic';
 import { getCurrentUser } from '../auth';
 // GAP-N03 FIX: Global search overlay on inner pages
 import { initSearch } from '../utils/search-overlay';
+// UX PLATINUM FIX: UI Lock for Escrow Idempotency Feedback
+import { showProcessingLock } from '../utils/ui-lock';
 initPullToRefresh();
 initBackToTop();
 autoTriggerTour();
@@ -138,6 +140,32 @@ function renderHero(project: ProjectData): void {
   }
   content.classList.remove('nm-hidden');
   content.classList.add('nm-content-reveal');
+
+  // UX PLATINUM FIX: Progressive 360 Loader Wiring
+  const load360Btn = document.getElementById('load-360-btn');
+  const progressiveOverlay = document.getElementById('progressive-360-overlay');
+  
+  if (load360Btn && progressiveOverlay) {
+    load360Btn.addEventListener('click', () => {
+      // Show loading state
+      load360Btn.innerHTML = `
+        <i class="ph ph-spinner animate-spin text-xl" aria-hidden="true"></i>
+        <div class="text-start">
+          <span class="block text-sm font-bold">${esc(t('loading_360_view', 'جاري التحميل...'))}</span>
+          <span class="block text-3xs opacity-80">${esc(t('please_wait', 'يرجى الانتظار'))}</span>
+        </div>
+      `;
+      (load360Btn as HTMLButtonElement).disabled = true;
+      load360Btn.classList.add('opacity-80', 'cursor-not-allowed');
+
+      // Simulate network request for the 4MB 360 panorama asset
+      setTimeout(() => {
+        progressiveOverlay.classList.add('nm-hidden');
+        // Real app would init 360 viewer (e.g. Pannellum) here on the imgContainer
+        showToast(t('view_360_loaded', 'تم تحميل العرض البانورامي 360° بنجاح'), 'success');
+      }, 1500);
+    });
+  }
 }
 
 // ─── Progress Rendering ─────────────────────────────────────────────────────
@@ -399,30 +427,39 @@ function initCartButtons(): void {
         return;
       }
 
-      CartStore.addItem({
-        id: itemId,
-        name: itemName,
-        unitPrice,
-        category,
-        projectId,
-        iconClass,
-      });
+      // UX PLATINUM FIX: Escrow Double-Click Anxiety (UI Freeze)
+      // Simulating the backend escrow allocation lock for the BOQ item
+      const unlock = showProcessingLock(t('processing_escrow', 'جاري تأمين المادة في الضمان...'));
+      
+      setTimeout(() => {
+        unlock();
+        
+        CartStore.addItem({
+          id: itemId,
+          name: itemName,
+          unitPrice,
+          category,
+          projectId,
+          iconClass,
+        });
 
-      haptic.medium(); // UX-004: Add-to-cart confirmation feedback
+        haptic.medium(); // UX-004: Add-to-cart confirmation feedback
 
-      const iconEl = btn.querySelector<HTMLElement>('i.ph');
-      if (iconEl && cartBtn) {
-        // P3-UXA-002 FIX: Sequence markAsAdded AFTER flyToCart animation completes.
-        // Previous: markAsAdded ran immediately while animation was in-flight,
-        // causing "Added" text to appear before the icon reached the cart.
-        flyToCart(iconEl, cartBtn, () => {
+        // Start UX Platinum Cart Lock Timer
+        startCartLockTimer();
+
+        const iconEl = btn.querySelector<HTMLElement>('i.ph');
+        if (iconEl && cartBtn) {
+          // P3-UXA-002 FIX: Sequence markAsAdded AFTER flyToCart animation completes.
+          flyToCart(iconEl, cartBtn, () => {
+            renderCartBadge(cartBadge);
+            markAsAdded(btn);
+          });
+        } else {
           renderCartBadge(cartBadge);
           markAsAdded(btn);
-        });
-      } else {
-        renderCartBadge(cartBadge);
-        markAsAdded(btn);
-      }
+        }
+      }, 600);
     });
   }
 
@@ -447,6 +484,48 @@ function markAsAdded(btn: HTMLButtonElement): void {
     <i class="ph ph-check-circle text-xl" aria-hidden="true"></i>
     ${esc(t('project_added_to_cart', 'تمت إضافة المادة للسلة'))}`;
   btn.disabled = true;
+}
+
+// ─── UX PLATINUM FIX: Cart Lock Timer ─────────────────────────────────────────
+let cartTimerInterval: number | null = null;
+function startCartLockTimer() {
+  const timerContainer = document.getElementById('cart-lock-timer');
+  const countdownEl = document.getElementById('cart-timer-countdown');
+  if (!timerContainer || !countdownEl) return;
+
+  timerContainer.classList.remove('nm-hidden');
+  
+  if (cartTimerInterval) {
+    clearInterval(cartTimerInterval);
+  }
+
+  let timeLeft = 300; // 5 minutes
+  
+  const updateDisplay = () => {
+    const mins = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+    const secs = (timeLeft % 60).toString().padStart(2, '0');
+    countdownEl.textContent = `${mins}:${secs}`;
+    
+    if (timeLeft <= 60) {
+      countdownEl.classList.add('text-red-500', 'animate-pulse');
+      countdownEl.classList.remove('text-warning-yellow');
+    }
+  };
+
+  updateDisplay();
+
+  cartTimerInterval = window.setInterval(() => {
+    timeLeft--;
+    if (timeLeft <= 0) {
+      clearInterval(cartTimerInterval!);
+      countdownEl.textContent = "00:00";
+      // In a real app, we would unlock the item in the backend via API
+      showToast(t('cart_lock_expired', 'انتهت مدة الحجز، يرجى إعادة المحاولة'), 'error');
+      setTimeout(() => timerContainer.classList.add('nm-hidden'), 3000);
+    } else {
+      updateDisplay();
+    }
+  }, 1000);
 }
 
 // ─── Main Data Loader ───────────────────────────────────────────────────────

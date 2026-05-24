@@ -92,8 +92,8 @@ const PORTAL_REGISTRY: readonly PortalEntry[] = [
     labelFallback: 'Supplier',
     descKey: 'ws_supplier_desc',
     descFallback: 'Material catalog & orders',
-    accentVar: '--warning-yellow',
-    accentFallback: '#FCC934',
+    accentVar: '--warm-earth',
+    accentFallback: '#D59F80',
   },
 ] as const;
 
@@ -449,6 +449,24 @@ export function mountContextSwitcher(): void {
   const mountedSwitcher = sidebar.querySelector('.nm-ctx-switcher');
   if (mountedSwitcher) {
     wireTransitionClicks(mountedSwitcher);
+  }
+
+  // UX Platinum Audit: Contextual Collapse Fix (Role Switcher UI)
+  // Dynamically applies the portal's accent color to the top navbar/header.
+  // This explicitly solves the issue where users forget which role they are acting as.
+  const currentPortalDef = PORTAL_REGISTRY.find(p => p.id === currentPortalId);
+  if (currentPortalDef) {
+    const accentVar = currentPortalDef.accentVar;
+    // Apply to document so it can be consumed globally by CSS
+    document.documentElement.style.setProperty('--current-context-color', `var(${accentVar}, ${currentPortalDef.accentFallback})`);
+    
+    // Visually tint the header to break contextual collapse
+    const header = document.querySelector<HTMLElement>('header, .page-header, .top-nav');
+    if (header) {
+      header.classList.add('transition-colors', 'duration-500');
+      // We apply a solid border-top as the visual anchor (Platinum standard for context visibility)
+      header.style.borderTop = `4px solid var(--current-context-color)`;
+    }
   }
 
   // Phase 2: Mount Hub FAB for mobile portal switching

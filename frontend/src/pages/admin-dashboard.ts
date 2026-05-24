@@ -173,15 +173,15 @@ async function loadProjects(): Promise<void> {
             pageSize: 20,
             renderItem: (p) => {
                 const progress = Math.min(100, Math.max(0, Number(p['funding_progress'] ?? p['progress'] ?? 0)));
-                const progressColor = progress >= 75 ? 'bg-smoky-jade' : progress >= 40 ? 'bg-trust-blue' : 'bg-warning-yellow';
-                const textColor = progress >= 75 ? 'text-smoky-jade' : progress >= 40 ? 'text-trust-blue' : 'text-warning-yellow';
+                const progressColor = progress >= 75 ? 'bg-smoky-jade' : progress >= 40 ? 'bg-trust-blue' : 'bg-warm-earth';
+                const textColor = progress >= 75 ? 'text-smoky-jade' : progress >= 40 ? 'text-trust-blue' : 'text-warm-earth';
                 const statusI18nKey = progress >= 100 ? 'status_fully_funded' : progress > 0 ? 'status_in_progress' : 'status_under_review';
                 const statusLabel = progress >= 100 ? 'Fully Funded' : progress > 0 ? 'In Progress' : 'Under Review';
                 const statusBg = progress >= 100
                     ? 'text-trust-blue bg-trust-blue/10'
                     : progress > 0
                         ? 'text-smoky-jade bg-smoky-jade/10'
-                        : 'text-warning-yellow bg-warning-yellow/10';
+                        : 'text-warm-earth bg-warm-earth/10';
                 const costRaw = Number(p['total_estimated_cost'] ?? p['budget'] ?? 0);
                 const cost = costRaw > 1000 ? currFmt.format(costRaw / 100) : currFmt.format(costRaw);
                 const engineer = p['engineer_name'] ?? p['assigned_engineer'];

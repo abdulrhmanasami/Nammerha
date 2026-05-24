@@ -313,7 +313,7 @@ async function loadOrders(): Promise<void> {
       containerEl: tbody,
       pageSize: 20,
       renderItem: (item, i) => `
-            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow relative dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
+            <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm hover:shadow-md transition-shadow relative dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
                 <div class="flex justify-between items-start mb-2">
                     <span class="font-mono text-3xs text-slate-500 font-bold dark:text-slate-400">${esc(item.po_number)}</span>
                     <span class="text-3xs font-bold px-2 py-0.5 rounded-full uppercase ${statusColor(item.status)}">${esc(statusLabel(item.status))}</span>
@@ -390,7 +390,7 @@ async function loadCatalog(): Promise<void> {
       containerEl: container,
       pageSize: 20,
       renderItem: (item, i) => `
-            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow ${!item.is_active ? 'opacity-50' : ''} dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
+            <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm hover:shadow-md transition-shadow ${!item.is_active ? 'opacity-50' : ''} dark:bg-dark-surface dark:border-dark-border animate-fade-in-up" style="animation-delay:${staggerDelay(i)}">
                 <div class="flex justify-between items-start mb-3">
                     <span class="text-3xs font-bold px-2 py-0.5 rounded-full bg-warm-earth/10 text-warm-earth uppercase">${esc(item.material_category)}</span>
                     ${

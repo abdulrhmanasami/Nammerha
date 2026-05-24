@@ -53,8 +53,8 @@ const ROLE_META: Record<string, RoleMeta> = {
         icon: 'ph-truck',
         labelKey: 'role_supplier',
         labelFallback: 'Supplier',
-        colorToken: '--warning-yellow',
-        colorFallback: '#FCC934',
+        colorToken: '--warm-earth',
+        colorFallback: '#D59F80',
         verificationLabel: 'Business KYB',
     },
     contractor: {
@@ -88,18 +88,7 @@ const ROLE_META: Record<string, RoleMeta> = {
         colorToken: '--violet-500',         // Intentional: Auditor uses distinct color, not brand color
         colorFallback: '#8b5cf6',
         verificationLabel: 'Auditor',
-    },
-    // FORENSIC-C1.11: Donor role entry preserved for backward compatibility
-    // (existing localStorage sessions may reference this role).
-    // Donation system SUSPENDED INDEFINITELY (2026-05-12).
-    donor: {
-        icon: 'ph-hand-heart',
-        labelKey: 'role_donor',
-        labelFallback: 'Donor',
-        colorToken: '--warm-earth',
-        colorFallback: '#D59F80',
-        verificationLabel: 'Email Verified',
-    },
+    }
 };
 
 /**

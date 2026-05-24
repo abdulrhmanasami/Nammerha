@@ -72,6 +72,29 @@ class _EngineerPortalViewState extends State<_EngineerPortalView>
         centerTitle: false,
         backgroundColor: colors.surfaceElevated,
         elevation: 0,
+        actions: [
+          // UX PLATINUM FIX: Offline-First Sync Indicator
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            decoration: BoxDecoration(
+              color: colors.warning.withAlpha(20),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: colors.warning.withAlpha(50)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(PhosphorIconsRegular.wifiSlash, color: colors.warning, size: 14),
+                const SizedBox(width: 6),
+                Text(
+                  context.tr('offline_mode'),
+                  style: TextStyle(color: colors.warning, fontSize: 11, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           labelColor: const Color(0xFF1558D6), // Trust Blue

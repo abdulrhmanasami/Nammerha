@@ -121,7 +121,7 @@ async function loadKycQueue(): Promise<void> {
                         <p class="text-3xs text-slate-400 dark:text-slate-500">${esc(roleLabel)} • ${esc(timeAgo)}</p>
                     </div>
                     <div class="flex items-center gap-2 shrink-0">
-                        <span class="bg-warning-yellow/20 text-warning-yellow text-3xs font-bold px-2 py-0.5 rounded-full">
+                        <span class="bg-warm-earth/20 text-warm-earth text-3xs font-bold px-2 py-0.5 rounded-full">
                             ${esc(statusLabel)}
                         </span>
                     </div>

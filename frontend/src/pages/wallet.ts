@@ -23,6 +23,8 @@ import { polyfillDialog } from '../utils/dialog-polyfill';
 import { initSearch } from '../utils/search-overlay';
 // INC-NEW-01 FIX: Unified page header — eliminates duplicate back-button wiring
 import { initPageHeader } from '../components/page-header';
+// UX PLATINUM FIX: UI Lock for Escrow Idempotency Feedback
+import { showProcessingLock } from '../utils/ui-lock';
 // F-004 FIX: Hub FAB on all pages — portal navigation from inner pages
 import { mountHubFAB } from '../components/portal-context';
 // F-010 FIX: Breadcrumb navigation on inner pages
@@ -217,14 +219,14 @@ function renderTransaction(tx: Transaction): string {
     },
     pending: {
       icon: 'clock',
-      color: 'text-warning-yellow',
+      color: 'text-warm-earth',
       label: t('wallet_status_pending', 'معلّق'),
     },
   };
 
   const config = statusConfig[tx.status] ?? {
     icon: 'clock',
-    color: 'text-warning-yellow',
+    color: 'text-warm-earth',
     label: t('wallet_status_pending', 'معلّق'),
   };
 
@@ -451,18 +453,25 @@ function init(): void {
     document.getElementById('deposit-notify-btn')?.addEventListener('click', () => {
       haptic.light();
       depositDialog.close();
-      // Dynamic import: toast is only needed on this interaction path
-      import('../utils/toast')
-        .then(({ showToast }) => {
-          showToast(
-            t('deposit_notify_confirmed', "We'll notify you when deposits are available!"),
-            'success',
-          );
-        })
-        .catch(() => {
-          /* Intentional: Toast module failed to load (network). Non-critical UX —
-                   the deposit dialog already closed, user action was acknowledged. */
-        });
+      
+      // UX PLATINUM FIX: Escrow Double-Click Anxiety (UI Freeze)
+      // Lock the UI instantly when the user initiates a financial action
+      const unlock = showProcessingLock(t('processing_secure', 'جاري المعالجة الآمنة...'));
+      
+      setTimeout(() => {
+        unlock();
+        // Dynamic import: toast is only needed on this interaction path
+        import('../utils/toast')
+          .then(({ showToast }) => {
+            showToast(
+              t('deposit_notify_confirmed', "We'll notify you when deposits are available!"),
+              'success',
+            );
+          })
+          .catch(() => {
+            /* Intentional: Toast module failed to load */
+          });
+      }, 800);
     });
   }
 
@@ -476,38 +485,45 @@ function init(): void {
   if (addFundsBtn) {
     addFundsBtn.addEventListener('click', () => {
       haptic.medium(); // UX-004: Confirm action feedback
-      // Show inline feedback banner with actionable context
-      const parent = addFundsBtn.parentElement;
-      if (!parent) {
-        return;
-      }
+      
+      // UX PLATINUM FIX: Escrow Double-Click Anxiety (UI Freeze)
+      const unlock = showProcessingLock(t('processing_secure', 'جاري إنشاء جلسة الدفع...'));
+      
+      setTimeout(() => {
+        unlock();
+        // Show inline feedback banner with actionable context
+        const parent = addFundsBtn.parentElement;
+        if (!parent) {
+          return;
+        }
 
-      // Prevent duplicate banners
-      if (parent.querySelector('#add-funds-banner')) {
-        return;
-      }
+        // Prevent duplicate banners
+        if (parent.querySelector('#add-funds-banner')) {
+          return;
+        }
 
-      const banner = document.createElement('div');
-      banner.id = 'add-funds-banner';
-      banner.className =
-        'mt-3 rounded-xl p-3 text-xs font-medium flex items-center gap-2 bg-white/20 text-white backdrop-blur-sm animate-fade-in-up';
-      // P2-UX-001 FIX: Replaced auto-dismiss setTimeout with user-controlled dismiss button.
-      // Previous: Banner vanished after 5s — slow readers, cognitive disabilities couldn't finish reading.
-      // Standard: WCAG 2.2.1 (Timing Adjustable), Nielsen #3 (User Control).
-      banner.innerHTML = `
-                <i class="ph ph-info shrink-0 text-base" aria-hidden="true"></i>
-                <span class="flex-1">${escapeHtml(t('add_funds_coming_soon', 'إضافة الرصيد — قريباً'))}</span>
-                <button type="button" class="shrink-0 ms-2 p-1 rounded-full hover:bg-white/20 transition-colors" aria-label="${escapeHtml(t('common_dismiss', 'تجاهل'))}">
-                    <i class="ph ph-x text-sm" aria-hidden="true"></i>
-                </button>
-            `;
-      parent.appendChild(banner);
+        const banner = document.createElement('div');
+        banner.id = 'add-funds-banner';
+        banner.className =
+          'mt-3 rounded-xl p-3 text-xs font-medium flex items-center gap-2 bg-white/20 text-white backdrop-blur-sm animate-fade-in-up';
+        // P2-UX-001 FIX: Replaced auto-dismiss setTimeout with user-controlled dismiss button.
+        // Previous: Banner vanished after 5s — slow readers, cognitive disabilities couldn't finish reading.
+        // Standard: WCAG 2.2.1 (Timing Adjustable), Nielsen #3 (User Control).
+        banner.innerHTML = `
+                  <i class="ph ph-info shrink-0 text-base" aria-hidden="true"></i>
+                  <span class="flex-1">${escapeHtml(t('add_funds_coming_soon', 'إضافة الرصيد — قريباً'))}</span>
+                  <button type="button" class="shrink-0 ms-2 p-1 rounded-full hover:bg-white/20 transition-colors" aria-label="${escapeHtml(t('common_dismiss', 'تجاهل'))}">
+                      <i class="ph ph-x text-sm" aria-hidden="true"></i>
+                  </button>
+              `;
+        parent.appendChild(banner);
 
-      // Dismiss on button click
-      banner.querySelector('button')?.addEventListener('click', () => {
-        banner.classList.add('animate-fade-out');
-        banner.addEventListener('animationend', () => banner.remove(), { once: true });
-      });
+        // Dismiss on button click
+        banner.querySelector('button')?.addEventListener('click', () => {
+          banner.classList.add('animate-fade-out');
+          banner.addEventListener('animationend', () => banner.remove(), { once: true });
+        });
+      }, 1000);
     });
   }
 }

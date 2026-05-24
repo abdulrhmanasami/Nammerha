@@ -87,6 +87,20 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  /* Apple HIG: 44x44px minimum touch target for interactive elements
+     Enforces accessibility standard (WCAG 2.1 SC 2.5.5 Target Size) */
+  button, 
+  a[href], 
+  [role="button"],
+  [role="tab"],
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+    /* We don't force inline elements to be block, but flex/inline-flex items will respect this */
+  }
+}
+
 /* ============================================================================
    DEF-003 FIX (Wave 5): CSS View Transitions API — PWA Native-App Feel
    Eliminates the jarring white-flash on page-to-page navigation.
@@ -181,6 +195,29 @@
   50% {
     opacity: 0.3;
   }
+}
+
+/* ============================================================================
+   Smart Scanner Overlay Animations
+   ============================================================================ */
+.nm-scanner-laser {
+  animation: nmScannerScan 2s infinite ease-in-out alternate;
+}
+@keyframes nmScannerScan {
+  0% {
+    top: 0;
+  }
+  100% {
+    top: 100%;
+  }
+}
+@keyframes nmScannerFlash {
+  0% { opacity: 0; }
+  20% { opacity: 1; }
+  100% { opacity: 0; }
+}
+.animate-flash {
+  animation: nmScannerFlash 0.3s ease-out forwards;
 }
 
 /* ============================================================================

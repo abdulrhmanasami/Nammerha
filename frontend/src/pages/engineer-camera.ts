@@ -15,6 +15,7 @@ import { requireAuth } from '../utils/auth-guard';
 import { escapeHtml as esc } from '../utils/xss';
 // IMP-007: Client-side SHA-256 image integrity hashing
 import { computeImageHash } from '../utils/image-hash';
+import { saveCameraProof, getCameraProofs, deleteCameraProof, CameraProofRecord } from '../utils/offline-db';
 // CRIT-UX-010 FIX: GPS Mini-Map preview — visual GPS verification
 import { createGPSMiniMap, updateGPSMiniMap, showGPSError } from '../components/gps-minimap';
 
@@ -39,7 +40,7 @@ let gpsAccuracy: number | null = null;
 let cameraStream: MediaStream | null = null;
 let captureCount = 0;
 const MAX_CAPTURES = 8;
-const capturedDataUrls: string[] = [];
+const capturedProofs: CameraProofRecord[] = [];
 
 // ─── DOM ────────────────────────────────────────────────────────────────────
 const timestampEl =
@@ -55,12 +56,25 @@ const viewfinder = document.getElementById('viewfinder');
 const syncBtn = document.getElementById('sync-btn');
 
 // ─── Bootstrap ──────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   // W5-003 FIX: Guard all protected content behind auth check.
   if (!requireAuth()) {
     return;
   }
   projectId = new URLSearchParams(window.location.search).get('project');
+  
+  // UX PLATINUM FIX: Offline-First Queue Hydration
+  if (projectId) {
+    const offlineProofs = await getCameraProofs(projectId);
+    capturedProofs.push(...offlineProofs);
+    captureCount = capturedProofs.length;
+    
+    // Update badge/button UI if we have offline items
+    if (captureCount > 0 && photoCountEl) {
+      photoCountEl.textContent = `${captureCount} / ${MAX_CAPTURES}`;
+    }
+  }
+
   initBreadcrumb(); // GAP-007: Breadcrumb navigation
   initTimestamp();
   // CRIT-UX-010 FIX: Create GPS Mini-Map mount point before initGPS()
@@ -234,10 +248,25 @@ function setupCapture(): void {
       }
 
       const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-      capturedDataUrls.push(dataUrl);
+      
+      // UX PLATINUM FIX: Offline-First Saving
+      const proofRecord: CameraProofRecord = {
+        id: crypto.randomUUID(),
+        projectId: projectId ?? 'unknown',
+        dataUrl,
+        gpsLat: gpsLat ?? 0,
+        gpsLng: gpsLng ?? 0,
+        gpsAccuracy: gpsAccuracy ?? null,
+        timestamp: Date.now()
+      };
+      
+      capturedProofs.push(proofRecord);
+      saveCameraProof(proofRecord).catch(() => {
+        reportWarning('[Camera] Failed to save proof locally', { component: 'camera' });
+      });
     }
 
-    captureCount++;
+    captureCount = capturedProofs.length;
 
     // Update UI
     if (photoCountEl) {
@@ -299,15 +328,23 @@ function setupSync(): void {
       return;
     }
 
-    if (gpsLat === null || gpsLng === null) {
+    if (capturedProofs.length > 0 && capturedProofs[0]?.gpsLat === 0 && (gpsLat === null || gpsLng === null)) {
       showToast(t('cam_gps_required', 'إحداثيات GPS مطلوبة. يرجى تفعيل خدمات الموقع.'));
       return;
     }
 
+    // UX PLATINUM FIX: Offline Check
+    if (!navigator.onLine) {
+      showToast(t('cam_offline_saved', 'أنت غير متصل. الإثباتات محفوظة بأمان في جهازك.'));
+      const icon = syncBtn.querySelector('i.ph');
+      if (icon) icon.className = 'ph ph-wifi-slash text-warm-earth text-xl';
+      return;
+    }
+
     // Update UI to syncing state
-    const icon = syncBtn.querySelector('.ph-cloud-arrow-up');
+    const icon = syncBtn.querySelector('i.ph, .ph-cloud-arrow-up, .ph-wifi-slash');
     if (icon) {
-      icon.classList.remove('ph-cloud-arrow-up');
+      icon.className = 'ph ph-spinner animate-spin text-xl';
       icon.classList.add('ph-spinner', 'animate-spin');
     }
     const label = syncBtn.querySelector('span');
@@ -321,8 +358,8 @@ function setupSync(): void {
       // P2-AUD-FETCH-003 FIX: CSRF token is now handled automatically
       // by the centralized api.ts request() function.
 
-      for (const dataUrl of capturedDataUrls) {
-        const blob = dataURLtoBlob(dataUrl);
+      for (const proof of capturedProofs) {
+        const blob = dataURLtoBlob(proof.dataUrl);
         const filename = `proof_${projectId}_${Date.now()}_${uploaded}.jpg`;
 
         // IMP-007: Compute SHA-256 hash BEFORE upload (chain of custody)
@@ -355,14 +392,17 @@ function setupSync(): void {
         // (was 'gps_accuracy' — silently dropped by backend).
         // IMP-007: client_hash enables dual verification.
         await engineer.submitSpatialProof({
-          project_id: projectId!,
-          item_id: projectId!,
+          project_id: proof.projectId,
+          item_id: proof.projectId,
           image_url: presignData.data!.public_url,
-          gps_lat: gpsLat!,
-          gps_lng: gpsLng!,
-          gps_accuracy_meters: gpsAccuracy ?? undefined,
+          gps_lat: proof.gpsLat,
+          gps_lng: proof.gpsLng,
+          gps_accuracy_meters: proof.gpsAccuracy ?? undefined,
           client_hash: clientHash,
         });
+        
+        // UX PLATINUM FIX: Clear from Offline IndexedDB
+        await deleteCameraProof(proof.id);
 
         uploaded++;
       }
@@ -383,7 +423,7 @@ function setupSync(): void {
       showToast(`${uploaded} ${t('cam_proofs_submitted', 'إثبات(ات) مكانية أُرسلت للتحقق')}`);
 
       // Reset state
-      capturedDataUrls.length = 0;
+      capturedProofs.length = 0;
       captureCount = 0;
       if (photoCountEl) {
         photoCountEl.textContent = '0 / 8';
