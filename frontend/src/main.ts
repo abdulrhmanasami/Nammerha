@@ -180,7 +180,7 @@ function buildProjectCard(project: ProjectCard, index: number): string {
       </div>
       <div class="p-4 flex flex-col flex-1">
         <div class="flex justify-between items-start mb-2">
-          <h3 class="font-bold text-base leading-tight">${escapeHtml(project.title)}</h3>
+          <h3 class="font-bold text-base leading-tight" dir="auto">${escapeHtml(project.title)}</h3>
           <div class="relative size-10 shrink-0">
             <svg class="size-full -rotate-90" viewBox="0 0 36 36">
               <circle class="stroke-slate-200" cx="18" cy="18" r="16" fill="none" stroke-width="3"></circle>

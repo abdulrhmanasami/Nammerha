@@ -144,7 +144,7 @@ function renderHero(project: ProjectData): void {
   // UX PLATINUM FIX: Progressive 360 Loader Wiring
   const load360Btn = document.getElementById('load-360-btn');
   const progressiveOverlay = document.getElementById('progressive-360-overlay');
-  
+
   if (load360Btn && progressiveOverlay) {
     load360Btn.addEventListener('click', () => {
       // Show loading state
@@ -229,8 +229,8 @@ function buildBOQCard(item: BOQItem, projectId: string): string {
         <div class="p-4">
           <div class="flex justify-between items-start mb-2">
             <div>
-              <h4 class="text-base font-bold">${esc(item.material_name)}</h4>
-              <p class="text-xs text-slate-400 font-medium dark:text-slate-500">${esc(item.material_category ?? '')} · ${item.required_quantity} ${esc(item.unit)}</p>
+              <h4 class="text-base font-bold" dir="auto">${esc(item.material_name)}</h4>
+              <p class="text-xs text-slate-400 font-medium dark:text-slate-500" dir="auto">${esc(item.material_category ?? '')} · ${item.required_quantity} ${esc(item.unit)}</p>
             </div>
             <span class="bg-smoky-jade/10 text-smoky-jade text-3xs font-bold px-2 py-0.5 rounded-full dark:text-emerald-400 dark:bg-emerald-500/10 flex items-center gap-1">
               <i class="ph ph-seal-check text-xs" aria-hidden="true"></i>
@@ -290,8 +290,8 @@ function buildBOQCard(item: BOQItem, projectId: string): string {
         <div class="p-4">
           <div class="flex justify-between items-start mb-2">
             <div>
-              <h4 class="text-lg font-bold">${esc(item.material_name)}</h4>
-              <p class="text-sm text-slate-500 font-medium dark:text-slate-400">${esc(t('unit_label', 'الوحدة'))}: ${formatCents(item.unit_price)} / ${esc(item.unit)}</p>
+              <h4 class="text-lg font-bold" dir="auto">${esc(item.material_name)}</h4>
+              <p class="text-sm text-slate-500 font-medium dark:text-slate-400"><span dir="auto">${esc(t('unit_label', 'الوحدة'))}</span>: ${formatCents(item.unit_price)} / <span dir="auto">${esc(item.unit)}</span></p>
             </div>
             ${badgeHtml}
           </div>
@@ -430,10 +430,10 @@ function initCartButtons(): void {
       // UX PLATINUM FIX: Escrow Double-Click Anxiety (UI Freeze)
       // Simulating the backend escrow allocation lock for the BOQ item
       const unlock = showProcessingLock(t('processing_escrow', 'جاري تأمين المادة في الضمان...'));
-      
+
       setTimeout(() => {
         unlock();
-        
+
         CartStore.addItem({
           id: itemId,
           name: itemName,
@@ -491,7 +491,8 @@ let cartTimerInterval: number | null = null;
 
 function showExpirationModal() {
   const modal = document.createElement('div');
-  modal.className = 'fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fade-in';
+  modal.className =
+    'fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fade-in';
   modal.innerHTML = `
     <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-sm shadow-xl transform scale-100 animate-pop-in border border-slate-200 dark:border-slate-700">
       <div class="size-12 rounded-full bg-rose-50 dark:bg-rose-900/30 text-rose-500 flex items-center justify-center mb-4 mx-auto">
@@ -522,7 +523,7 @@ function startCartLockTimer() {
   if (!timerContainer || !countdownEl) return;
 
   timerContainer.classList.remove('nm-hidden');
-  
+
   if (cartTimerInterval) {
     window.clearInterval(cartTimerInterval);
   }
@@ -530,17 +531,20 @@ function startCartLockTimer() {
   const LOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
   const expiryTime = Date.now() + LOCK_DURATION_MS;
   localStorage.setItem('cart_lock_expiry', expiryTime.toString());
-  
+
   const updateDisplay = () => {
     const now = Date.now();
     const timeLeft = Math.max(0, Math.floor((expiryTime - now) / 1000));
-    
-    const mins = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+
+    const mins = Math.floor(timeLeft / 60)
+      .toString()
+      .padStart(2, '0');
     const secs = (timeLeft % 60).toString().padStart(2, '0');
     countdownEl.textContent = `${mins}:${secs}`;
-    
+
     // Ensure warning yellow class is present initially
-    countdownEl.className = 'text-xs font-black text-warning-yellow tracking-widest font-mono relative z-10 transition-colors';
+    countdownEl.className =
+      'text-xs font-black text-warning-yellow tracking-widest font-mono relative z-10 transition-colors';
 
     if (timeLeft <= 60 && timeLeft > 0) {
       countdownEl.classList.add('text-red-500', 'animate-pulse');
@@ -549,7 +553,7 @@ function startCartLockTimer() {
 
     if (timeLeft <= 0) {
       if (cartTimerInterval) window.clearInterval(cartTimerInterval);
-      countdownEl.textContent = "00:00";
+      countdownEl.textContent = '00:00';
       showExpirationModal();
       setTimeout(() => timerContainer.classList.add('nm-hidden'), 3000);
     }

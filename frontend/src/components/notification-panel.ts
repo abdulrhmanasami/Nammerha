@@ -534,7 +534,9 @@ async function loadNotifications(): Promise<void> {
 
         // Mark as read (optimistic, fire-and-forget)
         if (notifId && item.classList.contains('nm-notif-unread')) {
-          notifications.markAsRead(notifId).catch(() => { /* best-effort */ });
+          notifications.markAsRead(notifId).catch(() => {
+            /* best-effort */
+          });
           updateBadge();
         }
 
@@ -583,8 +585,8 @@ function renderNotificationItem(n: Notification): string {
                 <i class="ph ${config.icon}" aria-hidden="true"></i>
             </div>
             <div class="nm-notif-item-content">
-                <p class="nm-notif-item-title">${escapeHtml(n.title)}</p>
-                <p class="nm-notif-item-body">${escapeHtml(n.body)}</p>
+                <p class="nm-notif-item-title" dir="auto">${escapeHtml(n.title)}</p>
+                <p class="nm-notif-item-body" dir="auto">${escapeHtml(n.body)}</p>
                 <time class="nm-notif-item-time">${relativeTimeAgo(n.created_at)}</time>
             </div>
             ${markBtn}

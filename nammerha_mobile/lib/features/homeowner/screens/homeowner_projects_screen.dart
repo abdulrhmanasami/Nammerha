@@ -375,6 +375,9 @@ class _CreateProjectSheetState extends State<_CreateProjectSheet> {
                       accuracy: LocationAccuracy.high,
                     ),
                   );
+                  if (position.isMocked) {
+                    throw Exception('Mock location detected. Please disable fake GPS.');
+                  }
                   gpsLat = position.latitude;
                   gpsLng = position.longitude;
                 } catch (e) {

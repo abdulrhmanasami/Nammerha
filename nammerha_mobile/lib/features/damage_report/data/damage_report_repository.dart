@@ -16,11 +16,15 @@ class DamageReportRepository {
         permission == LocationPermission.deniedForever) {
       throw Exception(ErrorKeys.gpsPermissionRequired);
     }
-    return await Geolocator.getCurrentPosition(
+    final position = await Geolocator.getCurrentPosition(
       locationSettings: const LocationSettings(
         accuracy: LocationAccuracy.high,
       ),
     );
+    if (position.isMocked) {
+      throw Exception('Mock location detected. Please disable fake GPS.');
+    }
+    return position;
   }
 
   Future<void> submitReport(DamageReportData data) async {

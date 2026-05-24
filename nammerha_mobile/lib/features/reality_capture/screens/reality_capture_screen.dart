@@ -513,6 +513,10 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
         ),
       );
 
+      if (position.isMocked) {
+        throw Exception('Mock location detected. Please disable fake GPS.');
+      }
+
       // Step 3: Read bytes
       final Uint8List bytes = await image.readAsBytes();
 
