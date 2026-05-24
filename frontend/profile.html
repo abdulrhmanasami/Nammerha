@@ -164,7 +164,7 @@
                 autocomplete="name"
                 enterkeyhint="next"
                 class="nm-input"
-              />
+              dir="auto" />
             </div>
             <div>
               <label
@@ -180,7 +180,7 @@
                 enterkeyhint="next"
                 autocomplete="email"
                 class="nm-input"
-              />
+              dir="auto" />
             </div>
             <!-- GAP-005 FIX: Phone number field — fulfills completion checklist data-completion="phone".
              Standard: Apple HIG — "Use appropriate keyboard types for input fields."
@@ -206,7 +206,7 @@
                   placeholder="+963 XXX XXX XXXX"
                   data-i18n-placeholder="phone_placeholder"
                   class="nm-input nm-input-icon"
-                />
+                dir="auto" />
               </div>
             </div>
             <!-- GAP-005 FIX: Profile photo upload — fulfills completion checklist data-completion="photo".
@@ -323,7 +323,7 @@
                   autocomplete="current-password"
                   enterkeyhint="next"
                   class="nm-input mt-1"
-                />
+                dir="auto" />
               </div>
               <div>
                 <label
@@ -338,7 +338,7 @@
                   autocomplete="new-password"
                   enterkeyhint="next"
                   class="nm-input mt-1"
-                />
+                dir="auto" />
                 <!-- FRC-NEW-03 FIX: Password strength indicator — was missing from profile change form.
                  Auth registration has this (#pw-strength-bars) but password changes had no feedback.
                  Standard: Security UX Best Practices, Parity with Registration UX. -->
@@ -373,7 +373,7 @@
                   autocomplete="new-password"
                   enterkeyhint="done"
                   class="nm-input mt-1"
-                />
+                dir="auto" />
               </div>
               <div
                 id="password-change-banner"
@@ -409,7 +409,7 @@
                 <span
                   class="inline-block h-3 w-8 bg-slate-200 rounded animate-pulse"
                   data-skeleton
-                ></span>
+                 aria-hidden="true"></span>
               </span>
             </div>
             <!-- GAP-X03 FIX: ARIA semantics for profile completion progress bar. -->

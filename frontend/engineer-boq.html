@@ -120,7 +120,7 @@
               placeholder="ابحث عن مواد البناء..."
               data-i18n-placeholder="eng_search_materials"
               enterkeyhint="search"
-            />
+            dir="auto" />
             <!-- GAP-UX-005 FIX: Removed dead microphone icon — voice search not implemented.
              Previous: mic icon implied voice search existed. Tapping did nothing.
              Standard: Honest Affordance Principle, Nielsen #2 (Match System ↔ Real World). -->
@@ -144,7 +144,7 @@
         <!-- Loading skeleton: replaced by JS on DOMContentLoaded -->
         <div
           class="boq-skeleton animate-pulse flex gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-100 dark:bg-dark-surface dark:border-dark-border"
-        >
+         aria-hidden="true">
           <div class="bg-slate-200 rounded-lg size-20 shrink-0"></div>
           <div class="flex flex-1 flex-col gap-3">
             <div class="h-4 bg-slate-200 rounded w-3/4"></div>
@@ -157,7 +157,7 @@
         </div>
         <div
           class="boq-skeleton animate-pulse flex gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-100 dark:bg-dark-surface dark:border-dark-border"
-        >
+         aria-hidden="true">
           <div class="bg-slate-200 rounded-lg size-20 shrink-0"></div>
           <div class="flex flex-1 flex-col gap-3">
             <div class="h-4 bg-slate-200 rounded w-2/3"></div>

@@ -211,7 +211,7 @@
           class="w-full bg-slate-200/50 border-none rounded-full py-2 ps-10 pe-4 text-sm focus:ring-2 focus:ring-trust-blue/50 transition-all outline-none dark:bg-white/5"
           placeholder="Search reconstruction projects..."
           data-i18n-placeholder="search_placeholder"
-        />
+        dir="auto" />
       </div>
       <!-- PLT-UX-AUD P0-GHOST-001 FIX: Cart icon replaced with Wallet link.
            Previous: Linked to donor-basket.html — a dead page (donations suspended).
@@ -407,7 +407,7 @@
                 خريطة حية لمناطق إعادة الإعمار
               </p>
               <div class="flex items-center gap-1 mt-1">
-                <span class="size-2 rounded-full bg-smoky-jade animate-pulse-dot"></span>
+                <span class="size-2 rounded-full bg-smoky-jade animate-pulse-dot" aria-hidden="true"></span>
                 <!-- INC-002 FIX: text-[11px] → text-3xs — micro-hint tier (map overlay metadata). -->
                 <span id="map-active-count" class="text-3xs opacity-70" data-i18n="active_projects"
                   >— مشروع نشط</span
@@ -496,7 +496,7 @@
           <div id="projects-skeleton" class="flex gap-4">
             <div
               class="min-w-[280px] w-[280px] glass-card rounded-2xl overflow-hidden shadow-md animate-pulse snap-start snap-always"
-            >
+             aria-hidden="true">
               <div class="h-44 bg-slate-200"></div>
               <div class="p-4 space-y-3">
                 <div class="h-4 bg-slate-200 rounded w-3/4"></div>
@@ -507,7 +507,7 @@
             </div>
             <div
               class="min-w-[280px] w-[280px] glass-card rounded-2xl overflow-hidden shadow-md animate-pulse snap-start snap-always"
-            >
+             aria-hidden="true">
               <div class="h-44 bg-slate-200"></div>
               <div class="p-4 space-y-3">
                 <div class="h-4 bg-slate-200 rounded w-3/4"></div>
@@ -551,7 +551,7 @@
                      Previous: '—' was indistinguishable from zero/error/loading.
                      Standard: Nielsen #1 (System Status), FinTech UX (Financial Data Clarity). -->
                 <span id="impact-trend" class="animate-pulse"
-                  ><span class="inline-block h-3 w-8 bg-smoky-jade/30 rounded"></span
+                   aria-hidden="true"><span class="inline-block h-3 w-8 bg-smoky-jade/30 rounded"></span
                 ></span>
               </span>
               <span class="text-slate-400 text-3xs dark:text-slate-500" data-i18n="vs_quarter"

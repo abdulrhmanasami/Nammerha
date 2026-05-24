@@ -776,8 +776,12 @@ html[data-theme='dark'] :focus-visible {
     transform: translateX(100%);
   }
 }
+@keyframes skeleton-debounce {
+  0% { opacity: 0; visibility: hidden; }
+  100% { opacity: 1; visibility: visible; }
+}
 .animate-pulse {
-  animation: none !important;
+  animation: skeleton-debounce 0s 200ms backwards !important;
   position: relative;
   overflow: hidden;
   background-color: var(--surface-soft) !important;
