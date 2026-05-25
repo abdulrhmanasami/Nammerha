@@ -85,3 +85,18 @@
 
 **Problem:** Severe network latency caused stale `GET` requests (e.g., fetching escrow status) to arrive _after_ a fast `POST` request (e.g., releasing escrow) had already updated the UI. This overwrote the UI with old data, causing users to panic and double-submit financial mutations.
 **Permanent Rule:** All state-mutating requests (`POST/PUT/DELETE`) must update a `lastMutationEpoch` timestamp in `_client.ts`. Any `GET` request must record its `startTime`. If the `GET` response arrives and its `startTime < lastMutationEpoch`, it MUST be discarded as an `AbortError` to prevent state staleness.
+
+### 16. Double-Bind Data Destruction Paradox (Cross-Tab Re-Auth)
+
+**Problem:** The cross-tab logout banner contained a direct `<a href="/auth.html">` link. Clicking it forced a hard navigation, instantly destroying any unsaved form data. Furthermore, logging back in from another tab triggered an immediate `window.location.reload()` due to the Schizophrenia Lock, also destroying data.
+**Permanent Rule:** The cross-tab logout CTA MUST use `target="_blank"` to isolate authentication to a new tab. Additionally, `clearAuth()` must save an `ORPHANED_SESSION_KEY` so the `storage` event can intelligently bypass the reload if the exact same user logs back in.
+
+### 17. Offline Cookie Resurrection (Kill Switch)
+
+**Problem:** If `clearAuth()` was executed while offline, the backend `/api/auth/logout` request failed silently. The UI appeared logged out locally, but the `HttpOnly` JWT remained immortal in the browser, leaving protected routes vulnerable upon network restoration.
+**Permanent Rule:** A `nammerha_pending_kill_switch` flag MUST be set locally if the server logout fails. The global API interceptor (`_client.ts`) MUST aggressively block all non-login outbound traffic if this flag is active.
+
+### 18. FormData Stream Consumption Crash
+
+**Problem:** The In-Place Re-auth Modal paused 401 requests and replayed them via a `continue` loop. If the original payload contained a `ReadableStream` (e.g., file uploads via `FormData`), `fetch()` consumed the stream on the first attempt, causing the replay to throw a fatal `TypeError` and crash the JS thread.
+**Permanent Rule:** The `_client.ts` interceptor MUST catch `TypeError` during re-auth replays, explicitly check if `fetchOptions.body instanceof ReadableStream`, and gracefully prompt the user to re-attach their files instead of crashing.

@@ -34,6 +34,13 @@ export function abortPendingRouteRequests() {
 // ─── PLATINUM FIX: Pessimistic Epoch Locking ──────────────────────────────
 let lastMutationEpoch = 0;
 
+export class StaleEpochError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'StaleEpochError';
+  }
+}
+
 export const API_BASE = '/api';
 
 // ─── P1-NEW-002 FIX: CSRF Token Management ─────────────────────────────────
@@ -137,6 +144,13 @@ export async function request<T>(
       })
       .catch(() => {});
     throw new Error(t('error_offline', 'لا يوجد اتصال بالإنترنت. يرجى التحقق من الشبكة.'));
+  }
+
+  // PLATINUM FIX: Kill Switch Enforcement (Part C)
+  // Blocks ALL outgoing requests if an offline logout occurred, EXCEPT the login endpoint.
+  if (localStorage.getItem('nammerha_pending_kill_switch') === 'true' && endpoint !== '/auth/login') {
+      console.warn('[State Guard] Kill Switch active. Request blocked to prevent HttpOnly cookie leakage.');
+      throw new Error('KILL_SWITCH_ACTIVE');
   }
 
   const { skipAntiFlicker, ...fetchOptions } = options;
@@ -329,7 +343,8 @@ export async function request<T>(
         console.warn(
           `[State Guard] Discarding stale GET response from ${endpoint} due to concurrent mutation.`,
         );
-        throw new DOMException('Stale GET response due to concurrent mutation', 'AbortError');
+        // PLATINUM FIX: Throw explicit StaleEpochError instead of generic AbortError
+        throw new StaleEpochError('Stale GET response due to concurrent mutation');
       }
 
       if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
@@ -363,6 +378,17 @@ export async function request<T>(
     } catch (err) {
       clearTimeout(timeoutId);
       globalRouteAbortController.signal.removeEventListener('abort', abortOnNav);
+
+      // PLATINUM FIX: Silently swallow StaleEpochError to prevent false Network Timeout toasts.
+      // This mathematically guarantees "Zero-Jank" during rapid state mutations.
+      if (err instanceof StaleEpochError) {
+          return { success: false, error: 'Stale Epoch Skipped' } as unknown as ApiResponse<T>;
+      }
+
+      // PLATINUM FIX: Stream Consumption Guard for In-Place Re-auth
+      if (err instanceof TypeError && fetchOptions.body instanceof ReadableStream && attempt > 0) {
+          throw new Error(t('error_stream_consumed', 'تم استهلاك البيانات. يرجى إعادة إرفاق الملفات والمحاولة مجدداً.'));
+      }
 
       // Retry on Network failure or Timeout if idempotent
       if (

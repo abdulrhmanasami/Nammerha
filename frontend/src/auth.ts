@@ -40,6 +40,7 @@ export interface AuthUser {
 
 const STORAGE_KEY = 'nammerha_auth';
 const DEV_USER_KEY = 'nammerha_dev_user_id';
+const ORPHANED_SESSION_KEY = 'nammerha_orphaned_uid';
 
 // ─── Auth State ─────────────────────────────────────────────────────────────
 let currentUser: AuthUser | null = null;
@@ -75,6 +76,11 @@ export function setCurrentUser(user: AuthUser): void {
 }
 
 export function clearAuth(skipServerLogout = false): void {
+  // Store the UID before wiping it, so cross-tab re-logins know if it's the same person
+  if (currentUser) {
+    sessionStorage.setItem(ORPHANED_SESSION_KEY, currentUser.user_id);
+  }
+  
   currentUser = null;
   localStorage.removeItem(STORAGE_KEY);
   // V1-AUDIT FIX: Token is now in httpOnly cookie — cleared server-side.
@@ -87,9 +93,16 @@ export function clearAuth(skipServerLogout = false): void {
   // Fire-and-forget: cookie clearance is best-effort, non-blocking.
   // Standard: OWASP Session Management, NIST SP 800-63B.
   if (!skipServerLogout) {
-    fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' }).catch(() => {
-      /* best-effort — network may be unavailable */
-    });
+    fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' })
+      .then((res) => {
+        if (!res.ok) throw new Error('Logout Network Failure');
+      })
+      .catch(() => {
+        // PLATINUM FIX: If server logout fails (offline), flag the browser locally.
+        // The API Interceptor MUST read this flag and block any outgoing requests 
+        // until a successful 401 or explicit re-login clears it.
+        localStorage.setItem('nammerha_pending_kill_switch', 'true');
+      });
   }
   localStorage.removeItem(DEV_USER_KEY);
 }
@@ -116,6 +129,12 @@ if (typeof window !== 'undefined') {
     if (e.key === STORAGE_KEY && e.newValue === null && e.oldValue !== null) {
       // Another tab cleared auth → session is gone
       currentUser = null;
+      
+      // Store orphaned UID for this tab to allow safe re-entry
+      try {
+         const oldData = JSON.parse(e.oldValue);
+         sessionStorage.setItem(ORPHANED_SESSION_KEY, oldData.user_id);
+      } catch (err) {}
 
       // A5 FIX: Show a non-blocking banner instead of instant redirect.
       // This preserves any unsaved form data the user has in progress.
@@ -140,12 +159,13 @@ if (typeof window !== 'undefined') {
       // W3-P1-005 FIX: Wrap i18n strings with escapeHtml() to prevent XSS.
       // Previous: Raw logoutMsg/signInText from t() used in innerHTML.
       // Standard: AGENTS.md mandatory escapeHtml() pattern for all innerHTML.
+      // PLATINUM FIX: target="_blank" forces auth in a new tab to preserve data.
       banner.innerHTML = `
                 <div class="flex items-center gap-2 min-w-0">
                     <i class="ph ph-warning-circle shrink-0 text-lg" aria-hidden="true"></i>
                     <span class="text-sm font-medium truncate">${escapeHtml(logoutMsg)}</span>
                 </div>
-                <a href="/auth.html" class="shrink-0 bg-white text-red-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-red-50 transition-colors no-underline">
+                <a href="/auth.html" target="_blank" rel="noopener noreferrer" class="shrink-0 bg-white text-red-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-red-50 transition-colors no-underline">
                     ${escapeHtml(signInText)}
                 </a>
             `;
@@ -175,11 +195,16 @@ if (typeof window !== 'undefined') {
         const newUser = JSON.parse(e.newValue) as AuthUser;
         const oldUser = e.oldValue ? JSON.parse(e.oldValue) as AuthUser : null;
 
+        // PLATINUM FIX: Safe Re-entry Logic.
+        // If oldUser is null, check if the newUser matches the orphaned session.
+        const orphanedUid = sessionStorage.getItem(ORPHANED_SESSION_KEY);
+        const isSameUserReturning = (!oldUser && orphanedUid === newUser.user_id);
+
         // P5-UXA-005 FIX: Cross-Tab State Schizophrenia Lock
         // If the user logs in as someone else in another tab (or logs in from a logged-out state),
         // the current tab's DOM represents stale/wrong user data. We MUST force reload
         // to prevent actions being taken under the new user's HttpOnly JWT.
-        if (!oldUser || oldUser.user_id !== newUser.user_id) {
+        if (!isSameUserReturning && (!oldUser || oldUser.user_id !== newUser.user_id)) {
           window.location.reload();
           return;
         }
@@ -188,6 +213,10 @@ if (typeof window !== 'undefined') {
         if (currentUser && !currentUser.roles) {
           currentUser.roles = [currentUser.role];
         }
+        
+        // Clear pending kill switch on successful validated login
+        localStorage.removeItem('nammerha_pending_kill_switch');
+        sessionStorage.removeItem(ORPHANED_SESSION_KEY);
       } catch {
         /* malformed data — ignore */
       }
