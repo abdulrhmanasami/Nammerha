@@ -276,9 +276,49 @@ class RealityCaptureBloc extends Bloc<RealityCaptureEvent, RealityCaptureState> 
     
     if (offlineCapturesRaw.isEmpty) return;
     
-    // In a real implementation, we would loop and dispatch SubmitCapture events
-    // For now, this resolves the Offline Resilience stub for Platinum standard.
-    // The queue will be cleared once successfully uploaded.
+    // Clear the queue from prefs *before* syncing to prevent infinite duplicates.
+    // If a sync fails, the _onSubmit block will automatically re-save it to disk.
+    await prefs.setStringList('nammerha_offline_captures', []);
+    
+    emit(const CaptureUploading('msg_saving_offline'));
+
+    for (final raw in offlineCapturesRaw) {
+      try {
+        final payload = jsonDecode(raw) as Map<String, dynamic>;
+        final file = File(payload['filePath']);
+        if (!await file.exists()) continue;
+
+        final bytes = await file.readAsBytes();
+        
+        final phaseValue = payload['phase'] as String;
+        final phase = ConstructionPhase.values.firstWhere(
+          (p) => p.value == phaseValue, 
+          orElse: () => ConstructionPhase.structural
+        );
+        
+        final typeStr = payload['captureType'] as String;
+        final captureType = typeStr == CaptureType.photo360.toString() 
+            ? CaptureType.photo360 
+            : CaptureType.video360;
+
+        add(SubmitCapture(
+          projectId: payload['projectId'],
+          imageBytes: bytes,
+          phase: phase,
+          captureType: captureType,
+          title: payload['title'],
+          description: payload['description'],
+          gpsLat: payload['gpsLat'] ?? 0.0,
+          gpsLng: payload['gpsLng'] ?? 0.0,
+          gpsAccuracy: payload['gpsAccuracy'] ?? 0.0,
+        ));
+        
+        // Clean up the local file since we've read its bytes into memory
+        await file.delete();
+      } catch (e) {
+        // Log locally, ignore malformed entries so they don't block the queue
+      }
+    }
   }
 
   Future<void> _onHiddenWorks(LoadHiddenWorks event, Emitter<RealityCaptureState> emit) async {

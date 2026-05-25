@@ -16,11 +16,15 @@ import { tryApplyI18n } from './i18n-apply';
  *   default → 'en-US'
  */
 export function getLocale(): string {
-    // LOCALE-001: Default to Arabic — Nammerha's primary audience is Syrian.
-    const lang = document.documentElement.lang || 'ar';
-    if (lang === 'ar') { return 'ar-SY'; }
-    if (lang === 'tr') { return 'tr-TR'; }
-    return 'en-US';
+  // LOCALE-001: Default to Arabic — Nammerha's primary audience is Syrian.
+  const lang = document.documentElement.lang || 'ar';
+  if (lang === 'ar') {
+    return 'ar-SY';
+  }
+  if (lang === 'tr') {
+    return 'tr-TR';
+  }
+  return 'en-US';
 }
 
 /**
@@ -28,36 +32,45 @@ export function getLocale(): string {
  * Returns '—' for empty, null, or invalid dates.
  */
 export function formatDate(iso: string | null | undefined): string {
-    if (!iso) { return '—'; }
-    try {
-        return new Date(iso).toLocaleDateString(getLocale(), {
-            month: 'short', day: 'numeric', year: 'numeric',
-        });
-    } catch {
-        /* Intentional: Invalid ISO string → show em-dash fallback.
+  if (!iso) {
+    return '—';
+  }
+  try {
+    return new Date(iso).toLocaleDateString(getLocale(), {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  } catch {
+    /* Intentional: Invalid ISO string → show em-dash fallback.
            Date constructor may throw on malformed input from API. */
-        return '—';
-    }
+    return '—';
+  }
 }
 
 /**
  * Formats an ISO date string with date AND time using the current page locale.
  * P1-001 FIX: Deduplication — replaces local formatDate copies in
- * donor-proof.ts and wallet.ts that included hour/minute formatting.
+ * user-proof.ts and wallet.ts that included hour/minute formatting.
  * Returns '—' for empty, null, or invalid dates.
  */
 export function formatDateTime(iso: string | null | undefined): string {
-    if (!iso) { return '—'; }
-    try {
-        return new Date(iso).toLocaleString(getLocale(), {
-            month: 'short', day: 'numeric', year: 'numeric',
-            hour: '2-digit', minute: '2-digit',
-        });
-    } catch {
-        /* Intentional: Invalid ISO string → show em-dash fallback.
+  if (!iso) {
+    return '—';
+  }
+  try {
+    return new Date(iso).toLocaleString(getLocale(), {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  } catch {
+    /* Intentional: Invalid ISO string → show em-dash fallback.
            Date constructor may throw on malformed input from API. */
-        return '—';
-    }
+    return '—';
+  }
 }
 
 /**
@@ -72,6 +85,6 @@ export { formatCents } from './format';
  * Checks for the global `applyI18n` function injected by the i18n bridge.
  */
 export function applyI18n(): void {
-    // TICK-033: Use shared type-safe tryApplyI18n() instead of unsafe window cast.
-    tryApplyI18n();
+  // TICK-033: Use shared type-safe tryApplyI18n() instead of unsafe window cast.
+  tryApplyI18n();
 }

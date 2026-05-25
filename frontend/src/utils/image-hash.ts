@@ -15,7 +15,7 @@
 //   - "Absolute Spatial Reality" standard: proof integrity is paramount
 //   - Detects man-in-the-middle tampering between upload and storage
 //   - Provides independent chain of custody: hash computed BEFORE upload
-//   - Verifiable by donor/auditor: client hash vs server hash must match
+//   - Verifiable by user/auditor: client hash vs server hash must match
 //
 // Standard: SubtleCrypto.digest() — W3C Web Cryptography API
 // ============================================================================
@@ -30,7 +30,7 @@ import { hashBlob, hashDataUrl, tryHashBlob } from '../workers/crypto-bridge';
  * @throws If Web Crypto API is unavailable (insecure context or very old browser)
  */
 export async function computeImageHash(blob: Blob): Promise<string> {
-    return hashBlob(blob);
+  return hashBlob(blob);
 }
 
 /**
@@ -40,7 +40,7 @@ export async function computeImageHash(blob: Blob): Promise<string> {
  * @param dataUrl - e.g. "data:image/jpeg;base64,/9j/4AAQ..."
  */
 export async function computeHashFromDataUrl(dataUrl: string): Promise<string> {
-    return hashDataUrl(dataUrl);
+  return hashDataUrl(dataUrl);
 }
 
 /**
@@ -48,5 +48,5 @@ export async function computeHashFromDataUrl(dataUrl: string): Promise<string> {
  * Never throws — for use in non-critical paths where hash is optional.
  */
 export async function tryComputeImageHash(blob: Blob): Promise<string | null> {
-    return tryHashBlob(blob);
+  return tryHashBlob(blob);
 }

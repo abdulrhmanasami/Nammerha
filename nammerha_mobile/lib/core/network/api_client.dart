@@ -368,12 +368,12 @@ class NammerhaApiClient {
   //
   // Usage:
   //   final result = await _api.graphql<Map<String, dynamic>>(
-  //     query: EscrowMutations.createDonation,
+  //     query: EscrowMutations.createPaymentIntent,
   //     variables: {'input': {...}},
-  //     operationName: 'CreateDonation',
+  //     operationName: 'CreatePaymentIntent',
   //     idempotent: true,
   //   );
-  //   final checkoutUrl = result['createDonation']['checkoutUrl'];
+  //   final checkoutUrl = result['createPaymentIntent']['checkoutUrl'];
 
   /// Execute a GraphQL query or mutation against the backend.
   ///

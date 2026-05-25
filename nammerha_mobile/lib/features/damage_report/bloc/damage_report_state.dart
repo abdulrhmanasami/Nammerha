@@ -32,3 +32,7 @@ class DamageReportError extends DamageReportState {
 class DamageReportSuccess extends DamageReportState {
   const DamageReportSuccess(super.formData);
 }
+
+class DamageReportOfflineSaved extends DamageReportState {
+  const DamageReportOfflineSaved(super.formData);
+}

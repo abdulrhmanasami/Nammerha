@@ -208,7 +208,7 @@ function buildBOQCard(item: BOQItem, projectId: string): string {
   const unitPriceDollars = (item.unit_price / 100).toFixed(2);
 
   // ═══════════════════════════════════════════════════════════════════════
-  // F-002 FIX: OCDS Transparency View when donations are suspended.
+  // F-002 FIX: OCDS Transparency View when payments are suspended.
   // Previous: Showed pricing, progress bars, and disabled "Funding Coming
   // Soon" buttons — creating an elaborate window-shopping dead-end.
   // Now: Renders as an informational transparency card with material name,

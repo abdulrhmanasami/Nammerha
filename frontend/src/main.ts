@@ -19,7 +19,7 @@ import { formatCents } from './utils/format';
 import { registerServiceWorker } from './offline/sw-register';
 import './offline/network-status'; // Self-injecting: bilingual offline status bar
 import './utils/cart-sync'; // INC-N05 FIX: Cross-page cart badge sync via Storage API
-// P0-001 FIX: Gate homepage CTA text behind feature flag — suspended donations → "View Details".
+// P0-001 FIX: Gate homepage CTA text behind feature flag — suspended payments → "View Details".
 import { CART_CHECKOUT_ENABLED } from './utils/feature-flags';
 import { autoTriggerTour } from './components/tour-engine';
 // P0-004 FIX: Post-registration onboarding — shows task-oriented role selection
@@ -68,26 +68,24 @@ initWelcomeChooser();
 // with a map container. Other pages (auth, wallet, profile, etc.) skip it entirely.
 // The map module self-initializes on DOMContentLoaded.
 async function initMapIfNeeded(): Promise<void> {
-  if (
-    document.getElementById('main-map') ||
-    document.getElementById('map') ||
-    document.getElementById('nammerha-map')
-  ) {
-    // FRC-008 FIX: 5s timeout (was 15s — eternity on Syrian 2G).
-    // Apple HIG: "Provide immediate feedback."
-    const mapContainer =
-      document.getElementById('main-map') ??
-      document.getElementById('map') ??
-      document.getElementById('nammerha-map');
+  const mapContainer =
+    document.getElementById('main-map') ??
+    document.getElementById('map') ??
+    document.getElementById('nammerha-map');
+
+  if (!mapContainer) return;
+
+  async function attemptLoad() {
+    let timeoutFired = false;
     const fallbackTimer = setTimeout(() => {
+      timeoutFired = true;
+      showFallback();
+    }, 5_000);
+
+    function showFallback() {
       if (mapContainer && !mapContainer.querySelector('canvas')) {
-        // Map didn't render within 5s — show fallback
         const overlay = mapContainer.closest('.relative')?.querySelector('.glass-card');
         if (overlay) {
-          // NMR-MAIN-001 FIX: Replaced inline onclick="location.reload()" with
-          // addEventListener for CSP compliance (script-src 'self').
-          // Previous: inline handler — blocked by CSP, making retry button dead.
-          // Standard: CONF-CSP-01 pattern, WHATWG CSP Level 3.
           overlay.innerHTML = `
                         <div class="flex flex-col items-center gap-3 text-center p-4">
                             <i class="ph ph-map-trifold text-slate-400 nm-icon-40 dark:text-slate-500" aria-hidden="true"></i>
@@ -99,24 +97,36 @@ async function initMapIfNeeded(): Promise<void> {
                             </button>
                         </div>`;
           overlay.querySelector('#map-retry-btn')?.addEventListener('click', () => {
-            location.reload();
+            overlay.innerHTML = `<div class="flex items-center justify-center p-4"><i class="ph ph-spinner animate-spin text-trust-blue nm-icon-32" aria-hidden="true"></i></div>`;
+            attemptLoad();
           });
           applyI18n();
         }
       }
-    }, 5_000);
+    }
 
     try {
-      await import('./pages/homepage-map');
+      // PLATINUM UX FIX: Cache-bust the import to force network retry, avoiding poisoned module cache.
+      await import(/* @vite-ignore */ `./pages/homepage-map?retry=${Date.now()}`);
       clearTimeout(fallbackTimer);
+      // Clean up overlay if it was shown during a slow load that eventually succeeded
+      const overlay = mapContainer!.closest('.relative')?.querySelector('.glass-card');
+      if (overlay && timeoutFired) {
+        overlay.innerHTML = '';
+      }
     } catch {
       clearTimeout(fallbackTimer);
+      if (!timeoutFired) {
+        showFallback();
+      }
       reportWarning('[Dashboard] Map module failed to load', {
         component: 'main',
         action: 'init_map',
       });
     }
   }
+
+  attemptLoad();
 }
 
 // ─── Project Card Template ──────────────────────────────────────────────────
@@ -152,7 +162,7 @@ function buildProjectCard(project: ProjectCard, index: number): string {
 
   // ═══════════════════════════════════════════════════════════════════════
   // P0-001 FIX: Gate CTA text behind CART_CHECKOUT_ENABLED feature flag.
-  // Previous: "Fund Now" shown even when donations are suspended, leading
+  // Previous: "Fund Now" shown even when payments are suspended, leading
   // to project-details.html where BOQ items are read-only — a dead-end
   // journey that destroys FinTech trust.
   // Now: Shows "View Details" when funding is suspended, "Fund Now" when active.

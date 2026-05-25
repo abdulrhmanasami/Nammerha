@@ -24,7 +24,7 @@ import 'debounced_navigator.dart';
 ///   4. Graceful fallback: if required IDs are missing, mark as read only
 ///
 /// Backend NotificationType enum values (from types/index.ts):
-///   donation_received, proof_submitted, funds_released, delivery_confirmed,
+///   project_funding_milestone, proof_submitted, funds_released, delivery_confirmed,
 ///   engineer_assigned, po_generated, project_published, kyc_approved,
 ///   kyc_rejected, discrepancy_flagged, refund_approved, refund_rejected
 ///
@@ -156,10 +156,10 @@ class NotificationNavigator {
 
   static bool _isProjectType(String type) {
     return const {
-      // AUD-024 VERIFIED: 'donation_received' is a BACKEND CONTRACT KEY
-      // preserved per Donation Eradication KI. The backend still sends this
+      // AUD-024 VERIFIED: 'project_funding_milestone' is a BACKEND CONTRACT KEY
+      // preserved per payment Eradication KI. The backend still sends this
       // type in push payloads. DO NOT REMOVE without coordinated backend migration.
-      'donation_received',
+      'project_funding_milestone',
       'funding',
       'escrow',
       'proof_submitted',

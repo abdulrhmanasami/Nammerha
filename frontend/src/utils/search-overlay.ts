@@ -67,8 +67,8 @@ const PAGE_INDEX: SearchResult[] = [
     icon: 'user',
     i18nTitle: 'profile',
   },
-  // PLT-UX-AUD P0-GHOST-001 FIX: donor-basket removed — donations suspended indefinitely.
-  // PLT-UX-AUD P0-GHOST-001 FIX: donor-proof removed — donations suspended indefinitely.
+  // PLT-UX-AUD P0-GHOST-001 FIX: user-basket removed — payments suspended indefinitely.
+  // PLT-UX-AUD P0-GHOST-001 FIX: user-proof removed — payments suspended indefinitely.
   {
     title: 'Report Damage',
     title_ar: 'الإبلاغ عن ضرر',
@@ -105,8 +105,8 @@ const PAGE_INDEX: SearchResult[] = [
     icon: 'house-line',
     i18nTitle: 'homeowner_portal',
   },
-  // DONATIONS_DISABLED: Donor Portal hidden until donations feature is re-enabled
-  // { title: 'Donor Portal', title_ar: 'بوابة المتبرع', ... }
+  // payments_DISABLED: user Portal hidden until payments feature is re-enabled
+  // { title: 'user Portal', title_ar: 'بوابة المتبرع', ... }
   {
     title: 'Contractor Dashboard',
     title_ar: 'لوحة المقاول',

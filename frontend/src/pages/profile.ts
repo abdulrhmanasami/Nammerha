@@ -234,8 +234,8 @@ async function loadUserRoles(): Promise<void> {
     // Fall back to cached roles
   }
 
-  // FORENSIC-C1.11 FIX: Filter out suspended 'donor' role from display.
-  roles = roles.filter((r) => r !== 'donor');
+  // FORENSIC-C1.11 FIX: Filter out suspended 'user' role from display.
+  roles = roles.filter((r) => r !== 'user');
 
   if (roles.length === 0) {
     rolesListEl.innerHTML = `
@@ -301,8 +301,8 @@ async function loadAvailableRoles(): Promise<void> {
     const available = result.data.filter(
       (r) =>
         !userRoles.includes(r.role_name as UserRole) &&
-        // FORENSIC-C1.11 FIX: 'donor' excluded — donation system suspended.
-        !['admin', 'auditor', 'donor'].includes(r.role_name),
+        // FORENSIC-C1.11 FIX: 'user' excluded — payment system suspended.
+        !['admin', 'auditor', 'user'].includes(r.role_name),
     );
 
     if (available.length === 0) {

@@ -1,7 +1,7 @@
 import '../styles/main.css';
-import { DONATIONS_ENABLED } from '../utils/feature-flags';
+import { PAYMENTS_ENABLED } from '../utils/feature-flags';
 import { reportError, reportWarning } from '../error-reporter';
-import { donations, payments } from '../api';
+import { escrowPayments, payments } from '../api';
 import { escapeHtml } from '../utils/xss';
 import { formatCents } from '../utils/format';
 import { formatDate } from '../utils/locale';
@@ -81,9 +81,9 @@ function renderFilteredTransactions(container: HTMLElement, transactions: Transa
         icon: 'wallet',
         title: t('wallet_no_transactions', 'لا توجد معاملات بعد'),
         subtitle: t(
-          DONATIONS_ENABLED ? 'wallet_history_description_full' : 'wallet_history_description',
-          DONATIONS_ENABLED
-            ? 'Your donation and payment history will appear here'
+          PAYMENTS_ENABLED ? 'wallet_history_description_full' : 'wallet_history_description',
+          PAYMENTS_ENABLED
+            ? 'Your payment and payment history will appear here'
             : 'Your payment and escrow history will appear here',
         ),
       }),
@@ -114,10 +114,10 @@ async function loadEscrowSummary(): Promise<void> {
   const lockedEl = document.getElementById('locked-count');
   const releasedEl = document.getElementById('released-count');
 
-  // FORENSIC-C1.7 FIX: Donations API returns 503 when DONATIONS_ENABLED=false.
-  // Wallet is a universal page — it must NOT depend on the suspended donation system.
-  // When donations are suspended, show zeroed escrow balance gracefully.
-  if (!DONATIONS_ENABLED) {
+  // FORENSIC-C1.7 FIX: payments API returns 503 when PAYMENTS_ENABLED=false.
+  // Wallet is a universal page — it must NOT depend on the suspended payment system.
+  // When payments are suspended, show zeroed escrow balance gracefully.
+  if (!PAYMENTS_ENABLED) {
     // PLT-UX-AUD P3-ANIM-004 FIX: Entry animation for escrow summary (visual consistency).
     if (balanceEl) {
       balanceEl.textContent = formatCents(0);
@@ -137,7 +137,7 @@ async function loadEscrowSummary(): Promise<void> {
   }
 
   try {
-    const response = await donations.getMyEscrow();
+    const response = await escrowPayments.getMyEscrow();
     if (response.success && response.data) {
       // P3-AUD-NEW-003 FIX: Runtime guard — gracefully handle API shape drift
       const summary = response.data as Partial<EscrowSummary>;
@@ -269,17 +269,17 @@ async function loadTransactions(): Promise<void> {
   }
 
   try {
-    // FORENSIC-C1.7 FIX: Only fetch donation history when donations are enabled.
-    // Previously this always called donations.getMyHistory() which returns 503
-    // when DONATIONS_ENABLED=false on the backend, breaking the entire wallet page.
+    // FORENSIC-C1.7 FIX: Only fetch payment history when payments are enabled.
+    // Previously this always called escrowPayments.getMyHistory() which returns 503
+    // when PAYMENTS_ENABLED=false on the backend, breaking the entire wallet page.
     const fetches: Promise<unknown>[] = [payments.getMyPayments()];
-    if (DONATIONS_ENABLED) {
-      fetches.push(donations.getMyHistory());
+    if (PAYMENTS_ENABLED) {
+      fetches.push(escrowPayments.getMyHistory());
     }
 
     const [payRes, donRes] = (await Promise.allSettled(fetches)) as [
       PromiseSettledResult<Awaited<ReturnType<typeof payments.getMyPayments>>>,
-      PromiseSettledResult<Awaited<ReturnType<typeof donations.getMyHistory>>> | undefined,
+      PromiseSettledResult<Awaited<ReturnType<typeof escrowPayments.getMyHistory>>> | undefined,
     ];
 
     const transactions: Transaction[] = [];
@@ -453,11 +453,11 @@ function init(): void {
     document.getElementById('deposit-notify-btn')?.addEventListener('click', () => {
       haptic.light();
       depositDialog.close();
-      
+
       // UX PLATINUM FIX: Escrow Double-Click Anxiety (UI Freeze)
       // Lock the UI instantly when the user initiates a financial action
       const unlock = showProcessingLock(t('processing_secure', 'جاري المعالجة الآمنة...'));
-      
+
       setTimeout(() => {
         unlock();
         // Dynamic import: toast is only needed on this interaction path
@@ -485,10 +485,10 @@ function init(): void {
   if (addFundsBtn) {
     addFundsBtn.addEventListener('click', () => {
       haptic.medium(); // UX-004: Confirm action feedback
-      
+
       // UX PLATINUM FIX: Escrow Double-Click Anxiety (UI Freeze)
       const unlock = showProcessingLock(t('processing_secure', 'جاري إنشاء جلسة الدفع...'));
-      
+
       setTimeout(() => {
         unlock();
         // Show inline feedback banner with actionable context

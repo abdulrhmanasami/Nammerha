@@ -7,7 +7,7 @@ import '../../../core/i18n/t.dart';
 /// Renders time-series data with Trust Blue gradient bars.
 ///
 /// Used by admin_dashboard_screen.dart for projects-by-month and
-/// donations-by-month visualizations.
+/// payments-by-month visualizations.
 class AdminStatChart extends StatelessWidget {
   final List<ChartDataPoint> data;
   final String title;

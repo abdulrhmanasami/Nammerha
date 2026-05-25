@@ -24,7 +24,7 @@ class ImpactMessage {
   factory ImpactMessage.fromJson(Map<String, dynamic> json) {
     return ImpactMessage(
       id: json['id']?.toString() ?? '',
-      funderId: json['donor_id']?.toString() ?? '', // Backend contract key
+      funderId: json['user_id']?.toString() ?? '', // Backend contract key
       projectId: json['project_id']?.toString(),
       title: json['title']?.toString() ?? '',
       body: json['body']?.toString() ?? '',
@@ -40,7 +40,7 @@ class ImpactMessage {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'donor_id': funderId, // Backend contract key
+      'user_id': funderId, // Backend contract key
       'project_id': projectId,
       'title': title,
       'body': body,

@@ -15,11 +15,11 @@ import 'package:equatable/equatable.dart';
 
 /// All known notification types from the backend + FCM push payloads.
 ///
-/// Backend (types/index.ts): donation_received, proof_submitted, etc.
+/// Backend (types/index.ts): project_funding_milestone, proof_submitted, etc.
 /// FCM aliases: funding, escrow, proof, bid, order, delivery, etc.
 enum NotificationType {
   // ── Backend canonical types ──
-  donationReceived,
+  paymentReceived,
   proofSubmitted,
   fundsReleased,
   deliveryConfirmed,
@@ -35,7 +35,6 @@ enum NotificationType {
   // ── FCM mobile aliases ──
   bidAccepted,
   bidReceived,
-  paymentReceived,
   escrowReleased,
   projectUpdate,
   proofVerified,
@@ -59,9 +58,9 @@ enum NotificationType {
   static NotificationType fromString(String? raw) {
     if (raw == null || raw.isEmpty) return general;
     switch (raw.toLowerCase()) {
-      case 'donation_received':
-      case 'donation': // Legacy alias
-        return donationReceived;
+      case 'project_funding_milestone':
+      case 'payment': // Legacy alias
+        return paymentReceived;
       case 'proof_submitted':
         return proofSubmitted;
       case 'funds_released':
@@ -125,12 +124,11 @@ enum NotificationType {
   /// Maps the fine-grained types into 4 visual categories.
   NotificationIconCategory get iconCategory {
     switch (this) {
-      case donationReceived:
+      case paymentReceived:
       case funding:
       case escrow:
       case fundsReleased:
       case escrowReleased:
-      case paymentReceived:
         return NotificationIconCategory.financial;
       case proofSubmitted:
       case proofVerified:

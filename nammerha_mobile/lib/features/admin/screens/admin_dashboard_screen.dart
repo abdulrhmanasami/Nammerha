@@ -137,7 +137,7 @@ class _DashboardView extends StatelessWidget {
               children: [
                 _buildMiniStat(colors, context.tr('admin_users'), overview.totalUsers.toString(), PhosphorIconsRegular.users),
                 _divider(colors),
-                _buildMiniStat(colors, context.tr('admin_funding'), overview.totalDonations.toString(), PhosphorIconsRegular.heart),
+                _buildMiniStat(colors, context.tr('admin_funding'), overview.totalPayments.toString(), PhosphorIconsRegular.heart),
                 _divider(colors),
                 _buildMiniStat(colors, context.tr('admin_contractors'), overview.activeContractors.toString(), PhosphorIconsRegular.wrench),
               ],

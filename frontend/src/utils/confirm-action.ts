@@ -7,7 +7,7 @@
  * Previous (GAP-008): Built a custom div-based dialog with manual z-index,
  * manual .active class toggling, and manual backdrop rendering.
  * Problem: Two competing dialog systems existed — div-based (this file) and
- * native <dialog> (wallet.html, donor-basket.html). Mixing both leads to
+ * native <dialog> (wallet.html, user-basket.html). Mixing both leads to
  * unpredictable z-index layering and inconsistent UX.
  *
  * Now: Single dialog system using native HTML <dialog> element.
@@ -37,29 +37,29 @@
  */
 
 interface ConfirmActionOptions {
-    /** Dialog title text */
-    title: string;
-    /** Dialog message text */
-    message: string;
-    /** Confirm button label */
-    confirmLabel: string;
-    /** Cancel button label (default: "Cancel") */
-    cancelLabel?: string;
-    /** Phosphor icon name (without ph- prefix) */
-    icon?: string;
-    /** Visual variant: 'danger' or 'warning' */
-    variant?: 'danger' | 'warning';
-    /** i18n keys for auto-translation */
-    i18n?: {
-        title?: string;
-        message?: string;
-        confirm?: string;
-        cancel?: string;
-    };
-    /** Callback on confirmation */
-    onConfirm: () => void;
-    /** Optional callback on cancel */
-    onCancel?: () => void;
+  /** Dialog title text */
+  title: string;
+  /** Dialog message text */
+  message: string;
+  /** Confirm button label */
+  confirmLabel: string;
+  /** Cancel button label (default: "Cancel") */
+  cancelLabel?: string;
+  /** Phosphor icon name (without ph- prefix) */
+  icon?: string;
+  /** Visual variant: 'danger' or 'warning' */
+  variant?: 'danger' | 'warning';
+  /** i18n keys for auto-translation */
+  i18n?: {
+    title?: string;
+    message?: string;
+    confirm?: string;
+    cancel?: string;
+  };
+  /** Callback on confirmation */
+  onConfirm: () => void;
+  /** Optional callback on cancel */
+  onCancel?: () => void;
 }
 
 // TICK-033: Import shared type-safe i18n apply utility.
@@ -77,30 +77,30 @@ import { polyfillDialog } from './dialog-polyfill';
  * platform-wide dialog standard.
  */
 export function confirmAction(opts: ConfirmActionOptions): Promise<boolean> {
-    return new Promise((resolve) => {
-        // Remove any existing programmatic dialog
-        document.getElementById('nm-confirm-programmatic')?.remove();
+  return new Promise((resolve) => {
+    // Remove any existing programmatic dialog
+    document.getElementById('nm-confirm-programmatic')?.remove();
 
-        const variant = opts.variant || 'danger';
-        const cancelLabel = opts.cancelLabel || tryTranslate('common_cancel', 'Cancel');
-        const icon = opts.icon || (variant === 'danger' ? 'warning-circle' : 'info');
+    const variant = opts.variant || 'danger';
+    const cancelLabel = opts.cancelLabel || tryTranslate('common_cancel', 'Cancel');
+    const icon = opts.icon || (variant === 'danger' ? 'warning-circle' : 'info');
 
-        // Build i18n attributes
-        const i18nTitle = opts.i18n?.title ? ` data-i18n="${opts.i18n.title}"` : '';
-        const i18nMsg = opts.i18n?.message ? ` data-i18n="${opts.i18n.message}"` : '';
-        const i18nConfirm = opts.i18n?.confirm ? ` data-i18n="${opts.i18n.confirm}"` : '';
-        const i18nCancel = opts.i18n?.cancel ? ` data-i18n="${opts.i18n.cancel}"` : '';
+    // Build i18n attributes
+    const i18nTitle = opts.i18n?.title ? ` data-i18n="${opts.i18n.title}"` : '';
+    const i18nMsg = opts.i18n?.message ? ` data-i18n="${opts.i18n.message}"` : '';
+    const i18nConfirm = opts.i18n?.confirm ? ` data-i18n="${opts.i18n.confirm}"` : '';
+    const i18nCancel = opts.i18n?.cancel ? ` data-i18n="${opts.i18n.cancel}"` : '';
 
-        // ── Build native <dialog> element ──────────────────────────────────
-        const dialog = document.createElement('dialog');
-        dialog.id = 'nm-confirm-programmatic';
-        dialog.className = 'nm-confirm-dialog';
+    // ── Build native <dialog> element ──────────────────────────────────
+    const dialog = document.createElement('dialog');
+    dialog.id = 'nm-confirm-programmatic';
+    dialog.className = 'nm-confirm-dialog';
 
-        // PLT-AUD6-002 FIX: Dead-code ternary — both branches returned 'nm-confirm-destructive'.
-        // Warning-variant dialogs incorrectly rendered with danger-red buttons.
-        const actionClass = variant === 'danger' ? 'nm-confirm-destructive' : 'nm-confirm-warning';
+    // PLT-AUD6-002 FIX: Dead-code ternary — both branches returned 'nm-confirm-destructive'.
+    // Warning-variant dialogs incorrectly rendered with danger-red buttons.
+    const actionClass = variant === 'danger' ? 'nm-confirm-destructive' : 'nm-confirm-warning';
 
-        dialog.innerHTML = `
+    dialog.innerHTML = `
             <div class="nm-confirm-body">
                 <div class="size-14 rounded-full ${variant === 'danger' ? 'bg-red-50 dark:bg-red-900/20' : 'bg-amber-50 dark:bg-amber-900/20'} flex items-center justify-center mx-auto mb-3">
                     <i class="ph ph-${icon} ${variant === 'danger' ? 'text-red-500' : 'text-amber-500'} nm-icon-28" aria-hidden="true"></i>
@@ -113,52 +113,52 @@ export function confirmAction(opts: ConfirmActionOptions): Promise<boolean> {
                 <button type="button" class="${actionClass}" id="cd-confirm"${i18nConfirm}>${opts.confirmLabel}</button>
             </div>`;
 
-        document.body.appendChild(dialog);
+    document.body.appendChild(dialog);
 
-        // TICK-033: Use shared type-safe tryApplyI18n() instead of unsafe window cast.
-        tryApplyI18n();
+    // TICK-033: Use shared type-safe tryApplyI18n() instead of unsafe window cast.
+    tryApplyI18n();
 
-        // ── Event Handlers ────────────────────────────────────────────────
-        function close(confirmed: boolean): void {
-            dialog.close();
-            dialog.remove();
-            if (confirmed) {
-                opts.onConfirm();
-            } else {
-                opts.onCancel?.();
-            }
-            resolve(confirmed);
-        }
+    // ── Event Handlers ────────────────────────────────────────────────
+    function close(confirmed: boolean): void {
+      dialog.close();
+      dialog.remove();
+      if (confirmed) {
+        opts.onConfirm();
+      } else {
+        opts.onCancel?.();
+      }
+      resolve(confirmed);
+    }
 
-        dialog.querySelector('#cd-confirm')!.addEventListener('click', () => {
-            // P3-UX-004 FIX: Tactile feedback reinforces gravity of destructive/irreversible actions.
-            haptic.medium();
-            close(true);
-        });
-        dialog.querySelector('#cd-cancel')!.addEventListener('click', () => {
-            haptic.light();
-            close(false);
-        });
-
-        // Native <dialog> fires 'cancel' on Escape key — handle it
-        dialog.addEventListener('cancel', (e) => {
-            e.preventDefault();
-            close(false);
-        });
-
-        // Backdrop click = cancel (click on <dialog> itself, not its children)
-        dialog.addEventListener('click', (e) => {
-            if (e.target === dialog) {
-                close(false);
-            }
-        });
-
-        // ── Show dialog modally ────────────────────────────────────────────
-        // SYS-004: Polyfill for older browsers before calling showModal().
-        polyfillDialog(dialog);
-        dialog.showModal();
-
-        // Focus the cancel button by default (safer for destructive actions)
-        (dialog.querySelector('#cd-cancel') as HTMLElement)?.focus();
+    dialog.querySelector('#cd-confirm')!.addEventListener('click', () => {
+      // P3-UX-004 FIX: Tactile feedback reinforces gravity of destructive/irreversible actions.
+      haptic.medium();
+      close(true);
     });
+    dialog.querySelector('#cd-cancel')!.addEventListener('click', () => {
+      haptic.light();
+      close(false);
+    });
+
+    // Native <dialog> fires 'cancel' on Escape key — handle it
+    dialog.addEventListener('cancel', (e) => {
+      e.preventDefault();
+      close(false);
+    });
+
+    // Backdrop click = cancel (click on <dialog> itself, not its children)
+    dialog.addEventListener('click', (e) => {
+      if (e.target === dialog) {
+        close(false);
+      }
+    });
+
+    // ── Show dialog modally ────────────────────────────────────────────
+    // SYS-004: Polyfill for older browsers before calling showModal().
+    polyfillDialog(dialog);
+    dialog.showModal();
+
+    // Focus the cancel button by default (safer for destructive actions)
+    (dialog.querySelector('#cd-cancel') as HTMLElement)?.focus();
+  });
 }

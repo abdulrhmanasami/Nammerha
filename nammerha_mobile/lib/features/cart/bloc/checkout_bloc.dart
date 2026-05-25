@@ -11,7 +11,7 @@ import 'checkout_state.dart';
 /// Architecture:
 ///   PRIMARY:  GraphQL `createEscrowCheckout` → returns `PaymentIntentResult`
 ///             with `checkoutUrl` for Fatora redirect.
-///   FALLBACK: REST `POST /donations` → fires only on infrastructure errors
+///   FALLBACK: REST `POST /payments` → fires only on infrastructure errors
 ///             (502/503/504) when the GraphQL endpoint is unreachable.
 ///
 /// Financial Safety:

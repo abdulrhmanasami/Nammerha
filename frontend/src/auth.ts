@@ -14,7 +14,7 @@ import { escapeHtml } from './utils/xss';
 export type UserRole =
   | 'homeowner'
   | 'engineer'
-  | 'donor'
+  | 'user'
   | 'supplier'
   | 'contractor'
   | 'tradesperson'
@@ -80,7 +80,7 @@ export function clearAuth(skipServerLogout = false): void {
   if (currentUser) {
     sessionStorage.setItem(ORPHANED_SESSION_KEY, currentUser.user_id);
   }
-  
+
   currentUser = null;
   localStorage.removeItem(STORAGE_KEY);
   // V1-AUDIT FIX: Token is now in httpOnly cookie — cleared server-side.
@@ -93,16 +93,13 @@ export function clearAuth(skipServerLogout = false): void {
   // Fire-and-forget: cookie clearance is best-effort, non-blocking.
   // Standard: OWASP Session Management, NIST SP 800-63B.
   if (!skipServerLogout) {
-    fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' })
-      .then((res) => {
-        if (!res.ok) throw new Error('Logout Network Failure');
-      })
-      .catch(() => {
-        // PLATINUM FIX: If server logout fails (offline), flag the browser locally.
-        // The API Interceptor MUST read this flag and block any outgoing requests 
-        // until a successful 401 or explicit re-login clears it.
-        localStorage.setItem('nammerha_pending_kill_switch', 'true');
-      });
+    // Fire-and-forget server logout.
+    // PLATINUM FIX: X-Guest-Mode logic in _client.ts guarantees orphaned HttpOnly
+    // cookies are ignored by the server if the user is locally unauthenticated.
+    fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' }).catch(() => {
+      // Failed to clear cookie on server (e.g. offline).
+      // The local session is cleared, and X-Guest-Mode prevents resurrection.
+    });
   }
   localStorage.removeItem(DEV_USER_KEY);
 }
@@ -129,11 +126,11 @@ if (typeof window !== 'undefined') {
     if (e.key === STORAGE_KEY && e.newValue === null && e.oldValue !== null) {
       // Another tab cleared auth → session is gone
       currentUser = null;
-      
+
       // Store orphaned UID for this tab to allow safe re-entry
       try {
-         const oldData = JSON.parse(e.oldValue);
-         sessionStorage.setItem(ORPHANED_SESSION_KEY, oldData.user_id);
+        const oldData = JSON.parse(e.oldValue);
+        sessionStorage.setItem(ORPHANED_SESSION_KEY, oldData.user_id);
       } catch (err) {}
 
       // A5 FIX: Show a non-blocking banner instead of instant redirect.
@@ -193,12 +190,12 @@ if (typeof window !== 'undefined') {
       // Another tab just logged in — update local state and dismiss any logout banner
       try {
         const newUser = JSON.parse(e.newValue) as AuthUser;
-        const oldUser = e.oldValue ? JSON.parse(e.oldValue) as AuthUser : null;
+        const oldUser = e.oldValue ? (JSON.parse(e.oldValue) as AuthUser) : null;
 
         // PLATINUM FIX: Safe Re-entry Logic.
         // If oldUser is null, check if the newUser matches the orphaned session.
         const orphanedUid = sessionStorage.getItem(ORPHANED_SESSION_KEY);
-        const isSameUserReturning = (!oldUser && orphanedUid === newUser.user_id);
+        const isSameUserReturning = !oldUser && orphanedUid === newUser.user_id;
 
         // P5-UXA-005 FIX: Cross-Tab State Schizophrenia Lock
         // If the user logs in as someone else in another tab (or logs in from a logged-out state),
@@ -213,9 +210,7 @@ if (typeof window !== 'undefined') {
         if (currentUser && !currentUser.roles) {
           currentUser.roles = [currentUser.role];
         }
-        
-        // Clear pending kill switch on successful validated login
-        localStorage.removeItem('nammerha_pending_kill_switch');
+
         sessionStorage.removeItem(ORPHANED_SESSION_KEY);
       } catch {
         /* malformed data — ignore */
@@ -256,7 +251,7 @@ const IS_DEV: boolean = import.meta.env.DEV === true;
 // DEV_USERS are only populated in development builds.
 // In production, Vite's dead-code elimination strips this entire block.
 // UNIFIED CITIZEN: All dev users have ALL citizen roles — mirrors production behavior.
-// FORENSIC-C2.4 FIX: 'donor' removed — donation system suspended indefinitely.
+// FORENSIC-C2.4 FIX: 'user' removed — payment system suspended indefinitely.
 const ALL_CITIZEN_ROLES: UserRole[] = [
   'homeowner',
   'engineer',
@@ -284,7 +279,7 @@ const DEV_USERS: Record<string, AuthUser> = IS_DEV
         email: 'khalid@example.com',
         kyc_verified: true,
       },
-      // FORENSIC-C2.4: 'donor' dev user removed — donation system suspended indefinitely.
+      // FORENSIC-C2.4: 'user' dev user removed — payment system suspended indefinitely.
       supplier: {
         user_id: 'dev-supplier-001',
         full_name: 'Dev Supplier 001',

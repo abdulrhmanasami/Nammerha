@@ -406,7 +406,7 @@ class _AppFlowControllerState extends State<_AppFlowController> {
 
       case 'proof_verified':
       case 'proof_submitted':
-        // SUSPENDED: DonorProofScreen suspended. Redirect to Wallet.
+        // SUSPENDED: userProofScreen suspended. Redirect to Wallet.
         targetScreen = const WalletScreen();
         break;
 
@@ -430,9 +430,9 @@ class _AppFlowControllerState extends State<_AppFlowController> {
         targetScreen = const WalletScreen();
         break;
 
-      case 'donation_received':
-      case 'donation_refunded':
-        // Donation system removed. Redirect to Wallet.
+      case 'project_funding_milestone':
+      case 'payment_refunded':
+        // payment system removed. Redirect to Wallet.
         targetScreen = const WalletScreen();
         break;
 

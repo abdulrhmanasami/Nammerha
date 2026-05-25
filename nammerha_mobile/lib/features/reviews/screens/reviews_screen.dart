@@ -224,60 +224,93 @@ class _ReviewsView extends StatelessWidget {
 
   void _showSubmitSheet(BuildContext context) {
     final colors = context.colors;
-    final bodyCtrl = TextEditingController();
-    final titleCtrl = TextEditingController();
-    int selectedRating = 0;
+    final bloc = context.read<ReviewBloc>();
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: colors.surfaceElevated,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setModalState) => Padding(
-          padding: EdgeInsetsDirectional.fromSTEB(20, 20, 20, MediaQuery.of(ctx).viewInsets.bottom + 20),
-          child: SingleChildScrollView(
-            child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              Center(child: BottomSheetGrabber(colors: colors)),
-              const SizedBox(height: 16),
-              Text(context.tr('rv_add_review_title'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: colors.textPrimary), textAlign: TextAlign.center),
-              const SizedBox(height: 20),
-              // Star rating
-              Row(mainAxisAlignment: MainAxisAlignment.center, children: List.generate(5, (i) => GestureDetector(
-                onTap: () => setModalState(() => selectedRating = i + 1),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Icon(i < selectedRating ? PhosphorIconsRegular.star : PhosphorIconsRegular.star, size: 36, color: colors.goldFunding),
-                ),
-              ))),
-              const SizedBox(height: 16),
-              TextField(controller: titleCtrl, style: TextStyle(color: colors.textPrimary),
-                decoration: InputDecoration(labelText: context.tr('rv_field_title'), filled: true, fillColor: colors.backgroundSecondary,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: colors.strokeSubtle)))),
-              const SizedBox(height: 12),
-              TextField(controller: bodyCtrl, maxLines: 4, style: TextStyle(color: colors.textPrimary),
-                decoration: InputDecoration(labelText: context.tr('rv_field_body'), filled: true, fillColor: colors.backgroundSecondary,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: colors.strokeSubtle)))),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  if (selectedRating == 0 || bodyCtrl.text.trim().length < 10) return;
-                  Haptics.medium();
-                  context.read<ReviewBloc>().add(SubmitReview(
-                    reviewableType: type, reviewableId: entityId,
-                    overallRating: selectedRating, body: bodyCtrl.text.trim(),
-                    title: titleCtrl.text.trim().isNotEmpty ? titleCtrl.text.trim() : null,
-                  ));
-                  Navigator.pop(ctx);
-                },
-                style: ElevatedButton.styleFrom(backgroundColor: colors.primaryBrand, foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
-                child: Text(context.tr('rv_submit'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),
-              ),
-            ]),
+      builder: (ctx) => _SubmitSheet(type: type, entityId: entityId, bloc: bloc),
+    );
+  }
+}
+
+class _SubmitSheet extends StatefulWidget {
+  final ReviewableType type;
+  final String entityId;
+  final ReviewBloc bloc;
+
+  const _SubmitSheet({required this.type, required this.entityId, required this.bloc});
+
+  @override
+  State<_SubmitSheet> createState() => _SubmitSheetState();
+}
+
+class _SubmitSheetState extends State<_SubmitSheet> {
+  late final TextEditingController _bodyCtrl;
+  late final TextEditingController _titleCtrl;
+  int _selectedRating = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _bodyCtrl = TextEditingController();
+    _titleCtrl = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _bodyCtrl.dispose();
+    _titleCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return Padding(
+      padding: EdgeInsetsDirectional.fromSTEB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
+      child: SingleChildScrollView(
+        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Center(child: BottomSheetGrabber(colors: colors)),
+          const SizedBox(height: 16),
+          Text(context.tr('rv_add_review_title'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: colors.textPrimary), textAlign: TextAlign.center),
+          const SizedBox(height: 20),
+          // Star rating
+          Row(mainAxisAlignment: MainAxisAlignment.center, children: List.generate(5, (i) => GestureDetector(
+            onTap: () => setState(() => _selectedRating = i + 1),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Icon(i < _selectedRating ? PhosphorIconsRegular.star : PhosphorIconsRegular.star, size: 36, color: colors.goldFunding),
+            ),
+          ))),
+          const SizedBox(height: 16),
+          TextField(controller: _titleCtrl, style: TextStyle(color: colors.textPrimary),
+            decoration: InputDecoration(labelText: context.tr('rv_field_title'), filled: true, fillColor: colors.backgroundSecondary,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: colors.strokeSubtle)))),
+          const SizedBox(height: 12),
+          TextField(controller: _bodyCtrl, maxLines: 4, style: TextStyle(color: colors.textPrimary),
+            decoration: InputDecoration(labelText: context.tr('rv_field_body'), filled: true, fillColor: colors.backgroundSecondary,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: colors.strokeSubtle)))),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: () {
+              if (_selectedRating == 0 || _bodyCtrl.text.trim().length < 10) return;
+              Haptics.medium();
+              widget.bloc.add(SubmitReview(
+                reviewableType: widget.type, reviewableId: widget.entityId,
+                overallRating: _selectedRating, body: _bodyCtrl.text.trim(),
+                title: _titleCtrl.text.trim().isNotEmpty ? _titleCtrl.text.trim() : null,
+              ));
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: colors.primaryBrand, foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
+            child: Text(context.tr('rv_submit'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),
           ),
-        ),
+        ]),
       ),
     );
   }

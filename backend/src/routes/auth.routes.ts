@@ -193,7 +193,7 @@ const loginLimiter = rateLimit({
 // validation/schemas.ts are now the single source of truth for input validation.
 
 // UNIFIED-ROLES: All 5 roles are auto-assigned to every user at registration.
-// Donor excluded while DONATIONS_ENABLED=false.
+// User excluded while PAYMENTS_ENABLED=false.
 const AUTO_ASSIGN_ROLES: readonly string[] = [
   'homeowner',
   'engineer',

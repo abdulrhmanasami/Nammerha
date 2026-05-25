@@ -38,7 +38,7 @@ import { createHashRouter } from '../utils/hash-router';
 import { initSwipeTabs } from '../utils/swipe-tabs';
 // TICK-016: Import shared setText from utils/dom.ts.
 // Previous: Local duplicate at L429 — identical to utils/dom.ts version.
-// donor-portal.ts and contractor-portal.ts already use the shared version.
+// user-portal.ts and contractor-portal.ts already use the shared version.
 // Standard: DRY Principle.
 import { setText } from '../utils/dom';
 import { animateKPI } from '../utils/kpi-animation';
@@ -719,7 +719,7 @@ async function loadEarnings(): Promise<void> {
 
 // TICK-016: Local setText() removed — now imported from ../utils/dom (line 19).
 // Previous: Duplicate of shared utility, violating DRY principle.
-// donor-portal.ts and contractor-portal.ts already use the shared version.
+// user-portal.ts and contractor-portal.ts already use the shared version.
 
 /**
  * P2-FE-003 FIX: Locale-agnostic trade label.

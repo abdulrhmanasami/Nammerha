@@ -9,7 +9,6 @@
 
     # ── User & Identity Enums (maps to types/index.ts) ──────────────────────
     enum UserRole {
-        DONOR
         HOMEOWNER
         ENGINEER
         CONTRACTOR
@@ -87,7 +86,7 @@
 
     # ── Notification Enums ──────────────────────────────────────────────────
     enum NotificationType {
-        DONATION_RECEIVED
+        PROJECT_FUNDING_MILESTONE
         PROOF_SUBMITTED
         FUNDS_RELEASED
         DELIVERY_CONFIRMED
@@ -134,7 +133,6 @@
 
     # ── Impact Enums ────────────────────────────────────────────────────────
     enum ImpactEventType {
-        DONATION_RECEIVED
         CONTRACTOR_ASSIGNED
         CONSTRUCTION_STARTED
         MILESTONE_COMPLETED
@@ -143,9 +141,3 @@
         PROJECT_COMPLETED
     }
 
-    # ── Donation Intent ─────────────────────────────────────────────────────
-    enum DonationIntent {
-        ZAKAT
-        SADAQAH
-        GENERAL
-    }

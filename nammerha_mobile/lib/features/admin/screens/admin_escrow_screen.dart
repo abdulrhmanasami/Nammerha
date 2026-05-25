@@ -273,56 +273,87 @@ class _EscrowView extends StatelessWidget {
   }
 
   void _showFlagDialog(BuildContext context, EscrowCase c) {
-    final colors = context.colors;
-    final controller = TextEditingController();
+    final bloc = context.read<AdminEscrowBloc>();
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(context.tr('admin_flag_discrepancy'), style: TextStyle(color: colors.error, fontWeight: FontWeight.w700)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              context.tr('admin_flag_reason'),
-              style: TextStyle(color: colors.textBody, fontSize: 13),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: controller,
-              maxLines: 3,
-              decoration: InputDecoration(
-                hintText: context.tr('reason_hint'),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: colors.error),
-                ),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: Text(context.tr('cancel'), style: TextStyle(color: colors.textMuted)),
-          ),
-          FilledButton(
-            onPressed: () {
-              final reason = controller.text.trim();
-              if (reason.isEmpty) return;
-              Navigator.pop(dialogContext);
-              context.read<AdminEscrowBloc>().add(
-                FlagDiscrepancy(proofId: c.proofId, reason: reason),
-              );
-            },
-            style: FilledButton.styleFrom(backgroundColor: colors.error),
-            child: Text(context.tr('admin_reject')),
-          ),
-        ],
-      ),
+      builder: (dialogContext) => _FlagDialog(escrowCase: c, bloc: bloc),
     );
   }
 
   // P2-002 FIX: Inline _formatDate() removed → NammerhaDateUtils.formatDateShort()
+}
+
+class _FlagDialog extends StatefulWidget {
+  final EscrowCase escrowCase;
+  final AdminEscrowBloc bloc;
+  
+  const _FlagDialog({required this.escrowCase, required this.bloc});
+
+  @override
+  State<_FlagDialog> createState() => _FlagDialogState();
+}
+
+class _FlagDialogState extends State<_FlagDialog> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: Text(context.tr('admin_flag_discrepancy'), style: TextStyle(color: colors.error, fontWeight: FontWeight.w700)),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            context.tr('admin_flag_reason'),
+            style: TextStyle(color: colors.textBody, fontSize: 13),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _controller,
+            maxLines: 3,
+            decoration: InputDecoration(
+              hintText: context.tr('reason_hint'),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: colors.error),
+              ),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(context.tr('cancel'), style: TextStyle(color: colors.textMuted)),
+        ),
+        FilledButton(
+          onPressed: () {
+            final reason = _controller.text.trim();
+            if (reason.isEmpty) return;
+            Navigator.pop(context);
+            widget.bloc.add(
+              FlagDiscrepancy(proofId: widget.escrowCase.proofId, reason: reason),
+            );
+          },
+          style: FilledButton.styleFrom(backgroundColor: colors.error),
+          child: Text(context.tr('admin_reject')),
+        ),
+      ],
+    );
+  }
 }

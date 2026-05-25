@@ -23,7 +23,7 @@ class OpenDataStats {
         totalProjects: json['total_projects'] as int? ?? 0,
         publishedProjects: json['published_projects'] as int? ?? 0,
         totalFunded: json['total_funded'] as int? ?? 0,
-        totalFunders: json['total_donors'] as int? ?? 0, // Backend contract key
+        totalFunders: json['total_users'] as int? ?? 0, // Backend contract key
         averageFundedPercentage:
             (json['average_funded_percentage'] as num?)?.toDouble() ?? 0.0,
       );

@@ -111,7 +111,7 @@ class OpenDataScreen extends StatelessWidget {
     final items = [
       _StatItem(context.tr('od_published_projects'), '${stats['total_projects'] ?? total}', PhosphorIconsRegular.article, colors.primaryBrand),
       _StatItem(context.tr('od_total_funding'), _formatCurrency((stats['total_funding'] ?? 0) as num), PhosphorIconsRegular.bank, colors.secondaryAccent),
-      _StatItem(context.tr('funders'), '${stats['total_donors'] ?? 0}', PhosphorIconsRegular.handHeart, colors.info),
+      _StatItem(context.tr('funders'), '${stats['total_users'] ?? 0}', PhosphorIconsRegular.handHeart, colors.info),
       _StatItem(context.tr('admin_contractors'), '${stats['total_contractors'] ?? 0}', PhosphorIconsRegular.hardHat, colors.success),
       _StatItem(context.tr('od_completed_projects'), '${stats['completed_projects'] ?? 0}', PhosphorIconsRegular.checkCircle, colors.success),
       _StatItem(context.tr('od_regions_covered'), '${stats['total_regions'] ?? 0}', PhosphorIconsRegular.mapTrifold, colors.warning),

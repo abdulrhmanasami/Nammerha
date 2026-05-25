@@ -9,7 +9,7 @@ import { t } from './i18n';
 
 /**
  * Get badge CSS classes for a project/escrow/approval status.
- * Covers all status values across homeowner, donor, contractor, tradesperson portals.
+ * Covers all status values across homeowner, user, contractor, tradesperson portals.
  */
 export function statusColor(s: string): string {
   // Platinum UX: Colorblind Accessibility (Shapes + Colors)

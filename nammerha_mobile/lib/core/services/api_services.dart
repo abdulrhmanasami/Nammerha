@@ -58,12 +58,12 @@ class MarketplaceApi {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// DONATION / DONOR API — SUSPENDED INDEFINITELY (May 2026)
+// payment / user API — SUSPENDED INDEFINITELY (May 2026)
 // ═══════════════════════════════════════════════════════════════════════════
-// The entire Donation/Donor subsystem is REMOVED per strategic decision.
+// The entire payment/user subsystem is REMOVED per strategic decision.
 // Backend code preserved but all mobile API clients, screens, BLoCs, and
 // models have been surgically excised.
-// See KI: "Nammerha Donation System Suspension" for full context.
+// See KI: "Nammerha payment System Suspension" for full context.
 // ═══════════════════════════════════════════════════════════════════════════
 
 // ═══════════════════════════════════════════════════════════════════════════

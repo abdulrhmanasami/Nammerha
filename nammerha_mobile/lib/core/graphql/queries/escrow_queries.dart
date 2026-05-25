@@ -1,8 +1,8 @@
 /// Queries for Escrow Ledger Integration
 class EscrowQueries {
-  static const String getDonorEscrowHistory = r'''
-    query GetDonorEscrowHistory {
-      donorEscrowHistory {
+  static const String getUserEscrowHistory = r'''
+    query GetUserEscrowHistory {
+      userEscrowHistory {
         transactionId
         amountLocked
         paymentStatus
@@ -12,10 +12,9 @@ class EscrowQueries {
   ''';
 
   /// Escrow transaction history query.
-  /// NOTE: GraphQL operation name 'GetDonorDonations' is a backend contract.
   static const String getEscrowTransactions = r'''
-    query GetDonorDonations($limit: Int, $offset: Int) {
-      donorDonations(limit: $limit, offset: $offset) {
+    query GetUserPayments($limit: Int, $offset: Int) {
+      userPayments(limit: $limit, offset: $offset) {
         transactionId
         itemId
         projectTitle

@@ -349,7 +349,7 @@ class _DashboardHomeView extends StatelessWidget {
                                 ),
                               ),
                               // UX-REM-J008 FIX: Cart icon gated behind procurement state.
-                              // PREVIOUS: Cart icon always visible. Donations/procurement suspended.
+                              // PREVIOUS: Cart icon always visible. payments/procurement suspended.
                               // User taps → navigates to empty CartScreen → dead end.
                               // NOW: Only show when cart has items (procurement flow is active).
                               // When procurement is re-enabled, this naturally shows the cart.
@@ -1251,7 +1251,7 @@ class _DashboardHomeView extends StatelessWidget {
   _ActivityMeta _activityMeta(String type, SemanticColors colors) {
     switch (type) {
       case 'escrow_locked':
-      // SUSPENDED: donation_received removed (May 2026 strategic decision)
+      // SUSPENDED: project_funding_milestone removed (May 2026 strategic decision)
       case 'escrow_released':
       case 'payment_completed':
         return _ActivityMeta(PhosphorIconsRegular.lockKey, colors.success);

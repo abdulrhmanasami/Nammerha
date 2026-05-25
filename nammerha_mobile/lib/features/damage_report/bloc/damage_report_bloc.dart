@@ -5,6 +5,7 @@ import '../../../core/i18n/error_keys.dart';
 import '../models/damage_report_data.dart';
 import 'damage_report_event.dart';
 import 'damage_report_state.dart';
+import '../../../core/network/api_client.dart';
 
 class DamageReportBloc extends Bloc<DamageReportEvent, DamageReportState> {
   final DamageReportRepository repository;
@@ -63,6 +64,14 @@ class DamageReportBloc extends Bloc<DamageReportEvent, DamageReportState> {
     try {
       await repository.submitReport(state.formData);
       emit(DamageReportSuccess(state.formData));
+    } on ApiException catch (e) {
+      if (e.statusCode == 0) {
+        // Platform UX: Intercept offline queued requests and show success,
+        // rather than treating it as a failure.
+        emit(DamageReportOfflineSaved(state.formData));
+      } else {
+        emit(DamageReportError(state.formData, ErrorKeys.damageReportFailed));
+      }
     } catch (e) {
       emit(DamageReportError(state.formData, ErrorKeys.damageReportFailed));
       // CRIT-MOB-001 FIX: Terminal state — no immediate DamageReportDraft re-emit.

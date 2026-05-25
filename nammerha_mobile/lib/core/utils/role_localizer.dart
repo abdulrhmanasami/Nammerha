@@ -23,10 +23,10 @@ class RoleMeta {
 /// Static metadata for all platform roles.
 /// Colors are from the Nammerha design system (WCAG AAA compliant).
 const Map<String, RoleMeta> roleMeta = {
-  // SUSPENDED: Donor role suspended indefinitely (May 2026 strategic decision)
-  // 'donor': RoleMeta(
+  // SUSPENDED: user role suspended indefinitely (May 2026 strategic decision)
+  // 'user': RoleMeta(
   //   nameAr: 'متبرع',
-  //   nameEn: 'Donor',
+  //   nameEn: 'user',
   //   icon: PhosphorIconsRegular.heart,
   //   color: Color(0xFF1558D6), // Trust Blue
   // ),

@@ -9,13 +9,13 @@
 //   ├── _client.ts       → Shared request(), CSRF, retry logic (140 lines)
 //   ├── projects.ts      → Path 1: Homeowner → Engineer
 //   ├── marketplace.ts   → Path 2: Public marketplace browsing
-//   ├── donations.ts     → Path 2-3: Donations + Spatial Proof
+//   ├── payments.ts     → Path 2-3: payments + Spatial Proof
 //   ├── admin.ts         → Path 4: Admin panel + KYC
 //   ├── auth.ts          → Auth + Role management
 //   ├── cross-cutting.ts → Notifications, Health, Contact, Payments
 //   ├── matchmaking.ts   → Matchmaking + EPA Oracle (FIDIC 13.8)
 //   ├── platform.ts      → Dashboard, Reality Capture, Open Data, Compliance, Translation
-//   ├── portals.ts       → 5 active role portals (Tradesperson→Homeowner) [Donor ERADICATED May 2026]
+//   ├── portals.ts       → 5 active role portals (Tradesperson→Homeowner) [user ERADICATED May 2026]
 //   ├── fintech.ts       → Revenue, Subscriptions, Storage, Enterprise
 //   └── index.ts         → THIS FILE (barrel re-export)
 //
@@ -33,24 +33,24 @@ export type { ApiResponse } from './_client';
 // ── Domain modules ──────────────────────────────────────────────────────────
 export { projects } from './projects';
 export { marketplace } from './marketplace';
-export { donations, spatialProof } from './donations';
+export { escrowPayments, spatialProof } from './payments';
 export { admin } from './admin';
 export { auth, roles } from './auth';
 export { notifications, health, contact, payments } from './cross-cutting';
 export { matchmaking, epaOracle } from './matchmaking';
 export { dashboard, realityCapture, openData, compliance, translation } from './platform';
 export { tradesperson, supplier, engineer, contractor, homeowner } from './portals';
-// P2-003: 'donor' export ERADICATED — Donation Eradication KI (May 2026)
+// P2-003: 'user' export ERADICATED — payment Eradication KI (May 2026)
 export { revenueAdmin, subscriptions, storage, enterpriseAdmin } from './fintech';
 
 // ── Exported types (used by pages via `import type`) ────────────────────────
 export type {
-    RevenueAdminSummary,
-    CommissionTier,
-    CommissionEntry,
-    TipEntry,
-    PresignResponse,
-    EscrowFeeSummary,
-    FeeConfig,
-    EnterpriseOrg,
+  RevenueAdminSummary,
+  CommissionTier,
+  CommissionEntry,
+  TipEntry,
+  PresignResponse,
+  EscrowFeeSummary,
+  FeeConfig,
+  EnterpriseOrg,
 } from './fintech';

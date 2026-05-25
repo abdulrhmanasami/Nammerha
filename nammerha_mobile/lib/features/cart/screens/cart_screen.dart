@@ -19,7 +19,7 @@ import '../../../core/utils/animation_budget.dart';
 /// ═══════════════════════════════════════════════════════════════════════════
 /// Cart Screen — Dynamic Construction Basket
 /// ═══════════════════════════════════════════════════════════════════════════
-/// Mirrors web: frontend/src/pages/donor-basket.ts
+/// Mirrors web: frontend/src/pages/user-basket.ts
 /// Features: quantity adjustment, swipe-to-delete, tip selector, checkout
 /// Tip default: 0% (FRC-003: humanitarian platform — opt-in tipping only)
 /// ═══════════════════════════════════════════════════════════════════════════

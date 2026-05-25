@@ -6,8 +6,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/services/api_services.dart'; // formatCurrency
 import '../../boq/screens/boq_details_screen.dart';
-// SUSPENDED: Donation system suspended indefinitely
-// import '../../donations/screens/donation_checkout_screen.dart';
+// SUSPENDED: payment system suspended indefinitely
+// import '../../payments/screens/payment_checkout_screen.dart';
 import '../../open_data/screens/transparency_dashboard_screen.dart';
 import '../../cart/state/cart_store.dart';
 import '../../cart/screens/cart_screen.dart';
@@ -547,16 +547,16 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
   // ═══════════════════════════════════════════════════════════════════════════
   // UNIFIED CITIZEN: All action buttons visible to all users.
   // No role-based hiding — any citizen can bid or view transparency.
-  // SUSPENDED: Donation button removed (May 2026 strategic decision).
+  // SUSPENDED: payment button removed (May 2026 strategic decision).
   // ═══════════════════════════════════════════════════════════════════════════
   Widget _buildRoleActions(BuildContext context, SemanticColors colors, String userRole) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // ═══════════════════════════════════════════════════════════════════
-        // P1-001 FIX: Funding CTA — dedicated entry point for funders/donors.
-        // PREVIOUS: After donation eradication, only "Hire Provider" existed.
-        // Funders (diaspora donors) didn't understand BOQ = funding mechanism.
+        // P1-001 FIX: Funding CTA — dedicated entry point for funders/users.
+        // PREVIOUS: After payment eradication, only "Hire Provider" existed.
+        // Funders (diaspora users) didn't understand BOQ = funding mechanism.
         // NOW: Clear "Fund This Project" CTA that anchors to BOQ items.
         // Standard: Fitts' Law — primary intent should be primary affordance.
         // ═══════════════════════════════════════════════════════════════════

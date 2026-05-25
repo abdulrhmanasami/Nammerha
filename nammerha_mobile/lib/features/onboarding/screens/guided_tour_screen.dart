@@ -18,7 +18,7 @@ import '../../../core/utils/animation_budget.dart';
 /// PREVIOUS (6 defects):
 ///   - P0: Hardcoded Arabic in all 5 step titles & bodies
 ///   - P0: warningCircle icon on Marketplace step
-///   - P0: Stale content mentioning role switching + donation role
+///   - P0: Stale content mentioning role switching + payment role
 ///   - P0: showGuidedTour() never called from anywhere (dead code)
 ///   - P1: Hardcoded button text "ابدأ الاستكشاف"
 ///   - P1: No English translations
@@ -153,7 +153,7 @@ class _GuidedTourOverlayState extends State<_GuidedTourOverlay> {
     _TourStep(
       icon: PhosphorIconsRegular.user,
       // UX-F029 FIX: Content updated for Universal Access paradigm.
-      // PREVIOUS: "بدّل أدوارك (مانح/مقاول/مهندس)" — roles removed, donations suspended.
+      // PREVIOUS: "بدّل أدوارك (مانح/مقاول/مهندس)" — roles removed, payments suspended.
       // NOW: "أدِر حسابك وإعداداتك وتابع تقييمات ثقتك"
       titleKey: 'tour_profile_title',
       bodyKey: 'tour_profile_body',

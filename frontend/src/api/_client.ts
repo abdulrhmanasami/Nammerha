@@ -4,7 +4,7 @@
 // Shared request() function, CSRF token management, and types used by all
 // domain-specific API modules. This is the ONLY file that touches the network.
 //
-// Architecture: Each domain module (projects.ts, donations.ts, etc.) imports
+// Architecture: Each domain module (projects.ts, payments.ts, etc.) imports
 // `request` from this file and exposes typed endpoint wrappers.
 // ============================================================================
 
@@ -146,18 +146,23 @@ export async function request<T>(
     throw new Error(t('error_offline', 'لا يوجد اتصال بالإنترنت. يرجى التحقق من الشبكة.'));
   }
 
-  // PLATINUM FIX: Kill Switch Enforcement (Part C)
-  // Blocks ALL outgoing requests if an offline logout occurred, EXCEPT the login endpoint.
-  if (localStorage.getItem('nammerha_pending_kill_switch') === 'true' && endpoint !== '/auth/login') {
-      console.warn('[State Guard] Kill Switch active. Request blocked to prevent HttpOnly cookie leakage.');
-      throw new Error('KILL_SWITCH_ACTIVE');
-  }
-
   const { skipAntiFlicker, ...fetchOptions } = options;
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...((fetchOptions.headers as Record<string, string>) ?? {}),
   };
+
+  // PLATINUM FIX: X-Guest-Mode Enforcement
+  // Explicitly tell the backend to ignore any zombie HttpOnly cookies if the user
+  // is locally unauthenticated (localStorage session is absent).
+  // This perfectly neutralizes the Resurrection Vector without blocking public endpoints.
+  try {
+    if (!localStorage.getItem('nammerha_auth')) {
+      headers['X-Guest-Mode'] = 'true';
+    }
+  } catch {
+    // Silent fallback if storage is restricted
+  }
   // V1-AUDIT FIX: JWT is now in an httpOnly cookie — no localStorage access.
   // The browser sends the cookie automatically with credentials: 'same-origin'.
   // CSRF protection is required for all state-changing (non-GET) requests.
@@ -388,12 +393,17 @@ export async function request<T>(
       // PLATINUM FIX: Silently swallow StaleEpochError to prevent false Network Timeout toasts.
       // This mathematically guarantees "Zero-Jank" during rapid state mutations.
       if (err instanceof StaleEpochError) {
-          return { success: false, error: 'Stale Epoch Skipped' } as unknown as ApiResponse<T>;
+        return { success: false, error: 'Stale Epoch Skipped' } as unknown as ApiResponse<T>;
       }
 
       // PLATINUM FIX: Stream Consumption Guard for In-Place Re-auth
       if (err instanceof TypeError && fetchOptions.body instanceof ReadableStream && attempt > 0) {
-          throw new Error(t('error_stream_consumed', 'تم استهلاك البيانات. يرجى إعادة إرفاق الملفات والمحاولة مجدداً.'));
+        throw new Error(
+          t(
+            'error_stream_consumed',
+            'تم استهلاك البيانات. يرجى إعادة إرفاق الملفات والمحاولة مجدداً.',
+          ),
+        );
       }
 
       // Retry on Network failure or Timeout if idempotent

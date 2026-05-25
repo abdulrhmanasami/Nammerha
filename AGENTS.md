@@ -16,6 +16,25 @@
 
 # ═══════════════════════════════════════════════════════════════════════════
 
+## 🛑 ZERO-REGRESSION MEMOS (CRITICAL AI MEMORY)
+
+**MEMO 1: Unified Citizen Model & Donation Purge (May 25, 2026)**
+
+- **Root Cause Destroyed:** The platform previously had intertwined "Donation" and "Crowdfunding" logic which violated the Unified Citizen Model and caused IDOR vulnerabilities in tests and routing.
+- **New Logic Built:**
+  1. ALL references to `donation`, `donor`, `crowdfunding`, and `campaign` are permanently eradicated.
+  2. The platform operates on a single `users` table with unified roles.
+  3. `payment.test.ts` and `matchmaking.test.ts` now rely strictly on `user_id` and ABAC/RBAC rather than `donor_id`.
+  4. Escrow webhooks and financial mutations are guarded by Redis Distributed Locks (`redisLockManager`) and `$transaction` with `SET TRANSACTION ISOLATION LEVEL SERIALIZABLE`. Do NOT touch this logic.
+
+**MEMO 2: Damage Report Offline UX & Memory Safety (May 25, 2026)**
+
+- **Root Cause Destroyed:** The mobile app threw generic "Network Errors" during offline form submission, leading to cognitive distress. The app also needed a strict audit for memory leaks.
+- **New Logic Built:**
+  1. BLoC state management (`DamageReportBloc`) intercepts `ApiException(statusCode: 0)` and successfully queues the request, emitting `DamageReportOfflineSaved` instead of `DamageReportError`.
+  2. The UI (`DamageReportScreen`) listens for this state and displays a `colors.info` SnackBar assuring the user of offline sync.
+  3. All `FocusNode`, `TextEditingController`, and `PageController` instances are strictly disposed in the widget lifecycle. Memory leaks are zero.
+
 ## 🏗️ Platform Architecture
 
 ### Web Frontend (frontend/)

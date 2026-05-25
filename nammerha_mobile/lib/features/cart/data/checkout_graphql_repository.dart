@@ -10,7 +10,7 @@ import '../../../core/graphql/mutations/escrow_mutations.dart';
 ///   3. **Idempotency** — via Idempotency-Key header
 ///
 /// Architecture Decision:
-///   The REST `POST /donations` endpoint returns `{ escrow_entries, total_locked }`
+///   The REST `POST /payments` endpoint returns `{ escrow_entries, total_locked }`
 ///   but NOT the `checkoutUrl`. The GraphQL mutation returns `PaymentIntent` which
 ///   DOES include `checkoutUrl`. This is why checkout MUST use GraphQL.
 ///
@@ -43,25 +43,25 @@ class CheckoutGraphQLRepository {
     String? giftMessage,
     String? checkoutIntent,
   }) async {
-    // Build GraphQL input matching CreateDonationInput schema (backend contract)
+    // Build GraphQL input matching CreatePaymentIntentInput schema (backend contract)
     final input = <String, dynamic>{
       'items': items.map((item) => item.toJson()).toList(),
       'paymentMethod': paymentMethod.toUpperCase(), // Enum: FATORA | VISA
       if (returnUrl != null) 'returnUrl': returnUrl,
       if (giftRecipientName != null) 'giftRecipientName': giftRecipientName,
       if (giftMessage != null) 'giftMessage': giftMessage,
-      if (checkoutIntent != null) 'donationIntent': checkoutIntent, // Backend contract key
+      if (checkoutIntent != null) 'paymentIntent': checkoutIntent, // Backend contract key
     };
 
     final data = await _apiClient.graphql(
       query: EscrowMutations.createEscrowCheckout,
       variables: {'input': input},
-      operationName: 'CreateDonation', // Backend contract — DO NOT rename
+      operationName: 'CreatePaymentIntent', // Backend contract — DO NOT rename
       idempotent: true, // Generates Idempotency-Key header
     );
 
-    // Response key 'createDonation' is a backend contract — DO NOT rename
-    final paymentIntent = data['createDonation'] as Map<String, dynamic>?;
+    // Response key 'createPaymentIntent' is a backend contract — DO NOT rename
+    final paymentIntent = data['createPaymentIntent'] as Map<String, dynamic>?;
     if (paymentIntent == null) {
       throw const ApiException('err_payment_intent');
     }
@@ -74,7 +74,7 @@ class CheckoutGraphQLRepository {
 
 /// A single item in the checkout cart.
 ///
-/// Backend `DonationItemInput` only accepts `{ itemId, amount }` (backend contract).
+/// Backend `PaymentItemInput` only accepts `{ itemId, amount }` (backend contract).
 /// The `projectId` is resolved server-side from the BOQ item's `project_id`
 /// column. We keep `projectId` here for local cart display/navigation only.
 class CheckoutItem {
@@ -88,7 +88,7 @@ class CheckoutItem {
     required this.amount,
   });
 
-  /// Serialize to GraphQL `DonationItemInput` — { itemId, amount } only.
+  /// Serialize to GraphQL `PaymentItemInput` — { itemId, amount } only.
   /// The `projectId` is intentionally excluded (BAD_USER_INPUT if sent).
   Map<String, dynamic> toJson() => {
         'itemId': itemId,

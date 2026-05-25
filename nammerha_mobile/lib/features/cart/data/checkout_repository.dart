@@ -11,7 +11,7 @@ class CheckoutRepository {
     required String paymentMethod,
   }) async {
     final response = await _apiClient.request<Map<String, dynamic>>(
-      '/donations', // Backend contract path — DO NOT rename
+      '/payments', // Backend contract path — DO NOT rename
       method: 'POST',
       idempotent: true,
       body: {

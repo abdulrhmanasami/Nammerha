@@ -9,7 +9,7 @@
 class PlatformOverview {
   final int totalUsers;
   final int totalProjects;
-  final int totalDonations;
+  final int totalPayments;
   final int totalFundedAmount;   // cents
   final int totalEscrowReleased; // cents
   final int activeEngineers;
@@ -19,7 +19,7 @@ class PlatformOverview {
   const PlatformOverview({
     required this.totalUsers,
     required this.totalProjects,
-    required this.totalDonations,
+    required this.totalPayments,
     required this.totalFundedAmount,
     required this.totalEscrowReleased,
     required this.activeEngineers,
@@ -31,7 +31,7 @@ class PlatformOverview {
     return PlatformOverview(
       totalUsers: _toInt(json['total_users']),
       totalProjects: _toInt(json['total_projects']),
-      totalDonations: _toInt(json['total_donations']),
+      totalPayments: _toInt(json['total_payments']),
       totalFundedAmount: _toInt(json['total_funded_amount']),
       totalEscrowReleased: _toInt(json['total_escrow_released']),
       activeEngineers: _toInt(json['active_engineers']),
@@ -325,7 +325,7 @@ class TipEntry {
     return TipEntry(
       tipId: json['tip_id'] as String? ?? '',
       amountCents: _toInt(json['amount_cents'] ?? json['amount']),
-      funderName: json['donor_name'] as String? ?? '', // backend key preserved
+      funderName: json['user_name'] as String? ?? '', // backend key preserved
       createdAt: json['created_at'] as String? ?? '',
     );
   }
@@ -477,7 +477,7 @@ class RefundRequest {
   factory RefundRequest.fromJson(Map<String, dynamic> json) {
     return RefundRequest(
       refundId: json['refund_id'] as String? ?? '',
-      funderName: json['donor_name'] as String? ?? '', // backend key preserved
+      funderName: json['user_name'] as String? ?? '', // backend key preserved
       amountCents: _toInt(json['amount_cents'] ?? json['amount']),
       reason: json['reason'] as String? ?? '',
       status: json['status'] as String? ?? 'pending',

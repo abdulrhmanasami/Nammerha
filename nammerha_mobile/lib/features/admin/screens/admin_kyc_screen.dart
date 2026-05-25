@@ -331,54 +331,85 @@ class _KycView extends StatelessWidget {
   }
 
   void _showRejectDialog(BuildContext context, KycEntry entry) {
-    final colors = context.colors;
-    final controller = TextEditingController();
+    final bloc = context.read<AdminKycBloc>();
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(context.tr('admin_reject'), style: TextStyle(color: colors.error, fontWeight: FontWeight.w700)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('${context.tr('admin_reject')} — ${entry.fullName}', style: TextStyle(color: colors.textBody, fontSize: 13)),
-            const SizedBox(height: 12),
-            TextField(
-              controller: controller,
-              maxLines: 3,
-              decoration: InputDecoration(
-                hintText: context.tr('admin_reject_reason'),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: colors.error),
-                ),
+      builder: (dialogContext) => _RejectDialog(entry: entry, bloc: bloc),
+    );
+  }
+}
+
+class _RejectDialog extends StatefulWidget {
+  final KycEntry entry;
+  final AdminKycBloc bloc;
+  
+  const _RejectDialog({required this.entry, required this.bloc});
+
+  @override
+  State<_RejectDialog> createState() => _RejectDialogState();
+}
+
+class _RejectDialogState extends State<_RejectDialog> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: Text(context.tr('admin_reject'), style: TextStyle(color: colors.error, fontWeight: FontWeight.w700)),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('${context.tr('admin_reject')} — ${widget.entry.fullName}', style: TextStyle(color: colors.textBody, fontSize: 13)),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _controller,
+            maxLines: 3,
+            decoration: InputDecoration(
+              hintText: context.tr('admin_reject_reason'),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: colors.error),
               ),
             ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: Text(context.tr('cancel'), style: TextStyle(color: colors.textMuted)),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.pop(dialogContext);
-              context.read<AdminKycBloc>().add(
-                UpdateKycDecision(
-                  userId: entry.userId,
-                  decision: 'rejected',
-                  reason: controller.text.trim().isNotEmpty ? controller.text.trim() : null,
-                ),
-              );
-            },
-            style: FilledButton.styleFrom(backgroundColor: colors.error),
-            child: Text(context.tr('admin_reject')),
           ),
         ],
       ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(context.tr('cancel'), style: TextStyle(color: colors.textMuted)),
+        ),
+        FilledButton(
+          onPressed: () {
+            Navigator.pop(context);
+            widget.bloc.add(
+              UpdateKycDecision(
+                userId: widget.entry.userId,
+                decision: 'rejected',
+                reason: _controller.text.trim().isNotEmpty ? _controller.text.trim() : null,
+              ),
+            );
+          },
+          style: FilledButton.styleFrom(backgroundColor: colors.error),
+          child: Text(context.tr('admin_reject')),
+        ),
+      ],
     );
   }
 }

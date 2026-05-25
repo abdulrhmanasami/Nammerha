@@ -162,8 +162,8 @@ export function renderRecentTips(tips: TipEntry[]): void {
                 <i class="ph ph-heart text-warm-earth text-sm" aria-hidden="true"></i>
             </div>
             <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium truncate">${escapeHtml(t('rev_donation_label', 'التبرع'))} ${escapeHtml(tip.donation_reference)} — ${formatCents(tip.tip_amount_cents)}${pctLabel}</p>
-                <p class="text-3xs text-slate-400 mt-0.5 dark:text-slate-500">${escapeHtml(t('rev_donor_label', 'المانح'))}: ${escapeHtml(tip.donor_id.substring(0, 8))}…</p>
+                <p class="text-sm font-medium truncate">${escapeHtml(t('rev_payment_label', 'التبرع'))} ${escapeHtml(tip.payment_reference)} — ${formatCents(tip.tip_amount_cents)}${pctLabel}</p>
+                <p class="text-3xs text-slate-400 mt-0.5 dark:text-slate-500">${escapeHtml(t('rev_user_label', 'المانح'))}: ${escapeHtml(tip.user_id.substring(0, 8))}…</p>
             </div>
             <span class="text-3xs text-slate-400 shrink-0 dark:text-slate-500">${relativeTimeAgo(tip.created_at)}</span>
         </div>`;

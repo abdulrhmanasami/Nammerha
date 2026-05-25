@@ -29,7 +29,7 @@ import 'package:flutter/foundation.dart';
 ///
 /// // Anywhere in the app:
 /// CrashlyticsService.instance.recordError(error, stackTrace);
-/// CrashlyticsService.instance.setUserContext(userId: '...', role: 'donor');
+/// CrashlyticsService.instance.setUserContext(userId: '...', role: 'user');
 /// CrashlyticsService.instance.log('User completed KYC verification');
 /// ```
 class CrashlyticsService {

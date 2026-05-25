@@ -18,7 +18,7 @@ const Map<String, Map<String, String>> kTranslations = {
   // ═══ NAVIGATION ═══
   'nav_home': {'ar': 'الرئيسية', 'en': 'Home'},
   'nav_projects': {'ar': 'المشاريع', 'en': 'Projects'},
-  // nav_donations: REMOVED — donation system eradicated (May 2026)
+  // nav_payments: REMOVED — payment system eradicated (May 2026)
   'nav_profile': {'ar': 'حسابي', 'en': 'My Account'},
   'nav_admin': {'ar': 'الإدارة', 'en': 'Admin'},
   'nav_bids': {'ar': 'عروضي', 'en': 'My Bids'},
@@ -198,6 +198,7 @@ const Map<String, Map<String, String>> kTranslations = {
   'dr_step_photos': {'ar': 'الصور', 'en': 'Photos'},
   'dr_step_review': {'ar': 'المراجعة', 'en': 'Review'},
   'dr_success_msg': {'ar': '✅ تم تقديم طلب الإعمار بنجاح!', 'en': '✅ Reconstruction request submitted successfully!'},
+  'dr_offline_saved_msg': {'ar': 'تم الحفظ بنجاح. سيتم الرفع تلقائياً عند عودة الإنترنت', 'en': 'Saved successfully. Will upload automatically when internet is restored.'},
   'dr_what_damage': {'ar': 'ما نوع الضرر؟', 'en': 'What type of damage?'},
   'dr_select_damage_hint': {'ar': 'اختر نوع الضرر الرئيسي في منزلك', 'en': 'Select the primary damage type in your home'},
   'dr_where_property': {'ar': 'أين يقع العقار؟', 'en': 'Where is the property?'},
@@ -216,7 +217,7 @@ const Map<String, Map<String, String>> kTranslations = {
   'dr_damage_desc_hint': {'ar': 'اشرح طبيعة الأضرار بالتفصيل...', 'en': 'Describe the damage in detail...'},
   'dr_submit_btn': {'ar': 'تقديم طلب الإعمار', 'en': 'Submit Reconstruction Request'},
 
-  // ═══ DONOR PORTAL — ERADICATED (May 2026) ═══
+  // ═══ user PORTAL — ERADICATED (May 2026) ═══
   // All dn_* keys removed. Directories deleted.
 
   // ═══ ENGINEER BOQ BUILDER (C1 FIX — i18n Completeness) ═══
@@ -509,8 +510,8 @@ const Map<String, Map<String, String>> kTranslations = {
   'user_default': {'ar': 'مستخدم', 'en': 'User'},
 
   // ═══ ROLES ═══
-  // SUSPENDED: Donor role suspended indefinitely (May 2026)
-  // 'role_donor': {'ar': 'متبرع', 'en': 'Donor'},
+  // SUSPENDED: user role suspended indefinitely (May 2026)
+  // 'role_user': {'ar': 'متبرع', 'en': 'user'},
   'role_homeowner': {'ar': 'متضرر', 'en': 'Homeowner'},
   'role_engineer': {'ar': 'مهندس', 'en': 'Engineer'},
   'role_contractor': {'ar': 'مقاول', 'en': 'Contractor'},
@@ -529,7 +530,7 @@ const Map<String, Map<String, String>> kTranslations = {
   'greeting_morning': {'ar': 'صباح الخير', 'en': 'Good Morning'},
   'greeting_afternoon': {'ar': 'مساء الخير', 'en': 'Good Afternoon'},
   'greeting_evening': {'ar': 'مساء الخير', 'en': 'Good Evening'},
-  // dashboard_subtitle_donor: REMOVED — donation system eradicated (May 2026)
+  // dashboard_subtitle_user: REMOVED — payment system eradicated (May 2026)
   'dashboard_subtitle_engineer': {'ar': 'مشاريعك بانتظارك', 'en': 'Your projects await'},
   'dashboard_subtitle_supplier': {'ar': 'طلبات جديدة بانتظارك', 'en': 'New orders are waiting'},
   'dashboard_subtitle_homeowner': {'ar': 'تابع تقدم مشروعك', 'en': 'Track your project progress'},
@@ -914,7 +915,7 @@ const Map<String, Map<String, String>> kTranslations = {
   'funding_ratio': {'ar': 'نسبة التمويل', 'en': 'Funding Ratio'},
   'map_of_projects': {'ar': 'خريطة المشاريع', 'en': 'Projects Map'},
   'search_projects_hint': {'ar': 'البحث عن مشاريع...', 'en': 'Search projects...'},
-  // SUSPENDED: Donation cart suspended indefinitely (May 2026)
+  // SUSPENDED: payment cart suspended indefinitely (May 2026)
   'materials_cart': {'ar': 'سلة المواد', 'en': 'Materials Cart'},
   'empty_cart': {'ar': 'إفراغ السلة', 'en': 'Empty Cart'},
   'your_cart_is_empty': {'ar': 'سلتك فارغة', 'en': 'Your cart is empty'},
@@ -957,7 +958,7 @@ const Map<String, Map<String, String>> kTranslations = {
   'admin_funding': {'ar': 'التمويل', 'en': 'Funding'},
   'admin_contractors': {'ar': 'المقاولون', 'en': 'Contractors'},
   'admin_projects_by_month': {'ar': 'المشاريع حسب الشهر', 'en': 'Projects by Month'},
-  // admin_donations_by_month: REMOVED — merged into ad_funding_by_month
+  // admin_payments_by_month: REMOVED — merged into ad_funding_by_month
   'admin_audit_trail': {'ar': 'سجل التدقيق', 'en': 'Audit Trail'},
   'admin_no_audit': {'ar': 'لا توجد إدخالات حديثة', 'en': 'No recent entries'},
   'admin_pending_verification': {'ar': 'تحقق معلّق', 'en': 'Pending verification'},
@@ -1093,12 +1094,12 @@ const Map<String, Map<String, String>> kTranslations = {
   'camera': {'ar': 'استخدم وضع البانوراما في الكاميرا للتصوير 360°', 'en': 'Use panorama mode for 360° capture'},
   'performance_points': {'ar': 'نقاط الأداء', 'en': 'Performance Points'},
   'material_steel': {'ar': 'حديد', 'en': 'Steel'},
-  // str_0cde927d: REMOVED — donation orphan
-  // str_0dbb85e3: REMOVED — donation orphan
+  // str_0cde927d: REMOVED — payment orphan
+  // str_0dbb85e3: REMOVED — payment orphan
   'status_fully_funded': {'ar': 'مموّل بالكامل', 'en': 'Fully Funded'},
   'password_login': {'ar': 'يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة', 'en': 'You can now log in with your new password'},
   'location': {'ar': 'تحديد الموقع تلقائياً', 'en': 'Auto-detect Location'},
-  // str_0ea1d954: REMOVED — donation orphan
+  // str_0ea1d954: REMOVED — payment orphan
   'help_here_for_you': {'ar': 'نحن هنا لمساعدتك', 'en': 'We are here to help you'},
   'invalid_email': {'ar': 'صيغة البريد غير صحيحة', 'en': 'Invalid email format'},
   'day': {'ar': 'يوم', 'en': 'Day'},
@@ -1130,7 +1131,7 @@ const Map<String, Map<String, String>> kTranslations = {
   'purchase_orders': {'ar': 'أضف أول مادة لتبدأ باستلام أوامر الشراء', 'en': 'Add your first material to start receiving purchase orders'},
   'bids_label': {'ar': 'عروض', 'en': 'Bids'},
   'status_refunded': {'ar': 'مُسترد', 'en': 'Refunded'},
-  // str_226e936e: REMOVED — donation orphan
+  // str_226e936e: REMOVED — payment orphan
   'not_found': {'ar': 'لم يتم العثور على نتائج', 'en': 'No results found'},
   'overview': {'ar': 'نظرة عامة', 'en': 'Overview'},
   'status_released': {'ar': 'مُحرَّر', 'en': 'Released'},
@@ -1142,7 +1143,7 @@ const Map<String, Map<String, String>> kTranslations = {
   'status_processing': {'ar': 'قيد المعالجة', 'en': 'Processing'},
   'longitude': {'ar': 'خط الطول', 'en': 'Longitude'},
   'loading_projects': {'ar': 'جارٍ تحميل مشاريعك...', 'en': 'Loading your projects...'},
-  // str_254579bc: REMOVED — donation orphan
+  // str_254579bc: REMOVED — payment orphan
   'input_password_submit_enter': {'ar': 'أدخل بريدك الإلكتروني لإرسال رابط إعادة تعيين كلمة المرور', 'en': 'Enter your email to send a password reset link'},
   'new_construction': {'ar': 'بناء جديد', 'en': 'New Construction'},
   'proof': {'ar': 'الإثبات المكاني لم يُقدَّم بعد — سيُتاح بعد التسليم', 'en': 'Spatial proof not yet submitted — available after delivery'},
@@ -1180,7 +1181,7 @@ const Map<String, Map<String, String>> kTranslations = {
   'sending_request': {'ar': 'جارِ إرسال الطلب...', 'en': 'Sending request...'},
   'status_offline': {'ar': 'غير متصل', 'en': 'Offline'},
   'delivery_2': {'ar': 'تم التوصيل', 'en': 'Delivered'},
-  // str_3a732fb9: REMOVED — donation orphan
+  // str_3a732fb9: REMOVED — payment orphan
   'remaining': {'ar': 'المتبقي', 'en': 'Remaining'},
   'material_paint': {'ar': 'دهان', 'en': 'Paint'},
   'damage': {'ar': 'تقرير أضرار', 'en': 'Damage Report'},
@@ -1194,7 +1195,7 @@ const Map<String, Map<String, String>> kTranslations = {
   'portal_portal': {'ar': 'بوابة البيانات المفتوحة', 'en': 'Open Data Portal'},
   'epa_calculator': {'ar': 'حاسبة EPA', 'en': 'EPA Calculator'},
   'project_damage': {'ar': 'أبلغ عن أضرار لبدء مشروع جديد', 'en': 'Report damage to start a new project'},
-  // str_427cbaf5: REMOVED — donation orphan
+  // str_427cbaf5: REMOVED — payment orphan
   'contact_reply_soon': {'ar': 'سنتواصل معك في أقرب وقت ممكن', 'en': 'We will contact you as soon as possible'},
   'material_shipping': {'ar': 'شحن', 'en': 'Shipping'},
   'proof_2': {'ar': 'الإثباتات', 'en': 'Proofs'},
@@ -1221,7 +1222,7 @@ const Map<String, Map<String, String>> kTranslations = {
   'price': {'ar': 'سعر الوحدة (ل.س)', 'en': 'Unit Price (SYP)'},
   'damage_2': {'ar': 'أضرار سطحية', 'en': 'Surface Damage'},
   'minimum': {'ar': 'الحد الأدنى', 'en': 'Minimum'},
-  // str_50fc47dc: REMOVED — donation orphan
+  // str_50fc47dc: REMOVED — payment orphan
   'quantity': {'ar': 'الكمية', 'en': 'Quantity'},
   'empty_proofs': {'ar': 'لا توجد إثباتات تسليم بعد', 'en': 'No delivery proofs yet'},
   'auto_redirect': {'ar': 'سيتم تحويلك تلقائياً...', 'en': 'Redirecting automatically...'},
@@ -1244,7 +1245,7 @@ const Map<String, Map<String, String>> kTranslations = {
   'validation_escrow_proof_escrow': {'ar': 'نضمن وصول كل ليرة إلى حيث يجب عبر آلية ضمان إسكرو مع إثبات مكاني بالـ GPS.', 'en': 'We ensure every pound reaches its destination via escrow with GPS spatial proof.'},
   'loading_generic': {'ar': 'جارٍ التحميل...', 'en': 'Loading...'},
   'status_in_progress': {'ar': 'قيد التنفيذ', 'en': 'In Progress'},
-  // str_5a1556d9: REMOVED — 'بوابة المتبرع' orphan (donation eradication)
+  // str_5a1556d9: REMOVED — 'بوابة المتبرع' orphan (payment eradication)
   'bid': {'ar': 'خط العرض', 'en': 'Latitude'},
   'price_2': {'ar': 'السعر الاسترشادي (ل.س)', 'en': 'Reference Price (SYP)'},
   'none_yet_bids': {'ar': 'لم تقدم أي عروض بعد', 'en': 'You have not submitted any bids yet'},
@@ -1341,14 +1342,14 @@ const Map<String, Map<String, String>> kTranslations = {
   'construction_progress': {'ar': 'تقدم البناء', 'en': 'Construction Progress'},
   'prices_3': {'ar': 'الأسعار الحية', 'en': 'Live Prices'},
   'cart_delete': {'ar': 'هل تريد حذف جميع العناصر من السلة؟', 'en': 'Remove all items from cart?'},
-  // str_86094cd6: REMOVED — donation orphan
+  // str_86094cd6: REMOVED — payment orphan
   'material_wood': {'ar': 'خشب', 'en': 'Wood'},
   'price_3': {'ar': 'سعر الوحدة', 'en': 'Unit Price'},
   'damage_6': {'ar': 'اشرح طبيعة الأضرار بالتفصيل...', 'en': 'Describe the damage in detail...'},
   'reviews': {'ar': 'لا تقييمات بعد', 'en': 'No reviews yet'},
   'project_create_location': {'ar': 'يرجى السماح بالوصول للموقع لإنشاء المشروع', 'en': 'Please allow location access to create the project'},
   'escrow_escrow': {'ar': 'أمان ضمان الإسكرو', 'en': 'Escrow Security'},
-  // str_88b0098c: REMOVED — donation orphan
+  // str_88b0098c: REMOVED — payment orphan
   'total_label': {'ar': 'الإجمالي', 'en': 'Total'},
   'projects_7': {'ar': 'مشاريع معيّنة', 'en': 'Assigned Projects'},
   'error_2': {'ar': 'حدث خطأ في التحقق — حاول مرة أخرى', 'en': 'Verification error — please try again'},
@@ -1357,7 +1358,7 @@ const Map<String, Map<String, String>> kTranslations = {
   'password_3': {'ar': 'تعيين كلمة المرور الجديدة', 'en': 'Set New Password'},
   'select_select_3': {'ar': 'اختر المواد التي تريد تمويلها', 'en': 'Select the materials you want to fund'},
   'transparency_ocds_log': {'ar': 'سجل الشفافية (OCDS)', 'en': 'Transparency Log (OCDS)'},
-  'reviews_contractor_engineer': {'ar': 'أدِر حسابك، بدّل أدوارك (مانح/مقاول/مهندس)\nوتابع تقييمات ثقتك', 'en': 'Manage your account, switch roles (Donor/Contractor/Engineer)\nand track your trust reviews'},
+  'reviews_contractor_engineer': {'ar': 'أدِر حسابك، بدّل أدوارك (مانح/مقاول/مهندس)\nوتابع تقييمات ثقتك', 'en': 'Manage your account, switch roles (user/Contractor/Engineer)\nand track your trust reviews'},
   'gps': {'ar': '٤. الأموال تُفرَج فقط بعد التحقق من الإنجاز بالصور و GPS', 'en': '4. Funds released only after verifying completion with photos & GPS'},
   'line_items': {'ar': 'بنود', 'en': 'Line Items'},
   'complaint': {'ar': 'شكوى', 'en': 'Complaint'},
@@ -1430,7 +1431,7 @@ const Map<String, Map<String, String>> kTranslations = {
   'portal_homeowner_portal': {'ar': 'بوابة المتضرر', 'en': 'Homeowner Portal'},
   'resolved': {'ar': 'تم حلها', 'en': 'Resolved'},
   'marketplace_browse_bids': {'ar': 'تصفح السوق وقدّم عروضك', 'en': 'Browse marketplace and submit your bids'},
-  // str_a92fd8f0: REMOVED — donation orphan
+  // str_a92fd8f0: REMOVED — payment orphan
   'catalog_bid': {'ar': 'عرض 5 منتجات في الكتالوج', 'en': 'Display 5 products in catalog'},
   'technical_support': {'ar': 'دعم تقني', 'en': 'Technical Support'},
   'empty_projects_3': {'ar': 'لا توجد مشاريع متاحة حالياً', 'en': 'No projects available currently'},
@@ -1442,7 +1443,7 @@ const Map<String, Map<String, String>> kTranslations = {
   'deposited': {'ar': 'المودع', 'en': 'Deposited'},
   'projects_8': {'ar': 'المشاريع المنشورة', 'en': 'Published Projects'},
   'transparency_3': {'ar': '• الشفافية الجذرية — كل معاملة مرئية ومتتبَّعة\n', 'en': '• Radical Transparency — Every transaction is visible and tracked\n'},
-  // str_adb3754c: REMOVED — '💚 متبرع' orphan (donation eradication)
+  // str_adb3754c: REMOVED — '💚 متبرع' orphan (payment eradication)
   'empty_escrow': {'ar': 'لا يوجد معرّف للضمان', 'en': 'No escrow identifier found'},
   'compliance': {'ar': 'معدل الامتثال', 'en': 'Compliance Rate'},
   'empty_proofs_projects_delivery': {'ar': 'ستظهر هنا إثباتات التسليم المكانية\nعندما يتم توصيل مواد مشاريعك', 'en': 'Spatial delivery proofs will appear here\nwhen your project materials are delivered'},
@@ -1490,7 +1491,7 @@ const Map<String, Map<String, String>> kTranslations = {
   'empty_projects_4': {'ar': 'ستظهر المشاريع الجديدة هنا', 'en': 'New projects will appear here'},
   'project_4': {'ar': 'تفاصيل المشروع', 'en': 'Project Details'},
   'empty_reviews': {'ar': 'لا توجد تقييمات بعد', 'en': 'No reviews yet'},
-  // str_c6a0d9a9: REMOVED — donation orphan
+  // str_c6a0d9a9: REMOVED — payment orphan
   'governorate_2': {'ar': '] ?? _regions.length} محافظة', 'en': 'governorates'},
   'price_5': {'ar': 'السعر الاسترشادي', 'en': 'Reference Price'},
   'escrow_8': {'ar': 'خزنة الضمان', 'en': 'Escrow Vault'},
@@ -1507,7 +1508,7 @@ const Map<String, Map<String, String>> kTranslations = {
   'file': {'ar': 'الملف', 'en': 'File'},
   'all_platinum_features': {'ar': 'جميع ميزات البلاتينية', 'en': 'All Platinum Features'},
   'plan_basic': {'ar': 'الأساسية', 'en': 'Basic'},
-  // str_cca67e77: REMOVED — donation orphan
+  // str_cca67e77: REMOVED — payment orphan
   'accuracy': {'ar': 'الدقة', 'en': 'Accuracy'},
   'unspecified': {'ar': 'غير محدد', 'en': 'Unspecified'},
   'team': {'ar': 'فريق العمل', 'en': 'Team'},
@@ -1562,7 +1563,7 @@ const Map<String, Map<String, String>> kTranslations = {
   'covered_areas': {'ar': 'المناطق المغطاة', 'en': 'Covered Areas'},
   'nammerha_brand': {'ar': 'نُعمّرها', 'en': 'Nammerha'},
   'submit_bid_3': {'ar': 'تقديم عطاء (Bid)', 'en': 'Submit Bid'},
-  // str_e3782aae: REMOVED — donation orphan
+  // str_e3782aae: REMOVED — payment orphan
   'earnings_label': {'ar': 'الأرباح', 'en': 'Earnings'},
   'privacy_policy': {'ar': 'سياسة الخصوصية', 'en': 'Privacy Policy'},
   'proof_gps_2': {'ar': '• إثبات الواقع — تحقق GPS + SHA-256 للصور\n', 'en': '• Reality Proof — GPS + SHA-256 verification for photos\n'},
@@ -1583,7 +1584,7 @@ const Map<String, Map<String, String>> kTranslations = {
   'log_3': {'ar': 'السجل', 'en': 'Log'},
   'refunded_label': {'ar': 'مُستردّ', 'en': 'Refunded'},
   'empty_projects_8': {'ar': 'ستظهر هنا آخر النشاطات عند بدء العمل على المشاريع', 'en': 'Recent activities will appear here when you start working on projects'},
-  // str_ee0a06e8: REMOVED — donation orphan
+  // str_ee0a06e8: REMOVED — payment orphan
   'location_failed_gps': {'ar': 'تعذر تحديد الموقع — تأكد من تفعيل GPS', 'en': 'Failed to detect location — make sure GPS is enabled'},
   'locked': {'ar': 'محتجز', 'en': 'Locked'},
   'project_contractor': {'ar': 'ابحث عن مشروع أو مقاول...', 'en': 'Search for project or contractor...'},
@@ -1593,12 +1594,12 @@ const Map<String, Map<String, String>> kTranslations = {
   'proof_gps_3': {'ar': 'إثبات مكاني GPS', 'en': 'GPS Spatial Proof'},
   'empty_projects_9': {'ar': 'لا توجد مشاريع منشورة بعد', 'en': 'No published projects yet'},
   'requests_4': {'ar': 'طلبات معلقة', 'en': 'Pending Requests'},
-  // str_f43bccc9: REMOVED — donation orphan
+  // str_f43bccc9: REMOVED — payment orphan
   'material_electrical': {'ar': 'كهرباء', 'en': 'Electrical'},
   'funded': {'ar': 'ممول', 'en': 'Funded'},
   'estimated_duration_days': {'ar': 'المدة التقديرية (أيام)', 'en': 'Estimated Duration (days)'},
   'download_receipt_pdf': {'ar': 'تحميل الإيصال PDF', 'en': 'Download Receipt PDF'},
-  // str_f5f42698: REMOVED — donation orphan
+  // str_f5f42698: REMOVED — payment orphan
   'success_upgraded_subscription': {'ar': '✅ تم ترقية اشتراكك بنجاح. أنت الآن مورد موثوق!', 'en': '✅ Subscription upgraded successfully. You are now a trusted supplier!'},
   'standard_support': {'ar': 'دعم فني عادي', 'en': 'Standard Support'},
   'location_2': {'ar': 'عمال الموقع:', 'en': 'Site Workers:'},

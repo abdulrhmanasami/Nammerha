@@ -20,18 +20,15 @@
         preferredSupplierId: ID!
     }
 
-    input DonationItemInput {
+    input PaymentItemInput {
         itemId: ID!
         amount: BigIntCents!
     }
 
-    input CreateDonationInput {
-        items: [DonationItemInput!]!
+    input CreatePaymentIntentInput {
+        items: [PaymentItemInput!]!
         paymentMethod: PaymentMethod!
         returnUrl: String
-        giftRecipientName: String
-        giftMessage: String
-        donationIntent: DonationIntent
     }
 
     input SubmitSpatialProofInput {

@@ -30,15 +30,15 @@
         """Get user notifications (paginated)"""
         notifications(page: Int, pageSize: Int): PaginatedNotifications!
 
-        # ── Donor ─────────────────────────────────────────────────────────
-        """Get donor's escrow history"""
-        donorEscrowHistory: [EscrowEntry!]!
+        # ── User Payments ─────────────────────────────────────────────────
+        """Get user's escrow history"""
+        userEscrowHistory: [EscrowEntry!]!
 
-        """Get donor's donation history (paginated)"""
-        donorDonations(limit: Int, offset: Int): [EscrowEntry!]!
+        """Get user's payment history (paginated)"""
+        userPayments(limit: Int, offset: Int): [EscrowEntry!]!
 
-        """Get donor's impact messages"""
-        donorImpactMessages: [ImpactMessage!]!
+        """Get user's impact messages"""
+        userImpactMessages: [ImpactMessage!]!
 
         # ── Engineer ──────────────────────────────────────────────────────
         """Get engineer's assigned projects"""
@@ -85,15 +85,14 @@
         """Add a BOQ item to a project"""
         addBOQItem(projectId: ID!, input: AddBOQItemInput!): BOQItem!
 
-        # ── Donations (Path 2) ───────────────────────────────────────────
-        """Create a donation with payment intent"""
-        createDonation(input: CreateDonationInput!): PaymentIntent!
-
         # ── Spatial Proofs (Path 3) ──────────────────────────────────────
         """Submit a GPS-verified spatial proof"""
         submitSpatialProof(input: SubmitSpatialProofInput!): SpatialProof!
 
         # ── Escrow (Path 4) ──────────────────────────────────────────────
+        """Create a payment intent (Escrow Lock)"""
+        createPaymentIntent(input: CreatePaymentIntentInput!): [EscrowEntry!]!
+
         """Release escrow funds after proof verification (admin only)"""
         releaseEscrow(input: ReleaseEscrowInput!): EscrowEntry!
 

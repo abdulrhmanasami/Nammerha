@@ -132,7 +132,7 @@ class DashboardHomeBloc extends Bloc<DashboardHomeEvent, DashboardHomeState> {
           'total_bids_received': s.totalBidsReceived,
         });
       default:
-        // Donor role eradicated (May 2026). Default returns empty stats.
+        // user role eradicated (May 2026). Default returns empty stats.
         return Future.value(<String, dynamic>{});
     }
   }
@@ -162,7 +162,7 @@ class DashboardHomeBloc extends Bloc<DashboardHomeEvent, DashboardHomeState> {
           'escrow_total': 0,      'escrowTotal': 0,
         };
       default:
-        // Donor role eradicated. Empty fallback.
+        // user role eradicated. Empty fallback.
         return {};
     }
   }

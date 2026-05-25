@@ -468,7 +468,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   _RoleMeta _roleMeta(String role) {
     final colors = context.colors;
     switch (role) {
-      // 'donor' case removed — donor role eradicated (May 2026)
+      // 'user' case removed — user role eradicated (May 2026)
       case 'homeowner': return _RoleMeta(context.tr('role_homeowner'), PhosphorIconsRegular.house, colors.warning, context.tr('role_verification_identity'));
       case 'engineer': return _RoleMeta(context.tr('role_engineer'), PhosphorIconsRegular.hardHat, colors.info, context.tr('role_verification_guild'));
       case 'contractor': return _RoleMeta(context.tr('role_contractor'), PhosphorIconsRegular.wrench, colors.secondaryAccent, context.tr('role_verification_commercial'));

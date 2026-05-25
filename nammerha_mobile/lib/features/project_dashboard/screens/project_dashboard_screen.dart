@@ -395,11 +395,7 @@ class _ProjectDashboardView extends StatelessWidget {
 
   void _showSubmitLogDialog(BuildContext context) {
     final colors = context.colors;
-    final descController = TextEditingController();
-    final workController = TextEditingController();
-    final issuesController = TextEditingController();
-    String weatherCondition = context.tr('weather_sunny');
-    int workersOnSite = 1;
+    final bloc = context.read<ProjectDashboardBloc>();
 
     showModalBottomSheet(
       context: context,
@@ -408,122 +404,7 @@ class _ProjectDashboardView extends StatelessWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setModalState) => Padding(
-          padding: EdgeInsetsDirectional.fromSTEB(
-            20,
-            20,
-            20,
-            MediaQuery.of(ctx).viewInsets.bottom + 20,
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Handle
-                BottomSheetGrabber(colors: colors),
-                const SizedBox(height: 16),
-                Text(
-                  context.tr('pd_add_log_title'),
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: colors.textPrimary),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 20),
-
-                // Description
-                _DialogTextField(
-                  controller: descController,
-                  label: context.tr('pd_field_description'),
-                  maxLines: 3,
-                  colors: colors,
-                ),
-                const SizedBox(height: 14),
-
-                // Work Completed
-                _DialogTextField(
-                  controller: workController,
-                  label: context.tr('pd_field_work_completed'),
-                  colors: colors,
-                ),
-                const SizedBox(height: 14),
-
-                // Issues
-                _DialogTextField(
-                  controller: issuesController,
-                  label: context.tr('pd_field_issues'),
-                  colors: colors,
-                ),
-                const SizedBox(height: 14),
-
-                // Weather
-                Row(
-                  children: [
-                    Text(context.tr('weather'), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.textPrimary)),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: DropdownButton<String>(
-                        value: weatherCondition,
-                        isExpanded: true,
-                        dropdownColor: colors.surfaceElevated,
-                        style: TextStyle(color: colors.textPrimary, fontSize: 13),
-                        items: [context.tr('weather_sunny'), context.tr('weather_cloudy'), context.tr('weather_rainy'), context.tr('weather_windy'), context.tr('weather_snowy')]
-                            .map((w) => DropdownMenuItem(value: w, child: Text(w)))
-                            .toList(),
-                        onChanged: (v) => setModalState(() => weatherCondition = v ?? weatherCondition),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-
-                // Workers
-                Row(
-                  children: [
-                    Text(context.tr('pd_workers_on_site'), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.textPrimary)),
-                    const Spacer(),
-                    IconButton(
-                      onPressed: () => setModalState(() => workersOnSite = (workersOnSite - 1).clamp(0, 999)),
-                      icon: Icon(PhosphorIcons.minusCircle(), color: colors.textSecondary),
-                    ),
-                    Text('$workersOnSite', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.textPrimary)),
-                    IconButton(
-                      onPressed: () => setModalState(() => workersOnSite++),
-                      icon: Icon(PhosphorIcons.plusCircle(), color: colors.primaryBrand),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-
-                // Submit
-                ElevatedButton(
-                  onPressed: () {
-                    if (descController.text.trim().isEmpty) return;
-                    context.read<ProjectDashboardBloc>().add(
-                      SubmitDailyLog(
-                        projectId: projectId,
-                        description: descController.text.trim(),
-                        workCompleted: workController.text.trim().isNotEmpty ? workController.text.trim() : null,
-                        issuesEncountered: issuesController.text.trim().isNotEmpty ? issuesController.text.trim() : null,
-                        weatherConditions: weatherCondition,
-                        workersOnSite: workersOnSite,
-                      ),
-                    );
-                    Navigator.pop(ctx);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: colors.primaryBrand,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  ),
-                  child: Text(context.tr('submit_log'), style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+      builder: (ctx) => _SubmitLogSheet(projectId: projectId, bloc: bloc),
     );
   }
 
@@ -549,6 +430,169 @@ class _ProjectDashboardView extends StatelessWidget {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               child: Text(context.tr('retry'), style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SubmitLogSheet extends StatefulWidget {
+  final String projectId;
+  final ProjectDashboardBloc bloc;
+
+  const _SubmitLogSheet({required this.projectId, required this.bloc});
+
+  @override
+  State<_SubmitLogSheet> createState() => _SubmitLogSheetState();
+}
+
+class _SubmitLogSheetState extends State<_SubmitLogSheet> {
+  late final TextEditingController _descController;
+  late final TextEditingController _workController;
+  late final TextEditingController _issuesController;
+  late String _weatherCondition;
+  int _workersOnSite = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    _descController = TextEditingController();
+    _workController = TextEditingController();
+    _issuesController = TextEditingController();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _weatherCondition = context.tr('weather_sunny');
+  }
+
+  @override
+  void dispose() {
+    _descController.dispose();
+    _workController.dispose();
+    _issuesController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return Padding(
+      padding: EdgeInsetsDirectional.fromSTEB(
+        20,
+        20,
+        20,
+        MediaQuery.of(context).viewInsets.bottom + 20,
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Handle
+            BottomSheetGrabber(colors: colors),
+            const SizedBox(height: 16),
+            Text(
+              context.tr('pd_add_log_title'),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: colors.textPrimary),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+
+            // Description
+            _DialogTextField(
+              controller: _descController,
+              label: context.tr('pd_field_description'),
+              maxLines: 3,
+              colors: colors,
+            ),
+            const SizedBox(height: 14),
+
+            // Work Completed
+            _DialogTextField(
+              controller: _workController,
+              label: context.tr('pd_field_work_completed'),
+              colors: colors,
+            ),
+            const SizedBox(height: 14),
+
+            // Issues
+            _DialogTextField(
+              controller: _issuesController,
+              label: context.tr('pd_field_issues'),
+              colors: colors,
+            ),
+            const SizedBox(height: 14),
+
+            // Weather
+            Row(
+              children: [
+                Text(context.tr('weather'), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.textPrimary)),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: DropdownButton<String>(
+                    value: _weatherCondition,
+                    isExpanded: true,
+                    dropdownColor: colors.surfaceElevated,
+                    style: TextStyle(color: colors.textPrimary, fontSize: 13),
+                    items: [context.tr('weather_sunny'), context.tr('weather_cloudy'), context.tr('weather_rainy'), context.tr('weather_windy'), context.tr('weather_snowy')]
+                        .map((w) => DropdownMenuItem(value: w, child: Text(w)))
+                        .toList(),
+                    onChanged: (v) {
+                      if (v != null) {
+                        setState(() => _weatherCondition = v);
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+
+            // Workers
+            Row(
+              children: [
+                Text(context.tr('pd_workers_on_site'), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.textPrimary)),
+                const Spacer(),
+                IconButton(
+                  onPressed: () => setState(() => _workersOnSite = (_workersOnSite - 1).clamp(0, 999)),
+                  icon: Icon(PhosphorIcons.minusCircle(), color: colors.textSecondary),
+                ),
+                Text('$_workersOnSite', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.textPrimary)),
+                IconButton(
+                  onPressed: () => setState(() => _workersOnSite++),
+                  icon: Icon(PhosphorIcons.plusCircle(), color: colors.primaryBrand),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            // Submit
+            ElevatedButton(
+              onPressed: () {
+                if (_descController.text.trim().isEmpty) return;
+                widget.bloc.add(
+                  SubmitDailyLog(
+                    projectId: widget.projectId,
+                    description: _descController.text.trim(),
+                    workCompleted: _workController.text.trim().isNotEmpty ? _workController.text.trim() : null,
+                    issuesEncountered: _issuesController.text.trim().isNotEmpty ? _issuesController.text.trim() : null,
+                    weatherConditions: _weatherCondition,
+                    workersOnSite: _workersOnSite,
+                  ),
+                );
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: colors.primaryBrand,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              ),
+              child: Text(context.tr('submit_log'), style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),
             ),
           ],
         ),

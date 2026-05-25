@@ -176,6 +176,16 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
             );
             Navigator.of(context).pop(true);
           }
+
+          if (state is DamageReportOfflineSaved) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(context.tr('dr_offline_saved_msg')),
+                backgroundColor: colors.info,
+              ),
+            );
+            Navigator.of(context).pop(true);
+          }
         },
         builder: (context, state) {
           final data = state.formData;

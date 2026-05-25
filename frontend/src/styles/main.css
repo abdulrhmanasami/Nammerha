@@ -777,19 +777,39 @@ html[data-theme='dark'] :focus-visible {
   }
 }
 @keyframes skeleton-debounce {
-  0% { opacity: 0; visibility: hidden; }
-  100% { opacity: 1; visibility: visible; }
+  0% {
+    opacity: 0;
+    visibility: hidden;
+  }
+  100% {
+    opacity: 1;
+    visibility: visible;
+  }
 }
 @keyframes skeleton-timeout-bg {
-  0%, 95% { background-color: var(--surface-soft); }
-  100% { background-color: rgba(239, 68, 68, 0.1); border: 1px dashed var(--error-red); }
+  0%,
+  95% {
+    background-color: var(--surface-soft);
+  }
+  100% {
+    background-color: rgba(239, 68, 68, 0.1);
+    border: 1px dashed var(--error-red);
+  }
 }
 @keyframes skeleton-timeout-shimmer {
-  0%, 95% { opacity: 1; }
-  100% { opacity: 0; display: none; }
+  0%,
+  95% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    display: none;
+  }
 }
 .animate-pulse {
-  animation: skeleton-debounce 0s 200ms backwards, skeleton-timeout-bg 15s forwards !important;
+  animation:
+    skeleton-debounce 0s 200ms backwards,
+    skeleton-timeout-bg 15s forwards !important;
   position: relative;
   overflow: hidden;
   background-color: var(--surface-soft);
@@ -805,7 +825,9 @@ html[data-theme='dark'] :focus-visible {
     rgba(255, 255, 255, 0.5) 50%,
     transparent 100%
   );
-  animation: premium-shimmer 1.5s infinite, skeleton-timeout-shimmer 15s forwards;
+  animation:
+    premium-shimmer 1.5s infinite,
+    skeleton-timeout-shimmer 15s forwards;
   pointer-events: none;
   z-index: 10;
 }
@@ -1340,7 +1362,7 @@ html[data-theme='dark'] .nm-textarea::placeholder {
       Usage: <div class="scroll-reveal"> (JS in main.ts handles observation)
 
    3. [id^="section-"] sectionReveal — Dashboard sidebar tab switching.
-      JS in portal modules (homeowner-portal.ts, donor-portal.ts) toggles display
+      JS in portal modules (homeowner-portal.ts, user-portal.ts) toggles display
       and adds a brief fade transition.
 
    4. @keyframes fadeInUp — Raw keyframe used by .animate-fade-in-up.
@@ -1988,7 +2010,7 @@ html[data-theme='dark'] .text-red-400 {
 
 /* ============================================================================
    RES-004 FIX: Checkout Safe Padding
-   Previous: Inline style on donor-basket <main> — violated CSP intent and was
+   Previous: Inline style on user-basket <main> — violated CSP intent and was
    impossible to maintain or override via CSS cascade.
    Now: CSS class computes bottom padding from checkout sheet height + bottom nav
    (60px) + device safe-area inset. Uses CSS custom property for dynamic height.
@@ -3136,7 +3158,7 @@ html[data-theme='dark'] .nm-compare__label {
   color: var(--smoky-jade);
 }
 
-/* P3-BAS-01 FIX: Donor basket card removal animation.
+/* P3-BAS-01 FIX: user basket card removal animation.
    Previous: card.style.transition + card.style.opacity + card.style.transform (3 inline mutations).
    Now: single class toggle. RTL direction handled by logical transform.
    Standard: P1-SST-001 governance, CSS-driven animation. */
@@ -3244,7 +3266,7 @@ html[data-theme='dark'] .bg-surface {
 }
 
 /* ============================================================================
-   I-006 FIX: Dark mode for donor-basket checkout sheet inner elements
+   I-006 FIX: Dark mode for user-basket checkout sheet inner elements
    The glass-sheet parent has dark mode styling, but inner Tailwind text utilities
    (text-slate-900, text-slate-400) don't respond to data-theme. These overrides
    ensure readability inside the fixed checkout sheet.
@@ -3354,7 +3376,7 @@ html[data-theme='dark'] .animate-pulse.bg-white {
    symbol, and glass-card containers not caught by .bg-white.rounded-xl.
    Standard: WCAG 1.4.3 · Apple HIG Dark Mode Guidelines
    ============================================================================ */
-/* Trust feature cards (donor-basket grid) */
+/* Trust feature cards (user-basket grid) */
 html[data-theme='dark'] .glass-card .text-slate-500 {
   color: #94a3b8;
 }
@@ -3440,7 +3462,7 @@ html[data-theme='dark'] div[class*='bg-gradient-to-br'][class*='to-slate-200'] {
       opacity 50ms ease;
   }
 
-  /* Tip buttons (donor-basket) */
+  /* Tip buttons (user-basket) */
   .tip-btn:active {
     transform: scale(0.95);
     transition: transform 50ms ease;
@@ -4158,13 +4180,13 @@ html[data-theme='dark'] [id^='section-dashboard'] > .grid.grid-cols-2.md\:grid-c
 }
 
 /* ============================================================================
-   FRIC-2026-006 FIX: Donation Table — Mobile Card Collapse
+   FRIC-2026-006 FIX: payment Table — Mobile Card Collapse
    On ≤640px, each table row collapses into a stacked card with data-label
    pseudo-element headers. Table headers are visually hidden (sr-only).
    Standard: Material Design 3 (Responsive Tables), WCAG 1.3.1 (Info & Relationships).
    ============================================================================ */
 @media (max-width: 640px) {
-  .nm-donation-table thead {
+  .nm-payment-table thead {
     /* Visually hidden but accessible to screen readers */
     position: absolute;
     width: 1px;
@@ -4178,10 +4200,10 @@ html[data-theme='dark'] [id^='section-dashboard'] > .grid.grid-cols-2.md\:grid-c
   }
   /* SRG-02 FIX: Replaced !important with doubled-specificity selectors.
        Mobile card collapse needs to override Tailwind table defaults —
-       .nm-donation-table.nm-donation-table doubles specificity (0,2,0
+       .nm-payment-table.nm-payment-table doubles specificity (0,2,0
        vs Tailwind's 0,1,0) without !important pollution.
        Standard: CSS Architecture — zero unnecessary !important. */
-  .nm-donation-table.nm-donation-table tbody tr {
+  .nm-payment-table.nm-payment-table tbody tr {
     display: block;
     margin-bottom: 12px;
     padding: 16px;
@@ -4189,12 +4211,12 @@ html[data-theme='dark'] [id^='section-dashboard'] > .grid.grid-cols-2.md\:grid-c
     border: 1px solid rgba(226, 232, 240, 0.6);
     background: var(--card-bg, rgba(255, 255, 255, 0.02));
   }
-  html[data-theme='light'] .nm-donation-table tbody tr {
+  html[data-theme='light'] .nm-payment-table tbody tr {
     /* PLT-W13-001 FIX: #fff → white keyword. */
     background: white;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   }
-  .nm-donation-table.nm-donation-table tbody td {
+  .nm-payment-table.nm-payment-table tbody td {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -4203,10 +4225,10 @@ html[data-theme='dark'] [id^='section-dashboard'] > .grid.grid-cols-2.md\:grid-c
     border-bottom: 1px solid rgba(226, 232, 240, 0.15);
     font-size: 13px;
   }
-  .nm-donation-table.nm-donation-table tbody td:last-child {
+  .nm-payment-table.nm-payment-table tbody td:last-child {
     border-bottom: none;
   }
-  .nm-donation-table tbody td::before {
+  .nm-payment-table tbody td::before {
     content: attr(data-label);
     font-size: 10px;
     font-weight: 700;
@@ -4216,13 +4238,13 @@ html[data-theme='dark'] [id^='section-dashboard'] > .grid.grid-cols-2.md\:grid-c
     flex-shrink: 0;
     margin-inline-end: 12px;
   }
-  .nm-donation-table.nm-donation-table tbody td:first-child {
+  .nm-payment-table.nm-payment-table tbody td:first-child {
     padding-top: 0;
     font-weight: 700;
     font-size: 14px;
   }
   /* Amount cell — prominent styling */
-  .nm-donation-table tbody td[data-label]::before {
+  .nm-payment-table tbody td[data-label]::before {
     min-width: 60px;
   }
 }
@@ -5561,7 +5583,7 @@ html[data-theme='dark'] .nm-pano-wrapper {
    ============================================================================ */
 .nm-route-marker.georavity-start {
   /* Done/Start: Green with Dots pattern */
-  background-image: radial-gradient(rgba(255,255,255,0.5) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(255, 255, 255, 0.5) 1px, transparent 1px);
   background-size: 4px 4px;
 }
 .nm-route-marker.georavity-end {
@@ -5569,8 +5591,8 @@ html[data-theme='dark'] .nm-pano-wrapper {
   border-radius: 2px !important; /* Shape differentiation */
   background-image: repeating-linear-gradient(
     45deg,
-    rgba(255,255,255,0.4),
-    rgba(255,255,255,0.4) 2px,
+    rgba(255, 255, 255, 0.4),
+    rgba(255, 255, 255, 0.4) 2px,
     transparent 2px,
     transparent 4px
   );
@@ -7233,7 +7255,9 @@ html[data-theme='dark'] .nm-tour-fab:hover {
    iOS Safari automatically zooms in on inputs with font-size < 16px.
    ============================================================================ */
 @supports (-webkit-touch-callout: none) {
-  input, select, textarea {
+  input,
+  select,
+  textarea {
     font-size: 16px !important;
   }
 }

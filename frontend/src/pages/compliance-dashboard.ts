@@ -188,7 +188,7 @@ async function loadEscrowReviewQueue(): Promise<void> {
                         <h3 class="font-bold text-sm text-slate-900 mt-1 dark:text-slate-100">${esc(String(r['project_title'] ?? ''))}</h3>
                         <div class="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2">
                             <p class="text-xs text-slate-600 font-bold dark:text-slate-400"><i class="ph ph-currency-dollar text-slate-400 me-1 dark:text-slate-500" aria-hidden="true"></i> ${formatCents(Number(r['amount'] ?? 0))}</p>
-                            <p class="text-xs text-slate-600 dark:text-slate-400"><i class="ph ph-hand-heart text-slate-400 me-1 dark:text-slate-500" aria-hidden="true"></i> ${esc(String(r['donor_name'] ?? t('compliance_anonymous', 'مجهول')))}</p>
+                            <p class="text-xs text-slate-600 dark:text-slate-400"><i class="ph ph-hand-heart text-slate-400 me-1 dark:text-slate-500" aria-hidden="true"></i> ${esc(String(r['user_name'] ?? t('compliance_anonymous', 'مجهول')))}</p>
                             <p class="text-xs text-slate-500 dark:text-slate-400"><i class="ph ph-clock text-slate-400 me-1 dark:text-slate-500" aria-hidden="true"></i> ${esc(String(r['submitted_at'] ?? '—'))}</p>
                         </div>
                     </div>

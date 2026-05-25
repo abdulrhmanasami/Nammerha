@@ -5,7 +5,7 @@
 // All endpoints require 'admin' or 'auditor' role.
 //
 // GET /api/admin/stats/projects-by-month   — Projects created per month (12m)
-// GET /api/admin/stats/donations-by-month  — Donation amounts per month (12m)
+// GET /api/admin/stats/payments-by-month  — Payment amounts per month (12m)
 // GET /api/admin/stats/users-by-month      — New registrations per month (12m)
 // GET /api/admin/stats/funding-progress    — Funding % over time per project
 // GET /api/admin/stats/overview            — Platform-wide summary counters
@@ -27,84 +27,84 @@ router.use(authMiddleware, requireActive, requireRole('admin', 'auditor'));
 // ─── Time-Series Types ──────────────────────────────────────────────────────
 
 interface MonthlyDataPoint {
-    month: string;       // 'YYYY-MM' format
-    count: number;
+  month: string; // 'YYYY-MM' format
+  count: number;
 }
 
 interface MonthlyAmountPoint {
-    month: string;
-    total_amount: number; // cents
+  month: string;
+  total_amount: number; // cents
 }
 
 interface FundingProgressPoint {
-    project_id: string;
-    title: string;
-    total_estimated_cost: number;
-    total_funded_amount: number;
-    funded_percentage: number;
-    published_at: string | null;
+  project_id: string;
+  title: string;
+  total_estimated_cost: number;
+  total_funded_amount: number;
+  funded_percentage: number;
+  published_at: string | null;
 }
 
 interface PlatformOverview {
-    total_users: number;
-    total_projects: number;
-    total_donations: number;
-    total_funded_amount: number;    // cents
-    total_escrow_released: number;  // cents
-    active_engineers: number;
-    active_contractors: number;
-    verified_proofs: number;
+  total_users: number;
+  total_projects: number;
+  total_payments: number;
+  total_funded_amount: number; // cents
+  total_escrow_released: number; // cents
+  active_engineers: number;
+  active_contractors: number;
+  verified_proofs: number;
 }
 
 // ─── GET /overview ──────────────────────────────────────────────────────────
 router.get('/overview', async (_req: Request, res: Response): Promise<void> => {
-    try {
-        const cacheKey = 'admin_stats_overview';
-        const cached = memoryCache.get(cacheKey);
-        if (cached) {
-            res.json({ success: true, data: cached } as ApiResponse);
-            return;
-        }
+  try {
+    const cacheKey = 'admin_stats_overview';
+    const cached = memoryCache.get(cacheKey);
+    if (cached) {
+      res.json({ success: true, data: cached } as ApiResponse);
+      return;
+    }
 
-        const result = await query<PlatformOverview>(
-            `SELECT
+    const result = await query<PlatformOverview>(
+      `SELECT
                 (SELECT COUNT(*)::int FROM users) AS total_users,
                 (SELECT COUNT(*)::int FROM projects) AS total_projects,
-                (SELECT COUNT(*)::int FROM escrow_ledger) AS total_donations,
+                (SELECT COUNT(*)::int FROM escrow_ledger) AS total_payments,
                 (SELECT COALESCE(SUM(amount_locked), 0)::bigint FROM escrow_ledger) AS total_funded_amount,
                 (SELECT COALESCE(SUM(amount_locked), 0)::bigint FROM escrow_ledger WHERE payment_status = 'released') AS total_escrow_released,
                 (SELECT COUNT(DISTINCT assigned_engineer_id)::int FROM projects WHERE assigned_engineer_id IS NOT NULL) AS active_engineers,
                 (SELECT COUNT(DISTINCT assigned_contractor_id)::int FROM projects WHERE assigned_contractor_id IS NOT NULL) AS active_contractors,
-                (SELECT COUNT(*)::int FROM spatial_proofs WHERE verification_status = 'verified') AS verified_proofs`
-        );
+                (SELECT COUNT(*)::int FROM spatial_proofs WHERE verification_status = 'verified') AS verified_proofs`,
+    );
 
-        const data = result.rows[0];
-        memoryCache.set(cacheKey, data, 30); // 30 seconds cache
+    const data = result.rows[0];
+    memoryCache.set(cacheKey, data, 30); // 30 seconds cache
 
-        res.json({
-            success: true,
-            data,
-        } as ApiResponse);
-    } catch (error) {
-        safeRouteError(res, error, 'AdminStats.Overview');
-    }
+    res.json({
+      success: true,
+      data,
+    } as ApiResponse);
+  } catch (error) {
+    safeRouteError(res, error, 'AdminStats.Overview');
+  }
 });
 
 // ─── GET /projects-by-month ─────────────────────────────────────────────────
 router.get('/projects-by-month', async (req: Request, res: Response): Promise<void> => {
-    try {
-        const months = parseInt(req.query['months'] as string) || 12;
-        const clampedMonths = Math.min(Math.max(months, 1), 36);
+  try {
+    const months = parseInt(req.query['months'] as string) || 12;
+    const clampedMonths = Math.min(Math.max(months, 1), 36);
 
-        const cacheKey = `stats_projects_by_month_${clampedMonths}`;
-        const cached = memoryCache.get(cacheKey);
-        if (cached) {
-            res.json({ success: true, data: cached } as ApiResponse);
-            return;
-        }
+    const cacheKey = `stats_projects_by_month_${clampedMonths}`;
+    const cached = memoryCache.get(cacheKey);
+    if (cached) {
+      res.json({ success: true, data: cached } as ApiResponse);
+      return;
+    }
 
-        const result = await query<MonthlyDataPoint>(
-            `SELECT
+    const result = await query<MonthlyDataPoint>(
+      `SELECT
                 TO_CHAR(d.month, 'YYYY-MM') AS month,
                 COALESCE(p.cnt, 0)::int AS count
              FROM generate_series(
@@ -118,36 +118,36 @@ router.get('/projects-by-month', async (req: Request, res: Response): Promise<vo
                 GROUP BY DATE_TRUNC('month', created_at)
              ) p ON p.month = d.month
              ORDER BY d.month ASC`,
-            [clampedMonths - 1]
-        );
+      [clampedMonths - 1],
+    );
 
-        const data = result.rows;
-        memoryCache.set(cacheKey, data, 30);
+    const data = result.rows;
+    memoryCache.set(cacheKey, data, 30);
 
-        res.json({
-            success: true,
-            data,
-        } as ApiResponse);
-    } catch (error) {
-        safeRouteError(res, error, 'AdminStats.ProjectsByMonth');
-    }
+    res.json({
+      success: true,
+      data,
+    } as ApiResponse);
+  } catch (error) {
+    safeRouteError(res, error, 'AdminStats.ProjectsByMonth');
+  }
 });
 
-// ─── GET /donations-by-month ────────────────────────────────────────────────
-router.get('/donations-by-month', async (req: Request, res: Response): Promise<void> => {
-    try {
-        const months = parseInt(req.query['months'] as string) || 12;
-        const clampedMonths = Math.min(Math.max(months, 1), 36);
+// ─── GET /payments-by-month ────────────────────────────────────────────────
+router.get('/payments-by-month', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const months = parseInt(req.query['months'] as string) || 12;
+    const clampedMonths = Math.min(Math.max(months, 1), 36);
 
-        const cacheKey = `stats_donations_by_month_${clampedMonths}`;
-        const cached = memoryCache.get(cacheKey);
-        if (cached) {
-            res.json({ success: true, data: cached } as ApiResponse);
-            return;
-        }
+    const cacheKey = `stats_payments_by_month_${clampedMonths}`;
+    const cached = memoryCache.get(cacheKey);
+    if (cached) {
+      res.json({ success: true, data: cached } as ApiResponse);
+      return;
+    }
 
-        const result = await query<MonthlyAmountPoint>(
-            `SELECT
+    const result = await query<MonthlyAmountPoint>(
+      `SELECT
                 TO_CHAR(d.month, 'YYYY-MM') AS month,
                 COALESCE(e.total, 0)::bigint AS total_amount
              FROM generate_series(
@@ -161,36 +161,36 @@ router.get('/donations-by-month', async (req: Request, res: Response): Promise<v
                 GROUP BY DATE_TRUNC('month', locked_at)
              ) e ON e.month = d.month
              ORDER BY d.month ASC`,
-            [clampedMonths - 1]
-        );
+      [clampedMonths - 1],
+    );
 
-        const data = result.rows;
-        memoryCache.set(cacheKey, data, 30);
+    const data = result.rows;
+    memoryCache.set(cacheKey, data, 30);
 
-        res.json({
-            success: true,
-            data,
-        } as ApiResponse);
-    } catch (error) {
-        safeRouteError(res, error, 'AdminStats.DonationsByMonth');
-    }
+    res.json({
+      success: true,
+      data,
+    } as ApiResponse);
+  } catch (error) {
+    safeRouteError(res, error, 'AdminStats.PaymentsByMonth');
+  }
 });
 
 // ─── GET /users-by-month ────────────────────────────────────────────────────
 router.get('/users-by-month', async (req: Request, res: Response): Promise<void> => {
-    try {
-        const months = parseInt(req.query['months'] as string) || 12;
-        const clampedMonths = Math.min(Math.max(months, 1), 36);
+  try {
+    const months = parseInt(req.query['months'] as string) || 12;
+    const clampedMonths = Math.min(Math.max(months, 1), 36);
 
-        const cacheKey = `stats_users_by_month_${clampedMonths}`;
-        const cached = memoryCache.get(cacheKey);
-        if (cached) {
-            res.json({ success: true, data: cached } as ApiResponse);
-            return;
-        }
+    const cacheKey = `stats_users_by_month_${clampedMonths}`;
+    const cached = memoryCache.get(cacheKey);
+    if (cached) {
+      res.json({ success: true, data: cached } as ApiResponse);
+      return;
+    }
 
-        const result = await query<MonthlyDataPoint>(
-            `SELECT
+    const result = await query<MonthlyDataPoint>(
+      `SELECT
                 TO_CHAR(d.month, 'YYYY-MM') AS month,
                 COALESCE(u.cnt, 0)::int AS count
              FROM generate_series(
@@ -204,36 +204,36 @@ router.get('/users-by-month', async (req: Request, res: Response): Promise<void>
                 GROUP BY DATE_TRUNC('month', created_at)
              ) u ON u.month = d.month
              ORDER BY d.month ASC`,
-            [clampedMonths - 1]
-        );
+      [clampedMonths - 1],
+    );
 
-        const data = result.rows;
-        memoryCache.set(cacheKey, data, 30);
+    const data = result.rows;
+    memoryCache.set(cacheKey, data, 30);
 
-        res.json({
-            success: true,
-            data,
-        } as ApiResponse);
-    } catch (error) {
-        safeRouteError(res, error, 'AdminStats.UsersByMonth');
-    }
+    res.json({
+      success: true,
+      data,
+    } as ApiResponse);
+  } catch (error) {
+    safeRouteError(res, error, 'AdminStats.UsersByMonth');
+  }
 });
 
 // ─── GET /funding-progress ──────────────────────────────────────────────────
 router.get('/funding-progress', async (req: Request, res: Response): Promise<void> => {
-    try {
-        const limit = parseInt(req.query['limit'] as string) || 20;
-        const clampedLimit = Math.min(Math.max(limit, 1), 100);
+  try {
+    const limit = parseInt(req.query['limit'] as string) || 20;
+    const clampedLimit = Math.min(Math.max(limit, 1), 100);
 
-        const cacheKey = `stats_funding_progress_${clampedLimit}`;
-        const cached = memoryCache.get(cacheKey);
-        if (cached) {
-            res.json({ success: true, data: cached } as ApiResponse);
-            return;
-        }
+    const cacheKey = `stats_funding_progress_${clampedLimit}`;
+    const cached = memoryCache.get(cacheKey);
+    if (cached) {
+      res.json({ success: true, data: cached } as ApiResponse);
+      return;
+    }
 
-        const result = await query<FundingProgressPoint>(
-            `SELECT
+    const result = await query<FundingProgressPoint>(
+      `SELECT
                 project_id,
                 title,
                 total_estimated_cost::bigint,
@@ -247,19 +247,19 @@ router.get('/funding-progress', async (req: Request, res: Response): Promise<voi
              WHERE status NOT IN ('draft', 'cancelled')
              ORDER BY total_funded_amount DESC
              LIMIT $1`,
-            [clampedLimit]
-        );
+      [clampedLimit],
+    );
 
-        const data = result.rows;
-        memoryCache.set(cacheKey, data, 30);
+    const data = result.rows;
+    memoryCache.set(cacheKey, data, 30);
 
-        res.json({
-            success: true,
-            data,
-        } as ApiResponse);
-    } catch (error) {
-        safeRouteError(res, error, 'AdminStats.FundingProgress');
-    }
+    res.json({
+      success: true,
+      data,
+    } as ApiResponse);
+  } catch (error) {
+    safeRouteError(res, error, 'AdminStats.FundingProgress');
+  }
 });
 
 export default router;

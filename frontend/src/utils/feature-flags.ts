@@ -10,24 +10,24 @@
 // ============================================================================
 
 /**
- * 🔴 DONATION SYSTEM — SUSPENDED INDEFINITELY (2026-05-12)
+ * 🔴 payment SYSTEM — SUSPENDED INDEFINITELY (2026-05-12)
  *
- * Strategic decision by project owner. The entire donation/crowdfunding
+ * Strategic decision by project owner. The entire payment/crowdfunding
  * subsystem is frozen. This includes:
- *   - Donor portal, proof, basket pages
- *   - Donation checkout flow (donations.create())
- *   - Donor-specific API calls
- *   - Donor role assignment
+ *   - user portal, proof, basket pages
+ *   - payment checkout flow (payments.create())
+ *   - user-specific API calls
+ *   - user role assignment
  *
  * The عطاء (Ataa/Bid/Tender) system is SEPARATE and remains fully active.
- * Do NOT confuse عطاء (Bid) with تبرع (Donation).
+ * Do NOT confuse عطاء (Bid) with تبرع (payment).
  *
- * @see KI: nammerha_donation_suspension
+ * @see KI: nammerha_payment_suspension
  */
-export const DONATIONS_ENABLED = false;
+export const PAYMENTS_ENABLED = false;
 
 /**
- * When donations are suspended, project-details page shows BOQ items
+ * When payments are suspended, project-details page shows BOQ items
  * in read-only mode (no "Add to Cart" buttons).
  */
-export const CART_CHECKOUT_ENABLED = DONATIONS_ENABLED;
+export const CART_CHECKOUT_ENABLED = PAYMENTS_ENABLED;

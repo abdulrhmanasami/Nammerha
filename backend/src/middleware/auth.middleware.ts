@@ -165,7 +165,13 @@ export async function authMiddleware(
     // V1-AUDIT FIX: Cookie-based JWT extraction (httpOnly cookie).
     // Falls back to this when no Bearer header is present.
     // The cookie is set on login and cleared on logout — JS cannot access it.
-    if (!userId && req.cookies?.['nammerha_jwt']) {
+
+    // PLATINUM FIX: Resurrection Vector Guard
+    // If the frontend explicitly declares it has no local session (e.g. wiped localStorage
+    // after an offline logout), we ignore the zombie cookie and treat the user as a guest.
+    if (!userId && req.headers['x-guest-mode'] === 'true') {
+      // Explicit guest mode — ignore cookies to prevent Zombie Resurrection
+    } else if (!userId && req.cookies?.['nammerha_jwt']) {
       const cookieToken = req.cookies['nammerha_jwt'] as string;
       try {
         const payload = await verifyToken(cookieToken);
@@ -349,7 +355,11 @@ export function generateMfaChallengeToken(userId: string, remember?: boolean): s
     throw new Error('[AUTH FATAL] JWT_SECRET is required for MFA challenge token generation');
   }
   return jwt.sign(
-    { sub: userId, type: 'mfa_challenge', remember: remember ?? false } satisfies MfaChallengePayload,
+    {
+      sub: userId,
+      type: 'mfa_challenge',
+      remember: remember ?? false,
+    } satisfies MfaChallengePayload,
     JWT_SECRET,
     { expiresIn: '5m', algorithm: 'HS256' } as jwt.SignOptions,
   );

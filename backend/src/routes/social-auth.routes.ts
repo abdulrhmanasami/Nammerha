@@ -569,7 +569,7 @@ router.post('/social', socialAuthLimiter, async (req: Request, res: Response): P
 // ─── Helper: Create New Social User ─────────────────────────────────────────
 
 // BUG-001 FIX: UNIFIED CITIZEN — All 5 standard roles are auto-assigned.
-// Donor excluded while DONATIONS_ENABLED=false (parity with auth.routes.ts L113-119).
+// User excluded while PAYMENTS_ENABLED=false (parity with auth.routes.ts L113-119).
 const AUTO_ASSIGN_ROLES: readonly string[] = [
   'homeowner',
   'engineer',
@@ -586,7 +586,7 @@ async function createSocialUser(
     socialUser.email?.toLowerCase().trim() ??
     `${provider}_${socialUser.provider_user_id}@social.nammerha.com`;
   const fullName = socialUser.full_name ?? email.split('@')[0] ?? 'User';
-  // BUG-001 FIX: Was 'donor' (suspended). Now 'homeowner' — matches email registration.
+  // BUG-001 FIX: Was 'user' (suspended). Now 'homeowner' — matches email registration.
   const defaultRole: UserRole = 'homeowner';
 
   // Create user with no password (social-only)
@@ -629,7 +629,7 @@ async function createSocialUser(
   );
 
   // BUG-002 FIX: Create ALL 5 role-specific profile tables (parity with auth.routes.ts L318-329).
-  // Previous: only donor_profiles — caused "profile not found" on every portal.
+  // Previous: only user_profiles — caused "profile not found" on every portal.
   const profileTables = [
     'homeowner_profiles',
     'engineer_profiles',

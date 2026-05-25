@@ -32,7 +32,7 @@ import '../network/api_client.dart';
 //
 // This is PURPOSE-BUILT for Syria's restricted network conditions:
 //   - Average 2G latency: 500-2000ms with frequent drops
-//   - Fatora webhook race: queued donations replay after device reconnects
+//   - Fatora webhook race: queued payments replay after device reconnects
 //   - GPS proof uploads: large payloads that fail mid-transfer
 // ═══════════════════════════════════════════════════════════════════════════════
 
