@@ -251,7 +251,14 @@ export async function request<T>(
         }
 
         const { isAuthenticated, clearAuth } = await import('../auth');
-        if (isAuthenticated()) {
+
+        // PLATINUM FIX: Zombie Tab API Dead End Prevention
+        // If the user's session was killed in another tab, this tab becomes a zombie
+        // with no local session. isAuthenticated() returns false.
+        // We MUST force the In-Place Re-auth modal to appear anyway to save their
+        // unsaved form data. We identify zombie tabs via the orphaned UID.
+        const isZombieTab = !!sessionStorage.getItem('nammerha_orphaned_uid');
+        if (isAuthenticated() || isZombieTab) {
           // P4-UXA-006 FIX: In-Place Re-auth (Global 401 Interceptor)
           // Don't nuke the session and redirect immediately. Pause and prompt!
           if (!activeReauthPromise) {
@@ -352,21 +359,22 @@ export async function request<T>(
         throw new StaleEpochError('Stale GET response due to concurrent mutation');
       }
 
-      if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
-        lastMutationEpoch = Date.now();
-        // PLATINUM FIX: Broadcast form commit to destroy Time-Machine paradox
-        window.dispatchEvent(
-          new CustomEvent('nm_form_committed', {
-            detail: { endpoint, timestamp: lastMutationEpoch },
-          }),
-        );
-      }
-
       // P0-002 FIX (Wave 2): Throw ApiError instead of Error.
       // Previous: throw new Error(body.error) — discarded status, code, and full body.
       // Now: ApiError preserves everything for structured catch-block handling.
       if (!res.ok) {
         throw new ApiError(body.error ?? `Request failed: ${res.status}`, res.status, body);
+      }
+
+      // PLATINUM FIX: Guard form commit to fire ONLY on successful mutation.
+      // Previous: Fired before checking !res.ok, causing 400/500 errors to permanently wipe user drafts.
+      if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
+        lastMutationEpoch = Date.now();
+        window.dispatchEvent(
+          new CustomEvent('nm_form_committed', {
+            detail: { endpoint, timestamp: lastMutationEpoch },
+          }),
+        );
       }
 
       // PLAT-PERF-001 FIX: Skeleton Anti-Flicker Guard (Minimum 300ms transition)

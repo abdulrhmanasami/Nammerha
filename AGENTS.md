@@ -35,6 +35,15 @@
   2. The UI (`DamageReportScreen`) listens for this state and displays a `colors.info` SnackBar assuring the user of offline sync.
   3. All `FocusNode`, `TextEditingController`, and `PageController` instances are strictly disposed in the widget lifecycle. Memory leaks are zero.
 
+**MEMO 4: The Zombie Tab API Dead End & Cognitive Negligence (May 26, 2026)**
+
+- **Root Cause Destroyed:**
+  1. The "In-Place Re-auth Modal" was bypassed on 401 API responses if the user's session was killed in another tab (`isAuthenticated()` returned false), destroying unsaved form data.
+  2. The Cross-Tab Logout banner auto-dismissed after 30 seconds, leading to AFK users returning to a "Zombie Tab" with no visual warning of session death.
+- **New Logic Built:**
+  1. `api/_client.ts` now uses `sessionStorage.getItem('nammerha_orphaned_uid')` to detect Zombie Tabs and forces the In-Place Re-auth Modal to appear even if `isAuthenticated() === false`. **NEVER** revert the `isAuthenticated() || isZombieTab` check.
+  2. `auth.ts` cross-tab logout banner is now PERSISTENT. **NEVER** re-add `setTimeout` auto-dismissal for critical session state changes.
+
 **MEMO 3: UX UI Zero-Friction & Cognitive Flow (May 26, 2026)**
 
 - **Root Cause Destroyed:**

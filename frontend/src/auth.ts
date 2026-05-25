@@ -168,18 +168,11 @@ if (typeof window !== 'undefined') {
             `;
       document.body.appendChild(banner);
 
-      // P1-W11-010 FIX: Auto-dismiss after 30s with fade animation.
-      // PREVIOUS: Banner stayed FOREVER until manually clicked.
-      // Standard: Material Design 3 (Transient Feedback), Banner Auto-Dismiss.
-      setTimeout(() => {
-        const el = document.getElementById('nm-cross-tab-logout');
-        if (el) {
-          el.style.transition = 'opacity 0.3s ease-out, transform 0.3s ease-out';
-          el.style.opacity = '0';
-          el.style.transform = 'translateY(-100%)';
-          setTimeout(() => el.remove(), 300);
-        }
-      }, 30000);
+      // PLATINUM FIX: Removed Premature Banner Eviction (30s auto-dismiss).
+      // A session termination is a Critical System State, NOT transient feedback.
+      // If the user is AFK, they MUST see this banner when they return to avoid
+      // the Zombie Tab Dead End. It will only be removed if they re-authenticate.
+      // Standard: Nielsen #1 (Visibility of System Status).
     }
 
     // P1-W11-010 FIX: Auto-dismiss cross-tab logout banner when user logs in from another tab.
