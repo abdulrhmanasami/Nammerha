@@ -229,6 +229,7 @@ function showWarningDialog(remainingMs: number): void {
 
   // ── Auto-logout timer ──
   autoLogoutTimer = setTimeout(() => {
+    dismissDialog(dialog, countdownTimer);
     performLogout();
   }, AUTO_LOGOUT_MS);
 
@@ -253,21 +254,46 @@ function dismissDialog(
 }
 
 function performLogout(): void {
-  // Dynamic import to avoid circular dependencies at module evaluation time
+  // P0-UXA-008 FIX: Privacy Shield Modal (In-Place Lock)
+  // Destructive navigation (window.location.href) destroys data. We lock the screen in-place.
   import('../auth')
-    .then(({ clearAuth }) => {
-      clearAuth(false); // Let the server also clear the cookie
-      window.location.href = '/auth.html';
-    })
+    .then(({ clearAuth }) => clearAuth(false))
     .catch(() => {
-      // Fallback: clear what we can and redirect
       try {
         localStorage.removeItem('nammerha_auth');
       } catch {
         /* degrade */
       }
-      window.location.href = '/auth.html';
     });
+
+  if (document.getElementById('nm-privacy-shield')) return;
+
+  const modal = document.createElement('div');
+  modal.id = 'nm-privacy-shield';
+  // Platinum UX: Dense blur to hide data, unbreakable z-index.
+  modal.className =
+    'fixed inset-0 z-[10000] flex items-center justify-center bg-slate-900/80 backdrop-blur-3xl animate-fade-in-up';
+
+  modal.innerHTML = `
+    <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-md h-[550px] overflow-hidden relative mx-4 border border-slate-700">
+      <div class="absolute top-0 inset-x-0 h-10 bg-amber-500/10 flex items-center justify-center border-b border-amber-500/20 z-20">
+        <p class="text-amber-600 dark:text-amber-400 text-xs font-bold flex items-center gap-2">
+          <i class="ph-fill ph-lock-key" aria-hidden="true"></i> ${t('session_locked_privacy', 'تم تأمين الشاشة لحماية بياناتك')}
+        </p>
+      </div>
+      <iframe src="/auth.html?mode=modal&reason=session_expired" class="w-full h-full border-none pt-10"></iframe>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  const onMessage = (e: MessageEvent) => {
+    if (e.data === 'nm_auth_success') {
+      window.removeEventListener('message', onMessage);
+      modal.remove();
+      import('./session-timeout').then(({ markSessionActivity }) => markSessionActivity());
+    }
+  };
+  window.addEventListener('message', onMessage);
 }
 
 // ─── Cleanup ────────────────────────────────────────────────────────────────
