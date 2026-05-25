@@ -5,9 +5,25 @@ All notable changes to the Nammerha platform will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-05-25
+
+### Added
+
+- **P0-CRIT-002**: Strict Name Validation logic expanded to intercept Eastern Arabic numerals (٠-٩) and special characters, achieving complete parity between Web (`auth.ts`) and Mobile (`validators.dart`).
+
+### Changed
+
+- **P2-AUD-W16-008**: Ephemeral UI state (Password Visibility Toggles) is now auto-scrubbed on tab navigation and wizard step progression, preventing privacy/shoulder-surfing vulnerabilities.
+- **P0-CRIT-003**: `aria-invalid` state is dynamically injected and stripped on form inputs for WCAG 3.3.1 AAA compliance.
+
+### Fixed
+
+- **P1-MOT-002**: Fixed "Ghost Inputs" during Draft Restoration by dispatching synthetic `input` events, ensuring CSS labels update and form buttons unlock without manual user keystrokes.
+
 ## [2.0.0] - 2026-05-05
 
 ### Added — Platinum Certification Wave
+
 - **GAP-P5**: Crypto Web Worker for offloading SHA-256 hashing (922-byte bundle, zero main-thread blocking)
 - **GAP-O2**: Real User Monitoring (RUM) — captures all 5 Core Web Vitals (LCP, FID, CLS, TTFB, INP)
 - **GAP-O4**: Redis circuit breaker health endpoint (`GET /health/redis`)
@@ -18,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **GAP-AR5**: Semantic versioning + CHANGELOG governance
 
 ### Changed
+
 - **GAP-P3**: API monolith decomposed from 1521-line `api.ts` into 12 focused domain modules (51% reduction)
 - **GAP-S1**: Financial transactions now enforce `SERIALIZABLE` isolation level with retry logic
 - **GAP-P1**: Nginx configured with gzip-9 compression, HTML caching, and tightened CSP
@@ -25,12 +42,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Vitest config updated to include modular `api/` and `workers/` in coverage
 
 ### Fixed
+
 - **GAP-S2**: Correlation ID middleware registered in server.ts (was imported but not used)
 - **GAP-S3**: Redis password hidden via `REDISCLI_AUTH` environment variable in Docker healthcheck
 - **GAP-S6**: Per-route body size limits (auth: 10KB, upload: 50MB, general: 1MB)
 - **GAP-O3**: Slow query logging enabled in production for queries >200ms
 
 ### Security
+
 - CSP stale CDN domains removed from `connect-src` and `script-src`
 - Worker CSP verified: `worker-src 'self' blob:` already present
 - Zero external CDN scripts — all assets self-hosted
@@ -38,6 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2026-03-01
 
 ### Added
+
 - Initial platform release
 - 4 Secure Data Flow Paths (Homeowner → Engineer → Donor → Admin)
 - OCDS-compliant project structure

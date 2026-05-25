@@ -265,6 +265,7 @@ function switchTab(mode: 'login' | 'register'): void {
       if (inp.type === 'text') {
         inp.type = 'password';
       }
+      inp.removeAttribute('aria-invalid');
     });
   document.querySelectorAll('.ph-eye-slash').forEach((icon) => {
     icon.className = 'ph ph-eye';
@@ -418,7 +419,10 @@ function validateName(name: string): NameValidationResult {
   }
 
   // 4. No digits — no real human name contains numbers
-  if (/[0-9]/.test(trimmed)) {
+  // P0-CRIT-002 FIX: Exhaustive Unicode digit interception.
+  // PREVIOUS: /[0-9]/ failed to catch Eastern Arabic numerals (٠-٩).
+  // A user could input "علي١٢٣" and pass, polluting the database.
+  if (/[\d٠-٩]/.test(trimmed)) {
     return {
       valid: false,
       errorKey: 'auth_name_no_digits',
@@ -466,10 +470,13 @@ function restoreRegDraft(): void {
     const emailEl = document.getElementById('reg-email') as HTMLInputElement | null;
     if (nameEl && draft.name) {
       nameEl.value = draft.name;
+      nameEl.dispatchEvent(new Event('input', { bubbles: true }));
     }
     if (emailEl && draft.email) {
       emailEl.value = draft.email;
+      emailEl.dispatchEvent(new Event('input', { bubbles: true }));
     }
+    updateRegisterButton();
     // P2-W6-003 FIX: Always cap restoration at Step 1 (name + email only).
     // Previous: Could advance to Step 2, showing empty password fields with no context.
     // Password fields are never saved (correct security decision), so advancing
@@ -504,10 +511,25 @@ function goToRegStep(targetStep: number): void {
   // Standard: Apple HIG ("Haptic for navigation state changes").
   haptic.light();
 
-  // P2-MOT-001 FIX: Determine animation direction for spatial consistency.
+  // P2-MOT-001: Apply directional animation class
   // Forward steps slide from right, backward steps slide from left.
   // Standard: Material Design 3 ("Transitions reinforce spatial model").
   const isBackward = targetStep < currentRegStep;
+
+  // P1-MOT-002 FIX: Scrub password visibility state when leaving Step 2
+  // PREVIOUS: Navigating back to Step 2 left password as plain text (privacy violation).
+  if (currentRegStep === 2 && targetStep !== 2) {
+    document
+      .querySelectorAll<HTMLInputElement>('#reg-password, #reg-password-confirm')
+      .forEach((inp) => {
+        if (inp.type === 'text') {
+          inp.type = 'password';
+        }
+      });
+    document.querySelectorAll('#reg-toggle-pw .ph, #reg-toggle-pw-confirm .ph').forEach((icon) => {
+      icon.className = 'ph ph-eye';
+    });
+  }
 
   // ── Update panels ──
   const panels = formRegister?.querySelectorAll<HTMLFieldSetElement>('[data-reg-step]');
@@ -658,22 +680,27 @@ function validateCurrentStep(): boolean {
     const email = (document.getElementById('reg-email') as HTMLInputElement)?.value.trim();
     // P2-DEEP-001 FIX: Use validateName() for strict name validation.
     const nameResult = validateName(name ?? '');
+    const nameEl = document.getElementById('reg-name');
+    const emailEl = document.getElementById('reg-email');
     if (!nameResult.valid) {
+      nameEl?.setAttribute('aria-invalid', 'true');
       showBanner('error', t(nameResult.errorKey, nameResult.fallbackMsg));
-      scrollToField(document.getElementById('reg-name'));
+      scrollToField(nameEl);
       return false;
     }
     if (!email) {
+      emailEl?.setAttribute('aria-invalid', 'true');
       showBanner('error', t('auth_email_required', 'البريد الإلكتروني مطلوب'));
-      scrollToField(document.getElementById('reg-email'));
+      scrollToField(emailEl);
       return false;
     }
     // P1-W12-001 FIX: Use shared EMAIL_REGEX from validators.ts — single source of truth.
     // Previous: Inline regex duplicated 4 times across auth.ts and reset-password.ts.
     // Standard: DRY Principle, Centralized Validation.
     if (!EMAIL_REGEX.test(email)) {
+      emailEl?.setAttribute('aria-invalid', 'true');
       showBanner('error', t('auth_email_invalid', 'البريد الإلكتروني غير صالح'));
-      scrollToField(document.getElementById('reg-email'));
+      scrollToField(emailEl);
       return false;
     }
     hideBanner();
@@ -683,18 +710,23 @@ function validateCurrentStep(): boolean {
     const pw = (document.getElementById('reg-password') as HTMLInputElement)?.value ?? '';
     const confirmPw =
       (document.getElementById('reg-password-confirm') as HTMLInputElement)?.value ?? '';
+    const pwEl = document.getElementById('reg-password');
+    const confirmEl = document.getElementById('reg-password-confirm');
+
     // P2-W12-001 FIX: Use shared validatePasswordComplexity() — single source of truth.
     // PREVIOUS: Inline `pw.length < 8` + `length > MAX` + 4 regex tests duplicated here.
     // Standard: DRY Principle, OWASP ASVS 2.1.1, validators.ts parity.
     const pwResult = validatePasswordComplexity(pw);
     if (!pwResult.valid) {
+      pwEl?.setAttribute('aria-invalid', 'true');
       showBanner('error', t('auth_password_complexity', 'كلمة المرور لا تستوفي المتطلبات'));
-      scrollToField(document.getElementById('reg-password'));
+      scrollToField(pwEl);
       return false;
     }
     if (pw !== confirmPw) {
+      confirmEl?.setAttribute('aria-invalid', 'true');
       showBanner('error', t('pw_mismatch_error', 'كلمتا المرور غير متطابقتين'));
-      scrollToField(document.getElementById('reg-password-confirm'));
+      scrollToField(confirmEl);
       return false;
     }
     hideBanner();
@@ -1119,7 +1151,11 @@ function updateRegisterButton(): void {
   'login-email',
   'login-password',
 ].forEach((id) => {
-  document.getElementById(id)?.addEventListener('input', () => {
+  document.getElementById(id)?.addEventListener('input', (e) => {
+    // P0-CRIT-003 FIX: Scrub aria-invalid on input.
+    // User is actively correcting the field; it should no longer announce as invalid.
+    (e.target as HTMLElement).removeAttribute('aria-invalid');
+
     // BUG-F02 FIX: Auto-clear ANY visible banner on user input, not just errors.
     // PREVIOUS: Only checked `bg-red-50` — info banners (bg-blue-50) from
     // EMAIL_NOT_VERIFIED persisted while user typed corrections.
@@ -1209,6 +1245,7 @@ function validateRegisterForm(): boolean {
   const confirmPw = confirmInput?.value ?? '';
   if (password !== confirmPw) {
     goToRegStep(2); // PLAT-C01: Navigate to failing step
+    confirmInput?.setAttribute('aria-invalid', 'true');
     showBanner('error', t('pw_mismatch_error', 'كلمتا المرور غير متطابقتين'));
     scrollToField(confirmInput);
     return false;
@@ -1275,6 +1312,8 @@ formLogin?.addEventListener('submit', async (e) => {
   const password = (document.getElementById('login-password') as HTMLInputElement)?.value ?? '';
 
   if (!email || !password) {
+    if (!email) document.getElementById('login-email')?.setAttribute('aria-invalid', 'true');
+    if (!password) document.getElementById('login-password')?.setAttribute('aria-invalid', 'true');
     showBanner('error', t('auth_enter_email_password', 'أدخل البريد الإلكتروني وكلمة المرور'));
     return;
   }
@@ -1283,8 +1322,10 @@ formLogin?.addEventListener('submit', async (e) => {
   // P1-W12-001 FIX: Use shared EMAIL_REGEX from validators.ts — single source of truth.
   // Standard: DRY Principle, Nielsen #5 (Error Prevention), Client-Side Validation.
   if (!EMAIL_REGEX.test(email)) {
+    const el = document.getElementById('login-email');
+    el?.setAttribute('aria-invalid', 'true');
     showBanner('error', t('auth_email_invalid', 'البريد الإلكتروني غير صالح'));
-    scrollToField(document.getElementById('login-email'));
+    scrollToField(el);
     return;
   }
 
@@ -1295,8 +1336,10 @@ formLogin?.addEventListener('submit', async (e) => {
   // the 1MB payload still transfers and consumes a rate limit token.
   // Standard: SEC-003 (bcrypt DoS Prevention), Nielsen #5.
   if (password.length > MAX_PASSWORD_LENGTH) {
+    const el = document.getElementById('login-password');
+    el?.setAttribute('aria-invalid', 'true');
     showBanner('error', t('auth_password_too_long', 'كلمة المرور طويلة جداً (الحد ١٢٨)'));
-    scrollToField(document.getElementById('login-password'));
+    scrollToField(el);
     return;
   }
 
@@ -2423,7 +2466,7 @@ async function handleLoginRedirect(
   // NOW: .nm-body-frozen class declared in main.css @layer utilities.
   // Standard: P1-SST-001 governance, CSS Single Source of Truth.
   document.body.classList.add('nm-body-frozen');
-  
+
   // P4-UXA-006 FIX: In-Place Re-auth (Global 401 Interceptor) Modal Support
   // If the auth page is loaded inside an iframe (modal mode) triggered by _client.ts,
   // we do NOT redirect the iframe. We post a success message to the parent window
@@ -2575,7 +2618,7 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
     input.addEventListener('input', () => {
       clearMfaError();
       const rawValue = input.value.replace(/\D/g, '');
-      
+
       // P1-UXA-008 FIX: OTP Paste Splintering & SMS Autofill Support
       // iOS Safari and Android Gboard insert the entire OTP into the focused input,
       // bypassing maxlength="1". If we don't distribute it here, the user loses the code.

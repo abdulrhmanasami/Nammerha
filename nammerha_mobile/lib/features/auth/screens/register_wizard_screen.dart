@@ -410,7 +410,8 @@ class _RegisterWizardBodyState extends State<_RegisterWizardBody> {
                 labelText: context.tr('full_name_label'),
                 prefixIcon: PhosphorIconsRegular.user,
               ),
-              validator: (v) => v == null || v.trim().isEmpty ? context.tr('reg_name_required') : null,
+              // P0-CRIT-002 FIX: Use strict name validator (parity with web).
+              validator: (v) => validators.validateName(v, context.tr),
               textInputAction: TextInputAction.next,
               onFieldSubmitted: (_) => _nextPage(_formKey1),
             ),
