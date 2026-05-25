@@ -42,6 +42,10 @@ class _EscrowView extends StatelessWidget {
         iconTheme: IconThemeData(color: colors.textHeading),
       ),
       body: BlocConsumer<AdminEscrowBloc, AdminEscrowState>(
+        // PLAT-UX-007 FIX: Prevent Screen Wipeout Blink
+        // Guard against transient states (Success/Error) resetting the UI to SizedBox.shrink().
+        buildWhen: (previous, current) => 
+            current is AdminEscrowLoading || current is AdminEscrowCasesLoaded,
         listener: (context, state) {
           if (state is AdminEscrowActionSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -204,7 +208,13 @@ class _EscrowView extends StatelessWidget {
               children: [
                 Expanded(
                   child: SwipeToConfirm(
-                    onConfirm: () => _confirmRelease(context, c),
+                    // PLAT-UX-008 FIX: Double Confirmation Paradox Eliminated
+                    // Swipe IS the confirmation. Firing the action directly.
+                    onConfirm: () {
+                      context.read<AdminEscrowBloc>().add(
+                        ReleaseEscrow(proofId: c.proofId, itemId: c.itemId),
+                      );
+                    },
                     label: context.tr('admin_release_escrow'),
                     activeColor: colors.success,
                   ),
@@ -241,36 +251,8 @@ class _EscrowView extends StatelessWidget {
     );
   }
 
-  void _confirmRelease(BuildContext context, EscrowCase c) {
-    final colors = context.colors;
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(context.tr('admin_release_confirm'), style: TextStyle(color: colors.textHeading, fontWeight: FontWeight.w700)),
-        content: Text(
-          '${context.tr('admin_escrow_release_confirm')} ${c.poNumber.isNotEmpty ? c.poNumber : c.proofId.substring(0, 8)}?',
-          style: TextStyle(color: colors.textBody),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: Text(context.tr('cancel'), style: TextStyle(color: colors.textMuted)),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.pop(dialogContext);
-              context.read<AdminEscrowBloc>().add(
-                ReleaseEscrow(proofId: c.proofId, itemId: c.itemId),
-              );
-            },
-            style: FilledButton.styleFrom(backgroundColor: colors.success),
-            child: Text(context.tr('admin_release_escrow')),
-          ),
-        ],
-      ),
-    );
-  }
+  // PLAT-UX-008 FIX: _confirmRelease dialog removed.
+  // SwipeToConfirm now dispatches the event directly to prevent the double-confirmation cognitive paradox.
 
   void _showFlagDialog(BuildContext context, EscrowCase c) {
     final bloc = context.read<AdminEscrowBloc>();

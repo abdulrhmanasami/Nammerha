@@ -67,6 +67,11 @@ let receiptDelegationWired = false;
 let allTransactions: Transaction[] = [];
 let filterDelegationWired = false;
 
+// PLAT-UX-005 FIX: Monotonic Request ID to prevent race conditions on slow networks.
+let lastFetchId = 0;
+// PLAT-MEM-001 FIX: Reference to the skeleton guard cancellation function to prevent memory leaks.
+let cancelTxSkeleton: (() => void) | null = null;
+
 /**
  * CRIT-UX-004: Render a filtered subset of transactions using progressive rendering.
  */
@@ -98,6 +103,23 @@ function updateTxCount(count: number): void {
   if (countEl) {
     countEl.textContent = count > 0 ? `(${count})` : '';
   }
+
+  // PLAT-A11Y-001 FIX: Screen Reader Announcement for Dynamic DOM Filtering
+  // Filtering without page reload leaves visually impaired users blind to the result.
+  let announcer = document.getElementById('a11y-tx-announcer');
+  if (!announcer) {
+    announcer = document.createElement('div');
+    announcer.id = 'a11y-tx-announcer';
+    announcer.setAttribute('aria-live', 'polite');
+    announcer.className = 'sr-only'; // Tailwind hidden visually but accessible
+    document.body.appendChild(announcer);
+  }
+  // Allow DOM to register the node before updating text for reliable screen reader hooks
+  setTimeout(() => {
+    if (announcer) {
+      announcer.textContent = t('wallet_tx_found_a11y', `${count} transactions found`);
+    }
+  }, 50);
 }
 
 // HIGH-001 FIX: formatCents() consolidated — imported from utils/format.ts.
@@ -140,8 +162,10 @@ async function loadEscrowSummary(): Promise<void> {
     const response = await escrowPayments.getMyEscrow();
     if (response.success && response.data) {
       // P3-AUD-NEW-003 FIX: Runtime guard — gracefully handle API shape drift
+      // PLAT-FIN-001 FIX: Enforce strict integer check for financial amounts.
+      // NaN and Infinity bypass `typeof === 'number'`, which destroys UI trust.
       const summary = response.data as Partial<EscrowSummary>;
-      if (typeof summary.total_locked !== 'number') {
+      if (!Number.isSafeInteger(summary.total_locked)) {
         return;
       }
       if (balanceEl) {
@@ -268,6 +292,10 @@ async function loadTransactions(): Promise<void> {
     return;
   }
 
+  // PLAT-UX-005 FIX: Monotonic Request ID Lock
+  // Prevents older, delayed requests from overwriting newer user actions.
+  const currentFetchId = ++lastFetchId;
+
   try {
     // FORENSIC-C1.7 FIX: Only fetch payment history when payments are enabled.
     // Previously this always called escrowPayments.getMyHistory() which returns 503
@@ -281,6 +309,18 @@ async function loadTransactions(): Promise<void> {
       PromiseSettledResult<Awaited<ReturnType<typeof payments.getMyPayments>>>,
       PromiseSettledResult<Awaited<ReturnType<typeof escrowPayments.getMyHistory>>> | undefined,
     ];
+
+    // PLAT-UX-005: If another fetch was initiated while we waited, discard these results.
+    if (currentFetchId !== lastFetchId) {
+      return;
+    }
+
+    // PLAT-MEM-001 FIX: Clear the skeleton guard timer now that data has arrived.
+    // Prevents the 35-second timeout from firing randomly in the background.
+    if (cancelTxSkeleton) {
+      cancelTxSkeleton();
+      cancelTxSkeleton = null;
+    }
 
     const transactions: Transaction[] = [];
 
@@ -351,17 +391,23 @@ async function loadTransactions(): Promise<void> {
       receiptDelegationWired = true;
       listEl.addEventListener('click', (e: Event) => {
         const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.v003-receipt-btn');
-        if (!btn) return;
+        if (!btn || btn.disabled) return;
         e.stopPropagation();
         const escrowId = btn.dataset['escrowId'];
         if (!escrowId) return;
         haptic.light(); // UX-004: Tactile download feedback
+
+        // PLAT-UX-006 FIX: Tactile & Visual closure for silent downloads
+        // Prevents double-clicks and reassures the user that action is processing.
+        const icon = btn.querySelector('i');
+        const originalClass = icon?.className ?? '';
+        if (icon) {
+          icon.className = 'ph ph-spinner animate-spin text-trust-blue text-sm';
+          btn.disabled = true;
+          btn.setAttribute('aria-busy', 'true');
+        }
+
         // P1-RECEIPT-001 FIX: Replaced window.open() with hidden anchor click.
-        // Previous: window.open() is blocked by mobile popup blockers (especially iOS Safari)
-        // with ZERO user feedback — the receipt button appeared dead.
-        // Now: Creates a transient <a> element and triggers .click() — bypasses popup blockers
-        // because <a> clicks are never blocked (they're user-initiated navigations, not popups).
-        // Standard: Mobile Safari Popup Policy, Apple HIG (Reliable Downloads).
         const receiptLink = document.createElement('a');
         receiptLink.href = `/api/homeowner/receipts/${encodeURIComponent(escrowId)}`;
         receiptLink.target = '_blank';
@@ -369,6 +415,15 @@ async function loadTransactions(): Promise<void> {
         document.body.appendChild(receiptLink);
         receiptLink.click();
         receiptLink.remove();
+
+        // Release the button lock after browser completes navigation handoff
+        setTimeout(() => {
+          if (icon) {
+            icon.className = originalClass;
+          }
+          btn.disabled = false;
+          btn.removeAttribute('aria-busy');
+        }, 1500);
       });
     }
   } catch (err) {
@@ -402,11 +457,12 @@ function init(): void {
   initBreadcrumb();
 
   // P3-UX-004 FIX: Guard skeleton loaders with timeout fallback
-  const cancelSkeletonGuard = guardSkeleton({
+  // PLAT-MEM-001: Store reference to clear timeout upon success
+  cancelTxSkeleton = guardSkeleton({
     container: 'transaction-list',
     timeoutMs: 15000,
     onRetry: () => {
-      cancelSkeletonGuard(); // Reset the guard
+      if (cancelTxSkeleton) cancelTxSkeleton(); // Reset the guard
       loadTransactions();
     },
   });

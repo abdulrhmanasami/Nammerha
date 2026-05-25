@@ -35,6 +35,18 @@
   2. The UI (`DamageReportScreen`) listens for this state and displays a `colors.info` SnackBar assuring the user of offline sync.
   3. All `FocusNode`, `TextEditingController`, and `PageController` instances are strictly disposed in the widget lifecycle. Memory leaks are zero.
 
+**MEMO 3: UX UI Zero-Friction & Cognitive Flow (May 26, 2026)**
+
+- **Root Cause Destroyed:**
+  1. The mobile admin app suffered from a "Double Confirmation Paradox" where a `SwipeToConfirm` widget erroneously popped an `AlertDialog`, destroying cognitive efficiency.
+  2. Transient states in Flutter Bloc caused UI wipeout blinks (`SizedBox.shrink()`).
+  3. The web wallet had Race Conditions on slow networks (pull-to-refresh), Floating Point poisoning risks (`typeof !== 'number'` allowing `NaN`), and memory leaks with zombie skeleton timers.
+- **New Logic Built:**
+  1. `SwipeToConfirm` MUST bind strictly to the Bloc event. NO dialogs after a swipe. Swipe = Execution.
+  2. ALL `BlocConsumer` widgets MUST use `buildWhen` to ignore transient states (e.g., `ActionSuccess`, `Error`) and prevent UI wipeouts.
+  3. ALL asynchronous frontend data fetching on the Web MUST use Monotonic Request IDs (or AbortControllers) to discard stale responses and prevent Network Desync Race Conditions.
+  4. Financial amounts (cents) MUST be validated exclusively via `Number.isSafeInteger()`.
+
 ## 🏗️ Platform Architecture
 
 ### Web Frontend (frontend/)
