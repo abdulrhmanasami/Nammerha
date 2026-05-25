@@ -169,7 +169,7 @@ async function loadEscrowSummary(): Promise<void> {
         return;
       }
       if (balanceEl) {
-        balanceEl.textContent = formatCents(summary.total_locked);
+        balanceEl.textContent = formatCents(summary.total_locked ?? 0);
         balanceEl.classList.add('animate-fade-in-up');
       }
       // PLAT-UX-003 FIX (Part 2): Clear skeleton animation class after hydration.

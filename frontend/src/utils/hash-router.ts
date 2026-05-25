@@ -52,7 +52,15 @@ export function createHashRouter<T extends string>(
     },
 
     onHashChange(handler: (tab: T) => void): void {
-      window.addEventListener('popstate', () => {
+      window.addEventListener('popstate', (e) => {
+        // 🚨 SPA Dirty State Bypass Guard
+        const navEvent = new CustomEvent('nm_internal_navigate', { cancelable: true });
+        if (!window.dispatchEvent(navEvent)) {
+          // DirtyStateGuard canceled the navigation! Revert the hash silently.
+          history.pushState(null, '', e.state || window.location.href);
+          return;
+        }
+
         abortPendingRouteRequests();
         handler(resolveHash());
       });

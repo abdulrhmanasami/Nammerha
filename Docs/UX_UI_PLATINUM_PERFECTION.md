@@ -105,3 +105,18 @@
 
 **Problem:** We implemented `safeSessionStorageSet` for form drafts to prevent data loss. However, if a user successfully submits a form, navigates away, and then clicks the browser "Back" button, the Bfcache resurrects the page. The `form-draft.ts` script would blindly hydrate the draft from `sessionStorage`, making the form appear completely filled out again. Users panicked, assuming their submission failed, leading to duplicate financial requests.
 **Permanent Rule:** Any state-mutating request (`POST/PUT/DELETE`) executed in `api/_client.ts` MUST globally broadcast an `nm_form_committed` CustomEvent. The `form-draft.ts` utility MUST listen for this event, physically wipe all active drafts in the current tab, and inject a strict `nm_draft_committed_${key}=true` lock. The hydration function must block rehydration if this lock exists.
+
+### 20. The 400 Wipeout (Premature Form Eviction)
+
+**Problem:** A `POST` request that fails validation (e.g., 400 Bad Request) still historically fired the `nm_form_committed` epoch broadcast in `_client.ts`. This instantly and permanently deleted the user's form draft because it fired _before_ checking `!res.ok`. The user was forced to re-enter all data if a single field validation failed.
+**Permanent Rule:** The `nm_form_committed` broadcast and `lastMutationEpoch` update MUST strictly execute _after_ verifying `res.ok`. Failed network or validation requests must never destroy local drafts.
+
+### 21. Cross-Pollination Form Annihilation
+
+**Problem:** The `nm_form_committed` listener in `form-draft.ts` wiped ALL known drafts in the current session. A minor side-effect `POST` request (like toggling a setting or liking an item) would silently destroy the user's massive BOQ or Damage Report draft that they were currently filling out.
+**Permanent Rule:** The blanket draft eviction is prohibited. Draft clearing must be targeted via the `nm_clear_specific_draft` custom event, or explicitly via `clearDraft(key)` from the specific Page Module.
+
+### 22. The Diagonal Swipe Trap (Horizontal Lock)
+
+**Problem:** The `pull-refresh.ts` gesture handler triggered `e.preventDefault()` if `distance > 0` (measuring vertical delta only). If a user swiped horizontally on a carousel or tabs but their finger angled slightly downwards, the gesture was hijacked, completely blocking horizontal accessibility.
+**Permanent Rule:** The touch handler MUST employ a Trigonometric Lock. If `Math.abs(deltaX) > 5` and `Math.abs(deltaY) < 10` during the initial stroke, the gesture handler must set an `isHorizontalLock = true` state and immediately bail out, preserving native horizontal scrolling.

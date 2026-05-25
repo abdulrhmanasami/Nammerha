@@ -272,43 +272,64 @@ function initActionButtons(): void {
 
       // Loading state
       releaseBtn.disabled = true;
-      
+
       // [Platinum UX]: Optimistic State Reversion (Schrödinger's Escrow Fix)
       releaseBtn.innerHTML = `<i class="ph ph-arrows-clockwise text-lg animate-spin" aria-hidden="true"></i> ${esc(t('esc_syncing', 'جاري التزامن مع حالة العقد...'))}`;
       try {
         // Hash Check (fetch latest state to prevent Schrödinger's Escrow)
         const latestStateRes = await admin.getPendingVerifications();
-        const stillPending = (latestStateRes.data as any[])?.find((v: any) => v.proof_id === c.proof_id);
-        
+        const stillPending = (latestStateRes.data as any[])?.find(
+          (v: any) => v.proof_id === c.proof_id,
+        );
+
         if (!stillPending) {
-            // State conflict! Another actor (e.g. Engineer) flagged/modified it.
-            // Graceful View Transition to the new state without a generic error.
-            if (document.startViewTransition) {
-                document.startViewTransition(() => {
-                    renderConflictState();
-                });
-            } else {
-                renderConflictState();
-            }
-            return;
+          // State conflict! Another actor (e.g. Engineer) flagged/modified it.
+          // Graceful View Transition to the new state without a generic error.
+          if (document.startViewTransition) {
+            document.startViewTransition(() => {
+              renderConflictState();
+            });
+          } else {
+            renderConflictState();
+          }
+          return;
         }
 
         // State is safe, proceed with Cryptographic Theater
         releaseBtn.innerHTML = `<i class="ph ph-lock-key text-lg animate-pulse" aria-hidden="true"></i> ${esc(t('esc_crypto_1', 'تشفير الطلب...'))}`;
-        
-        // Stage 1: Request sent
-        const apiPromise = admin.releaseEscrow({ proof_id: c.proof_id, item_id: c.item_id });
-        await new Promise(r => setTimeout(r, 400));
-        
-        // Stage 2: Fingerprint
-        if (releaseBtn) releaseBtn.innerHTML = `<i class="ph ph-fingerprint text-lg animate-pulse" aria-hidden="true"></i> ${esc(t('esc_crypto_2', 'مطابقة بصمة العقد...'))}`;
-        await new Promise(r => setTimeout(r, 500));
 
-        // Stage 3: Bank release
-        if (releaseBtn) releaseBtn.innerHTML = `<i class="ph ph-bank text-lg animate-pulse" aria-hidden="true"></i> ${esc(t('esc_crypto_3', 'جاري تحرير الأموال من البنك...'))}`;
-        await new Promise(r => setTimeout(r, 600));
+        // [Platinum UX]: Cancellable Cryptographic Theater
+        let isTheaterCancelled = false;
+        const delay = (ms: number) =>
+          new Promise((resolve) => {
+            const start = Date.now();
+            const check = () => {
+              if (isTheaterCancelled) return resolve(false); // Abort theater instantly
+              if (Date.now() - start >= ms) return resolve(true); // Proceed to next act
+              requestAnimationFrame(check);
+            };
+            requestAnimationFrame(check);
+          });
 
-        await apiPromise; // Ensure API actually finished
+        // Stage 1: Request sent (Fire API but catch early failures to cancel the theater)
+        const apiPromise = admin
+          .releaseEscrow({ proof_id: c.proof_id, item_id: c.item_id })
+          .catch((err) => {
+            isTheaterCancelled = true;
+            throw err;
+          });
+
+        // Theater Acts
+        if ((await delay(400)) && releaseBtn) {
+          releaseBtn.innerHTML = `<i class="ph ph-fingerprint text-lg animate-pulse" aria-hidden="true"></i> ${esc(t('esc_crypto_2', 'مطابقة بصمة العقد...'))}`;
+        }
+        if ((await delay(500)) && releaseBtn) {
+          releaseBtn.innerHTML = `<i class="ph ph-bank text-lg animate-pulse" aria-hidden="true"></i> ${esc(t('esc_crypto_3', 'جاري تحرير الأموال من البنك...'))}`;
+        }
+        await delay(600);
+
+        // Await the actual API (will throw immediately here if it failed early)
+        await apiPromise;
 
         // UX: Immediate visual update
         c.status = 'released';
@@ -417,9 +438,9 @@ function initActionButtons(): void {
 
 /* ─── Optimistic Conflict Handler ─── */
 function renderConflictState(): void {
-    const panel = document.getElementById('verification-panel');
-    if (panel) {
-        panel.innerHTML = `
+  const panel = document.getElementById('verification-panel');
+  if (panel) {
+    panel.innerHTML = `
             <div class="col-span-2 bg-rose-50 border-s-4 border-rose-500 p-6 rounded-lg shadow-sm">
                 <div class="flex items-center gap-4 text-rose-700">
                     <i class="ph ph-shield-warning text-4xl" aria-hidden="true"></i>
@@ -429,11 +450,16 @@ function renderConflictState(): void {
                     </div>
                 </div>
                 <div class="mt-6 flex justify-end">
-                    <button onclick="location.reload()" class="px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors font-medium">
+                    <button id="btn-refresh-conflict" class="px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors font-medium">
                         ${esc(t('esc_refresh_queue', 'تحديث طابور العمليات'))}
                     </button>
                 </div>
             </div>
         `;
-    }
+
+    // Deterministic Event Binding (CSP Compliant)
+    document.getElementById('btn-refresh-conflict')?.addEventListener('click', () => {
+      window.location.reload();
+    });
+  }
 }

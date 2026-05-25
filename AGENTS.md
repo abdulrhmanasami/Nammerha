@@ -44,6 +44,19 @@
   1. `api/_client.ts` now uses `sessionStorage.getItem('nammerha_orphaned_uid')` to detect Zombie Tabs and forces the In-Place Re-auth Modal to appear even if `isAuthenticated() === false`. **NEVER** revert the `isAuthenticated() || isZombieTab` check.
   2. `auth.ts` cross-tab logout banner is now PERSISTENT. **NEVER** re-add `setTimeout` auto-dismissal for critical session state changes.
 
+**MEMO 5: SPA Dirty State & Cryptographic Theater Racing (May 26, 2026)**
+
+- **Root Cause Destroyed:**
+  1. The `DirtyStateGuard` only protected full-page unloads, failing to catch internal SPA navigation via `hash-router.ts`.
+  2. The Cryptographic Theater in Escrow was a blocking UI delay that did not cancel if the API rejected instantly, leading to an Unhandled Promise Rejection and jarring UI desync.
+  3. Pull-to-refresh suffered from a Gesture Race Condition if users pulled again during the success checkmark phase.
+  4. The Conflict Refresh button used inline `onclick` violating CSP.
+- **New Logic Built:**
+  1. `hash-router.ts` broadcasts a cancelable `nm_internal_navigate` CustomEvent, intercepted by `DirtyStateGuard` via a `window.confirm` lock.
+  2. The Escrow Cryptographic Theater uses a cancellable delay sequence (`isTheaterCancelled`) that immediately aborts if `admin.releaseEscrow` catches an error.
+  3. `pull-refresh.ts` natively stores a `resetTimer`. Triggering a new touch immediately clears the timer and forcefully restores the base icon.
+  4. Conflict buttons now use strict programmatic ID binding (`document.getElementById`).
+
 **MEMO 3: UX UI Zero-Friction & Cognitive Flow (May 26, 2026)**
 
 - **Root Cause Destroyed:**

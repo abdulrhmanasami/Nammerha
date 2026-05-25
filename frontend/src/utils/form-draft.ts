@@ -112,14 +112,14 @@ export function clearDraft(key: string): void {
   }
 }
 
-// PLATINUM FIX: The "Time-Machine" Form Rehydration Paradox Guard
-// Globally listen for successful mutations to wipe any active drafts
-// and prevent the user from seeing an already-submitted form via Bfcache.
+// PLATINUM FIX: Targeted Form Eviction (Cross-Pollination Guard)
+// Listen for specific draft clearance to prevent unrelated POST requests
+// from wiping out the user's active drafts in other forms.
 if (typeof window !== 'undefined') {
-  window.addEventListener('nm_form_committed', () => {
-    // We aggressively clear all known drafts in the current session
-    for (const key of Array.from(timers.keys())) {
-      clearDraft(key);
+  window.addEventListener('nm_clear_specific_draft', (e: Event) => {
+    const customEvent = e as CustomEvent<{ draftKey: string }>;
+    if (customEvent.detail && customEvent.detail.draftKey) {
+      clearDraft(customEvent.detail.draftKey);
     }
   });
 }

@@ -7,70 +7,105 @@
 import { haptic } from './haptic';
 
 const THRESHOLD_PX = 60;
-const MAX_PULL_PX  = 120;
+const MAX_PULL_PX = 120;
 
 let indicator: HTMLElement | null = null;
+let startX = 0;
 let startY = 0;
 let currentY = 0;
 let pulling = false;
 let hapticFired = false; // PLT-AUD-C002 FIX: Single haptic per gesture
+let isHorizontalLock = false; // PLATINUM FIX: Diagonal Swipe Trap Guard
+let resetTimer: ReturnType<typeof setTimeout> | null = null; // Platinum UX: Gesture Race Condition Guard
 
 function createIndicator(): HTMLElement {
-    const el = document.createElement('div');
-    el.id = 'pull-refresh-indicator';
-    el.setAttribute('aria-hidden', 'true');
-    el.innerHTML = `<div class="pull-refresh-spinner"><i class="ph ph-arrow-counter-clockwise text-xl" ></i></div>`;
-    document.body.prepend(el);
-    return el;
+  const el = document.createElement('div');
+  el.id = 'pull-refresh-indicator';
+  el.setAttribute('aria-hidden', 'true');
+  el.innerHTML = `<div class="pull-refresh-spinner"><i class="ph ph-arrow-counter-clockwise text-xl" ></i></div>`;
+  document.body.prepend(el);
+  return el;
 }
 
 function getScrollTop(): number {
-    return document.scrollingElement?.scrollTop ?? document.documentElement.scrollTop;
+  return document.scrollingElement?.scrollTop ?? document.documentElement.scrollTop;
 }
 
 function handleTouchStart(e: TouchEvent): void {
-    if (getScrollTop() > 5) {
-        return;
+  if (getScrollTop() > 5) {
+    return;
+  }
+
+  // 🚨 Gesture Race Condition Guard
+  if (resetTimer) {
+    clearTimeout(resetTimer);
+    resetTimer = null;
+    resetIndicator();
+    // Force restore original icon instantly
+    const icon = indicator?.querySelector<HTMLElement>('.pull-refresh-spinner i');
+    if (icon) {
+      icon.classList.remove('ph-check-circle');
+      icon.classList.add('ph-arrow-counter-clockwise');
     }
-    startY = e.touches[0]?.clientY ?? 0;
-    pulling = true;
+  }
+
+  startX = e.touches[0]?.clientX ?? 0;
+  startY = e.touches[0]?.clientY ?? 0;
+  pulling = true;
+  isHorizontalLock = false;
 }
 
 function handleTouchMove(e: TouchEvent): void {
-    if (!pulling) {
-        return;
-    }
-    currentY = e.touches[0]?.clientY ?? 0;
-    const distance = Math.min(currentY - startY, MAX_PULL_PX);
+  if (!pulling) {
+    return;
+  }
+  const currentX = e.touches[0]?.clientX ?? 0;
+  currentY = e.touches[0]?.clientY ?? 0;
 
-    if (distance < 0) {
-        pulling = false;
-        return;
-    }
+  const deltaY = currentY - startY;
+  const deltaX = Math.abs(currentX - startX);
 
-    // P0-003 FIX: Prevent Chrome Android's built-in pull-to-refresh from competing
-    // with the custom spinner. Only called when ACTIVELY pulling (distance > 0),
-    // preserving normal scroll performance for all other touch interactions.
-    // Standard: Web API spec — preventDefault() requires non-passive listener.
-    if (distance > 0) {
-        e.preventDefault();
-    }
+  // PLATINUM FIX: Trigonometric Lock to prevent Diagonal Swipe Trap
+  // If movement is heavily horizontal, lock out the pull-to-refresh to preserve native horizontal scroll.
+  if (!isHorizontalLock && Math.abs(deltaY) < 10 && deltaX > 5) {
+    isHorizontalLock = true;
+  }
 
-    if (!indicator) {
-        indicator = createIndicator();
-    }
-    // DEF-UX-004 FIX: CSS custom properties replace inline style.transform/opacity.
-    // Previous: indicator.style.transform + indicator.style.opacity — violated P1-SST-001.
-    // Standard: CSS Single Source of Truth, Custom Property-driven animation.
-    indicator.style.setProperty('--pull-y', `${distance}px`);
-    indicator.style.setProperty('--pull-opacity', String(Math.min(distance / THRESHOLD_PX, 1)));
-    indicator.classList.toggle('pull-refresh-ready', distance >= THRESHOLD_PX);
+  if (isHorizontalLock) {
+    pulling = false;
+    return;
+  }
 
-    if (distance >= THRESHOLD_PX && !hapticFired) {
-        // PLT-AUD-C002 FIX: Single haptic pulse at threshold (was firing every frame)
-        hapticFired = true;
-        haptic.light();
-    }
+  const distance = Math.min(deltaY, MAX_PULL_PX);
+
+  if (distance < 0) {
+    pulling = false;
+    return;
+  }
+
+  // P0-003 FIX: Prevent Chrome Android's built-in pull-to-refresh from competing
+  // with the custom spinner. Only called when ACTIVELY pulling (distance > 0),
+  // preserving normal scroll performance for all other touch interactions.
+  // Standard: Web API spec — preventDefault() requires non-passive listener.
+  if (distance > 0) {
+    e.preventDefault();
+  }
+
+  if (!indicator) {
+    indicator = createIndicator();
+  }
+  // DEF-UX-004 FIX: CSS custom properties replace inline style.transform/opacity.
+  // Previous: indicator.style.transform + indicator.style.opacity — violated P1-SST-001.
+  // Standard: CSS Single Source of Truth, Custom Property-driven animation.
+  indicator.style.setProperty('--pull-y', `${distance}px`);
+  indicator.style.setProperty('--pull-opacity', String(Math.min(distance / THRESHOLD_PX, 1)));
+  indicator.classList.toggle('pull-refresh-ready', distance >= THRESHOLD_PX);
+
+  if (distance >= THRESHOLD_PX && !hapticFired) {
+    // PLT-AUD-C002 FIX: Single haptic pulse at threshold (was firing every frame)
+    hapticFired = true;
+    haptic.light();
+  }
 }
 
 /**
@@ -88,11 +123,11 @@ function handleTouchMove(e: TouchEvent): void {
 export const REFRESH_EVENT = 'nammerha:pull-refresh';
 
 function resetIndicator(): void {
-    if (indicator) {
-        indicator.classList.remove('pull-refresh-loading', 'pull-refresh-complete');
-        indicator.style.setProperty('--pull-y', '0px');
-        indicator.style.setProperty('--pull-opacity', '0');
-    }
+  if (indicator) {
+    indicator.classList.remove('pull-refresh-loading', 'pull-refresh-complete');
+    indicator.style.setProperty('--pull-y', '0px');
+    indicator.style.setProperty('--pull-opacity', '0');
+  }
 }
 
 /**
@@ -104,73 +139,81 @@ function resetIndicator(): void {
  * Nielsen #1 (Visibility of System Status).
  */
 function showRefreshComplete(): void {
-    if (!indicator) { return; }
+  if (!indicator) {
+    return;
+  }
 
-    // Stop spinning, show checkmark
-    indicator.classList.remove('pull-refresh-loading');
-    indicator.classList.add('pull-refresh-complete');
+  if (resetTimer) {
+    clearTimeout(resetTimer);
+    resetTimer = null;
+  }
 
-    // Swap icon: arrow → checkmark
-    const icon = indicator.querySelector<HTMLElement>('.pull-refresh-spinner i');
+  // Stop spinning, show checkmark
+  indicator.classList.remove('pull-refresh-loading');
+  indicator.classList.add('pull-refresh-complete');
+
+  // Swap icon: arrow → checkmark
+  const icon = indicator.querySelector<HTMLElement>('.pull-refresh-spinner i');
+  if (icon) {
+    icon.classList.remove('ph-arrow-counter-clockwise');
+    icon.classList.add('ph-check-circle');
+  }
+
+  // Success haptic — distinct from the initial "threshold reached" light pulse
+  haptic.success();
+
+  // Hold the checkmark visible for 700ms, then slide up and hide
+  resetTimer = setTimeout(() => {
+    resetIndicator();
+    // Restore original icon for next pull
     if (icon) {
-        icon.classList.remove('ph-arrow-counter-clockwise');
-        icon.classList.add('ph-check-circle');
+      icon.classList.remove('ph-check-circle');
+      icon.classList.add('ph-arrow-counter-clockwise');
     }
-
-    // Success haptic — distinct from the initial "threshold reached" light pulse
-    haptic.success();
-
-    // Hold the checkmark visible for 700ms, then slide up and hide
-    setTimeout(() => {
-        resetIndicator();
-        // Restore original icon for next pull
-        if (icon) {
-            icon.classList.remove('ph-check-circle');
-            icon.classList.add('ph-arrow-counter-clockwise');
-        }
-    }, 700);
+    resetTimer = null;
+  }, 700);
 }
 
 function handleTouchEnd(): void {
-    if (!pulling) {
-        return;
-    }
-    pulling = false;
-    const distance = currentY - startY;
+  if (!pulling) {
+    return;
+  }
+  pulling = false;
+  const distance = currentY - startY;
 
-    if (indicator) {
-        if (distance >= THRESHOLD_PX) {
-            indicator.classList.add('pull-refresh-loading');
+  if (indicator) {
+    if (distance >= THRESHOLD_PX) {
+      indicator.classList.add('pull-refresh-loading');
 
-            // P0-PTR-001 FIX: Dispatch custom event — pages handle their own data refresh.
-            // On 2G Syria, location.reload() takes 5-15s. Native apps refresh data, not the page.
-            const event = new CustomEvent(REFRESH_EVENT, { cancelable: true });
-            const handled = !document.dispatchEvent(event);
+      // P0-PTR-001 FIX: Dispatch custom event — pages handle their own data refresh.
+      // On 2G Syria, location.reload() takes 5-15s. Native apps refresh data, not the page.
+      const event = new CustomEvent(REFRESH_EVENT, { cancelable: true });
+      const handled = !document.dispatchEvent(event);
 
-            if (handled) {
-                // C10 FIX: Show completion checkmark instead of silently hiding spinner.
-                // PREVIOUS: setTimeout(resetIndicator, 600) — spinner just vanished.
-                // NOW: Spinner → green checkmark (holds 400ms) → slide up → hide.
-                // Standard: Apple HIG Pull-to-Refresh Completion Pattern.
-                showRefreshComplete();
-            } else {
-                // No listener — fallback to full reload (backwards-compatible)
-                const spinner = indicator.querySelector('.pull-refresh-spinner');
-                if (spinner) {
-                    spinner.addEventListener('animationiteration', () => location.reload(), { once: true });
-                } else {
-                    setTimeout(() => location.reload(), 600);
-                }
-            }
+      if (handled) {
+        // C10 FIX: Show completion checkmark instead of silently hiding spinner.
+        // PREVIOUS: setTimeout(resetIndicator, 600) — spinner just vanished.
+        // NOW: Spinner → green checkmark (holds 400ms) → slide up → hide.
+        // Standard: Apple HIG Pull-to-Refresh Completion Pattern.
+        showRefreshComplete();
+      } else {
+        // No listener — fallback to full reload (backwards-compatible)
+        const spinner = indicator.querySelector('.pull-refresh-spinner');
+        if (spinner) {
+          spinner.addEventListener('animationiteration', () => location.reload(), { once: true });
         } else {
-            // DEF-UX-004 FIX: CSS custom properties for reset state.
-            indicator.style.setProperty('--pull-y', '0px');
-            indicator.style.setProperty('--pull-opacity', '0');
+          setTimeout(() => location.reload(), 600);
         }
+      }
+    } else {
+      // DEF-UX-004 FIX: CSS custom properties for reset state.
+      indicator.style.setProperty('--pull-y', '0px');
+      indicator.style.setProperty('--pull-opacity', '0');
     }
-    startY = 0;
-    currentY = 0;
-    hapticFired = false; // PLT-AUD-C002 FIX: Reset for next gesture
+  }
+  startY = 0;
+  currentY = 0;
+  hapticFired = false; // PLT-AUD-C002 FIX: Reset for next gesture
 }
 
 /**
@@ -179,20 +222,19 @@ function handleTouchEnd(): void {
  */
 let _initialized = false;
 export function initPullToRefresh(): void {
-    if (!('ontouchstart' in window) || _initialized) {
-        return;
-    }
-    _initialized = true;
+  if (!('ontouchstart' in window) || _initialized) {
+    return;
+  }
+  _initialized = true;
 
-    document.addEventListener('touchstart', handleTouchStart, { passive: true });
-    // P0-003 FIX: Changed from { passive: true } to { passive: false }.
-    // Previous: passive:true prevented e.preventDefault() from being called.
-    // This meant Chrome Android's built-in pull-to-refresh fired SIMULTANEOUSLY
-    // with the custom spinner — causing double-refresh on every pull-down gesture.
-    // Now: Only calls preventDefault() when actively pulling (scrollTop === 0 && distance > 0),
-    // preserving normal scrolling performance for all other touch interactions.
-    // Standard: Web API specification (passive listeners cannot call preventDefault).
-    document.addEventListener('touchmove',  handleTouchMove,  { passive: false });
-    document.addEventListener('touchend',   handleTouchEnd,   { passive: true });
+  document.addEventListener('touchstart', handleTouchStart, { passive: true });
+  // P0-003 FIX: Changed from { passive: true } to { passive: false }.
+  // Previous: passive:true prevented e.preventDefault() from being called.
+  // This meant Chrome Android's built-in pull-to-refresh fired SIMULTANEOUSLY
+  // with the custom spinner — causing double-refresh on every pull-down gesture.
+  // Now: Only calls preventDefault() when actively pulling (scrollTop === 0 && distance > 0),
+  // preserving normal scrolling performance for all other touch interactions.
+  // Standard: Web API specification (passive listeners cannot call preventDefault).
+  document.addEventListener('touchmove', handleTouchMove, { passive: false });
+  document.addEventListener('touchend', handleTouchEnd, { passive: true });
 }
-
