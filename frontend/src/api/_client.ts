@@ -349,6 +349,12 @@ export async function request<T>(
 
       if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
         lastMutationEpoch = Date.now();
+        // PLATINUM FIX: Broadcast form commit to destroy Time-Machine paradox
+        window.dispatchEvent(
+          new CustomEvent('nm_form_committed', {
+            detail: { endpoint, timestamp: lastMutationEpoch },
+          }),
+        );
       }
 
       // P0-002 FIX (Wave 2): Throw ApiError instead of Error.

@@ -62,6 +62,11 @@ export function loadDraft<T extends Record<string, unknown>>(
   maxAgeMs = 30 * 60 * 1000,
 ): T | null {
   try {
+    // PLATINUM FIX: Block hydration if this form was already committed
+    if (sessionStorage.getItem(`nm_draft_committed_${key}`) === 'true') {
+      return null; // Return empty state instead of resurrecting the form
+    }
+
     const raw = sessionStorage.getItem(`nm_draft_${key}`);
     if (!raw) {
       return null;
@@ -100,7 +105,21 @@ export function clearDraft(key: string): void {
       clearTimeout(timer);
       timers.delete(key);
     }
+    // PLATINUM FIX: Inject a committed lock to prevent Bfcache resurrection
+    safeSessionStorageSet(`nm_draft_committed_${key}`, 'true');
   } catch {
     /* sessionStorage unavailable */
   }
+}
+
+// PLATINUM FIX: The "Time-Machine" Form Rehydration Paradox Guard
+// Globally listen for successful mutations to wipe any active drafts
+// and prevent the user from seeing an already-submitted form via Bfcache.
+if (typeof window !== 'undefined') {
+  window.addEventListener('nm_form_committed', () => {
+    // We aggressively clear all known drafts in the current session
+    for (const key of Array.from(timers.keys())) {
+      clearDraft(key);
+    }
+  });
 }

@@ -100,3 +100,8 @@
 
 **Problem:** The In-Place Re-auth Modal paused 401 requests and replayed them via a `continue` loop. If the original payload contained a `ReadableStream` (e.g., file uploads via `FormData`), `fetch()` consumed the stream on the first attempt, causing the replay to throw a fatal `TypeError` and crash the JS thread.
 **Permanent Rule:** The `_client.ts` interceptor MUST catch `TypeError` during re-auth replays, explicitly check if `fetchOptions.body instanceof ReadableStream`, and gracefully prompt the user to re-attach their files instead of crashing.
+
+### 19. The "Time-Machine" Form Rehydration Paradox (Bfcache Phantom State)
+
+**Problem:** We implemented `safeSessionStorageSet` for form drafts to prevent data loss. However, if a user successfully submits a form, navigates away, and then clicks the browser "Back" button, the Bfcache resurrects the page. The `form-draft.ts` script would blindly hydrate the draft from `sessionStorage`, making the form appear completely filled out again. Users panicked, assuming their submission failed, leading to duplicate financial requests.
+**Permanent Rule:** Any state-mutating request (`POST/PUT/DELETE`) executed in `api/_client.ts` MUST globally broadcast an `nm_form_committed` CustomEvent. The `form-draft.ts` utility MUST listen for this event, physically wipe all active drafts in the current tab, and inject a strict `nm_draft_committed_${key}=true` lock. The hydration function must block rehydration if this lock exists.
