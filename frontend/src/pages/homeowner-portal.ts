@@ -394,20 +394,20 @@ function switchTab(tab: TabName): void {
   // NOW: swrFetch returns stale data instantly, revalidates in background.
   // Dashboard tab excluded — it uses animateKPI which needs fresh data.
   if (tab === 'dashboard') {
-    loadStats();
-    loadDashboardProjects();
+    loadStats().catch(console.error);
+    loadDashboardProjects().catch(console.error);
   }
   if (tab === 'projects') {
-    void swrFetch('ho-projects', loadProjects, { maxAge: 30_000 });
+    void swrFetch('ho-projects', loadProjects, { maxAge: 30_000 }).catch(() => {});
   }
   if (tab === 'requests') {
-    void swrFetch('ho-requests', loadServiceRequests, { maxAge: 30_000 });
+    void swrFetch('ho-requests', loadServiceRequests, { maxAge: 30_000 }).catch(() => {});
   }
   if (tab === 'approvals') {
-    loadApprovals();
+    loadApprovals().catch(console.error);
   }
   if (tab === 'payments') {
-    loadEscrow();
+    loadEscrow().catch(console.error);
   }
 
   // P2-UXA-004 FIX: Restore scroll position for the incoming tab
@@ -594,6 +594,7 @@ async function loadProjects(): Promise<void> {
       error: err instanceof Error ? err.message : String(err),
     });
     renderErrorWithRetry(tbody, loadProjects, undefined, undefined, err);
+    throw err; // PLATINUM FIX: Rethrow to prevent SWR from caching a void resolution on failure.
   }
 }
 
@@ -941,6 +942,7 @@ async function loadServiceRequests(): Promise<void> {
       error: err instanceof Error ? err.message : String(err),
     });
     renderErrorWithRetry(tbody, loadServiceRequests, undefined, undefined, err);
+    throw err; // PLATINUM FIX: Rethrow to prevent SWR from caching a void resolution on failure.
   }
 }
 

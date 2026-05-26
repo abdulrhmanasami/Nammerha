@@ -191,7 +191,7 @@ const steps = [
 // ═══════════════════════════════════════════════════════════════════════════
 // WIZARD NAVIGATION ENGINE
 // ═══════════════════════════════════════════════════════════════════════════
-function showStep(step: number): void {
+function showStep(step: number, skipHistory = false): void {
   state.currentStep = step;
 
   // Hide all steps, show current
@@ -200,6 +200,15 @@ function showStep(step: number): void {
       el.classList.toggle('nm-hidden', i !== step - 1);
     }
   });
+
+  // PLATINUM FIX: Bind Wizard steps to the History API
+  if (!skipHistory) {
+    if (history.state === null) {
+      history.replaceState({ step }, '', `#step-${step}`);
+    } else {
+      history.pushState({ step }, '', `#step-${step}`);
+    }
+  }
 
   // Update progress bar
   if (step <= TOTAL_STEPS) {
@@ -442,7 +451,8 @@ if (backBtn) {
         navigateAway();
       }
     } else if (state.currentStep <= TOTAL_STEPS) {
-      showStep(state.currentStep - 1);
+      // PLATINUM FIX: Hardware Back-Button Trap Resolution
+      window.history.back();
     } else if (state.currentStep === 4) {
       // From confirmation, go back to portal
       window.location.href = '/homeowner-portal.html';
@@ -777,6 +787,10 @@ function startVoice(): void {
     if (finalTranscript && descriptionTextarea) {
       const prefix = descriptionTextarea.value ? ' ' : '';
       descriptionTextarea.value += prefix + finalTranscript.trim();
+      
+      // PLATINUM FIX: Dispatch synthetic input event to force character counter sync
+      // and trigger the sessionStorage auto-save loop.
+      descriptionTextarea.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
     }
     // P1-003 FIX (Wave 2): Show live preview in DEDICATED transcript element.
     // PREVIOUS: voiceTimerEl.textContent was overwritten here, then overwritten
@@ -1314,5 +1328,41 @@ window.addEventListener('beforeunload', (e: BeforeUnloadEvent) => {
     e.preventDefault();
     // Modern browsers show standard text; this string is for legacy compat:
     e.returnValue = '';
+  }
+});
+
+// PLATINUM FIX: Hardware Back-Button Trap Resolution
+window.addEventListener('popstate', (e) => {
+  if (e.state && typeof e.state.step === 'number') {
+    // Navigate safely within the wizard
+    showStep(e.state.step, true);
+  } else {
+    // Navigated beyond step 1
+    if (hasWizardData()) {
+      // Revert the URL pop temporarily to lock them in while confirming
+      history.pushState({ step: state.currentStep }, '', `#step-${state.currentStep}`);
+      confirmAction({
+        title: t('hr_leave_title', 'مغادرة النموذج؟'),
+        message: t(
+          'hr_leave_msg',
+          'لديك بيانات غير مُرسلة. ستُفقد إذا غادرت الآن. (يتم حفظ المسودة تلقائياً ويمكنك استئنافها لاحقاً)',
+        ),
+        confirmLabel: t('hr_leave_confirm', 'مغادرة'),
+        icon: 'sign-out',
+        variant: 'warning',
+        i18n: {
+          title: 'hr_leave_title',
+          message: 'hr_leave_msg',
+          confirm: 'hr_leave_confirm',
+          cancel: 'common_cancel',
+        },
+        onConfirm: () => {
+          wizardGuard.markClean();
+          window.location.href = '/homeowner-portal.html';
+        },
+      });
+    } else {
+      window.location.href = '/homeowner-portal.html';
+    }
   }
 });

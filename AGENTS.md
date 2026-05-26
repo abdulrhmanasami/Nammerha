@@ -159,6 +159,17 @@
   2. `listenWhen` must restrict evaluation to state-type changes and Step changes to prevent Keystroke Spam.
   3. `TextEditingController.selection` must mathematically calculate and reposition the cursor using `TextSelection.fromPosition(TextPosition(offset: newText.length))` after programmatic updates.
 
+**MEMO 16: Hardware Back-Button Trap & SWR Void Cache (May 27, 2026)**
+
+- **Root Cause Destroyed:**
+  1. The "Phantom Escape Paradox" in `homeowner-report.ts` trapped users who pressed the Android hardware Back button, triggering a global `beforeunload` instead of returning to the previous wizard step.
+  2. The Stale-While-Revalidate (`swrFetch`) mechanism in `homeowner-portal.ts` swallowed API errors, resolving with `void`, causing the cache to freeze the error state and refuse background revalidation for 30 seconds.
+  3. The `SpeechRecognition` API in `homeowner-report.ts` injected text directly into `textarea.value`, bypassing the native `input` event, failing to trigger `sessionStorage` auto-saves (Phantom Voice Event Desync).
+- **New Logic Built:**
+  1. `showStep` natively binds to the History API using `history.pushState`. A `popstate` interceptor guarantees Android hardware back-button parity with the wizard UI.
+  2. Frontend data fetchers (`loadProjects`, `loadServiceRequests`) strictly `throw err;` on failure, preventing `swrFetch` from caching a void resolution. The global `switchTab` dispatcher intercepts floating promises with `.catch(() => {})`.
+  3. `dispatchEvent(new Event('input'))` is strictly enforced after any programmatic text manipulation to mathematically guarantee auto-save state persistence.
+
 ## 🏗️ Platform Architecture
 
 ### Web Frontend (frontend/)
