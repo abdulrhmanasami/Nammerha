@@ -44,8 +44,19 @@ export function showProcessingLock(message: string = 'جاري المعالجة.
   const originalOverflow = document.body.style.overflow;
   document.body.style.overflow = 'hidden';
 
-  // Completely intercept all keyboard events in the capture phase
+  // Completely intercept all normal keyboard events in the capture phase,
+  // BUT preserve native browser escape routes (Refresh, DevTools, Close Tab).
   _lockKeydownInterceptor = (e: KeyboardEvent) => {
+    // PLATINUM FIX: Escape Route Preservation
+    if (
+      e.metaKey || 
+      e.ctrlKey || 
+      e.altKey || 
+      e.key.startsWith('F') // Allows F5, F12, etc.
+    ) {
+      return; // Let the browser handle system-level intents
+    }
+    
     e.preventDefault();
     e.stopPropagation();
   };

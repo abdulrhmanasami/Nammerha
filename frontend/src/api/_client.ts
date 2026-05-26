@@ -321,6 +321,13 @@ export async function request<T>(
                 };
 
                 const onMessage = (e: MessageEvent) => {
+                  // PLATINUM FIX: Zero-Trust Origin Verification
+                  // Never trust window messages without validating the cryptographic boundary
+                  if (e.origin !== window.location.origin) {
+                    console.warn('[Security Guard] Blocked cross-origin auth message from:', e.origin);
+                    return;
+                  }
+
                   if (e.data === 'nm_auth_success') {
                     cleanup();
                     resolve(true); // Retry!

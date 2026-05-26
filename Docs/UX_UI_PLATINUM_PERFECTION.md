@@ -120,3 +120,18 @@
 
 **Problem:** The `pull-refresh.ts` gesture handler triggered `e.preventDefault()` if `distance > 0` (measuring vertical delta only). If a user swiped horizontally on a carousel or tabs but their finger angled slightly downwards, the gesture was hijacked, completely blocking horizontal accessibility.
 **Permanent Rule:** The touch handler MUST employ a Trigonometric Lock. If `Math.abs(deltaX) > 5` and `Math.abs(deltaY) < 10` during the initial stroke, the gesture handler must set an `isHorizontalLock = true` state and immediately bail out, preserving native horizontal scrolling.
+
+### 23. The Draft Poisoning Paradox (Bfcache Form Lockout)
+
+**Problem:** After form submission, a `nm_draft_committed_${key}=true` lock was injected to prevent Bfcache resurrection. However, `saveDraft` failed to annihilate this lock when the user started a *new* draft. If a user refreshed the page while drafting a second report, `loadDraft` would see the old lock and permanently delete the new draft, causing a catastrophic data blackhole.
+**Permanent Rule:** The `saveDraft` function MUST unconditionally execute `sessionStorage.removeItem('nm_draft_committed_${key}')` the moment a user begins typing, mathematically guaranteeing the lock is destroyed for subsequent drafts.
+
+### 24. The Glass Prison Trap (Keyboard Lockout)
+
+**Problem:** The `ui-lock.ts` global UI freeze mechanism utilized a capture-phase `keydown` interceptor that blindly called `e.preventDefault()` for ALL keys. This blocked native browser survival shortcuts (`Cmd+R`, `F5`, `Cmd+W`), trapping the user visually and interactively if the network hung.
+**Permanent Rule:** The `keydown` interceptor MUST employ an Escape Route Preservation check. It must immediately `return` if `e.metaKey`, `e.ctrlKey`, `e.altKey`, or `e.key.startsWith('F')` is detected, ensuring the browser retains control over window survival commands.
+
+### 25. The Blind Oracle Re-Auth Vulnerability (Message Spoofing)
+
+**Problem:** The In-Place Re-auth modal iframe communicated via a `message` event listener that blindly trusted any `e.data === 'nm_auth_success'` message without verifying the origin. A malicious extension or cross-window interaction could spoof this message, triggering a replay attack on aborted financial mutations.
+**Permanent Rule:** ALL `message` event listeners MUST enforce Zero-Trust Origin Verification by strictly validating `e.origin === window.location.origin` before processing the payload.

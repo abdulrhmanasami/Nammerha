@@ -35,6 +35,14 @@ export function saveDraft<T extends Record<string, unknown>>(
     clearTimeout(existing);
   }
 
+  // PLATINUM FIX: Annihilate the committed lock when a user starts a new draft
+  // This prevents the Bfcache protection from permanently poisoning the draft key
+  try {
+    sessionStorage.removeItem(`nm_draft_committed_${key}`);
+  } catch {
+    /* Ignore storage errors */
+  }
+
   timers.set(
     key,
     setTimeout(() => {
