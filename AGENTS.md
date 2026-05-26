@@ -57,6 +57,13 @@
   3. `pull-refresh.ts` natively stores a `resetTimer`. Triggering a new touch immediately clears the timer and forcefully restores the base icon.
   4. Conflict buttons now use strict programmatic ID binding (`document.getElementById`).
 
+**MEMO 6: SPA Direct Tab Switch Dirty State Bypass (May 26, 2026)**
+
+- **Root Cause Destroyed:** The `DirtyStateGuard` was perfectly wired to intercept browser `popstate` via `hash-router.ts`. However, direct click events (tab buttons) inside portals bypassed the Bfcache lock and `window.confirm` guard, annihilating user data if they tapped a tab while filling a form.
+- **New Logic Built:**
+  1. A centralized cryptographic event interceptor (`nm_internal_navigate`) is injected at the top of the `switchTab(tab)` function across all portal architectures (`homeowner-portal.ts`, `contractor-portal.ts`, `engineer-portal.ts`, `tradesperson-portal.ts`).
+  2. `switchTab` strictly verifies `window.dispatchEvent(navEvent)` before proceeding with DOM teardown, preserving the UI lock mathematically.
+
 **MEMO 3: UX UI Zero-Friction & Cognitive Flow (May 26, 2026)**
 
 - **Root Cause Destroyed:**

@@ -322,6 +322,12 @@ function setupTabs(): void {
 }
 
 function switchTab(tab: TabName): void {
+  // P1-UXA-005 FIX: Abort tab switch if DirtyStateGuard cancels the navigation (e.g. unsaved form).
+  const navEvent = new CustomEvent('nm_internal_navigate', { cancelable: true });
+  if (!window.dispatchEvent(navEvent)) {
+    return;
+  }
+
   // P2-UXA-004 FIX: Save scroll position of the outgoing tab
   const currentHash = hashRouter.getInitialTab();
   if (currentHash !== tab) {

@@ -300,11 +300,12 @@ export async function request<T>(
                   })
                   .catch(() => {});
 
+                // PLATINUM FIX: Viewport Overflow Paradox & Body Scroll Lock
                 const modal = document.createElement('div');
                 modal.id = 'nm-reauth-modal';
                 modal.innerHTML = `
                   <div class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in-up">
-                    <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-md h-[550px] overflow-hidden relative mx-4">
+                    <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-md h-[min(550px,calc(100dvh-2rem))] overflow-hidden relative mx-4">
                       <button id="close-reauth" class="absolute top-4 end-4 z-10 text-slate-400 hover:text-slate-600 bg-white/80 dark:bg-slate-800/80 rounded-full w-8 h-8 flex items-center justify-center">
                         <i class="ph ph-x"></i>
                       </button>
@@ -313,18 +314,47 @@ export async function request<T>(
                   </div>
                 `;
                 document.body.appendChild(modal);
+                document.body.classList.add('overflow-hidden');
 
                 const cleanup = () => {
                   window.removeEventListener('message', onMessage);
+                  window.removeEventListener('keydown', onKeyDown, true);
+                  window.removeEventListener('popstate', onPopState);
+                  document.body.classList.remove('overflow-hidden');
                   modal.remove();
                   activeReauthPromise = null;
+                };
+
+                const closeAction = () => {
+                  cleanup();
+                  sessionExpiring = true;
+                  clearAuth();
+                  window.location.href = '/auth.html?reason=session_expired';
+                  resolve(false);
+                };
+
+                // PLATINUM FIX: The Re-Auth Modal "Keyboard Trap" (Esc Key Blackhole)
+                const onKeyDown = (e: KeyboardEvent) => {
+                  if (e.key === 'Escape') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    closeAction();
+                  }
+                };
+
+                // PLATINUM FIX: History State Leak on physical Back Button
+                const onPopState = () => {
+                  closeAction();
                 };
 
                 const onMessage = (e: MessageEvent) => {
                   // PLATINUM FIX: Zero-Trust Origin Verification
                   // Never trust window messages without validating the cryptographic boundary
                   if (e.origin !== window.location.origin) {
-                    console.warn('[Security Guard] Blocked cross-origin auth message from:', e.origin);
+                    console.warn(
+                      '[Security Guard] Blocked cross-origin auth message from:',
+                      e.origin,
+                    );
                     return;
                   }
 
@@ -333,15 +363,12 @@ export async function request<T>(
                     resolve(true); // Retry!
                   }
                 };
-                window.addEventListener('message', onMessage);
 
-                modal.querySelector('#close-reauth')?.addEventListener('click', () => {
-                  cleanup();
-                  sessionExpiring = true;
-                  clearAuth();
-                  window.location.href = '/auth.html?reason=session_expired';
-                  resolve(false);
-                });
+                window.addEventListener('message', onMessage);
+                window.addEventListener('keydown', onKeyDown, true);
+                window.addEventListener('popstate', onPopState);
+
+                modal.querySelector('#close-reauth')?.addEventListener('click', closeAction);
               });
             }
           }
