@@ -22,24 +22,15 @@ import { t } from './i18n';
 
 // 🚨 PLATINUM FIX: Global Dirty State Registry
 // Protects the Window state by preventing duplicate beforeunload listeners
-// across multiple active DirtyStateGuard instances.
-let isBeforeUnloadRegistered = false;
+// across multiple active DirtyStateGuard instances using a reference counter.
+let activeGuardsCount = 0;
+let _globalUnloadListener: ((e: BeforeUnloadEvent) => void) | null = null;
 
 export class DirtyStateGuard {
   private isDirty = false;
-  private readonly _unloadListener: (e: BeforeUnloadEvent) => void;
   private readonly _internalNavListener: (e: Event) => void;
 
   constructor() {
-    this._unloadListener = (e: BeforeUnloadEvent) => {
-      if (this.isDirty) {
-        e.preventDefault();
-        // Standard requires setting returnValue in some legacy browsers,
-        // though modern browsers ignore custom text.
-        e.returnValue = '';
-      }
-    };
-
     this._internalNavListener = (e: Event) => {
       if (this.isDirty) {
         // PLATINUM FIX: If another guard already intercepted and canceled the navigation,
@@ -65,9 +56,15 @@ export class DirtyStateGuard {
   public markDirty(): void {
     if (!this.isDirty) {
       this.isDirty = true;
-      if (!isBeforeUnloadRegistered) {
-        window.addEventListener('beforeunload', this._unloadListener);
-        isBeforeUnloadRegistered = true;
+      activeGuardsCount++;
+
+      if (activeGuardsCount === 1) {
+        // First guard being marked dirty, attach the global beforeunload
+        _globalUnloadListener = (e: BeforeUnloadEvent) => {
+          e.preventDefault();
+          e.returnValue = '';
+        };
+        window.addEventListener('beforeunload', _globalUnloadListener);
       }
       window.addEventListener('nm_internal_navigate', this._internalNavListener);
     }
@@ -82,9 +79,15 @@ export class DirtyStateGuard {
       this.isDirty = false;
       window.removeEventListener('nm_internal_navigate', this._internalNavListener);
 
-      if (isBeforeUnloadRegistered) {
-        window.removeEventListener('beforeunload', this._unloadListener);
-        isBeforeUnloadRegistered = false;
+      activeGuardsCount--;
+      
+      // Ensure we don't go below 0 and clean up listener
+      if (activeGuardsCount <= 0) {
+        activeGuardsCount = 0;
+        if (_globalUnloadListener) {
+          window.removeEventListener('beforeunload', _globalUnloadListener);
+          _globalUnloadListener = null;
+        }
       }
     }
   }

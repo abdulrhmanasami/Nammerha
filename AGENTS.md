@@ -116,6 +116,27 @@
   3. Tipping, receipt generation, and escrow APIs natively consume `userId` exclusively.
   4. Test suites completely refactored to align with the Unified Citizen Model ensuring zero regression testing capability.
 
+**MEMO 11: Global Dirty State Registry Annihilation (May 26, 2026)**
+
+- **Root Cause Destroyed:** `DirtyStateGuard` used a single boolean `isBeforeUnloadRegistered` to track the `beforeunload` listener across multiple active form instances. Saving one form cleared the listener globally, leaving other active forms unprotected from accidental tab closure.
+- **New Logic Built:** 
+  1. Replaced the boolean flag with a reference counter (`activeGuardsCount`).
+  2. The `beforeunload` listener is only detached when `activeGuardsCount === 0`. Never revert back to a single boolean flag for global state tracking.
+
+**MEMO 12: Binary File Double-Submission Paradox (May 26, 2026)**
+
+- **Root Cause Destroyed:** The In-Flight Mutation Multiplexer bypassed `FormData` entirely by assigning a random UUID (`crypto.randomUUID()`) to prevent different files from colliding. However, this allowed rapid double-taps on the same upload button to spawn multiple concurrent POST requests, bypassing idempotency locks.
+- **New Logic Built:**
+  1. The multiplexer now hashes the contents of `FormData` (combining file names, sizes, and field values) to generate a deterministic `bodyStr`.
+  2. Duplicate identical uploads are caught and multiplexed into a single network promise.
+
+**MEMO 13: Orphaned Event Broadcast & Cross-Pollination (May 26, 2026)**
+
+- **Root Cause Destroyed:** `api/_client.ts` broadcasted a generic `nm_form_committed` event on every successful POST request. While `form-draft.ts` was updated to ignore it, the event remained a hazard for cross-pollinating unrelated listeners.
+- **New Logic Built:** 
+  1. The global `nm_form_committed` broadcast was annihilated from `api/_client.ts`.
+  2. Draft clearing must be targeted via explicit `nm_clear_specific_draft` broadcasts from the specific Page Module.
+
 ## 🏗️ Platform Architecture
 
 ### Web Frontend (frontend/)

@@ -146,10 +146,23 @@ export function request<T>(
     const idempotencyKey = (options.headers as Record<string, string>)?.['Idempotency-Key'];
     let bodyStr = typeof options.body === 'string' ? options.body : null;
     
-    // If it's a binary stream/FormData and no idempotency key is provided, 
-    // bypass the multiplexer by generating a unique UUID.
+    // PLATINUM FIX: Deterministic Binary Hashing (Prevent Double-Submission)
+    // Generating a unique UUID bypassed the multiplexer. We now hash FormData content
+    // to correctly intercept double-taps on upload buttons.
     if (!bodyStr && !idempotencyKey) {
-      bodyStr = `binary_${crypto.randomUUID()}`;
+      if (typeof FormData !== 'undefined' && options.body instanceof FormData) {
+        let hashStr = 'formdata_';
+        options.body.forEach((value, key) => {
+          if (value instanceof File) {
+            hashStr += `${key}:${value.name}:${value.size}|`;
+          } else {
+            hashStr += `${key}:${String(value)}|`;
+          }
+        });
+        bodyStr = hashStr;
+      } else {
+        bodyStr = `binary_${crypto.randomUUID()}`;
+      }
     }
     
     const mutationKey = idempotencyKey 
@@ -448,11 +461,8 @@ async function _requestInternal<T>(
       // Previous: Fired before checking !res.ok, causing 400/500 errors to permanently wipe user drafts.
       if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
         lastMutationEpoch = Date.now();
-        window.dispatchEvent(
-          new CustomEvent('nm_form_committed', {
-            detail: { endpoint, timestamp: lastMutationEpoch },
-          }),
-        );
+        // PLATINUM FIX: Removed orphaned nm_form_committed broadcast to prevent cross-pollination.
+        // Specific forms must explicitly broadcast nm_clear_specific_draft instead.
       }
 
       // PLAT-PERF-001 FIX: Skeleton Anti-Flicker Guard (Minimum 300ms transition)
