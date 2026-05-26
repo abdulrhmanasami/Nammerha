@@ -114,13 +114,18 @@ function handleTouchMove(e: TouchEvent): void {
  * Falls back to location.reload() if no listener calls preventDefault().
  *
  * Usage in page modules:
- *   import { REFRESH_EVENT } from '../utils/pull-refresh';
+ *   import { REFRESH_EVENT, type PullRefreshEventDetail } from '../utils/pull-refresh';
  *   document.addEventListener(REFRESH_EVENT, (e) => {
- *       e.preventDefault(); // Signal "I'm handling this"
- *       refreshDashboardData();
+ *       const ev = e as CustomEvent<PullRefreshEventDetail>;
+ *       ev.preventDefault(); // Signal "I'm handling this"
+ *       ev.detail.wait = refreshDashboardData(); // pass the promise!
  *   });
  */
 export const REFRESH_EVENT = 'nammerha:pull-refresh';
+
+export interface PullRefreshEventDetail {
+  wait?: Promise<any>;
+}
 
 function resetIndicator(): void {
   if (indicator) {
@@ -187,15 +192,20 @@ function handleTouchEnd(): void {
 
       // P0-PTR-001 FIX: Dispatch custom event — pages handle their own data refresh.
       // On 2G Syria, location.reload() takes 5-15s. Native apps refresh data, not the page.
-      const event = new CustomEvent(REFRESH_EVENT, { cancelable: true });
+      const detail: PullRefreshEventDetail = {};
+      const event = new CustomEvent(REFRESH_EVENT, { cancelable: true, detail });
       const handled = !document.dispatchEvent(event);
 
       if (handled) {
-        // C10 FIX: Show completion checkmark instead of silently hiding spinner.
-        // PREVIOUS: setTimeout(resetIndicator, 600) — spinner just vanished.
-        // NOW: Spinner → green checkmark (holds 400ms) → slide up → hide.
-        // Standard: Apple HIG Pull-to-Refresh Completion Pattern.
-        showRefreshComplete();
+        // PLATINUM FIX: Cryptographic Theater Race Condition Guard
+        // Delay showing the completion checkmark until the async fetch actually finishes.
+        if (detail.wait) {
+          detail.wait.finally(() => {
+            showRefreshComplete();
+          });
+        } else {
+          showRefreshComplete();
+        }
       } else {
         // No listener — fallback to full reload (backwards-compatible)
         const spinner = indicator.querySelector('.pull-refresh-spinner');

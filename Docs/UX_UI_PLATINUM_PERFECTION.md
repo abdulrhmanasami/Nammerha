@@ -135,3 +135,18 @@
 
 **Problem:** The In-Place Re-auth modal iframe communicated via a `message` event listener that blindly trusted any `e.data === 'nm_auth_success'` message without verifying the origin. A malicious extension or cross-window interaction could spoof this message, triggering a replay attack on aborted financial mutations.
 **Permanent Rule:** ALL `message` event listeners MUST enforce Zero-Trust Origin Verification by strictly validating `e.origin === window.location.origin` before processing the payload.
+
+### 26. The State Desync Paradox (Hash Revert Failure)
+
+**Problem:** In the SPA router (`hash-router.ts`), if the user rejected a `DirtyStateGuard` navigation warning, the router attempted to push the old URL back into history using `window.location.href`. However, because `popstate` fires *after* the URL changes, `window.location.href` already contained the *new* URL. This pushed the new URL into history but aborted the UI update, trapping the user in a permanently desynced state where they could not navigate to the new tab.
+**Permanent Rule:** The `hash-router.ts` MUST maintain a strictly controlled `currentHash` internal state variable. If an internal navigation is cancelled, the router MUST use `history.replaceState(null, '', '#' + currentHash)` to safely revert the URL back to match the currently rendered UI.
+
+### 27. Cryptographic Theater Failure (Async Race Condition)
+
+**Problem:** The pull-to-refresh gesture handler immediately displayed a "Refresh Complete" checkmark the millisecond the `REFRESH_EVENT` was dispatched, disregarding the fact that the actual data fetch (Network Promise) takes several seconds. This created severe cognitive dissonance where the UI claimed success while old data remained on screen.
+**Permanent Rule:** The `REFRESH_EVENT` must expose an asynchronous lock via its `detail` payload (`detail.wait = Promise`). The pull-to-refresh engine MUST delay the `showRefreshComplete()` transition until this promise has resolved, enforcing strict Synchronicity between Network State and Visual Feedback.
+
+### 28. Cross-Origin Privacy Shield Spoofing
+
+**Problem:** The `session-timeout.ts` Privacy Shield used the exact same flawed `message` event listener pattern as the re-auth modal. It listened for `nm_auth_success` without checking `e.origin`. A malicious tab could broadcast this message, bypassing the Privacy Shield lock and exposing the user's unsaved session data underneath without actual authentication.
+**Permanent Rule:** The Zero-Trust Origin Verification (`e.origin === window.location.origin`) MUST be universally applied to all cross-context message listeners, specifically including the `session-timeout.ts` Privacy Shield listener.

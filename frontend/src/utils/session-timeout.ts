@@ -287,6 +287,7 @@ function performLogout(): void {
   document.body.appendChild(modal);
 
   const onMessage = (e: MessageEvent) => {
+    if (e.origin !== window.location.origin) return;
     if (e.data === 'nm_auth_success') {
       window.removeEventListener('message', onMessage);
       modal.remove();

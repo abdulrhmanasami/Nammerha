@@ -34,6 +34,8 @@ export function createHashRouter<T extends string>(
     return (validTabs as readonly string[]).includes(raw) ? (raw as T) : defaultTab;
   }
 
+  let currentHash: T = resolveHash();
+
   return {
     getInitialTab: resolveHash,
 
@@ -47,22 +49,27 @@ export function createHashRouter<T extends string>(
       // Abort any pending requests from the outgoing tab before navigating
       abortPendingRouteRequests();
 
+      currentHash = tab;
       // pushState adds a real history entry for back/forward navigation
       history.pushState(null, '', `#${tab}`);
     },
 
     onHashChange(handler: (tab: T) => void): void {
-      window.addEventListener('popstate', (e) => {
+      window.addEventListener('popstate', () => {
         // 🚨 SPA Dirty State Bypass Guard
         const navEvent = new CustomEvent('nm_internal_navigate', { cancelable: true });
         if (!window.dispatchEvent(navEvent)) {
-          // DirtyStateGuard canceled the navigation! Revert the hash silently.
-          history.pushState(null, '', e.state || window.location.href);
+          // PLATINUM FIX: The State Desync Paradox
+          // DirtyStateGuard canceled the navigation! The URL already changed to the new hash,
+          // so we MUST revert to the tracked currentHash using replaceState.
+          history.replaceState(null, '', `#${currentHash}`);
           return;
         }
 
         abortPendingRouteRequests();
-        handler(resolveHash());
+        const newTab = resolveHash();
+        currentHash = newTab;
+        handler(newTab);
       });
     },
   };
