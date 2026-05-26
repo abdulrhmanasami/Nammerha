@@ -151,6 +151,19 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
           ),
         ),
       body: BlocConsumer<DamageReportBloc, DamageReportState>(
+        // [PLATINUM FIX]: Prevent UI wipeout on transient action states
+        buildWhen: (previous, current) {
+          return current is! DamageReportError && 
+                 current is! DamageReportSuccess && 
+                 current is! DamageReportOfflineSaved;
+        },
+        // [PLATINUM FIX]: Prevent listener spam on keystrokes
+        listenWhen: (previous, current) {
+          return current is DamageReportError || 
+                 current is DamageReportSuccess || 
+                 current is DamageReportOfflineSaved ||
+                 current.formData.currentStep != previous.formData.currentStep;
+        },
         listener: (context, state) {
           // Navigation Side Effects
           if (_pageController.hasClients && _pageController.page?.round() != state.formData.currentStep) {
@@ -564,7 +577,14 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
       onTap: () {
         Haptics.light();
         final currentText = _descriptionController.text;
-        _descriptionController.text = currentText.isEmpty ? text : '$currentText\n- $text';
+        final newText = currentText.isEmpty ? text : '$currentText\n- $text';
+        _descriptionController.text = newText;
+        
+        // [PLATINUM FIX]: Calculated Cursor Repositioning to prevent cursor hijacking
+        _descriptionController.selection = TextSelection.fromPosition(
+          TextPosition(offset: newText.length),
+        );
+        
         _updateTextData(context, context.read<DamageReportBloc>().state.formData);
       },
       child: Container(

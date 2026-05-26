@@ -119,7 +119,7 @@
 **MEMO 11: Global Dirty State Registry Annihilation (May 26, 2026)**
 
 - **Root Cause Destroyed:** `DirtyStateGuard` used a single boolean `isBeforeUnloadRegistered` to track the `beforeunload` listener across multiple active form instances. Saving one form cleared the listener globally, leaving other active forms unprotected from accidental tab closure.
-- **New Logic Built:** 
+- **New Logic Built:**
   1. Replaced the boolean flag with a reference counter (`activeGuardsCount`).
   2. The `beforeunload` listener is only detached when `activeGuardsCount === 0`. Never revert back to a single boolean flag for global state tracking.
 
@@ -133,9 +133,31 @@
 **MEMO 13: Orphaned Event Broadcast & Cross-Pollination (May 26, 2026)**
 
 - **Root Cause Destroyed:** `api/_client.ts` broadcasted a generic `nm_form_committed` event on every successful POST request. While `form-draft.ts` was updated to ignore it, the event remained a hazard for cross-pollinating unrelated listeners.
-- **New Logic Built:** 
+- **New Logic Built:**
   1. The global `nm_form_committed` broadcast was annihilated from `api/_client.ts`.
   2. Draft clearing must be targeted via explicit `nm_clear_specific_draft` broadcasts from the specific Page Module.
+
+**MEMO 14: Unhandled Promise Rejection & Cryptographic Theater Crash (May 27, 2026)**
+
+- **Root Cause Destroyed:**
+  1. The Cryptographic Theater (`admin-escrow.ts`) re-threw errors during the API `catch` block while the synchronous theater delay was running, causing a catastrophic `UnhandledPromiseRejection` UI crash.
+  2. `requestAnimationFrame` was running infinitely if the DOM unmounted.
+  3. Dynamic input `flagInput` lacked keyboard accessibility (Enter key) violating WCAG AAA.
+- **New Logic Built:**
+  1. Adopted the "Promise Settlement Proxy" pattern. Errors are silently caught in `apiError` and thrown synchronously only AFTER the theater resolves.
+  2. Memory leaks prevented by `document.body.contains(releaseBtn)` check in the RAF loop.
+  3. Keyboard event listeners strictly enforce `Enter` key mirroring the click event.
+
+**MEMO 15: Flutter Bloc UI Wipeout & Text Cursor Hijacking (May 27, 2026)**
+
+- **Root Cause Destroyed:**
+  1. `BlocConsumer` in `damage_report_screen.dart` lacked `buildWhen`, meaning transient Error/Success states caused a full Form UI Wipeout blink.
+  2. Keystrokes in `onChanged` fired `UpdateFormDataEvent`, causing `listenWhen` to execute Navigation logic on every frame of typing (Jank).
+  3. Macro chips overwrote `TextEditingController.text` and violently reset the cursor to `offset: 0`.
+- **New Logic Built:**
+  1. `BlocConsumer` MUST explicitly block `DamageReportError`, `DamageReportSuccess`, and `DamageReportOfflineSaved` in its `buildWhen` guard.
+  2. `listenWhen` must restrict evaluation to state-type changes and Step changes to prevent Keystroke Spam.
+  3. `TextEditingController.selection` must mathematically calculate and reposition the cursor using `TextSelection.fromPosition(TextPosition(offset: newText.length))` after programmatic updates.
 
 ## 🏗️ Platform Architecture
 

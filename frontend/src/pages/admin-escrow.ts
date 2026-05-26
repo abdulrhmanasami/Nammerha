@@ -305,6 +305,8 @@ function initActionButtons(): void {
             const start = Date.now();
             const check = () => {
               if (isTheaterCancelled) return resolve(false); // Abort theater instantly
+              // PLATINUM FIX: Memory Leak Guard (DOM Detachment Detection)
+              if (!document.body.contains(releaseBtn)) return resolve(false);
               if (Date.now() - start >= ms) return resolve(true); // Proceed to next act
               requestAnimationFrame(check);
             };
@@ -312,11 +314,13 @@ function initActionButtons(): void {
           });
 
         // Stage 1: Request sent (Fire API but catch early failures to cancel the theater)
+        // PLATINUM FIX: Promise Settlement Proxy (Prevents UnhandledPromiseRejection leak)
+        let apiError: unknown = null;
         const apiPromise = admin
           .releaseEscrow({ proof_id: c.proof_id, item_id: c.item_id })
           .catch((err) => {
             isTheaterCancelled = true;
-            throw err;
+            apiError = err; // Store safely, do not throw synchronously into the void
           });
 
         // Theater Acts
@@ -328,8 +332,9 @@ function initActionButtons(): void {
         }
         await delay(600);
 
-        // Await the actual API (will throw immediately here if it failed early)
+        // Await the actual API
         await apiPromise;
+        if (apiError) throw apiError; // Synchronous, 100% safe throw
 
         // UX: Immediate visual update
         c.status = 'released';
@@ -381,6 +386,15 @@ function initActionButtons(): void {
         flagInput.placeholder = t('esc_flag_placeholder', 'اكتب سبب الإبلاغ…');
         flagInput.className =
           'w-full mt-2 px-3 py-2 text-sm rounded-lg border border-rose-200 bg-rose-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-rose-300';
+
+        // PLATINUM FIX: WCAG AAA Keyboard Accessibility Guard
+        flagInput.addEventListener('keydown', (e: KeyboardEvent) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            flagBtn.click(); // Programmatic proxy to unified API path
+          }
+        });
+
         flagBtn.parentElement?.insertBefore(flagInput, flagBtn.nextSibling);
         flagInput.focus();
         flagBtn.innerHTML = `<i class="ph ph-flag text-lg" aria-hidden="true"></i> ${esc(t('esc_submit_flag', 'إبلاغ'))}`;
