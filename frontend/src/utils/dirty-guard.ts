@@ -37,6 +37,10 @@ export class DirtyStateGuard {
 
     this._internalNavListener = (e: Event) => {
       if (this.isDirty) {
+        // PLATINUM FIX: If another guard already intercepted and canceled the navigation,
+        // do not show a duplicate confirm dialog.
+        if (e.defaultPrevented) return;
+
         const confirmLoss = window.confirm(
           t('confirm_unsaved_leave', 'لديك بيانات غير محفوظة. هل أنت متأكد من رغبتك في المغادرة؟'),
         );

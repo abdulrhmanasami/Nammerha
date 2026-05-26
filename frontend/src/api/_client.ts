@@ -130,7 +130,39 @@ interface RequestOptions extends RequestInit {
   skipAntiFlicker?: boolean;
 }
 
-export async function request<T>(
+// ─── PLATINUM FIX: In-Flight Mutation Multiplexer (Double-Tap Annihilation) ──
+const inFlightMutations = new Map<string, Promise<ApiResponse<any>>>();
+
+export function request<T>(
+  endpoint: string,
+  options: RequestOptions = {},
+): Promise<ApiResponse<T>> {
+  const method = options.method ?? 'GET';
+  
+  // Intercept identical concurrent POST/PUT/DELETE requests
+  if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
+    const bodyStr = typeof options.body === 'string' ? options.body : 'binary_or_stream';
+    const mutationKey = `${method}:${endpoint}:${bodyStr}`;
+    
+    if (inFlightMutations.has(mutationKey)) {
+      console.warn(`[State Guard] Intercepted and multiplexed duplicate concurrent mutation to ${endpoint}.`);
+      return inFlightMutations.get(mutationKey) as Promise<ApiResponse<T>>;
+    }
+    
+    const promise = _requestInternal<T>(endpoint, options).finally(() => {
+      if (inFlightMutations.get(mutationKey) === promise) {
+        inFlightMutations.delete(mutationKey);
+      }
+    });
+    
+    inFlightMutations.set(mutationKey, promise);
+    return promise;
+  }
+  
+  return _requestInternal<T>(endpoint, options);
+}
+
+async function _requestInternal<T>(
   endpoint: string,
   options: RequestOptions = {},
 ): Promise<ApiResponse<T>> {

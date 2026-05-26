@@ -403,6 +403,11 @@ if (backBtn) {
       // NOW: If wizard has data, show confirmation dialog first.
       // Standard: Nielsen #5 (Error Prevention), Apple HIG (Data Loss Prevention).
       const navigateAway = () => {
+        // PLATINUM FIX: Clear the dirty state guard before programmatic navigation.
+        // Prevents the Double Confirmation Paradox where the browser's native beforeunload
+        // dialog fires immediately after the user already clicked "Confirm" in our custom modal.
+        wizardGuard.markClean();
+        
         if (window.history.length > 1) {
           window.history.back();
         } else {

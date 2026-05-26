@@ -75,6 +75,15 @@
   2. `ui-lock.ts` MUST dynamically inject `role="alertdialog"`, `aria-modal="true"`, `tabindex="0"`, and force `.focus()` upon mount.
   3. `session-timeout.ts` MUST strictly apply `document.body.style.overflow = 'hidden'` while the shield is active, and restore it correctly on auth success.
 
+**MEMO 8: The Double Confirmation Paradox & Dirty State Desync (May 26, 2026)**
+
+- **Root Cause Destroyed:**
+  1. The Custom `confirmAction` dialog in wizard flows (`homeowner-report.ts`) did not clear the `DirtyStateGuard` before executing `history.back()`. This spawned a second, native browser `beforeunload` dialog immediately after the user clicked "Confirm", causing extreme cognitive friction (Double Confirmation Paradox).
+  2. `DirtyStateGuard`'s internal listener (`nm_internal_navigate`) failed to check `e.defaultPrevented`, risking a cascade of multiple `window.confirm` dialogs if concurrent guards intercepted the same navigation event.
+- **New Logic Built:**
+  1. `homeowner-report.ts` now explicitly calls `wizardGuard.markClean()` *before* any programmatic navigation away from the dirty state. **NEVER** navigate programmatically without unregistering the dirty state guard.
+  2. `dirty-guard.ts` now enforces an `if (e.defaultPrevented) return;` check at the very beginning of the `_internalNavListener` to guarantee mathematically that only one confirmation dialog can ever be rendered per navigation event.
+
 **MEMO 3: UX UI Zero-Friction & Cognitive Flow (May 26, 2026)**
 
 - **Root Cause Destroyed:**
