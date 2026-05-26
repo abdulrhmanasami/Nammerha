@@ -102,7 +102,11 @@ class _ContractorPortalViewState extends State<_ContractorPortalView>
             );
           }
         },
-        buildWhen: (previous, current) => current is! ContractorActionSuccess,
+        buildWhen: (previous, current) {
+          if (current is ContractorActionSuccess) return false;
+          if (current is ContractorError && previous is ContractorLoaded) return false;
+          return true;
+        },
         builder: (context, state) {
           if (state is ContractorLoading || state is ContractorInitial) {
             return NammerhaShimmerLoader(colors: colors, itemCount: 4);

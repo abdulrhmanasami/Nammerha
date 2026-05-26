@@ -23,7 +23,10 @@ class ComplianceBloc extends Bloc<ComplianceEvent, ComplianceState> {
     Emitter<ComplianceState> emit,
   ) async {
     final currentState = state;
-    emit(ComplianceLoading());
+    // PLAT-UX FIX: Do not emit ComplianceLoading if we already have data, to prevent Shimmer wipeout.
+    if (currentState is! ComplianceLoaded) {
+      emit(ComplianceLoading());
+    }
     try {
       // محاكاة الاتصال بـ OFAC / SDN
       await Future.delayed(const Duration(seconds: 2));
@@ -44,7 +47,10 @@ class ComplianceBloc extends Bloc<ComplianceEvent, ComplianceState> {
     LoadComplianceDashboard event,
     Emitter<ComplianceState> emit,
   ) async {
-    emit(ComplianceLoading());
+    // PLAT-UX FIX: Prevent Shimmer wipeout on refresh/reload
+    if (state is! ComplianceLoaded) {
+      emit(ComplianceLoading());
+    }
     try {
       final dashboard = await repository.loadDashboard();
       emit(ComplianceLoaded(dashboard: dashboard));

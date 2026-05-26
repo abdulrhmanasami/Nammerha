@@ -224,12 +224,13 @@ function openDB() {
 }
 
 async function saveToQueue(request) {
-    const body = await request.text();
+    // PLATINUM FIX: Use blob() to preserve Binary Integrity for FormData (Photos/Attachments)
+    const bodyBlob = await request.blob();
     const entry = {
         url: request.url,
         method: request.method,
         headers: Object.fromEntries(request.headers.entries()),
-        body,
+        body: bodyBlob,
         timestamp: Date.now(),
         retries: 0,
     };
@@ -268,6 +269,23 @@ async function replayQueue() {
 
     for (const entry of entries) {
         try {
+            // PLATINUM FIX: Dynamic CSRF Injection
+            // The CSRF token in entry.headers might be stale (e.g. session expired while offline).
+            // Fetch a fresh token using the current HttpOnly cookie before replaying.
+            if (entry.method !== 'GET') {
+                try {
+                    const csrfRes = await fetch('/api/csrf-token', { credentials: 'same-origin' });
+                    if (csrfRes.ok) {
+                        const data = await csrfRes.json();
+                        if (data.csrfToken) {
+                            entry.headers['X-CSRF-Token'] = data.csrfToken;
+                        }
+                    }
+                } catch (e) {
+                    /* Non-fatal: if offline, the main fetch will fail anyway */
+                }
+            }
+
             const response = await fetch(entry.url, {
                 method: entry.method,
                 headers: entry.headers,
@@ -275,10 +293,16 @@ async function replayQueue() {
                 credentials: 'same-origin',
             });
 
-            if (response.ok || response.status < 500) {
-                // Success or client error (4xx) — remove from queue
+            if (response.ok || (response.status < 500 && ![401, 403, 419].includes(response.status))) {
+                // Success or client validation error (except Auth/CSRF errors) — remove from queue
                 await removeFromQueue(db, entry.id);
                 notifyClients('sync-success', { url: entry.url, method: entry.method });
+            } else if ([401, 403, 419].includes(response.status)) {
+                // PLATINUM FIX: Auth/CSRF Error Guard
+                // DO NOT DELETE the data! The session expired while offline.
+                // Freeze the sync process for this entry and notify the client to re-auth.
+                notifyClients('sync-auth-required', { url: entry.url });
+                break; // Stop replaying queue until client re-authenticates
             } else if (entry.retries < 3) {
                 // Server error — increment retry count
                 await updateRetryCount(db, entry.id, entry.retries + 1);

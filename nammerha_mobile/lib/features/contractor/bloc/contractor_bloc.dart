@@ -24,7 +24,10 @@ class ContractorBloc extends Bloc<ContractorEvent, ContractorState> {
     LoadContractorDashboard event,
     Emitter<ContractorState> emit,
   ) async {
-    emit(ContractorLoading());
+    // PLAT-UX FIX: Prevent UI Wipeout on RefreshIndicator trigger
+    if (state is! ContractorLoaded) {
+      emit(ContractorLoading());
+    }
     try {
       final dashboard = await repository.loadFullDashboard();
       emit(ContractorLoaded(dashboard: dashboard));

@@ -60,7 +60,10 @@ class AdminRevenueBloc extends Bloc<AdminRevenueEvent, AdminRevenueState> {
   }
 
   Future<void> _onLoad(LoadRevenueDashboard event, Emitter<AdminRevenueState> emit) async {
-    emit(AdminRevenueLoading());
+    // PLAT-UX FIX: Prevent UI Wipeout on RefreshIndicator trigger
+    if (state is! AdminRevenueLoaded) {
+      emit(AdminRevenueLoading());
+    }
     try {
       final results = await Future.wait([
         _api.getRevenueSummary(),

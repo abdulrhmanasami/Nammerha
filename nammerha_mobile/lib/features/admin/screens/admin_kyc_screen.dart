@@ -39,6 +39,8 @@ class _KycView extends StatelessWidget {
         iconTheme: IconThemeData(color: colors.textHeading),
       ),
       body: BlocConsumer<AdminKycBloc, AdminKycState>(
+        // PLAT-UX FIX: Prevent UI Wipeout Blink on transient action states
+        buildWhen: (previous, current) => current is AdminKycLoading || current is AdminKycLoaded,
         listener: (context, state) {
           if (state is AdminKycDecisionSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(

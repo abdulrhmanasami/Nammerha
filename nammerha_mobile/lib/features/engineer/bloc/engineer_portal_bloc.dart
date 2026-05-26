@@ -20,7 +20,10 @@ class EngineerPortalBloc extends Bloc<EngineerPortalEvent, EngineerPortalState> 
     LoadEngineerDashboard event,
     Emitter<EngineerPortalState> emit,
   ) async {
-    emit(EngineerPortalLoading());
+    // PLAT-UX FIX: Prevent UI Wipeout on RefreshIndicator trigger
+    if (state is! EngineerPortalLoaded) {
+      emit(EngineerPortalLoading());
+    }
     try {
       final dashboard = await repository.loadFullDashboard();
       emit(EngineerPortalLoaded(dashboard: dashboard));

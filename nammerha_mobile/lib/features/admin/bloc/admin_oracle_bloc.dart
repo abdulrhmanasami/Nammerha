@@ -50,7 +50,10 @@ class AdminOracleBloc extends Bloc<AdminOracleEvent, AdminOracleState> {
   }
 
   Future<void> _onLoad(LoadOraclePrices event, Emitter<AdminOracleState> emit) async {
-    emit(AdminOracleLoading());
+    // PLAT-UX FIX: Prevent UI Wipeout on RefreshIndicator trigger
+    if (state is! AdminOracleLoaded) {
+      emit(AdminOracleLoading());
+    }
     try {
       final prices = await _api.getOraclePrices();
       emit(AdminOracleLoaded(prices));

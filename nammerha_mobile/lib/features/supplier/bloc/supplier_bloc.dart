@@ -20,7 +20,10 @@ class SupplierBloc extends Bloc<SupplierEvent, SupplierState> {
     LoadDashboardEvent event,
     Emitter<SupplierState> emit,
   ) async {
-    emit(SupplierLoading());
+    // PLAT-UX FIX: Prevent UI Wipeout on RefreshIndicator trigger
+    if (state is! SupplierLoaded) {
+      emit(SupplierLoading());
+    }
     try {
       final dashboard = await repository.loadFullDashboard();
       emit(SupplierLoaded(dashboard: dashboard));

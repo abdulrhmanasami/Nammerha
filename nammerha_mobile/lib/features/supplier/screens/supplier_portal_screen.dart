@@ -171,7 +171,11 @@ class _SupplierPortalViewState extends State<_SupplierPortalView>
             );
           }
         },
-        buildWhen: (previous, current) => current is! SupplierActionSuccess,
+        buildWhen: (previous, current) {
+          if (current is SupplierActionSuccess) return false;
+          if (current is SupplierError && previous is SupplierLoaded) return false;
+          return true;
+        },
         builder: (context, state) {
           if (state is SupplierLoading || state is SupplierInitial) {
             return NammerhaShimmerLoader(colors: colors);

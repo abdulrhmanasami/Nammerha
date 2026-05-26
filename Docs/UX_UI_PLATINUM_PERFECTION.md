@@ -150,3 +150,19 @@
 
 **Problem:** The `session-timeout.ts` Privacy Shield used the exact same flawed `message` event listener pattern as the re-auth modal. It listened for `nm_auth_success` without checking `e.origin`. A malicious tab could broadcast this message, bypassing the Privacy Shield lock and exposing the user's unsaved session data underneath without actual authentication.
 **Permanent Rule:** The Zero-Trust Origin Verification (`e.origin === window.location.origin`) MUST be universally applied to all cross-context message listeners, specifically including the `session-timeout.ts` Privacy Shield listener.
+
+### 29. Cross-User Draft Poisoning (IDOR via Local Storage)
+
+**Problem:** If a user logged out from Tab A, and logged in as a different user in Tab B, Tab A's "State Schizophrenia Lock" would force a hard reload. However, because `sessionStorage` is tab-scoped, the old user's unsubmitted form drafts remained in memory. The new user's session would blindly hydrate these generic drafts (e.g. `nm_draft_report`), exposing highly sensitive financial or personal data belonging to the previous user.
+**Permanent Rule:** Zero-Trust Data Hydration MUST be enforced. Every saved draft MUST be cryptographically sealed with the `owner_uid`. The `loadDraft` function MUST perform a biometric match against the currently active `user_id`. If they do not match, the draft MUST be instantly annihilated to prevent cross-user poisoning.
+
+### 30. Service Worker 4xx Data Blackhole & Binary Corruption
+
+**Problem:** The `saveToQueue` function historically used `await request.text()`, permanently corrupting binary offline uploads (like Damage Report GPS Photos). Furthermore, `replayQueue` blindly submitted old headers (stale `X-CSRF-Token`). If the session expired while offline, the backend returned 401/403. The SW treated 4xx as a "Client Error" and instantly deleted the queued data, creating a catastrophic Data Blackhole for offline workers.
+**Permanent Rule:** 
+1. **Binary Integrity:** `saveToQueue` MUST use `await request.blob()` to preserve `multipart/form-data` perfectly.
+2. **Auth-Resilience Guard:** `replayQueue` MUST explicitly ignore 401, 403, and 419 errors when pruning the queue. It must freeze execution to wait for re-authentication.
+3. **Dynamic CSRF Injection:** `replayQueue` MUST execute a preemptive fetch to `/api/csrf-token` to inject a fresh token into `entry.headers` before replaying the offline mutation.
+### 31. Strict Content Security Policy (CSP) Inline Execution Block
+**Problem:** A fallback error screen used an inline `onclick="window.location.reload()"` handler. Under strict Web Security environments (`script-src 'self'`), the browser instantly blocks inline Javascript. This permanently locked users on a dead screen, destroying operational flow and trapping them without recovery.
+**Permanent Rule:** ALL interactive UI elements MUST be bound using `addEventListener` securely within the JavaScript runtime context via deterministic DOM element IDs (e.g. `document.getElementById('nm-retry').addEventListener(...)`). Under absolutely no circumstances may any HTML element contain an inline `onclick`, `onchange`, or `onsubmit` execution handler.

@@ -12,6 +12,7 @@
 // ============================================================================
 
 import { safeSessionStorageSet } from './safe-storage';
+import { getCurrentUser } from '../auth';
 
 /**
  * Debounce timer handle — module-scoped to prevent memory leaks.
@@ -46,11 +47,15 @@ export function saveDraft<T extends Record<string, unknown>>(
   timers.set(
     key,
     setTimeout(() => {
+      const user = getCurrentUser();
+      const owner_uid = user ? user.user_id : 'anonymous';
+
       safeSessionStorageSet(
         `nm_draft_${key}`,
         JSON.stringify({
           data,
           savedAt: Date.now(),
+          owner_uid,
         }),
       );
     }, debounceMs),
@@ -80,7 +85,15 @@ export function loadDraft<T extends Record<string, unknown>>(
       return null;
     }
 
-    const parsed = JSON.parse(raw) as { data: T; savedAt: number };
+    const parsed = JSON.parse(raw) as { data: T; savedAt: number; owner_uid?: string };
+
+    // PLATINUM FIX: Zero-Trust Data Hydration (Prevent Cross-User Poisoning)
+    const user = getCurrentUser();
+    const current_uid = user ? user.user_id : 'anonymous';
+    if (parsed.owner_uid && parsed.owner_uid !== current_uid) {
+      sessionStorage.removeItem(`nm_draft_${key}`);
+      return null; // Execution logic intercepts and annihilates foreign draft
+    }
 
     // Expire stale drafts
     if (Date.now() - parsed.savedAt > maxAgeMs) {

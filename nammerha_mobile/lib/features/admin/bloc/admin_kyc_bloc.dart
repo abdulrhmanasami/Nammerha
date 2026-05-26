@@ -82,7 +82,11 @@ class AdminKycBloc extends Bloc<AdminKycEvent, AdminKycState> {
   }
 
   Future<void> _onLoadQueue(LoadKycQueue event, Emitter<AdminKycState> emit) async {
-    emit(AdminKycLoading());
+    // PLAT-UX FIX: Only emit full-page loading if we don't already have data.
+    // Prevents UI wipeout blink (ShimmerLoader) when refreshing or reloading after an action.
+    if (state is! AdminKycLoaded) {
+      emit(AdminKycLoading());
+    }
     _lastFilter = event.statusFilter;
     try {
       final results = await Future.wait([

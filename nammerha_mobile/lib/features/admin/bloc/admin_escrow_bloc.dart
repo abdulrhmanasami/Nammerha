@@ -80,7 +80,11 @@ class AdminEscrowBloc extends Bloc<AdminEscrowEvent, AdminEscrowState> {
   }
 
   Future<void> _onLoadCases(LoadPendingCases event, Emitter<AdminEscrowState> emit) async {
-    emit(AdminEscrowLoading());
+    // PLAT-UX FIX: Only emit full-page loading if we don't already have cases.
+    // This prevents UI wipeout (ShimmerLoader blink) when refreshing or reloading after an action.
+    if (state is! AdminEscrowCasesLoaded) {
+      emit(AdminEscrowLoading());
+    }
     try {
       final cases = await _api.getPendingVerifications();
       emit(AdminEscrowCasesLoaded(cases));
@@ -90,7 +94,9 @@ class AdminEscrowBloc extends Bloc<AdminEscrowEvent, AdminEscrowState> {
   }
 
   Future<void> _onRelease(ReleaseEscrow event, Emitter<AdminEscrowState> emit) async {
-    emit(AdminEscrowLoading());
+    // PLAT-UX FIX: Do NOT emit AdminEscrowLoading() here.
+    // Emitting a base loading state without cases forces the UI to fallback to SizedBox.shrink()
+    // or ShimmerLoader, completely wiping out the user's context.
     try {
       final result = await _api.releaseEscrow(proofId: event.proofId, itemId: event.itemId);
       final message = result['message'] as String? ?? ErrorKeys.escrowReleaseSuccess;

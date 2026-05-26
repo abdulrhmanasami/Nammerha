@@ -58,7 +58,10 @@ class AdminFintechBloc extends Bloc<AdminFintechEvent, AdminFintechState> {
   }
 
   Future<void> _onLoad(LoadFintechData event, Emitter<AdminFintechState> emit) async {
-    emit(AdminFintechLoading());
+    // PLAT-UX FIX: Prevent UI Wipeout on RefreshIndicator trigger
+    if (state is! AdminFintechLoaded) {
+      emit(AdminFintechLoading());
+    }
     try {
       final results = await Future.wait([
         _api.getFeeSummary(),

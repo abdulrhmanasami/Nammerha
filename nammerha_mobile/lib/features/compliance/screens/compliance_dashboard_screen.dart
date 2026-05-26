@@ -77,15 +77,20 @@ class _ComplianceDashboardView extends StatelessWidget {
             );
           }
         },
-        buildWhen: (previous, current) => current is! ComplianceActionSuccess,
+        buildWhen: (previous, current) {
+          if (current is ComplianceLoading || current is ComplianceLoaded || current is ComplianceInitial) return true;
+          // Only rebuild on error if we are coming from a loading state (page load failure)
+          if (current is ComplianceError) return previous is ComplianceLoading || previous is ComplianceInitial;
+          return false;
+        },
         builder: (context, state) {
           if (state is ComplianceLoading || state is ComplianceInitial) {
             return NammerhaShimmerLoader(colors: colors);
           }
 
-          if (state is ComplianceError && state.message.contains(context.tr('failed_2'))) {
+          if (state is ComplianceError) {
             return NammerhaErrorState(
-              message: context.tr('co_load_error'),
+              message: state.message,
               onRetry: () => context.read<ComplianceBloc>().add(LoadComplianceDashboard()),
             );
           }

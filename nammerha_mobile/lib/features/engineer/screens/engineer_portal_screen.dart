@@ -112,7 +112,18 @@ class _EngineerPortalViewState extends State<_EngineerPortalView>
           ],
         ),
       ),
-      body: BlocBuilder<EngineerPortalBloc, EngineerPortalState>(
+      body: BlocConsumer<EngineerPortalBloc, EngineerPortalState>(
+        listener: (context, state) {
+          if (state is EngineerPortalError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message), backgroundColor: colors.error),
+            );
+          }
+        },
+        buildWhen: (previous, current) {
+          if (current is EngineerPortalError && previous is EngineerPortalLoaded) return false;
+          return true;
+        },
         builder: (context, state) {
           if (state is EngineerPortalLoading || state is EngineerPortalInitial) {
             return NammerhaShimmerLoader(colors: colors);
