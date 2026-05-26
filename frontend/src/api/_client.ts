@@ -141,8 +141,20 @@ export function request<T>(
   
   // Intercept identical concurrent POST/PUT/DELETE requests
   if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
-    const bodyStr = typeof options.body === 'string' ? options.body : 'binary_or_stream';
-    const mutationKey = `${method}:${endpoint}:${bodyStr}`;
+    // PLATINUM FIX: Binary Data Cross-Pollination (Zero-Day P0-DATA)
+    // Using a static string for FormData causes concurrent uploads to collide and drop data.
+    const idempotencyKey = (options.headers as Record<string, string>)?.['Idempotency-Key'];
+    let bodyStr = typeof options.body === 'string' ? options.body : null;
+    
+    // If it's a binary stream/FormData and no idempotency key is provided, 
+    // bypass the multiplexer by generating a unique UUID.
+    if (!bodyStr && !idempotencyKey) {
+      bodyStr = `binary_${crypto.randomUUID()}`;
+    }
+    
+    const mutationKey = idempotencyKey 
+      ? `${method}:${endpoint}:idemp_${idempotencyKey}` 
+      : `${method}:${endpoint}:${bodyStr}`;
     
     if (inFlightMutations.has(mutationKey)) {
       console.warn(`[State Guard] Intercepted and multiplexed duplicate concurrent mutation to ${endpoint}.`);

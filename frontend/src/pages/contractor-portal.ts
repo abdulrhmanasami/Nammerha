@@ -636,15 +636,15 @@ function openBidModal(projectId: string): void {
 
             <div>
                 <label for="bid-cost" class="text-xs font-bold text-slate-500 uppercase dark:text-slate-400">${esc(t('ct_label_cost', 'التكلفة'))}</label>
-                <input id="bid-cost" type="text" min="1" placeholder="25000" inputmode="decimal" enterkeyhint="next" autocomplete="off" class="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-base dark:bg-dark-elevated dark:border-dark-border dark:text-slate-100 dark:placeholder-slate-500 transition-colors duration-300" />
+                <input id="bid-cost" type="text" min="1" placeholder="25000" inputmode="decimal" enterkeyhint="next" autocomplete="new-password" class="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-base dark:bg-dark-elevated dark:border-dark-border dark:text-slate-100 dark:placeholder-slate-500 transition-colors duration-300" />
             </div>
             <div>
                 <label for="bid-days" class="text-xs font-bold text-slate-500 uppercase dark:text-slate-400">${esc(t('ct_label_days', 'الأيام'))}</label>
-                <input id="bid-days" type="text" min="1" placeholder="90" inputmode="numeric" enterkeyhint="next" autocomplete="off" class="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-base dark:bg-dark-elevated dark:border-dark-border dark:text-slate-100 dark:placeholder-slate-500" />
+                <input id="bid-days" type="text" min="1" placeholder="90" inputmode="numeric" enterkeyhint="next" autocomplete="new-password" class="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-base dark:bg-dark-elevated dark:border-dark-border dark:text-slate-100 dark:placeholder-slate-500" />
             </div>
             <div>
                 <label for="bid-letter" class="text-xs font-bold text-slate-500 uppercase dark:text-slate-400">${esc(t('ct_label_letter', 'خطاب التقديم'))}</label>
-                <textarea id="bid-letter" rows="3" placeholder="${esc(t('ct_placeholder_letter', "Why you're the best fit..."))}" enterkeyhint="send" autocomplete="off" class="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-base resize-none dark:bg-dark-elevated dark:border-dark-border dark:text-slate-100 dark:placeholder-slate-500"></textarea>
+                <textarea id="bid-letter" rows="3" placeholder="${esc(t('ct_placeholder_letter', "Why you're the best fit..."))}" enterkeyhint="send" autocomplete="new-password" class="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-base resize-none dark:bg-dark-elevated dark:border-dark-border dark:text-slate-100 dark:placeholder-slate-500"></textarea>
             </div>
             <div class="flex gap-3 mt-2">
                 <button type="button" id="bid-cancel" class="flex-1 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-200 dark:bg-dark-elevated dark:text-slate-400 dark:hover:bg-dark-border" data-i18n="btn_cancel">Cancel</button>

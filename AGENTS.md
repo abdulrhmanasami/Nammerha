@@ -96,6 +96,17 @@
   3. ALL asynchronous frontend data fetching on the Web MUST use Monotonic Request IDs (or AbortControllers) to discard stale responses and prevent Network Desync Race Conditions.
   4. Financial amounts (cents) MUST be validated exclusively via `Number.isSafeInteger()`.
 
+**MEMO 9: The Platinum Audit & Zero-Day Extermination (May 26, 2026)**
+
+- **Root Cause Destroyed:**
+  1. `hash-router.ts` used `history.pushState` on `popstate` cancellation, which truncated forward history and created an infinite back-button trap.
+  2. The `api/_client.ts` In-Flight Mutation Multiplexer assigned identical `mutationKey` to concurrent `FormData` requests, silently dropping all but the first file payload.
+  3. Browsers (Chrome/Safari) aggressively ignored `autocomplete="off"` on financial fields in `contractor-portal.ts`, injecting passwords into `bid-cost`.
+- **New Logic Built:**
+  1. `hash-router.ts` MUST use `history.replaceState` when reverting a canceled `nm_internal_navigate` event. `pushState` is strictly PROHIBITED for `popstate` aborts.
+  2. `api/_client.ts` MUST bypass the multiplexer (using a `crypto.randomUUID()`) for binary streams if no `Idempotency-Key` is provided. Never use static strings like `binary_or_stream`.
+  3. ALL financial and numerical input fields (`bid-cost`, `bid-days`) MUST use `autocomplete="new-password"` to completely disable browser heuristic injections.
+
 ## 🏗️ Platform Architecture
 
 ### Web Frontend (frontend/)

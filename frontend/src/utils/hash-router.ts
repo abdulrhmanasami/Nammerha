@@ -59,12 +59,13 @@ export function createHashRouter<T extends string>(
         // 🚨 SPA Dirty State Bypass Guard
         const navEvent = new CustomEvent('nm_internal_navigate', { cancelable: true });
         if (!window.dispatchEvent(navEvent)) {
-          // PLATINUM FIX: The State Desync Paradox
+          // PLATINUM FIX: The Infinite Back-Button Trap (Zero-Day P0-UX)
           // DirtyStateGuard canceled the navigation! The URL already changed to the new hash.
-          // Using replaceState here would OVERWRITE the previous history entry, corrupting
-          // the user's history stack. We MUST use pushState to safely append a new entry
-          // that points back to the current hash without destroying the history beneath it.
-          history.pushState(null, '', `#${currentHash}`);
+          // Memo 7 incorrectly introduced `pushState` here, which creates an infinite loop
+          // trap if the user repeatedly clicks the back button and cancels. 
+          // Per UX_UI_PLATINUM_PERFECTION.md Item 26, we MUST use `replaceState` to safely 
+          // revert the URL back to match the currently rendered UI without truncating history.
+          history.replaceState(null, '', `#${currentHash}`);
           return;
         }
 
