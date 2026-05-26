@@ -170,7 +170,7 @@ export interface ItemizedBOQ {
 
 export interface EscrowLedger {
   transaction_id: string;
-  donor_id: string;
+  user_id: string;
   item_id: string;
   project_id: string;
   amount_locked: number; // BIGINT cents
@@ -544,7 +544,7 @@ export interface VerificationCase {
   >;
   purchase_order: PurchaseOrder | null;
   escrow_entries: Array<
-    Pick<EscrowLedger, 'transaction_id' | 'donor_id' | 'amount_locked' | 'payment_status'>
+    Pick<EscrowLedger, 'transaction_id' | 'user_id' | 'amount_locked' | 'payment_status'>
   >;
   engineer_name: string;
 }
@@ -779,7 +779,7 @@ export type ImpactEventType =
 
 export interface ImpactMessage {
   message_id: string;
-  donor_id: string;
+  user_id: string;
   project_id: string | null;
   event_type: ImpactEventType;
   title_en: string;

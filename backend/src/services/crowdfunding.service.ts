@@ -174,7 +174,7 @@ export async function createPaymentIntent(
       const escrowResult = await client.query<{ transaction_id: string }>(
         `INSERT INTO escrow_ledger (
                     user_id, item_id, project_id, amount_locked, currency,
-                    payment_status, payment_method, locked_at,
+                    payment_status, payment_method, locked_at
                     ) VALUES ($1, $2, $3, $4, 'USD', 'pending', $5, NOW())
                  RETURNING transaction_id`,
         [userId, fundItem.item_id, boqItem.project_id, actualAmount, dto.payment_method],

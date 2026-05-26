@@ -33,7 +33,7 @@ export function mapNotification(row: Record<string, unknown>) {
 export function mapEscrowEntry(row: Record<string, unknown>) {
   return {
     transactionId: row['transaction_id'],
-    userId: row['user_id'] || row['donor_id'],
+    userId: row['user_id'],
     itemId: row['item_id'],
     projectId: row['project_id'],
     amountLocked: String(row['amount_locked'] ?? '0'),
@@ -112,7 +112,7 @@ export function mapSpatialProof(row: Record<string, unknown>) {
 export function mapImpactMessage(row: Record<string, unknown>) {
   return {
     messageId: row['message_id'],
-    userId: row['user_id'] || row['donor_id'],
+    userId: row['user_id'],
     projectId: row['project_id'],
     eventType: String(row['event_type']).toUpperCase(),
     titleEn: row['title_en'],

@@ -360,6 +360,11 @@ if (nextBtn) {
         if (response.success && response.data) {
           const project = response.data as { project_id: string };
           state.projectId = project.project_id;
+
+          // 🚨 PLATINUM FIX: Synchronous Data Annihilation
+          // Immediately destroy persisted state upon successful network mutation
+          // to prevent Phantom Resurrection if the browser crashes during the 650ms visual delay.
+          clearWizardState();
         }
 
         restoreBtn('success');
@@ -407,7 +412,7 @@ if (backBtn) {
         // Prevents the Double Confirmation Paradox where the browser's native beforeunload
         // dialog fires immediately after the user already clicked "Confirm" in our custom modal.
         wizardGuard.markClean();
-        
+
         if (window.history.length > 1) {
           window.history.back();
         } else {
@@ -973,16 +978,16 @@ async function processPhotoFile(file: File) {
 
               const ring = progressOverlay.querySelector<HTMLElement>('.nm-upload-ring');
               const label = progressOverlay.querySelector<HTMLElement>('span');
-              
+
               if (ring) ring.style.setProperty('--progress', String(visualPct));
               if (label) {
-                 if (visualPct >= 90) {
-                     // Contextual Reassurance
-                     label.innerHTML = `<i class="ph ph-shield-check text-white text-xs block mb-0.5" aria-hidden="true"></i><span class="text-3xs px-1 text-center leading-tight block">${esc(t('hr_verifying', 'جاري التشفير والمصادقة...'))}</span>`;
-                     label.classList.replace('mt-0.5', 'mt-0');
-                 } else {
-                     label.textContent = `${visualPct}%`;
-                 }
+                if (visualPct >= 90) {
+                  // Contextual Reassurance
+                  label.innerHTML = `<i class="ph ph-shield-check text-white text-xs block mb-0.5" aria-hidden="true"></i><span class="text-3xs px-1 text-center leading-tight block">${esc(t('hr_verifying', 'جاري التشفير والمصادقة...'))}</span>`;
+                  label.classList.replace('mt-0.5', 'mt-0');
+                } else {
+                  label.textContent = `${visualPct}%`;
+                }
               }
             }
           });

@@ -10,17 +10,17 @@
 import pool, { query, transaction } from '../config/database';
 import { createNotification } from './notification.service';
 import {
-    calculateEscrowFee,
-    getActiveFeeConfig,
-    recordEscrowFeeInTransaction,
+  calculateEscrowFee,
+  getActiveFeeConfig,
+  recordEscrowFeeInTransaction,
 } from './escrow-fee.service';
 import { logger } from '../utils/logger';
 import { redisLockManager } from '../config/redis.client';
 import type {
-    VerificationCase,
-    SpatialProof,
-    ReleaseEscrowDTO,
-    FlagDiscrepancyDTO,
+  VerificationCase,
+  SpatialProof,
+  ReleaseEscrowDTO,
+  FlagDiscrepancyDTO,
 } from '../types';
 
 // ─── Path 4.1: Get Pending Verifications ────────────────────────────────────
@@ -34,37 +34,38 @@ import type {
  * result sets as the platform scales.
  */
 export async function getPendingVerifications(
-    limit = 25,
-    offset = 0
+  limit = 25,
+  offset = 0,
 ): Promise<{ cases: VerificationCase[]; total: number }> {
-    // P2-PLT-003 FIX: Use window function COUNT(*) OVER() to get total count
-    // atomically with the data query. The previous separate COUNT(*) query
-    // could return a stale total if a new proof was submitted between queries.
-    const result = await query<{
-        proof_id: string;
-        proof_item_id: string;
-        proof_project_id: string;
-        proof_engineer_id: string;
-        proof_gps_coordinates: string;
-        proof_gps_accuracy_meters: number | null;
-        proof_captured_at: Date;
-        proof_image_url: string;
-        proof_image_hash: string | null;
-        proof_description: string | null;
-        proof_device_info: Record<string, unknown> | null;
-        proof_created_at: Date;
-        project_title: string;
-        project_gps_location: string | null;
-        project_address_text: string | null;
-        boq_material_name: string;
-        boq_material_category: string | null;
-        boq_unit_price: number;
-        boq_required_quantity: number;
-        engineer_name: string;
-        po_data: unknown;
-        escrow_data: unknown;
-        total_count: string;
-    }>(`
+  // P2-PLT-003 FIX: Use window function COUNT(*) OVER() to get total count
+  // atomically with the data query. The previous separate COUNT(*) query
+  // could return a stale total if a new proof was submitted between queries.
+  const result = await query<{
+    proof_id: string;
+    proof_item_id: string;
+    proof_project_id: string;
+    proof_engineer_id: string;
+    proof_gps_coordinates: string;
+    proof_gps_accuracy_meters: number | null;
+    proof_captured_at: Date;
+    proof_image_url: string;
+    proof_image_hash: string | null;
+    proof_description: string | null;
+    proof_device_info: Record<string, unknown> | null;
+    proof_created_at: Date;
+    project_title: string;
+    project_gps_location: string | null;
+    project_address_text: string | null;
+    boq_material_name: string;
+    boq_material_category: string | null;
+    boq_unit_price: number;
+    boq_required_quantity: number;
+    engineer_name: string;
+    po_data: unknown;
+    escrow_data: unknown;
+    total_count: string;
+  }>(
+    `
     SELECT
       sp.proof_id AS proof_id,
         sp.item_id AS proof_item_id,
@@ -105,7 +106,7 @@ export async function getPendingVerifications(
        WHERE po.item_id = sp.item_id AND po.project_id = sp.project_id LIMIT 1) AS po_data,
     (SELECT json_agg(json_build_object(
         'transaction_id', el.transaction_id,
-        'donor_id', el.donor_id,
+        'user_id', el.user_id,
         'amount_locked', el.amount_locked,
         'payment_status', el.payment_status
     )) FROM escrow_ledger el
@@ -118,51 +119,49 @@ export async function getPendingVerifications(
     WHERE sp.verification_status = 'submitted'
     ORDER BY sp.captured_at ASC
     LIMIT $1 OFFSET $2`,
-        [limit, offset]
-    );
+    [limit, offset],
+  );
 
-    // Extract total from the first row's window function result (0 if no rows)
-    const total = result.rows.length > 0
-        ? parseInt(result.rows[0]?.total_count ?? '0', 10)
-        : 0;
+  // Extract total from the first row's window function result (0 if no rows)
+  const total = result.rows.length > 0 ? parseInt(result.rows[0]?.total_count ?? '0', 10) : 0;
 
-    const cases: VerificationCase[] = result.rows.map((row) => ({
-        proof: {
-            proof_id: row.proof_id,
-            item_id: row.proof_item_id,
-            project_id: row.proof_project_id,
-            engineer_id: row.proof_engineer_id,
-            gps_coordinates: row.proof_gps_coordinates,
-            gps_accuracy_meters: row.proof_gps_accuracy_meters,
-            captured_at: row.proof_captured_at,
-            image_url: row.proof_image_url,
-            image_hash: row.proof_image_hash,
-            description: row.proof_description,
-            device_info: row.proof_device_info,
-            verification_status: 'submitted',
-            verified_by: null,
-            verified_at: null,
-            created_at: row.proof_created_at,
-        },
-        project: {
-            project_id: row.proof_project_id,
-            title: row.project_title,
-            gps_location: row.project_gps_location,
-            address_text: row.project_address_text,
-        },
-        boq_item: {
-            item_id: row.proof_item_id,
-            material_name: row.boq_material_name,
-            material_category: row.boq_material_category,
-            unit_price: row.boq_unit_price,
-            required_quantity: row.boq_required_quantity,
-        },
-        purchase_order: (row.po_data as VerificationCase['purchase_order']) ?? null,
-        escrow_entries: ((row.escrow_data as VerificationCase['escrow_entries']) ?? []),
-        engineer_name: row.engineer_name,
-    }));
+  const cases: VerificationCase[] = result.rows.map((row) => ({
+    proof: {
+      proof_id: row.proof_id,
+      item_id: row.proof_item_id,
+      project_id: row.proof_project_id,
+      engineer_id: row.proof_engineer_id,
+      gps_coordinates: row.proof_gps_coordinates,
+      gps_accuracy_meters: row.proof_gps_accuracy_meters,
+      captured_at: row.proof_captured_at,
+      image_url: row.proof_image_url,
+      image_hash: row.proof_image_hash,
+      description: row.proof_description,
+      device_info: row.proof_device_info,
+      verification_status: 'submitted',
+      verified_by: null,
+      verified_at: null,
+      created_at: row.proof_created_at,
+    },
+    project: {
+      project_id: row.proof_project_id,
+      title: row.project_title,
+      gps_location: row.project_gps_location,
+      address_text: row.project_address_text,
+    },
+    boq_item: {
+      item_id: row.proof_item_id,
+      material_name: row.boq_material_name,
+      material_category: row.boq_material_category,
+      unit_price: row.boq_unit_price,
+      required_quantity: row.boq_required_quantity,
+    },
+    purchase_order: (row.po_data as VerificationCase['purchase_order']) ?? null,
+    escrow_entries: (row.escrow_data as VerificationCase['escrow_entries']) ?? [],
+    engineer_name: row.engineer_name,
+  }));
 
-    return { cases, total };
+  return { cases, total };
 }
 
 // ─── Path 4.2: Release Escrow (Admin Approves) ─────────────────────────────
@@ -179,173 +178,175 @@ export async function getPendingVerifications(
  *   5. Notify every donor who funded this item
  */
 export async function releaseEscrow(
-    auditorId: string,
-    dto: ReleaseEscrowDTO
+  auditorId: string,
+  dto: ReleaseEscrowDTO,
 ): Promise<{ released_count: number; total_released: number; fee_charged: number }> {
-    const lockKey = `nammerha:escrow_release:lock:${dto.item_id}`;
-    const lockToken = await redisLockManager.acquireLock(lockKey, 30);
-    
-    if (!lockToken) {
-        logger.warn('Domain Law 1 Enforced: Redis Lock prevented concurrent escrow release', { item_id: dto.item_id });
-        throw new Error('Another release operation is currently in progress for this item.');
-    }
+  const lockKey = `nammerha:escrow_release:lock:${dto.item_id}`;
+  const lockToken = await redisLockManager.acquireLock(lockKey, 30);
 
-    try {
-        return await transaction(async (client) => {
-            // Nammerha Escrow Domain Law 1 FIX: Strict Serializable isolation
-            await client.query('SET TRANSACTION ISOLATION LEVEL SERIALIZABLE');
+  if (!lockToken) {
+    logger.warn('Domain Law 1 Enforced: Redis Lock prevented concurrent escrow release', {
+      item_id: dto.item_id,
+    });
+    throw new Error('Another release operation is currently in progress for this item.');
+  }
 
-            // 1. Verify the proof exists and is in 'submitted' status
-        // M-001 FIX: Explicit column list — prevents schema drift.
-        const proofResult = await client.query<SpatialProof>(
-            `SELECT proof_id, item_id, project_id, engineer_id,
+  try {
+    return await transaction(async (client) => {
+      // Nammerha Escrow Domain Law 1 FIX: Strict Serializable isolation
+      await client.query('SET TRANSACTION ISOLATION LEVEL SERIALIZABLE');
+
+      // 1. Verify the proof exists and is in 'submitted' status
+      // M-001 FIX: Explicit column list — prevents schema drift.
+      const proofResult = await client.query<SpatialProof>(
+        `SELECT proof_id, item_id, project_id, engineer_id,
                     gps_coordinates, gps_accuracy_meters, captured_at,
                     image_url, image_hash, description, device_info,
                     verification_status, verified_by, verified_at, created_at
              FROM spatial_proof WHERE proof_id = $1 FOR UPDATE`,
-            [dto.proof_id]
-        );
-        const proof = proofResult.rows[0];
-        if (!proof) {throw new Error(`Spatial proof ${dto.proof_id} not found`);}
-        if (proof.verification_status !== 'submitted') {
-            throw new Error(`Proof already processed: status is '${proof.verification_status}'`);
-        }
-        if (proof.item_id !== dto.item_id) {
-            throw new Error('Proof item_id does not match the requested item_id');
-        }
+        [dto.proof_id],
+      );
+      const proof = proofResult.rows[0];
+      if (!proof) {
+        throw new Error(`Spatial proof ${dto.proof_id} not found`);
+      }
+      if (proof.verification_status !== 'submitted') {
+        throw new Error(`Proof already processed: status is '${proof.verification_status}'`);
+      }
+      if (proof.item_id !== dto.item_id) {
+        throw new Error('Proof item_id does not match the requested item_id');
+      }
 
-        // 2. Mark proof as verified
-        await client.query(
-            `UPDATE spatial_proof
+      // 2. Mark proof as verified
+      await client.query(
+        `UPDATE spatial_proof
        SET verification_status = 'verified', verified_by = $1, verified_at = NOW()
        WHERE proof_id = $2`,
-            [auditorId, dto.proof_id]
-        );
+        [auditorId, dto.proof_id],
+      );
 
-        // 3. Release all locked escrow entries for this item
-        const releaseResult = await client.query<{
-            transaction_id: string;
-            donor_id: string;
-            amount_locked: number;
-        }>(
-            `UPDATE escrow_ledger
+      // 3. Release all locked escrow entries for this item
+      const releaseResult = await client.query<{
+        transaction_id: string;
+        user_id: string;
+        amount_locked: number;
+      }>(
+        `UPDATE escrow_ledger
        SET payment_status = 'released',
         released_at = NOW(),
         released_by = $1,
         release_proof_id = $2
        WHERE item_id = $3
          AND payment_status = 'locked'
-       RETURNING transaction_id, donor_id, amount_locked`,
-            [auditorId, dto.proof_id, dto.item_id]
-        );
+       RETURNING transaction_id, user_id, amount_locked`,
+        [auditorId, dto.proof_id, dto.item_id],
+      );
 
-        // 4. Update BOQ item status to 'delivered'
-        await client.query(
-            "UPDATE itemized_boq SET status = 'delivered' WHERE item_id = $1",
-            [dto.item_id]
-        );
+      // 4. Update BOQ item status to 'delivered'
+      await client.query("UPDATE itemized_boq SET status = 'delivered' WHERE item_id = $1", [
+        dto.item_id,
+      ]);
 
-        // 5. Get project info for notifications
-        const projectResult = await client.query<{ title: string }>(
-            'SELECT title FROM projects WHERE project_id = $1',
-            [proof.project_id]
-        );
-        const projectTitle = projectResult.rows[0]?.title ?? proof.project_id;
+      // 5. Get project info for notifications
+      const projectResult = await client.query<{ title: string }>(
+        'SELECT title FROM projects WHERE project_id = $1',
+        [proof.project_id],
+      );
+      const projectTitle = projectResult.rows[0]?.title ?? proof.project_id;
 
-        // 6. Get BOQ item info
-        const boqResult = await client.query<{ material_name: string }>(
-            'SELECT material_name FROM itemized_boq WHERE item_id = $1',
-            [dto.item_id]
-        );
-        const materialName = boqResult.rows[0]?.material_name ?? 'Material';
+      // 6. Get BOQ item info
+      const boqResult = await client.query<{ material_name: string }>(
+        'SELECT material_name FROM itemized_boq WHERE item_id = $1',
+        [dto.item_id],
+      );
+      const materialName = boqResult.rows[0]?.material_name ?? 'Material';
 
-        // 7. Notify ALL donors who funded this item
-        const totalReleased = releaseResult.rows.reduce((sum, r) => sum + r.amount_locked, 0);
-        const uniqueDonorIds = [...new Set(releaseResult.rows.map((r) => r.donor_id))];
+      // 7. Notify ALL donors who funded this item
+      const totalReleased = releaseResult.rows.reduce((sum, r) => sum + r.amount_locked, 0);
+      const uniqueDonorIds = [...new Set(releaseResult.rows.map((r) => r.user_id))];
 
-        for (const donorId of uniqueDonorIds) {
-            // HGH-AUD-007 FIX: Use i18n template keys instead of hardcoded bilingual strings.
-            // The notification rendering layer resolves these keys per user locale.
-            await createNotification(client, {
-                user_id: donorId,
-                type: 'delivery_confirmed',
-                title: 'notification.delivery_confirmed.title',
-                body: 'notification.delivery_confirmed.body',
-                data: {
-                    project_id: proof.project_id,
-                    item_id: dto.item_id,
-                    proof_id: dto.proof_id,
-                    proof_image_url: proof.image_url,
-                    material_name: materialName,
-                    project_title: projectTitle,
-                },
-                channel: 'in_app',
-            });
-        }
+      for (const donorId of uniqueDonorIds) {
+        // HGH-AUD-007 FIX: Use i18n template keys instead of hardcoded bilingual strings.
+        // The notification rendering layer resolves these keys per user locale.
+        await createNotification(client, {
+          user_id: donorId,
+          type: 'delivery_confirmed',
+          title: 'notification.delivery_confirmed.title',
+          body: 'notification.delivery_confirmed.body',
+          data: {
+            project_id: proof.project_id,
+            item_id: dto.item_id,
+            proof_id: dto.proof_id,
+            proof_image_url: proof.image_url,
+            material_name: materialName,
+            project_title: projectTitle,
+          },
+          channel: 'in_app',
+        });
+      }
 
-        // ─── Phase 3: Escrow Transaction Fee (Commercial Projects Only) ──────
-        // Per study §5: 1-3% fee on commercial (homeowner-funded) projects.
-        // Humanitarian projects (donor-funded) are ALWAYS exempt.
-        let feeCharged = 0;
-        try {
-            // Determine if commercial: check if donors are the homeowner themselves
-            const projectCheck = await client.query<{
-                homeowner_id: string;
-                donor_count: string;
-            }>(
-                `SELECT p.homeowner_id,
-                        (SELECT COUNT(DISTINCT donor_id)
+      // ─── Phase 3: Escrow Transaction Fee (Commercial Projects Only) ──────
+      // Per study §5: 1-3% fee on commercial (homeowner-funded) projects.
+      // Humanitarian projects (donor-funded) are ALWAYS exempt.
+      let feeCharged = 0;
+      try {
+        // Determine if commercial: check if donors are the homeowner themselves
+        const projectCheck = await client.query<{
+          homeowner_id: string;
+          donor_count: string;
+        }>(
+          `SELECT p.homeowner_id,
+                        (SELECT COUNT(DISTINCT user_id)
                          FROM escrow_ledger
                          WHERE project_id = p.project_id
-                           AND donor_id != p.homeowner_id) AS donor_count
+                           AND user_id != p.homeowner_id) AS donor_count
                  FROM projects p WHERE p.project_id = $1`,
-                [proof.project_id],
+          [proof.project_id],
+        );
+        const projectData = projectCheck.rows[0];
+        const isCommercial = projectData && parseInt(projectData.donor_count, 10) === 0;
+
+        if (isCommercial && totalReleased > 0) {
+          const feeConfig = await getActiveFeeConfig();
+          if (feeConfig && feeConfig.is_active) {
+            const feeCents = calculateEscrowFee(
+              totalReleased,
+              feeConfig.fee_rate_bps,
+              feeConfig.min_fee_cents,
+              feeConfig.max_fee_cents,
             );
-            const projectData = projectCheck.rows[0];
-            const isCommercial = projectData
-                && parseInt(projectData.donor_count, 10) === 0;
-
-            if (isCommercial && totalReleased > 0) {
-                const feeConfig = await getActiveFeeConfig();
-                if (feeConfig && feeConfig.is_active) {
-                    const feeCents = calculateEscrowFee(
-                        totalReleased,
-                        feeConfig.fee_rate_bps,
-                        feeConfig.min_fee_cents,
-                        feeConfig.max_fee_cents,
-                    );
-                    if (feeCents > 0) {
-                        await recordEscrowFeeInTransaction(
-                            client,
-                            proof.project_id,
-                            dto.item_id,
-                            totalReleased,
-                            feeConfig.fee_rate_bps,
-                            feeCents,
-                            feeConfig.fee_name,
-                        );
-                        feeCharged = feeCents;
-                    }
-                }
+            if (feeCents > 0) {
+              await recordEscrowFeeInTransaction(
+                client,
+                proof.project_id,
+                dto.item_id,
+                totalReleased,
+                feeConfig.fee_rate_bps,
+                feeCents,
+                feeConfig.fee_name,
+              );
+              feeCharged = feeCents;
             }
-        } catch (feeErr) {
-            // Fee recording failure should NOT block escrow release
-            logger.error('Escrow fee recording failed (non-blocking)', {
-                projectId: proof.project_id,
-                itemId: dto.item_id,
-                error: feeErr instanceof Error ? feeErr.message : String(feeErr),
-            });
+          }
         }
+      } catch (feeErr) {
+        // Fee recording failure should NOT block escrow release
+        logger.error('Escrow fee recording failed (non-blocking)', {
+          projectId: proof.project_id,
+          itemId: dto.item_id,
+          error: feeErr instanceof Error ? feeErr.message : String(feeErr),
+        });
+      }
 
-        return {
-            released_count: releaseResult.rowCount ?? 0,
-            total_released: totalReleased,
-            fee_charged: feeCharged,
-        };
+      return {
+        released_count: releaseResult.rowCount ?? 0,
+        total_released: totalReleased,
+        fee_charged: feeCharged,
+      };
     });
-    } finally {
-        await redisLockManager.releaseLock(lockKey, lockToken);
-    }
+  } finally {
+    await redisLockManager.releaseLock(lockKey, lockToken);
+  }
 }
 
 // ─── Path 4.3: Flag Discrepancy ─────────────────────────────────────────────
@@ -355,14 +356,14 @@ export async function releaseEscrow(
  * Marks the proof as 'rejected' and notifies the engineer.
  */
 export async function flagDiscrepancy(
-    auditorId: string,
-    dto: FlagDiscrepancyDTO
+  auditorId: string,
+  dto: FlagDiscrepancyDTO,
 ): Promise<SpatialProof> {
-    return transaction(async (client) => {
-        // 1. Verify and update proof
-        // PLAT-AUD-002 FIX: Explicit RETURNING column list — no RETURNING * (prevents schema drift).
-        const result = await client.query<SpatialProof>(
-            `UPDATE spatial_proof
+  return transaction(async (client) => {
+    // 1. Verify and update proof
+    // PLAT-AUD-002 FIX: Explicit RETURNING column list — no RETURNING * (prevents schema drift).
+    const result = await client.query<SpatialProof>(
+      `UPDATE spatial_proof
        SET verification_status = 'rejected', verified_by = $1, verified_at = NOW(),
          description = COALESCE(description, '') || E'\n[REJECTED] ' || $2
        WHERE proof_id = $3 AND verification_status = 'submitted'
@@ -370,47 +371,49 @@ export async function flagDiscrepancy(
               gps_coordinates, gps_accuracy_meters, captured_at,
               image_url, image_hash, description, device_info,
               verification_status, verified_by, verified_at, created_at`,
-            [auditorId, dto.reason, dto.proof_id]
-        );
+      [auditorId, dto.reason, dto.proof_id],
+    );
 
-        const proof = result.rows[0];
-        if (!proof) {throw new Error(`Proof ${dto.proof_id} not found or already processed`);}
+    const proof = result.rows[0];
+    if (!proof) {
+      throw new Error(`Proof ${dto.proof_id} not found or already processed`);
+    }
 
-        // Notify engineer
-        // HGH-AUD-007 FIX: Use i18n template keys
-        await createNotification(client, {
-            user_id: proof.engineer_id,
-            type: 'discrepancy_flagged',
-            title: 'notification.proof_rejected.title',
-            body: 'notification.proof_rejected.body',
-            data: {
-                project_id: proof.project_id,
-                item_id: proof.item_id,
-                proof_id: proof.proof_id,
-                rejection_reason: dto.reason,
-            },
-            channel: 'in_app',
-        });
-
-        return proof;
+    // Notify engineer
+    // HGH-AUD-007 FIX: Use i18n template keys
+    await createNotification(client, {
+      user_id: proof.engineer_id,
+      type: 'discrepancy_flagged',
+      title: 'notification.proof_rejected.title',
+      body: 'notification.proof_rejected.body',
+      data: {
+        project_id: proof.project_id,
+        item_id: proof.item_id,
+        proof_id: proof.proof_id,
+        rejection_reason: dto.reason,
+      },
+      channel: 'in_app',
     });
+
+    return proof;
+  });
 }
 
 // ─── ENH-2: Partial Refund Request ──────────────────────────────────────────
 
 export interface RefundRequestDTO {
-    escrow_id: string;
-    reason: string;
+  escrow_id: string;
+  reason: string;
 }
 
 export interface RefundRequest {
-    refund_id: string;
-    escrow_id: string;
-    donor_id: string;
-    reason: string;
-    refund_amount: number;
-    status: string;
-    created_at: Date;
+  refund_id: string;
+  escrow_id: string;
+  user_id: string;
+  reason: string;
+  refund_amount: number;
+  status: string;
+  created_at: Date;
 }
 
 /**
@@ -419,74 +422,76 @@ export interface RefundRequest {
  * The admin must approve via processRefund().
  */
 export async function requestRefund(
-    donorId: string,
-    dto: RefundRequestDTO,
+  donorId: string,
+  dto: RefundRequestDTO,
 ): Promise<RefundRequest> {
-    return transaction(async (client) => {
-        // 1. Verify the escrow entry exists, belongs to this donor, and is still locked
-        const escrowResult = await client.query<{
-            transaction_id: string;
-            donor_id: string;
-            amount_locked: string;
-            payment_status: string;
-        }>(
-            `SELECT transaction_id, donor_id, amount_locked, payment_status
+  return transaction(async (client) => {
+    // 1. Verify the escrow entry exists, belongs to this donor, and is still locked
+    const escrowResult = await client.query<{
+      transaction_id: string;
+      user_id: string;
+      amount_locked: string;
+      payment_status: string;
+    }>(
+      `SELECT transaction_id, user_id, amount_locked, payment_status
              FROM escrow_ledger
              WHERE transaction_id = $1
              FOR UPDATE`,
-            [dto.escrow_id],
-        );
+      [dto.escrow_id],
+    );
 
-        const escrow = escrowResult.rows[0];
-        if (!escrow) {
-            throw new Error('Escrow entry not found');
-        }
-        if (escrow.donor_id !== donorId) {
-            throw new Error('You can only request refunds for your own donations');
-        }
-        if (escrow.payment_status !== 'locked') {
-            throw new Error(`Cannot refund: escrow is already ${escrow.payment_status}`);
-        }
+    const escrow = escrowResult.rows[0];
+    if (!escrow) {
+      throw new Error('Escrow entry not found');
+    }
+    if (escrow.user_id !== donorId) {
+      throw new Error('You can only request refunds for your own donations');
+    }
+    if (escrow.payment_status !== 'locked') {
+      throw new Error(`Cannot refund: escrow is already ${escrow.payment_status}`);
+    }
 
-        // 2. Check for existing pending/approved refund request
-        const existingResult = await client.query(
-            `SELECT refund_id FROM refund_requests
+    // 2. Check for existing pending/approved refund request
+    const existingResult = await client.query(
+      `SELECT refund_id FROM refund_requests
              WHERE escrow_id = $1 AND status IN ('pending', 'approved')
              LIMIT 1`,
-            [dto.escrow_id],
-        );
-        if (existingResult.rows[0]) {
-            throw new Error('A refund request already exists for this donation');
-        }
+      [dto.escrow_id],
+    );
+    if (existingResult.rows[0]) {
+      throw new Error('A refund request already exists for this donation');
+    }
 
-        // 3. Create the refund request
-        const refundResult = await client.query<RefundRequest>(
-            `INSERT INTO refund_requests (escrow_id, donor_id, reason, refund_amount)
+    // 3. Create the refund request
+    const refundResult = await client.query<RefundRequest>(
+      `INSERT INTO refund_requests (escrow_id, user_id, reason, refund_amount)
              VALUES ($1, $2, $3, $4)
-             RETURNING refund_id, escrow_id, donor_id, reason, refund_amount, status, created_at`,
-            [dto.escrow_id, donorId, dto.reason, parseInt(escrow.amount_locked, 10)],
-        );
+             RETURNING refund_id, escrow_id, user_id, reason, refund_amount, status, created_at`,
+      [dto.escrow_id, donorId, dto.reason, parseInt(escrow.amount_locked, 10)],
+    );
 
-        const refund = refundResult.rows[0];
-        if (!refund) { throw new Error('Failed to create refund request'); }
+    const refund = refundResult.rows[0];
+    if (!refund) {
+      throw new Error('Failed to create refund request');
+    }
 
-        // 4. Audit trail
-        await client.query(
-            `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
+    // 4. Audit trail
+    await client.query(
+      `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
              VALUES ('refund_requested', 'refund_requests', $1, $2, $3)`,
-            [
-                refund.refund_id,
-                donorId,
-                JSON.stringify({
-                    escrow_id: dto.escrow_id,
-                    amount: escrow.amount_locked,
-                    reason: dto.reason,
-                }),
-            ],
-        );
+      [
+        refund.refund_id,
+        donorId,
+        JSON.stringify({
+          escrow_id: dto.escrow_id,
+          amount: escrow.amount_locked,
+          reason: dto.reason,
+        }),
+      ],
+    );
 
-        return refund;
-    });
+    return refund;
+  });
 }
 
 /**
@@ -495,200 +500,215 @@ export async function requestRefund(
  * The funded_amount on itemized_boq is reversed by the existing DB trigger.
  */
 export async function processRefund(
-    adminId: string,
-    refundId: string,
-    decision: 'approved' | 'rejected',
-    notes?: string,
+  adminId: string,
+  refundId: string,
+  decision: 'approved' | 'rejected',
+  notes?: string,
 ): Promise<{ refund_id: string; status: string }> {
-    const lockKey = `nammerha:refund:lock:${refundId}`;
-    const lockToken = await redisLockManager.acquireLock(lockKey, 30);
-    
-    if (!lockToken) {
-        logger.warn('Domain Law 1 Enforced: Redis Lock prevented concurrent refund processing', { refund_id: refundId });
-        throw new Error('Another refund processing operation is currently in progress.');
-    }
+  const lockKey = `nammerha:refund:lock:${refundId}`;
+  const lockToken = await redisLockManager.acquireLock(lockKey, 30);
 
-    try {
-        return await transaction(async (client) => {
-            // Nammerha Escrow Domain Law 1 FIX: Strict Serializable isolation
-            await client.query('SET TRANSACTION ISOLATION LEVEL SERIALIZABLE');
+  if (!lockToken) {
+    logger.warn('Domain Law 1 Enforced: Redis Lock prevented concurrent refund processing', {
+      refund_id: refundId,
+    });
+    throw new Error('Another refund processing operation is currently in progress.');
+  }
 
-            // 1. Lock and validate the refund request
-        const reqResult = await client.query<{
-            refund_id: string;
-            escrow_id: string;
-            donor_id: string;
-            refund_amount: string;
-            status: string;
-        }>(
-            `SELECT refund_id, escrow_id, donor_id, refund_amount, status
+  try {
+    return await transaction(async (client) => {
+      // Nammerha Escrow Domain Law 1 FIX: Strict Serializable isolation
+      await client.query('SET TRANSACTION ISOLATION LEVEL SERIALIZABLE');
+
+      // 1. Lock and validate the refund request
+      const reqResult = await client.query<{
+        refund_id: string;
+        escrow_id: string;
+        user_id: string;
+        refund_amount: string;
+        status: string;
+      }>(
+        `SELECT refund_id, escrow_id, user_id, refund_amount, status
              FROM refund_requests
              WHERE refund_id = $1
              FOR UPDATE`,
-            [refundId],
-        );
+        [refundId],
+      );
 
-        const req = reqResult.rows[0];
-        if (!req) { throw new Error('Refund request not found'); }
-        if (req.status !== 'pending') {
-            throw new Error(`Refund request is already ${req.status}`);
-        }
+      const req = reqResult.rows[0];
+      if (!req) {
+        throw new Error('Refund request not found');
+      }
+      if (req.status !== 'pending') {
+        throw new Error(`Refund request is already ${req.status}`);
+      }
 
-        if (decision === 'rejected') {
-            // Simply mark as rejected
-            await client.query(
-                `UPDATE refund_requests
+      if (decision === 'rejected') {
+        // Simply mark as rejected
+        await client.query(
+          `UPDATE refund_requests
                  SET status = 'rejected', reviewed_by = $1, reviewed_at = NOW(),
                      review_notes = $2, updated_at = NOW()
                  WHERE refund_id = $3`,
-                [adminId, notes ?? null, refundId],
-            );
+          [adminId, notes ?? null, refundId],
+        );
 
-            // Notify donor of rejection
-            await createNotification(client, {
-                user_id: req.donor_id,
-                type: 'refund_rejected',
-                title: 'notification.refund_rejected.title',
-                body: 'notification.refund_rejected.body',
-                data: { refund_id: refundId, reason: notes },
-                channel: 'in_app',
-            });
+        // Notify donor of rejection
+        await createNotification(client, {
+          user_id: req.user_id,
+          type: 'refund_rejected',
+          title: 'notification.refund_rejected.title',
+          body: 'notification.refund_rejected.body',
+          data: { refund_id: refundId, reason: notes },
+          channel: 'in_app',
+        });
 
-            return { refund_id: refundId, status: 'rejected' };
-        }
+        return { refund_id: refundId, status: 'rejected' };
+      }
 
-        // 2. Approved — update escrow to 'refunded'
-        const escrowUpdate = await client.query(
-            `UPDATE escrow_ledger
+      // 2. Approved — update escrow to 'refunded'
+      const escrowUpdate = await client.query(
+        `UPDATE escrow_ledger
              SET payment_status = 'refunded', refunded_at = NOW(), updated_at = NOW()
              WHERE transaction_id = $1 AND payment_status = 'locked'
              RETURNING transaction_id`,
-            [req.escrow_id],
-        );
+        [req.escrow_id],
+      );
 
-        if (!escrowUpdate.rows[0]) {
-            throw new Error('Escrow entry is no longer in locked state — cannot refund');
-        }
+      if (!escrowUpdate.rows[0]) {
+        throw new Error('Escrow entry is no longer in locked state — cannot refund');
+      }
 
-        // D-10 FIX: Reverse any matching pledges tied to this donation.
-        // If a donor refunds a matched donation, the sponsor's escrow MUST also
-        // be refunded and the program's spent counter must be decremented.
-        // Without this, the sponsor's funds would be orphaned forever.
-        const matchResult = await client.query<{
-            pledge_id: string;
-            program_id: string;
-            matched_escrow_id: string;
-            match_amount: string;
-        }>(
-            `SELECT pledge_id, program_id, matched_escrow_id, match_amount
+      // D-10 FIX: Reverse any matching pledges tied to this donation.
+      // If a donor refunds a matched donation, the sponsor's escrow MUST also
+      // be refunded and the program's spent counter must be decremented.
+      // Without this, the sponsor's funds would be orphaned forever.
+      const matchResult = await client.query<{
+        pledge_id: string;
+        program_id: string;
+        matched_escrow_id: string;
+        match_amount: string;
+      }>(
+        `SELECT pledge_id, program_id, matched_escrow_id, match_amount
              FROM matching_pledges
              WHERE escrow_id = $1 AND matched_escrow_id IS NOT NULL`,
-            [req.escrow_id],
-        );
+        [req.escrow_id],
+      );
 
-        for (const match of matchResult.rows) {
-            // Refund sponsor's escrow entry
-            const matchUpdateResult = await client.query(
-                `UPDATE escrow_ledger
+      for (const match of matchResult.rows) {
+        // Refund sponsor's escrow entry
+        const matchUpdateResult = await client.query(
+          `UPDATE escrow_ledger
                  SET payment_status = 'refunded', refunded_at = NOW(), updated_at = NOW()
                  WHERE transaction_id = $1 AND payment_status = 'locked'
                  RETURNING transaction_id`,
-                [match.matched_escrow_id],
-            );
+          [match.matched_escrow_id],
+        );
 
-            // Titan Architect FIX: Silent De-sync Prevention
-            // Only decrement the matching program's spent budget IF the sponsor's
-            // escrow was genuinely locked and successfully updated to 'refunded'.
-            // If it was already released (rowCount === 0), do NOT artificially lower 'spent'.
-            if (matchUpdateResult.rowCount && matchUpdateResult.rowCount > 0) {
-                // Reverse spent on matching program (atomic decrement)
-                const matchAmount = parseInt(match.match_amount, 10);
-                await client.query(
-                    `UPDATE matching_programs
+        // Titan Architect FIX: Silent De-sync Prevention
+        // Only decrement the matching program's spent budget IF the sponsor's
+        // escrow was genuinely locked and successfully updated to 'refunded'.
+        // If it was already released (rowCount === 0), do NOT artificially lower 'spent'.
+        if (matchUpdateResult.rowCount && matchUpdateResult.rowCount > 0) {
+          // Reverse spent on matching program (atomic decrement)
+          const matchAmount = parseInt(match.match_amount, 10);
+          await client.query(
+            `UPDATE matching_programs
                      SET spent = GREATEST(spent - $1, 0), updated_at = NOW()
                      WHERE program_id = $2`,
-                    [matchAmount, match.program_id],
-                );
+            [matchAmount, match.program_id],
+          );
 
-                // Audit the reversal
-                await client.query(
-                    `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
+          // Audit the reversal
+          await client.query(
+            `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
                      VALUES ('match_reversed', 'matching_pledges', $1, $2, $3)`,
-                    [
-                        match.pledge_id,
-                        adminId,
-                        JSON.stringify({
-                            reason: 'donor_refund',
-                            original_escrow: req.escrow_id,
-                            sponsor_escrow: match.matched_escrow_id,
-                            match_amount: matchAmount,
-                        }),
-                    ],
-                );
+            [
+              match.pledge_id,
+              adminId,
+              JSON.stringify({
+                reason: 'donor_refund',
+                original_escrow: req.escrow_id,
+                sponsor_escrow: match.matched_escrow_id,
+                match_amount: matchAmount,
+              }),
+            ],
+          );
 
-                logger.info('D-10: Matching pledge reversed due to refund', {
-                    pledge_id: match.pledge_id,
-                    program_id: match.program_id,
-                    match_amount: matchAmount,
-                });
-            } else {
-                logger.warn('Titan Architect Alert: Skipped sponsor refund de-sync. Escrow already released.', {
-                    pledge_id: match.pledge_id,
-                    escrow_id: match.matched_escrow_id
-                });
-            }
+          logger.info('D-10: Matching pledge reversed due to refund', {
+            pledge_id: match.pledge_id,
+            program_id: match.program_id,
+            match_amount: matchAmount,
+          });
+        } else {
+          logger.warn(
+            'Titan Architect Alert: Skipped sponsor refund de-sync. Escrow already released.',
+            {
+              pledge_id: match.pledge_id,
+              escrow_id: match.matched_escrow_id,
+            },
+          );
         }
+      }
 
-        // 3. Update refund request to 'processed'
-        await client.query(
-            `UPDATE refund_requests
+      // 3. Update refund request to 'processed'
+      await client.query(
+        `UPDATE refund_requests
              SET status = 'processed', reviewed_by = $1, reviewed_at = NOW(),
                  review_notes = $2, updated_at = NOW()
              WHERE refund_id = $3`,
-            [adminId, notes ?? null, refundId],
-        );
+        [adminId, notes ?? null, refundId],
+      );
 
-        // 4. Audit trail
-        await client.query(
-            `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
+      // 4. Audit trail
+      await client.query(
+        `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
              VALUES ('refund_processed', 'refund_requests', $1, $2, $3)`,
-            [refundId, adminId, JSON.stringify({
-                escrow_id: req.escrow_id,
-                amount: req.refund_amount,
-                decision,
-            })],
-        );
+        [
+          refundId,
+          adminId,
+          JSON.stringify({
+            escrow_id: req.escrow_id,
+            amount: req.refund_amount,
+            decision,
+          }),
+        ],
+      );
 
-        // 5. Notify donor of approval
-        await createNotification(client, {
-            user_id: req.donor_id,
-            type: 'refund_approved',
-            title: 'notification.refund_approved.title',
-            body: 'notification.refund_approved.body',
-            data: {
-                refund_id: refundId,
-                amount: parseInt(req.refund_amount, 10),
-            },
-            channel: 'in_app',
-        });
+      // 5. Notify donor of approval
+      await createNotification(client, {
+        user_id: req.user_id,
+        type: 'refund_approved',
+        title: 'notification.refund_approved.title',
+        body: 'notification.refund_approved.body',
+        data: {
+          refund_id: refundId,
+          amount: parseInt(req.refund_amount, 10),
+        },
+        channel: 'in_app',
+      });
 
-        return { refund_id: refundId, status: 'processed' };
+      return { refund_id: refundId, status: 'processed' };
     });
-    } finally {
-        await redisLockManager.releaseLock(lockKey, lockToken);
-    }
+  } finally {
+    await redisLockManager.releaseLock(lockKey, lockToken);
+  }
 }
 
 /**
  * Get all pending refund requests (admin view).
  */
-export async function getPendingRefunds(): Promise<Array<RefundRequest & {
-    project_title: string;
-    material_name: string;
-    donor_name: string;
-}>> {
-    const result = await pool.query(
-        `SELECT rr.refund_id, rr.escrow_id, rr.donor_id, rr.reason,
+export async function getPendingRefunds(): Promise<
+  Array<
+    RefundRequest & {
+      project_title: string;
+      material_name: string;
+      donor_name: string;
+    }
+  >
+> {
+  const result = await pool.query(
+    `SELECT rr.refund_id, rr.escrow_id, rr.user_id, rr.reason,
                 rr.refund_amount, rr.status, rr.created_at,
                 p.title AS project_title,
                 b.material_name,
@@ -697,10 +717,9 @@ export async function getPendingRefunds(): Promise<Array<RefundRequest & {
          JOIN escrow_ledger el ON el.transaction_id = rr.escrow_id
          JOIN projects p ON p.project_id = el.project_id
          JOIN itemized_boq b ON b.item_id = el.item_id
-         JOIN users u ON u.user_id = rr.donor_id
+         JOIN users u ON u.user_id = rr.user_id
          WHERE rr.status = 'pending'
          ORDER BY rr.created_at ASC`,
-    );
-    return result.rows;
+  );
+  return result.rows;
 }
-

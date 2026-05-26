@@ -534,7 +534,14 @@ function startCartLockTimer() {
 
   const updateDisplay = () => {
     const now = Date.now();
-    const timeLeft = Math.max(0, Math.floor((expiryTime - now) / 1000));
+
+    // 🚨 PLATINUM FIX: Dynamic Cross-Tab Expiry Reading
+    // Read directly from localStorage on every tick to synchronize across tabs,
+    // avoiding the stale closure variable `expiryTime`.
+    const storedExpiry = localStorage.getItem('cart_lock_expiry');
+    const currentExpiry = storedExpiry ? parseInt(storedExpiry, 10) : expiryTime;
+
+    const timeLeft = Math.max(0, Math.floor((currentExpiry - now) / 1000));
 
     const mins = Math.floor(timeLeft / 60)
       .toString()

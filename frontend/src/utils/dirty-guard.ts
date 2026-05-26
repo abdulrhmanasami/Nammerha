@@ -20,6 +20,11 @@
 
 import { t } from './i18n';
 
+// 🚨 PLATINUM FIX: Global Dirty State Registry
+// Protects the Window state by preventing duplicate beforeunload listeners
+// across multiple active DirtyStateGuard instances.
+let isBeforeUnloadRegistered = false;
+
 export class DirtyStateGuard {
   private isDirty = false;
   private readonly _unloadListener: (e: BeforeUnloadEvent) => void;
@@ -60,7 +65,10 @@ export class DirtyStateGuard {
   public markDirty(): void {
     if (!this.isDirty) {
       this.isDirty = true;
-      window.addEventListener('beforeunload', this._unloadListener);
+      if (!isBeforeUnloadRegistered) {
+        window.addEventListener('beforeunload', this._unloadListener);
+        isBeforeUnloadRegistered = true;
+      }
       window.addEventListener('nm_internal_navigate', this._internalNavListener);
     }
   }
@@ -72,8 +80,12 @@ export class DirtyStateGuard {
   public markClean(): void {
     if (this.isDirty) {
       this.isDirty = false;
-      window.removeEventListener('beforeunload', this._unloadListener);
       window.removeEventListener('nm_internal_navigate', this._internalNavListener);
+
+      if (isBeforeUnloadRegistered) {
+        window.removeEventListener('beforeunload', this._unloadListener);
+        isBeforeUnloadRegistered = false;
+      }
     }
   }
 

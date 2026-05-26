@@ -66,7 +66,7 @@
 
 **MEMO 7: Platinum UI/UX Forensic Audit & State Preservation (May 26, 2026)**
 
-- **Root Cause Destroyed:** 
+- **Root Cause Destroyed:**
   1. `hash-router.ts` used `history.replaceState` which corrupted the browser history stack during dirty state cancellation.
   2. `ui-lock.ts` glassmorphism overlay lacked ARIA semantics and focus management, acting as an accessibility blackhole (Keyboard Trap) for screen readers.
   3. `session-timeout.ts` Privacy Shield leaked background scrolling during session locks, violating the visual freeze requirement.
@@ -81,7 +81,7 @@
   1. The Custom `confirmAction` dialog in wizard flows (`homeowner-report.ts`) did not clear the `DirtyStateGuard` before executing `history.back()`. This spawned a second, native browser `beforeunload` dialog immediately after the user clicked "Confirm", causing extreme cognitive friction (Double Confirmation Paradox).
   2. `DirtyStateGuard`'s internal listener (`nm_internal_navigate`) failed to check `e.defaultPrevented`, risking a cascade of multiple `window.confirm` dialogs if concurrent guards intercepted the same navigation event.
 - **New Logic Built:**
-  1. `homeowner-report.ts` now explicitly calls `wizardGuard.markClean()` *before* any programmatic navigation away from the dirty state. **NEVER** navigate programmatically without unregistering the dirty state guard.
+  1. `homeowner-report.ts` now explicitly calls `wizardGuard.markClean()` _before_ any programmatic navigation away from the dirty state. **NEVER** navigate programmatically without unregistering the dirty state guard.
   2. `dirty-guard.ts` now enforces an `if (e.defaultPrevented) return;` check at the very beginning of the `_internalNavListener` to guarantee mathematically that only one confirmation dialog can ever be rendered per navigation event.
 
 **MEMO 3: UX UI Zero-Friction & Cognitive Flow (May 26, 2026)**
@@ -106,6 +106,15 @@
   1. `hash-router.ts` MUST use `history.replaceState` when reverting a canceled `nm_internal_navigate` event. `pushState` is strictly PROHIBITED for `popstate` aborts.
   2. `api/_client.ts` MUST bypass the multiplexer (using a `crypto.randomUUID()`) for binary streams if no `Idempotency-Key` is provided. Never use static strings like `binary_or_stream`.
   3. ALL financial and numerical input fields (`bid-cost`, `bid-days`) MUST use `autocomplete="new-password"` to completely disable browser heuristic injections.
+
+**MEMO 10: Unified Citizen Model Deep Eradication (May 26, 2026)**
+
+- **Root Cause Destroyed:** The platform contained legacy fragmented logic that assumed a siloed "Donor" role (via `donor_id` references) in `escrow.service.ts`, `matching.service.ts`, `tip.service.ts`, GraphQL Resolvers (`domain.resolver.ts`, `row-mappers.ts`), and core TypeScript interfaces (`types/index.ts`). This violated the Unified Citizen Model (Polymorphic User Architecture) and created extreme risks for IDOR vulnerabilities, data desync during account nullification, and logic errors in transaction processing.
+- **New Logic Built:**
+  1. ALL remaining `donor_id` properties across the entire codebase were surgically eradicated and replaced with `user_id`.
+  2. GraphQL mappers (`_shared/row-mappers.ts`) stripped of fallback logic (`row['user_id'] || row['donor_id']`), enforcing strict adherence to `user_id`.
+  3. Tipping, receipt generation, and escrow APIs natively consume `userId` exclusively.
+  4. Test suites completely refactored to align with the Unified Citizen Model ensuring zero regression testing capability.
 
 ## 🏗️ Platform Architecture
 

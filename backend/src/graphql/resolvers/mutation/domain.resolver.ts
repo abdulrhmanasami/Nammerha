@@ -245,7 +245,7 @@ export const escrowMutationResolvers = {
 
     // Return the first released escrow entry for the response
     const entries = await dbQuery(
-      `SELECT transaction_id, donor_id, item_id, project_id,
+      `SELECT transaction_id, user_id, item_id, project_id,
                     amount_locked, currency, payment_status, payment_method,
                     payment_gateway_ref, locked_at, released_at, released_by,
                     release_proof_id, refunded_at, blockchain_tx_hash,

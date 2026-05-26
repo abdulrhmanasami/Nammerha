@@ -424,7 +424,7 @@ describe('Crowdfunding Service', () => {
       mockQuery.mockResolvedValueOnce({
         rows: [
           {
-            donor_id: 'donor-1',
+            user_id: 'donor-1',
             total_locked: 50000,
             total_released: 30000,
             total_refunded: 5000,
