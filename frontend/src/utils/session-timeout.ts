@@ -270,9 +270,17 @@ function performLogout(): void {
 
   const modal = document.createElement('div');
   modal.id = 'nm-privacy-shield';
+  // PLATINUM FIX: ARIA Semantics
+  modal.setAttribute('role', 'dialog');
+  modal.setAttribute('aria-modal', 'true');
+  modal.setAttribute('aria-label', t('session_locked_privacy', 'تم تأمين الشاشة لحماية بياناتك'));
   // Platinum UX: Dense blur to hide data, unbreakable z-index.
   modal.className =
     'fixed inset-0 z-[10000] flex items-center justify-center bg-slate-900/80 backdrop-blur-3xl animate-fade-in-up';
+
+  // PLATINUM FIX: Scroll Leak Prevention
+  const originalOverflow = document.body.style.overflow;
+  document.body.style.overflow = 'hidden';
 
   modal.innerHTML = `
     <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-md h-[550px] overflow-hidden relative mx-4 border border-slate-700">
@@ -291,6 +299,8 @@ function performLogout(): void {
     if (e.data === 'nm_auth_success') {
       window.removeEventListener('message', onMessage);
       modal.remove();
+      // PLATINUM FIX: Restore Scroll
+      document.body.style.overflow = originalOverflow;
       import('./session-timeout').then(({ markSessionActivity }) => markSessionActivity());
     }
   };

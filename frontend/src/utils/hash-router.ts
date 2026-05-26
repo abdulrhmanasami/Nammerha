@@ -60,9 +60,11 @@ export function createHashRouter<T extends string>(
         const navEvent = new CustomEvent('nm_internal_navigate', { cancelable: true });
         if (!window.dispatchEvent(navEvent)) {
           // PLATINUM FIX: The State Desync Paradox
-          // DirtyStateGuard canceled the navigation! The URL already changed to the new hash,
-          // so we MUST revert to the tracked currentHash using replaceState.
-          history.replaceState(null, '', `#${currentHash}`);
+          // DirtyStateGuard canceled the navigation! The URL already changed to the new hash.
+          // Using replaceState here would OVERWRITE the previous history entry, corrupting
+          // the user's history stack. We MUST use pushState to safely append a new entry
+          // that points back to the current hash without destroying the history beneath it.
+          history.pushState(null, '', `#${currentHash}`);
           return;
         }
 

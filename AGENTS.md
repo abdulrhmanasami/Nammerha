@@ -64,6 +64,17 @@
   1. A centralized cryptographic event interceptor (`nm_internal_navigate`) is injected at the top of the `switchTab(tab)` function across all portal architectures (`homeowner-portal.ts`, `contractor-portal.ts`, `engineer-portal.ts`, `tradesperson-portal.ts`).
   2. `switchTab` strictly verifies `window.dispatchEvent(navEvent)` before proceeding with DOM teardown, preserving the UI lock mathematically.
 
+**MEMO 7: Platinum UI/UX Forensic Audit & State Preservation (May 26, 2026)**
+
+- **Root Cause Destroyed:** 
+  1. `hash-router.ts` used `history.replaceState` which corrupted the browser history stack during dirty state cancellation.
+  2. `ui-lock.ts` glassmorphism overlay lacked ARIA semantics and focus management, acting as an accessibility blackhole (Keyboard Trap) for screen readers.
+  3. `session-timeout.ts` Privacy Shield leaked background scrolling during session locks, violating the visual freeze requirement.
+- **New Logic Built:**
+  1. `hash-router.ts` MUST use `history.pushState` when reverting a canceled `nm_internal_navigate` event to preserve the stack.
+  2. `ui-lock.ts` MUST dynamically inject `role="alertdialog"`, `aria-modal="true"`, `tabindex="0"`, and force `.focus()` upon mount.
+  3. `session-timeout.ts` MUST strictly apply `document.body.style.overflow = 'hidden'` while the shield is active, and restore it correctly on auth success.
+
 **MEMO 3: UX UI Zero-Friction & Cognitive Flow (May 26, 2026)**
 
 - **Root Cause Destroyed:**

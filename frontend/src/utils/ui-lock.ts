@@ -22,9 +22,14 @@ export function showProcessingLock(message: string = 'جاري المعالجة.
 
   const lock = document.createElement('div');
   lock.id = 'nm-ui-lock';
+  // PLATINUM FIX: Accessibility Roles (alertdialog) & Keyboard Focus Trap
+  lock.setAttribute('role', 'alertdialog');
+  lock.setAttribute('aria-modal', 'true');
+  lock.setAttribute('aria-busy', 'true');
+  lock.tabIndex = 0; // Make focusable for screen readers
   // Platinum UX: Glassmorphism background, high z-index, centered content
   lock.className =
-    'fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-slate-900/40 backdrop-blur-md transition-opacity duration-300 opacity-0';
+    'fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-slate-900/40 backdrop-blur-md transition-opacity duration-300 opacity-0 outline-none';
 
   lock.innerHTML = `
     <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-8 rounded-3xl shadow-2xl flex flex-col items-center gap-5 border border-white/20 dark:border-slate-700/50 transform scale-95 transition-transform duration-300" id="nm-ui-lock-modal">
@@ -104,6 +109,8 @@ export function showProcessingLock(message: string = 'جاري المعالجة.
   requestAnimationFrame(() => {
     lock.classList.remove('opacity-0');
     document.getElementById('nm-ui-lock-modal')?.classList.remove('scale-95');
+    // PLATINUM FIX: Force focus onto the modal so screen readers announce it instantly
+    lock.focus();
   });
 
   return removeLock;
