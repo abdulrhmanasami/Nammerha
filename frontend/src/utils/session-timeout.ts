@@ -53,6 +53,7 @@ const ACTIVITY_KEY = 'nm_last_session_activity';
 // ─── State ──────────────────────────────────────────────────────────────────
 let checkTimer: ReturnType<typeof setInterval> | null = null;
 let autoLogoutTimer: ReturnType<typeof setTimeout> | null = null;
+let _currentStorageListener: ((e: StorageEvent) => void) | null = null;
 let warningDialogEl: HTMLDialogElement | null = null;
 let initialized = false;
 
@@ -224,6 +225,20 @@ function showWarningDialog(remainingMs: number): void {
     performLogout();
   }, AUTO_LOGOUT_MS);
 
+  // ── PLATINUM FIX: Cross-Tab State Synchronizer (Cross-Tab Session Murder Fix) ──
+  _currentStorageListener = (e: StorageEvent) => {
+    if (e.key === ACTIVITY_KEY && e.newValue) {
+      const newActivity = parseInt(e.newValue, 10);
+      const elapsed = Date.now() - newActivity;
+      const newRemaining = SESSION_TTL_MS - elapsed;
+      // If session was mathematicaly restored above the threshold in another tab, self-destruct dialog
+      if (newRemaining > WARNING_THRESHOLD_MS) {
+        dismissDialog(dialog, countdownTimer);
+      }
+    }
+  };
+  window.addEventListener('storage', _currentStorageListener);
+
   // ── Show ──
   polyfillDialog(dialog);
   dialog.showModal();
@@ -238,6 +253,10 @@ function dismissDialog(
   if (autoLogoutTimer) {
     clearTimeout(autoLogoutTimer);
     autoLogoutTimer = null;
+  }
+  if (_currentStorageListener) {
+    window.removeEventListener('storage', _currentStorageListener);
+    _currentStorageListener = null;
   }
   dialog.close();
   dialog.remove();

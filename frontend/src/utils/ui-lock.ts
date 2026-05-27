@@ -66,21 +66,44 @@ export function showProcessingLock(message: string = 'جاري المعالجة.
       return; // Let the browser handle system-level intents
     }
 
-    // PLATINUM FIX: WCAG 2.1 AAA Focus Trap Paradox
+    // PLATINUM FIX: WCAG 2.1 AAA Focus Trap Paradox (Focus Trap Escape Paradox Fix)
     // Instead of blocking Tab or resetting focus to the root, we implement a proper
     // circular focus trap that keeps navigation confined to the modal's actionable elements.
     if (e.key === 'Tab') {
-      const focusable = lock.querySelectorAll<HTMLElement>(
+      const focusableElements = lock.querySelectorAll<HTMLElement>(
         'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
       );
-      // If nothing is focusable except the lock itself, hold focus on the lock
-      if (focusable.length === 0 || (focusable.length === 1 && focusable[0] === lock)) {
+      const focusable = Array.from(focusableElements);
+      
+      // If nothing is focusable inside, just hold focus on the lock itself
+      if (focusable.length === 0) {
         e.preventDefault();
         lock.focus();
         return;
       }
+      
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
+      
+      // PLATINUM FIX: Absolute Boundary Trap
+      // querySelectorAll does not include the root 'lock' element itself.
+      // If focus is currently on the root 'lock' container, route it deterministically.
+      if (document.activeElement === lock) {
+        e.preventDefault();
+        if (e.shiftKey) {
+          last?.focus();
+        } else {
+          first?.focus();
+        }
+        return;
+      }
+      
+      // If focus somehow leaked outside the focusable list entirely, snap it back
+      if (!focusable.includes(document.activeElement as HTMLElement)) {
+        e.preventDefault();
+        lock.focus();
+        return;
+      }
 
       if (e.shiftKey && document.activeElement === first) {
         e.preventDefault();

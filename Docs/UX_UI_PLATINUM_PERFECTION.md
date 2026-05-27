@@ -186,3 +186,11 @@
 ### 36. The SVG Focus Trap Bypass (Duck Typing Enforcement)
 **Problem:** The `ui-lock.ts` executed `document.activeElement.blur()` strictly if `document.activeElement instanceof HTMLElement`. This failed catastrophically if the currently focused element was an `<svg>` (which resolves to `SVGElement`). The keyboard remained active for 1 frame before the lock fully initialized, allowing rapid 'Enter' macros to bypass the lock and trigger multiple API mutations.
 **Permanent Rule:** DOM element type checking via `instanceof HTMLElement` is strictly prohibited for focus management. You MUST use Duck Typing (`typeof element.blur === 'function'`) and cast to `any` to guarantee execution across all DOM element types (`HTMLElement`, `SVGElement`, `MathMLElement`).
+
+### 37. The Cross-Tab Session Murder Paradox
+**Problem:** The `session-timeout.ts` script blindly spawned an auto-logout `setTimeout` when entering the 2-minute warning threshold. It ignored `sessionStorage` updates occurring in other tabs, causing active users to be forcefully logged out and locked by idle tabs.
+**Permanent Rule:** ALL idle-timeout or warning mechanisms MUST implement a `StorageEvent` listener that recalculates the session TTL dynamically. If the session is refreshed in another tab, the idle tab must self-destruct its warning modal and gracefully resume operation.
+
+### 38. The Focus Trap Escape Paradox (Absolute Boundary Enforcement)
+**Problem:** The `ui-lock.ts` glassmorphism overlay attempted to trap keyboard focus inside the modal but failed because `element.querySelectorAll` natively excludes the root element. When `Tab` was pressed while the root container was focused, the logic failed, and focus escaped into the hidden document body, breaking WCAG AAA compliance.
+**Permanent Rule:** Focus trap logic must NEVER rely solely on `querySelectorAll`. It MUST explicitly evaluate the root container (`document.activeElement === lock`) in its conditional checks and provide an Absolute Boundary fallback (`!focusable.includes(activeElement)`) to mathematically guarantee focus redirection.

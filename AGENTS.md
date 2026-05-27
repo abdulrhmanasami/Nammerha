@@ -18,6 +18,14 @@
 
 ## 🛑 ZERO-REGRESSION MEMOS (CRITICAL AI MEMORY)
 
+**MEMO 38: The Focus Trap Escape Paradox (Absolute Boundary Enforcement) (May 27, 2026)**
+- **Root Cause Destroyed:** The `ui-lock.ts` glassmorphism overlay attempted to trap keyboard focus inside the modal but failed because `element.querySelectorAll` natively excludes the root element. When `Tab` was pressed while the root container was focused, the logic failed, and focus escaped into the hidden document body, breaking WCAG AAA compliance.
+- **New Logic Built:** Focus trap logic must NEVER rely solely on `querySelectorAll`. It MUST explicitly evaluate the root container (`document.activeElement === lock`) in its conditional checks and provide an Absolute Boundary fallback (`!focusable.includes(activeElement)`) to mathematically guarantee focus redirection.
+
+**MEMO 37: The Cross-Tab Session Murder Paradox (May 27, 2026)**
+- **Root Cause Destroyed:** The `session-timeout.ts` script blindly spawned an auto-logout `setTimeout` when entering the 2-minute warning threshold. It ignored `sessionStorage` updates occurring in other tabs, causing active users to be forcefully logged out and locked by idle tabs.
+- **New Logic Built:** ALL idle-timeout or warning mechanisms MUST implement a `StorageEvent` listener that recalculates the session TTL dynamically. If the session is refreshed in another tab, the idle tab must self-destruct its warning modal and gracefully resume operation.
+
 **MEMO 25: The Platinum Strict Static Analysis Closure (May 27, 2026)**
 
 - **Root Cause Destroyed:**
