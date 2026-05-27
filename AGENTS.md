@@ -170,6 +170,20 @@
   2. Frontend data fetchers (`loadProjects`, `loadServiceRequests`) strictly `throw err;` on failure, preventing `swrFetch` from caching a void resolution. The global `switchTab` dispatcher intercepts floating promises with `.catch(() => {})`.
   3. `dispatchEvent(new Event('input'))` is strictly enforced after any programmatic text manipulation to mathematically guarantee auto-save state persistence.
 
+**MEMO 17: Flutter Phantom Loading Trap & UI Wipeout (May 27, 2026)**
+
+- **Root Cause Destroyed:** `AdminEscrowScreen` used `buildWhen` to ignore `AdminEscrowError` to prevent UI wipeouts (ShimmerLoader blink) when a transient action failed. However, if the VERY FIRST data fetch failed, the UI remained permanently stuck on the `NammerhaShimmerLoader` with no error message, forcing the user to kill the app (Phantom Loading Trap).
+- **New Logic Built:**
+  1. `buildWhen` explicitly permits `AdminEscrowError` ONLY IF `previous is! AdminEscrowCasesLoaded` (i.e. no previous data exists to wipe out).
+  2. The `builder` now explicitly returns a branded `Error UI` with an Actionable Retry Button when an initial fetch fails, preserving user control.
+
+**MEMO 18: Mobile Hardware Back-Button Trap & Phantom Escape Paradox (May 27, 2026)**
+
+- **Root Cause Destroyed:** In `damage_report_screen.dart`, `PopScope` blindly intercepted hardware back buttons (or swipe gestures) and immediately triggered a "Discard Report" warning, ignoring if the user was simply trying to go back a single step in the wizard (Step 3 -> Step 2).
+- **New Logic Built:**
+  1. `PopScope` now strictly delegates hardware navigation to the BLoC State Machine by evaluating `data.currentStep > 0`.
+  2. It natively fires `bloc.add(PrevStepEvent())` instead of popping the navigator, mathematically guaranteeing that the hardware back button behaves identically to the software "Previous" button.
+
 ## 🏗️ Platform Architecture
 
 ### Web Frontend (frontend/)

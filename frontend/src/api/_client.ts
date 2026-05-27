@@ -138,14 +138,14 @@ export function request<T>(
   options: RequestOptions = {},
 ): Promise<ApiResponse<T>> {
   const method = options.method ?? 'GET';
-  
+
   // Intercept identical concurrent POST/PUT/DELETE requests
   if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
     // PLATINUM FIX: Binary Data Cross-Pollination (Zero-Day P0-DATA)
     // Using a static string for FormData causes concurrent uploads to collide and drop data.
     const idempotencyKey = (options.headers as Record<string, string>)?.['Idempotency-Key'];
     let bodyStr = typeof options.body === 'string' ? options.body : null;
-    
+
     // PLATINUM FIX: Deterministic Binary Hashing (Prevent Double-Submission)
     // Generating a unique UUID bypassed the multiplexer. We now hash FormData content
     // to correctly intercept double-taps on upload buttons.
@@ -160,30 +160,36 @@ export function request<T>(
           }
         });
         bodyStr = hashStr;
+      } else if (typeof Blob !== 'undefined' && options.body instanceof Blob) {
+        // PLATINUM FIX: Deterministic Blob Hashing (P0-DATA)
+        // Previous: crypto.randomUUID() caused double-tap bypass for raw binary streams.
+        bodyStr = `blob_${options.body.size}_${options.body.type}`;
       } else {
         bodyStr = `binary_${crypto.randomUUID()}`;
       }
     }
-    
-    const mutationKey = idempotencyKey 
-      ? `${method}:${endpoint}:idemp_${idempotencyKey}` 
+
+    const mutationKey = idempotencyKey
+      ? `${method}:${endpoint}:idemp_${idempotencyKey}`
       : `${method}:${endpoint}:${bodyStr}`;
-    
+
     if (inFlightMutations.has(mutationKey)) {
-      console.warn(`[State Guard] Intercepted and multiplexed duplicate concurrent mutation to ${endpoint}.`);
+      console.warn(
+        `[State Guard] Intercepted and multiplexed duplicate concurrent mutation to ${endpoint}.`,
+      );
       return inFlightMutations.get(mutationKey) as Promise<ApiResponse<T>>;
     }
-    
+
     const promise = _requestInternal<T>(endpoint, options).finally(() => {
       if (inFlightMutations.get(mutationKey) === promise) {
         inFlightMutations.delete(mutationKey);
       }
     });
-    
+
     inFlightMutations.set(mutationKey, promise);
     return promise;
   }
-  
+
   return _requestInternal<T>(endpoint, options);
 }
 
@@ -512,21 +518,29 @@ async function _requestInternal<T>(
         continue;
       }
 
-      // PLT-FE-002 FIX: Route ALL API failures through centralized error reporter.
-      const reportedError =
-        err instanceof DOMException && err.name === 'AbortError'
-          ? new Error(`API Timeout: ${endpoint}`)
-          : err instanceof Error
-            ? err
-            : new Error('Network error');
-
-      reportError(reportedError, { endpoint, method: fetchOptions?.method ?? 'GET' });
-
+      // PLATINUM FIX: AbortError Noise Cancellation
+      // Deliberate SPA navigation aborts must not spam Sentry or show toasts.
       if (err instanceof DOMException && err.name === 'AbortError') {
+        if (globalRouteAbortController.signal.aborted) {
+          console.warn(
+            `[Network Guard] Silently aborted in-flight request to ${endpoint} due to SPA navigation.`,
+          );
+          throw err; // Silent fail
+        }
+
+        reportError(new Error(`API Timeout: ${endpoint}`), {
+          endpoint,
+          method: fetchOptions?.method ?? 'GET',
+        });
         throw new Error(
           t('error_timeout', 'انتهت مهلة الطلب — تحقق من اتصالك بالشبكة وحاول مجدداً.'),
         );
       }
+
+      // PLT-FE-002 FIX: Route ALL API failures through centralized error reporter.
+      const reportedError = err instanceof Error ? err : new Error('Network error');
+
+      reportError(reportedError, { endpoint, method: fetchOptions?.method ?? 'GET' });
       if (err instanceof Error) {
         throw err;
       }

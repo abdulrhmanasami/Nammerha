@@ -107,6 +107,13 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
         final bloc = context.read<DamageReportBloc>();
         final data = bloc.state.formData;
 
+        // PLATINUM FIX: Phantom Escape Paradox (Hardware Back-Button Trap)
+        // Ensure hardware back button mirrors the on-screen back button in wizards.
+        if (data.currentStep > 0) {
+          bloc.add(PrevStepEvent());
+          return;
+        }
+
         // If form is clean, pop immediately
         if (!data.isDirty) {
           if (context.mounted) Navigator.of(context).pop();

@@ -44,8 +44,12 @@ class _EscrowView extends StatelessWidget {
       body: BlocConsumer<AdminEscrowBloc, AdminEscrowState>(
         // PLAT-UX-007 FIX: Prevent Screen Wipeout Blink
         // Guard against transient states (Success/Error) resetting the UI to SizedBox.shrink().
-        buildWhen: (previous, current) => 
-            current is AdminEscrowLoading || current is AdminEscrowCasesLoaded,
+        // PLAT-UX-009 FIX: If we get an error but we don't have any cases loaded yet, we must rebuild to show the Error UI.
+        buildWhen: (previous, current) {
+          if (current is AdminEscrowLoading || current is AdminEscrowCasesLoaded) return true;
+          if (current is AdminEscrowError && previous is! AdminEscrowCasesLoaded) return true;
+          return false;
+        },
         listener: (context, state) {
           if (state is AdminEscrowActionSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -70,6 +74,27 @@ class _EscrowView extends StatelessWidget {
           }
           if (state is AdminEscrowCasesLoaded) {
             return _buildCasesList(context, state.cases);
+          }
+          if (state is AdminEscrowError) {
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(PhosphorIconsRegular.warningCircle, size: 48, color: colors.error),
+                  const SizedBox(height: 16),
+                  Text(
+                    context.tr('error_loading_data'), 
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.textHeading)
+                  ),
+                  const SizedBox(height: 16),
+                  OutlinedButton.icon(
+                    onPressed: () => context.read<AdminEscrowBloc>().add(LoadPendingCases()),
+                    icon: Icon(PhosphorIconsRegular.arrowsClockwise, size: 18),
+                    label: Text(context.tr('retry')),
+                  ),
+                ],
+              ),
+            );
           }
           return const SizedBox.shrink();
         },

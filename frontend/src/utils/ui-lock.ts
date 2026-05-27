@@ -9,6 +9,7 @@ import { escapeHtml } from './xss';
 // Global interceptors to guarantee cleanup and prevent ghost inputs
 let _lockKeydownInterceptor: ((e: KeyboardEvent) => void) | null = null;
 let _lockPopstateInterceptor: (() => void) | null = null;
+let _lockTouchInterceptor: ((e: TouchEvent) => void) | null = null;
 
 export function showProcessingLock(message: string = 'جاري المعالجة...'): () => void {
   // Prevent multiple locks
@@ -54,18 +55,35 @@ export function showProcessingLock(message: string = 'جاري المعالجة.
   _lockKeydownInterceptor = (e: KeyboardEvent) => {
     // PLATINUM FIX: Escape Route Preservation
     if (
-      e.metaKey || 
-      e.ctrlKey || 
-      e.altKey || 
+      e.metaKey ||
+      e.ctrlKey ||
+      e.altKey ||
       e.key.startsWith('F') // Allows F5, F12, etc.
     ) {
       return; // Let the browser handle system-level intents
     }
-    
+
+    // PLATINUM FIX: WCAG 2.1 AAA Focus Trap Paradox
+    // Completely blocking 'Tab' prevents screen readers from exploring the modal.
+    // Instead of disabling keyboard, we trap focus firmly inside the lock.
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      lock.focus();
+      return;
+    }
+
     e.preventDefault();
     e.stopPropagation();
   };
   window.addEventListener('keydown', _lockKeydownInterceptor, { capture: true });
+
+  // PLATINUM FIX: iOS Safari Vertical Scroll Lock Escape Hatch
+  // 'overflow: hidden' on body does NOT stop scrolling on iOS Safari natively.
+  _lockTouchInterceptor = (e: TouchEvent) => {
+    e.preventDefault(); // Physically freezes the viewport on mobile
+  };
+  // Must use passive: false to allow preventDefault
+  window.addEventListener('touchmove', _lockTouchInterceptor, { passive: false });
 
   let isRemoved = false;
 
@@ -77,6 +95,10 @@ export function showProcessingLock(message: string = 'جاري المعالجة.
     if (_lockPopstateInterceptor) {
       window.removeEventListener('popstate', _lockPopstateInterceptor);
       _lockPopstateInterceptor = null;
+    }
+    if (_lockTouchInterceptor) {
+      window.removeEventListener('touchmove', _lockTouchInterceptor);
+      _lockTouchInterceptor = null;
     }
   };
 
