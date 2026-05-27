@@ -55,6 +55,8 @@ import { saveScrollPosition, restoreScrollPosition, saveLastTab } from '../utils
 import { renderProgressive } from '../utils/progressive-render';
 // P2-ANIM-001 FIX: Centralized animation stagger constant
 import { staggerDelay } from '../constants/animation';
+// PLATINUM FIX: DirtyStateGuard to protect modal forms from Cross-Tab Eviction
+import { DirtyStateGuard } from '../utils/dirty-guard';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Contractor Portal — Dashboard, Marketplace, Bids, Payments
@@ -103,6 +105,9 @@ const delegationWired = { marketplace: false } as Record<string, boolean>;
 // because createElement+showModal is async — clicks arrive before cleanup.
 // NOW: Boolean flag blocks re-entry entirely.
 let bidModalOpen = false;
+
+// PLATINUM FIX: Bind dirty state guard to protect bid inputs
+const bidDirtyGuard = new DirtyStateGuard();
 
 // PLT-FE-003 FIX: Module-level constant instead of duplicating in setupTabs()/switchTab()
 const ALL_TABS: TabName[] = ['dashboard', 'marketplace', 'bids', 'payments'];
@@ -687,8 +692,16 @@ function openBidModal(projectId: string): void {
     dialog.remove();
     // P2-007 FIX: Release guard on ANY close path (Escape, backdrop, cancel, success).
     bidModalOpen = false;
+    // PLATINUM FIX: Clean dirty state mathematically on modal close (guarantees Bfcache release).
+    bidDirtyGuard.markClean();
     triggerEl?.focus();
   });
+
+  // PLATINUM FIX: Dirty State Registration
+  // Binds any input stroke to the dirty state guard, strictly preventing silent navigation data loss.
+  dialog
+    .querySelectorAll('input, textarea')
+    .forEach((el) => el.addEventListener('input', () => bidDirtyGuard.markDirty()));
 
   // Backdrop click closes dialog (click on dialog element itself = backdrop area)
   dialog.addEventListener('click', (e) => {
@@ -711,11 +724,19 @@ function openBidModal(projectId: string): void {
         oracleShockTriggered = true;
         // Simulate a live price change from Oracle while user is typing
         setTimeout(() => {
-          if (!document.getElementById('bid-modal')) {return;} // Modal was closed
+          // PLATINUM FIX: Oracle State Mutation Race
+          // PREVIOUS: If the user clicked submit just before the timeout fired, the UI would visually
+          // inflate the price by 2% while the backend processed the old price, causing severe cognitive desync.
+          // NOW: We strictly lock the mutation. If the submit button is in-flight (disabled), we mathematically abort.
+          const submitBtn = document.getElementById('bid-submit') as HTMLButtonElement | null;
+          if (!document.getElementById('bid-modal') || (submitBtn && submitBtn.disabled)) {
+            return;
+          }
+
           oracleWarning.classList.remove('nm-hidden', 'opacity-0', '-translate-y-2');
           haptic.light(); // Subtle buzz to alert user of price change
-          const currentVal = parseFloat(bidCostInput.value);
-          if (!isNaN(currentVal)) {
+          const currentVal = Number(bidCostInput.value);
+          if (Number.isSafeInteger(currentVal)) {
             // Auto-adjust cost by +2% so the contractor doesn't lose money
             bidCostInput.value = Math.ceil(currentVal * 1.02).toString();
             // Pulse the input to draw attention
@@ -742,24 +763,38 @@ function openBidModal(projectId: string): void {
     submitBtn.disabled = true;
     submitBtn.classList.add('btn-loading', 'cursor-not-allowed');
 
-    const cost = parseInt((document.getElementById('bid-cost') as HTMLInputElement).value, 10);
-    const days = parseInt((document.getElementById('bid-days') as HTMLInputElement).value, 10);
-    const letter = (document.getElementById('bid-letter') as HTMLTextAreaElement).value;
-
     // Helper: re-enable buttons on validation failure
     const reEnableButtons = (): void => {
       submitBtn.disabled = false;
       submitBtn.classList.remove('btn-loading', 'cursor-not-allowed');
     };
 
-    if (!cost || !days || cost <= 0 || days <= 0) {
+    // PLATINUM FIX: Float Poisoning & Scientific Notation Trap
+    // PREVIOUS: `parseInt("1e5")` evaluates to `1`. A contractor bidding $100,000 (1e5) submitted $1!
+    // `parseInt("10.5")` evaluates to `10`, silently truncating float values.
+    // NOW: We strictly parse via `Number()` and mandate absolute `Number.isSafeInteger()` compliance.
+    const rawCost = Number((document.getElementById('bid-cost') as HTMLInputElement).value);
+    const rawDays = Number((document.getElementById('bid-days') as HTMLInputElement).value);
+    const letter = (document.getElementById('bid-letter') as HTMLTextAreaElement).value;
+
+    if (
+      !Number.isSafeInteger(rawCost) ||
+      !Number.isSafeInteger(rawDays) ||
+      rawCost <= 0 ||
+      rawDays <= 0
+    ) {
       if (errorEl) {
-        errorEl.textContent = t('ct_fill_cost_days', 'يرجى تعبئة التكلفة والأيام');
+        errorEl.textContent = t(
+          'ct_fill_cost_days_valid',
+          'يرجى إدخال أرقام صحيحة للتكلفة والأيام',
+        );
         errorEl.classList.remove('nm-hidden');
       }
       reEnableButtons();
       return;
     }
+    const cost = rawCost;
+    const days = rawDays;
 
     // P1-006 FIX (Wave 2): Maximum cost/duration validation — FinTech guard.
     // 10M USD max cost (matches homeowner-portal budget ceiling),

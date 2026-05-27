@@ -18,6 +18,17 @@
 
 ## 🛑 ZERO-REGRESSION MEMOS (CRITICAL AI MEMORY)
 
+**MEMO 42: Contractor Bidding State Engine — Cross-Tab Eviction & Scientific Notation Trap (May 27, 2026)**
+
+- **Root Cause Destroyed:**
+  1. `contractor-portal.ts` `<dialog>` inputs lacked `DirtyStateGuard` integration, allowing silent bid eviction if the user accidentally switched tabs (Hash Router `nm_internal_navigate`).
+  2. Oracle Price Shock `setTimeout` blindly mutated `bidCostInput.value`, creating a State Mutation Race if the user clicked Submit right before the timeout fired.
+  3. `parseInt("1e5")` evaluated to `1` (Scientific Notation Trap), and `parseInt("10.5")` truncated floats, allowing malformed data to bypass UI validation.
+- **New Logic Built:**
+  1. `bidDirtyGuard.markDirty()` strictly binds to all dialog inputs, and `.markClean()` fires mathematically on `dialog.close()`, guaranteeing Bfcache integrity and protection against cross-tab nav.
+  2. Oracle `setTimeout` explicitly checks `submitBtn.disabled` (in-flight state lock) and mathematically aborts the mutation if an API call is active.
+  3. Financial inputs mandate strict `Number()` parsing and absolute `Number.isSafeInteger()` compliance.
+
 **MEMO 41: Wallet Ledger Poisoning & Phantom UI Freeze (May 27, 2026)**
 
 - **Root Cause Destroyed:**
