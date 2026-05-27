@@ -297,6 +297,7 @@ function performLogout(): void {
     if (e.origin !== window.location.origin) return;
     if (e.data === 'nm_auth_success') {
       window.removeEventListener('message', onMessage);
+      window.removeEventListener('popstate', onPopState);
       modal.close();
       modal.remove();
       // PLATINUM FIX: Restore Scroll
@@ -305,6 +306,20 @@ function performLogout(): void {
     }
   };
   window.addEventListener('message', onMessage);
+
+  // PLATINUM FIX: Bfcache Privacy Lockout (Swipe Back Protection)
+  // If the user triggers browser Back, the page unloads into Bfcache.
+  // We must immediately destroy the shield so it's not permanently locked upon Forward.
+  const onPopState = () => {
+    window.removeEventListener('message', onMessage);
+    window.removeEventListener('popstate', onPopState);
+    if (document.body.contains(modal)) {
+      modal.close();
+      modal.remove();
+    }
+    document.body.style.overflow = originalOverflow;
+  };
+  window.addEventListener('popstate', onPopState);
 
   // Prevent closing via escape key since the session is strictly dead
   modal.addEventListener('cancel', (e) => {

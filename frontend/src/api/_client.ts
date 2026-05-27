@@ -31,6 +31,16 @@ export function abortPendingRouteRequests() {
   globalRouteAbortController = new AbortController();
 }
 
+// ─── PLATINUM FIX: Fast Hash for Memory Leak Prevention ─────────────────────
+// Uses DJB2 algorithm to condense massive base64 strings into a tiny integer.
+function fastHash(str: string): number {
+  let hash = 5381;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash * 33) ^ str.charCodeAt(i);
+  }
+  return hash >>> 0; // Force positive 32-bit integer
+}
+
 // ─── PLATINUM FIX: Pessimistic Epoch Locking ──────────────────────────────
 let lastMutationEpoch = 0;
 
@@ -167,6 +177,12 @@ export function request<T>(
       } else {
         bodyStr = `binary_${crypto.randomUUID()}`;
       }
+    }
+
+    // PLATINUM FIX: Memory Exhaustion via Macro-String Map Keys
+    // Prevent massive Base64 strings or FormData from consuming Map memory
+    if (bodyStr && bodyStr.length > 256) {
+      bodyStr = `hashed_body_${fastHash(bodyStr)}`;
     }
 
     const mutationKey = idempotencyKey

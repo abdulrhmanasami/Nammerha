@@ -17,8 +17,11 @@ export function showProcessingLock(message: string = 'جاري المعالجة.
 
   // 1. Ghost Keyboard Submissions (0-Day Fix)
   // Instantly blur active element so holding 'Enter' doesn't queue multiple submit events
-  if (document.activeElement instanceof HTMLElement) {
-    document.activeElement.blur();
+  // PLATINUM FIX: SVG Focus Trap Bypass. Use duck typing to catch SVGElements.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if (document.activeElement && typeof (document.activeElement as any).blur === 'function') {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (document.activeElement as any).blur();
   }
 
   const lock = document.createElement('div');
