@@ -294,7 +294,10 @@ async function _requestInternal<T>(
   // P0-UXA-002 FIX: If session is already expiring, short-circuit immediately.
   // Don't fire another clearAuth/redirect/toast — the first 401 handler owns it.
   if (sessionExpiring) {
-    return { success: false, error: 'Session expired' } as ApiResponse<T>;
+    // PLATINUM FIX: False Success Paradox Prevention
+    // Throw an AbortError instead of returning `{ success: false }` so caller try/catch
+    // blocks skip the success path and halt safely.
+    throw new DOMException('Session expired', 'AbortError');
   }
 
   let lastErr: unknown;
@@ -338,7 +341,8 @@ async function _requestInternal<T>(
         // P0-UXA-002 FIX: Mutex — only the first 401 handles cleanup.
         // Subsequent concurrent 401s short-circuit silently.
         if (sessionExpiring) {
-          return { success: false, error: 'Session expired' } as ApiResponse<T>;
+          // PLATINUM FIX: False Success Paradox Prevention
+          throw new DOMException('Session expired', 'AbortError');
         }
 
         const { isAuthenticated, clearAuth } = await import('../auth');
@@ -494,7 +498,8 @@ async function _requestInternal<T>(
             maxRetries++;
             continue;
           }
-          return { success: false, error: 'Session expired' } as ApiResponse<T>;
+          // PLATINUM FIX: False Success Paradox Prevention
+          throw new DOMException('Session expired', 'AbortError');
         }
       }
 
@@ -571,8 +576,13 @@ async function _requestInternal<T>(
       }
 
       // PLATINUM FIX: AbortError Noise Cancellation
-      // Deliberate SPA navigation aborts must not spam Sentry or show toasts.
+      // Deliberate SPA navigation aborts or Session Expirations must not spam Sentry or show toasts.
       if (err instanceof DOMException && err.name === 'AbortError') {
+        if (err.message === 'Session expired') {
+          console.warn(`[Network Guard] Silently aborted request to ${endpoint} due to Session Expiry.`);
+          throw err; // Silent fail (Caller catch block will skip success logic)
+        }
+
         if (globalRouteAbortController.signal.aborted) {
           console.warn(
             `[Network Guard] Silently aborted in-flight request to ${endpoint} due to SPA navigation.`,

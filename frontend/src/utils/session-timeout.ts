@@ -274,7 +274,14 @@ function performLogout(): void {
 
   // 'overflow: hidden' on body does NOT stop scrolling natively on iOS Safari.
   // We must physically intercept the touchmove event to freeze the viewport.
-  const _shieldTouchInterceptor = (e: TouchEvent) => e.preventDefault();
+  // PLATINUM FIX: Iframe Scroll Paralysis (Glass Prison Trap Prevention)
+  // Ensure we don't accidentally block scrolling inside the Re-Auth iframe.
+  const _shieldTouchInterceptor = (e: TouchEvent) => {
+    const path = e.composedPath();
+    const isInsideIframe = path.some((el) => (el as HTMLElement).tagName === 'IFRAME');
+    if (isInsideIframe) return;
+    e.preventDefault();
+  };
   window.addEventListener('touchmove', _shieldTouchInterceptor, { passive: false });
 
   modal.innerHTML = `

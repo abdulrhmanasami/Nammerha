@@ -18,6 +18,17 @@
 
 ## 🛑 ZERO-REGRESSION MEMOS (CRITICAL AI MEMORY)
 
+**MEMO 24: Platinum Forensic State Machine Overhaul - Ghost UI, Iframe Paralysis & Silent Eviction (May 27, 2026)**
+
+- **Root Cause Destroyed:**
+  1. `api/_client.ts` returned `{ success: false }` upon 401 interception. This circumvented the caller's `.catch()` block, allowing the component to falsely trigger success toasts ("False Success Paradox") while the Re-Auth modal was rendered.
+  2. `session-timeout.ts` attached a global `e.preventDefault()` to `touchmove` on iOS. This "Glass Prison Trap" froze scrolling inside the Re-Auth `iframe`, locking out users if their keyboard popped up.
+  3. `safe-storage.ts` silently returned `false` after an insufficient 30% eviction when 5MB `sessionStorage` limit was hit. "Silent Data Loss" occurred because the frontend assumed the draft was saved successfully.
+- **New Logic Built:**
+  1. `api/_client.ts` now strictly throws `new DOMException('Session expired', 'AbortError')`. The global interceptor silently catches it, mathematically halting the caller's execution thread and eliminating phantom success states.
+  2. `session-timeout.ts` dynamically filters touch events via `e.composedPath()`. If the touch originates from an `iframe` (e.g., the auth modal), `e.preventDefault()` is bypassed, guaranteeing scroll capability.
+  3. `safe-storage.ts` utilizes an "Aggressive Eviction Loop" (`while` loop) to delete older drafts iteratively until the new payload fits. If it fails entirely (payload > 5MB), it dynamically imports and fires a `toast` warning to explicitly alert the user to free up space.
+
 **MEMO 23: The Demonic State Machine & GraphQL Offline Blackhole (May 27, 2026)**
 
 - **Root Cause Destroyed:**

@@ -31,7 +31,8 @@ export function safeSessionStorageSet(key: string, value: string): boolean {
     return true;
   } catch (e) {
     if (isQuotaExceeded(e)) {
-      // LRU Eviction: Try to free space by deleting oldest `nm_draft_` and `nm_autosave_` items
+      // PLATINUM FIX: Aggressive LRU Eviction Loop (Silent Data Loss Prevention)
+      // Ensure we actually free enough space, otherwise warn the user of data loss.
       try {
         const items = [];
         for (let i = 0; i < sessionStorage.length; i++) {
@@ -41,11 +42,10 @@ export function safeSessionStorageSet(key: string, value: string): boolean {
             let time = 0;
             if (raw) {
               try {
-                // If it's a draft, it has savedAt
                 const parsed = JSON.parse(raw);
                 time = parsed.savedAt || 0;
               } catch {
-                time = 0; // autosave strings don't have savedAt, they are older targets
+                time = 0;
               }
             }
             items.push({ key: k, time });
@@ -56,21 +56,46 @@ export function safeSessionStorageSet(key: string, value: string): boolean {
           // Sort ascending by time (oldest first)
           items.sort((a, b) => a.time - b.time);
 
-          // Delete oldest 30% of items to free space
-          const toDeleteCount = Math.max(1, Math.floor(items.length * 0.3));
-          for (let i = 0; i < toDeleteCount; i++) {
-            const item = items[i];
+          let success = false;
+          let itemsRemoved = 0;
+
+          // Aggressively remove items one by one until setItem succeeds
+          while (items.length > 0 && !success) {
+            const item = items.shift();
             if (item) {
               sessionStorage.removeItem(item.key);
+              itemsRemoved++;
+              try {
+                sessionStorage.setItem(key, value);
+                success = true;
+              } catch (loopErr) {
+                if (!isQuotaExceeded(loopErr)) {
+                  throw loopErr;
+                }
+                // Still exceeded, loop continues to remove the next oldest item
+              }
             }
+          }
+
+          if (success) {
+            console.warn(`[Safe Storage] Evicted ${itemsRemoved} old drafts to free space for new draft.`);
+            return true;
           }
         }
 
-        // Retry
-        sessionStorage.setItem(key, value);
-        return true;
+        // Eviction failed entirely (either no drafts to delete, or current draft is bigger than 5MB limit alone)
+        throw new Error('Quota Exhausted');
       } catch (retryErr) {
         console.error('SessionStorage Eviction Failed', retryErr);
+        import('./toast').then(({ showToast }) => {
+          import('./i18n').then(({ t }) => {
+            showToast(
+              t('error_storage_quota', 'حجم البيانات المدخلة (كالصور) تجاوز السعة القصوى المسموحة للمتصفح. يرجى حذف بعض الملفات لضمان حفظ العمل.'),
+              'warning',
+              { duration: 8000 }
+            );
+          }).catch(() => {});
+        }).catch(() => {});
         return false;
       }
     }
