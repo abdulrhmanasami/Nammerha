@@ -27,6 +27,17 @@ class CartStoreImpl {
 
   constructor() {
     this.hydrate();
+
+    // PLATINUM FIX: Cross-Tab Cart Annihilation (StorageEvent Sync)
+    // PREVIOUS: Relying solely on `window.dispatchEvent(CustomEvent)` failed across tabs.
+    // Tab B would overwrite Tab A's cart additions because Tab B's in-memory array was stale.
+    // NOW: Listen to native `StorageEvent`, auto-hydrate, and broadcast locally.
+    window.addEventListener('storage', (e) => {
+      if (e.key === STORAGE_KEY) {
+        this.hydrate();
+        window.dispatchEvent(new CustomEvent(CART_EVENT, { detail: { items: this.items } }));
+      }
+    });
   }
 
   /** Load cart state from localStorage */
@@ -54,6 +65,14 @@ class CartStoreImpl {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(this.items));
     } catch (err) {
+      // PLATINUM FIX: Silent Data Loss Guard (QuotaExceededError)
+      // If localStorage is full, we must notify the user. Silently keeping it in-memory
+      // creates a Schrödinger state where checkout fails or refreshes destroy the cart.
+      if (err instanceof DOMException && (err.name === 'QuotaExceededError' || err.code === 22)) {
+        import('../utils/toast').then(({ toast }) => {
+          toast.error('مساحة التخزين ممتلئة. لا يمكن حفظ سلة المشتريات. يرجى تفريغ المساحة.');
+        });
+      }
       reportWarning('[Cart] Failed to persist cart to localStorage', {
         component: 'cart',
         action: 'persist',
@@ -65,6 +84,12 @@ class CartStoreImpl {
 
   /** Add an item or increment quantity if already in cart */
   addItem(item: Omit<CartItem, 'quantity'>, qty = 1): void {
+    // PLATINUM FIX: Floating Point Poisoning Guard
+    if (!Number.isSafeInteger(qty) || qty <= 0) {
+      reportWarning('[Cart] Invalid quantity attempted', { action: 'addItem', qty });
+      return;
+    }
+
     const existing = this.items.find((i) => i.id === item.id);
     if (existing) {
       existing.quantity += qty;
@@ -82,6 +107,12 @@ class CartStoreImpl {
 
   /** Update quantity for a specific item */
   updateQuantity(id: string, qty: number): void {
+    // PLATINUM FIX: Floating Point Poisoning Guard
+    if (!Number.isSafeInteger(qty)) {
+      reportWarning('[Cart] Invalid quantity attempted', { action: 'updateQuantity', qty });
+      return;
+    }
+
     const item = this.items.find((i) => i.id === id);
     if (!item) {
       return;

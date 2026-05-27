@@ -18,6 +18,17 @@
 
 ## 🛑 ZERO-REGRESSION MEMOS (CRITICAL AI MEMORY)
 
+**MEMO 40: Cart Engine Cross-Tab Annihilation & Float Poisoning (May 27, 2026)**
+
+- **Root Cause Destroyed:**
+  1. `cart.ts` relied entirely on `CustomEvent` (`window.dispatchEvent`) for reactivity, meaning Cart updates didn't sync across multiple open tabs. A user opening two tabs would experience "Cross-Tab Cart Annihilation", where adding an item in Tab B overwrote Tab A's localStorage, destroying the user's progress.
+  2. `localStorage.setItem` in `cart.ts` caught `QuotaExceededError` but failed to notify the user, resulting in Silent Data Loss. The in-memory array would update, creating a Schrödinger UI state that reset on reload.
+  3. The `addItem` and `updateQuantity` functions blindly trusted `qty: number`, allowing Floating Point Poisoning (e.g. `1.5`) which could corrupt the financial `getTotal()` reduction logic.
+- **New Logic Built:**
+  1. `window.addEventListener('storage')` is permanently enforced inside `CartStoreImpl.constructor` to automatically rehydrate the in-memory array and fire local `CART_EVENT`s whenever a background tab alters the cart.
+  2. `DOMException` checks for `QuotaExceededError` (Code 22) are strictly bound to a dynamic `toast.error` to visually halt the user.
+  3. `Number.isSafeInteger(qty)` mathematically guarantees no fractional or float quantities can ever enter the FinTech pipeline.
+
 **MEMO 39: The Demonic Concurrency & WCAG Keyboard Paradox (May 27, 2026)**
 
 - **Root Cause Destroyed:**
