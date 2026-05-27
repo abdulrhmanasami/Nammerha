@@ -208,6 +208,16 @@
   2. `buildWhen: (previous, current) => current is! [TargetError] && current is! [TargetSuccess]` is now strictly enforced across all mobile repositories.
   3. NEVER create a `BlocConsumer` in the mobile app without explicitly routing transient states to the `listener` and blocking them from the `builder`.
 
+**MEMO 21: The Cross-Tab Amnesia & Lie-Fi Blackhole Annihilation (May 27, 2026)**
+- **Root Cause Destroyed:**
+  1. `auth.ts` unconditionally executed `window.location.reload()` when a user logged into a different account in another tab, silently wiping out any active forms in the current tab (Cross-Tab Amnesia Paradox).
+  2. `api/_client.ts` handled offline 401s by freezing a promise and immediately resolving `true` upon `online`, which bypassed the Re-Auth Modal entirely and caused an infinite 401 loop upon reconnection (The Lie-Fi Blackhole).
+  3. `api/_client.ts` allowed users to dismiss the Re-Auth Modal with the "X" or "Escape" key, immediately triggering `window.location.href` and bypassing `DirtyStateGuard`, vaporizing their unsaved work (Silent Re-Auth Dismissal Wipeout).
+- **New Logic Built:**
+  1. `auth.ts` now uses a blocking `nm-cross-tab-schizophrenia` Glassmorphism Modal. It explains the session change and requires a deliberate click to reload. `window.location.reload()` is STRICTLY PROHIBITED outside of user-initiated context.
+  2. `api/_client.ts` explicitly renders the Re-Auth Modal inside the `online` event callback instead of instantly resolving the promise.
+  3. `api/_client.ts` wraps the `closeAction()` of the Re-Auth Modal in a rigorous `confirmAction()` dialog, ensuring the user confirms data loss before destructive navigation occurs.
+
 ## 🏗️ Platform Architecture
 
 ### Web Frontend (frontend/)

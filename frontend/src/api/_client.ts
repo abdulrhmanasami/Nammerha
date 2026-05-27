@@ -341,32 +341,12 @@ async function _requestInternal<T>(
           // P4-UXA-006 FIX: In-Place Re-auth (Global 401 Interceptor)
           // Don't nuke the session and redirect immediately. Pause and prompt!
           if (!activeReauthPromise) {
-            // DEMONIC UX FIX: The Offline Re-Auth Blackhole
-            // If offline when 401 hits, the iframe will show Chrome's Dinosaur.
-            // Freeze the promise until online, then let it retry (which will open the modal).
-            if (!navigator.onLine) {
-              import('../utils/toast')
-                .then(({ showToast }) => {
-                  showToast(
-                    t(
-                      'offline_reauth_wait',
-                      'انتهت الجلسة والشبكة مقطوعة. يرجى الانتظار لحين عودة الاتصال.',
-                    ),
-                    'warning',
-                  );
-                })
-                .catch(() => {});
-
-              activeReauthPromise = new Promise<boolean>((resolve) => {
-                const onOnline = () => {
-                  window.removeEventListener('online', onOnline);
-                  activeReauthPromise = null;
-                  resolve(true); // Retry!
-                };
-                window.addEventListener('online', onOnline);
-              });
-            } else {
-              activeReauthPromise = new Promise<boolean>((resolve) => {
+            // PLATINUM FIX: Zero-Day UX Flaw (Lie-Fi Re-Auth Blackhole)
+            // Instead of returning `resolve(true)` directly when online, which triggers
+            // an unnecessary 401 loop, we simply wait for the network to return and THEN
+            // render the Re-Auth Modal inside the same promise.
+            activeReauthPromise = new Promise<boolean>((resolve) => {
+              const showModal = () => {
                 import('../utils/toast')
                   .then(({ showToast }) => {
                     showToast(
@@ -404,12 +384,29 @@ async function _requestInternal<T>(
                   activeReauthPromise = null;
                 };
 
-                const closeAction = () => {
-                  cleanup();
-                  sessionExpiring = true;
-                  clearAuth();
-                  window.location.href = '/auth.html?reason=session_expired';
-                  resolve(false);
+                // PLATINUM FIX: Silent Re-Auth Dismissal Wipeout
+                // Ensure users don't accidentally click 'X' or press Escape and lose all
+                // unsaved form data. Wrap the dismissal in a confirmation dialog.
+                const closeAction = async () => {
+                  const { confirmAction } = await import('../utils/confirm-action');
+                  const confirmed = await confirmAction({
+                    title: t('cancel_reauth_title', 'إلغاء العملية؟'),
+                    message: t(
+                      'cancel_reauth_msg',
+                      'إلغاء تسجيل الدخول سيؤدي إلى إنهاء الجلسة تماماً وفقدان أي بيانات غير محفوظة. هل أنت متأكد؟'
+                    ),
+                    confirmLabel: t('common_leave', 'نعم، قم بالمغادرة'),
+                    variant: 'danger',
+                    onConfirm: () => {}
+                  });
+
+                  if (confirmed) {
+                    cleanup();
+                    sessionExpiring = true;
+                    clearAuth();
+                    window.location.href = '/auth.html?reason=session_expired';
+                    resolve(false);
+                  }
                 };
 
                 // PLATINUM FIX: The Re-Auth Modal "Keyboard Trap" (Esc Key Blackhole)
@@ -448,8 +445,30 @@ async function _requestInternal<T>(
                 window.addEventListener('popstate', onPopState);
 
                 modal.querySelector('#close-reauth')?.addEventListener('click', closeAction);
-              });
-            }
+              };
+
+              if (!navigator.onLine) {
+                import('../utils/toast')
+                  .then(({ showToast }) => {
+                    showToast(
+                      t(
+                        'offline_reauth_wait',
+                        'انتهت الجلسة والشبكة مقطوعة. يرجى الانتظار لحين عودة الاتصال لفتح نافذة الدخول.',
+                      ),
+                      'warning',
+                    );
+                  })
+                  .catch(() => {});
+
+                const onOnline = () => {
+                  window.removeEventListener('online', onOnline);
+                  showModal();
+                };
+                window.addEventListener('online', onOnline);
+              } else {
+                showModal();
+              }
+            });
           }
 
           const success = await activeReauthPromise;

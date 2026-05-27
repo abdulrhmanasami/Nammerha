@@ -190,12 +190,48 @@ if (typeof window !== 'undefined') {
         const orphanedUid = sessionStorage.getItem(ORPHANED_SESSION_KEY);
         const isSameUserReturning = !oldUser && orphanedUid === newUser.user_id;
 
-        // P5-UXA-005 FIX: Cross-Tab State Schizophrenia Lock
-        // If the user logs in as someone else in another tab (or logs in from a logged-out state),
-        // the current tab's DOM represents stale/wrong user data. We MUST force reload
-        // to prevent actions being taken under the new user's HttpOnly JWT.
+        // PLATINUM FIX: Zero-Day UX Flaw (Cross-Tab Amnesia Paradox)
+        // A violent window.location.reload() destroys any unsaved forms in this tab
+        // without warning. We must freeze the UI and explain the state change,
+        // allowing the user to initiate the reload themselves.
         if (!isSameUserReturning && (!oldUser || oldUser.user_id !== newUser.user_id)) {
-          window.location.reload();
+          if (!document.getElementById('nm-cross-tab-schizophrenia')) {
+            const modal = document.createElement('dialog');
+            modal.id = 'nm-cross-tab-schizophrenia';
+            modal.className = 'backdrop:bg-slate-900/90 backdrop:backdrop-blur-3xl animate-fade-in-up m-auto p-0 bg-transparent border-none overflow-visible w-full max-w-md';
+            
+            document.body.style.overflow = 'hidden';
+            
+            const reloadMsg = typeof t === 'function' ? t('cross_tab_user_changed', 'تم تسجيل الدخول بحساب مختلف من تبويب آخر. يجب تحديث الصفحة لمزامنة البيانات.') : 'تم تسجيل الدخول بحساب مختلف من تبويب آخر. يجب تحديث الصفحة لمزامنة البيانات.';
+            const reloadBtn = typeof t === 'function' ? t('common_reload', 'تحديث الصفحة') : 'تحديث الصفحة';
+            
+            modal.innerHTML = `
+              <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full p-6 relative mx-auto border border-slate-700 outline-none text-center">
+                <div class="size-16 mx-auto bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mb-4">
+                  <i class="ph ph-arrows-clockwise text-3xl text-amber-600 dark:text-amber-400"></i>
+                </div>
+                <h2 class="text-xl font-bold text-slate-800 dark:text-white mb-2">تغيير في حالة الجلسة</h2>
+                <p class="text-slate-600 dark:text-slate-300 mb-6 text-sm leading-relaxed">${escapeHtml(reloadMsg)}</p>
+                <button id="btn-force-reload" class="w-full bg-trust-blue hover:bg-trust-blue/90 text-white font-bold py-3 px-4 rounded-lg transition-colors shadow-lg shadow-trust-blue/20">
+                  ${escapeHtml(reloadBtn)}
+                </button>
+              </div>
+            `;
+            document.body.appendChild(modal);
+            
+            modal.addEventListener('cancel', (e) => e.preventDefault()); // Prevent ESC
+            modal.querySelector('#btn-force-reload')?.addEventListener('click', () => {
+              window.location.reload();
+            });
+            
+            import('./utils/dialog-polyfill').then(({ polyfillDialog }) => {
+              polyfillDialog(modal);
+              modal.showModal();
+              (modal.querySelector('#btn-force-reload') as HTMLElement)?.focus();
+            }).catch(() => {
+              modal.showModal();
+            });
+          }
           return;
         }
 
