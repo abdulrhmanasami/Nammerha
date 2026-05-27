@@ -84,7 +84,7 @@ class _SubmitBidContentState extends State<_SubmitBidContent> {
         );
       }
     } finally {
-      if (mounted) {
+      if (mounted && !cubit.isClosed) {
         cubit.setSubmitting(false);
       }
     }

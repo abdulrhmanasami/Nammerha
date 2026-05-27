@@ -40,7 +40,11 @@ class _KycView extends StatelessWidget {
       ),
       body: BlocConsumer<AdminKycBloc, AdminKycState>(
         // PLAT-UX FIX: Prevent UI Wipeout Blink on transient action states
-        buildWhen: (previous, current) => current is AdminKycLoading || current is AdminKycLoaded,
+        buildWhen: (previous, current) {
+          if (current is AdminKycLoading || current is AdminKycLoaded) return true;
+          if (current is AdminKycError && previous is! AdminKycLoaded) return true;
+          return false;
+        },
         listener: (context, state) {
           if (state is AdminKycDecisionSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -65,6 +69,24 @@ class _KycView extends StatelessWidget {
           }
           if (state is AdminKycLoaded) {
             return _buildLoaded(context, state);
+          }
+          if (state is AdminKycError) {
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(PhosphorIconsRegular.warningCircle, size: 48, color: colors.error),
+                  const SizedBox(height: 16),
+                  Text(context.tr('error_loading_data'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.textHeading)),
+                  const SizedBox(height: 16),
+                  OutlinedButton.icon(
+                    onPressed: () => context.read<AdminKycBloc>().add(const LoadKycQueue()),
+                    icon: Icon(PhosphorIconsRegular.arrowsClockwise, size: 18),
+                    label: Text(context.tr('retry')),
+                  ),
+                ],
+              ),
+            );
           }
           return const SizedBox.shrink();
         },

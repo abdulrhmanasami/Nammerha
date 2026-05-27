@@ -158,10 +158,11 @@ class _DamageReportWizardState extends State<_DamageReportWizard> {
           ),
         ),
       body: BlocConsumer<DamageReportBloc, DamageReportState>(
-        // [PLATINUM FIX]: Prevent UI wipeout on transient action states
+        // [PLATINUM FIX]: Prevent UI wipeout on transient action states.
+        // The Phantom Loading Trap: DamageReportError MUST be allowed through 
+        // to clear the `isLoading` lock on the GPS and Submit buttons.
         buildWhen: (previous, current) {
-          return current is! DamageReportError && 
-                 current is! DamageReportSuccess && 
+          return current is! DamageReportSuccess && 
                  current is! DamageReportOfflineSaved;
         },
         // [PLATINUM FIX]: Prevent listener spam on keystrokes

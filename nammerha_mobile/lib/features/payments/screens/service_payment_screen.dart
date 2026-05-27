@@ -91,13 +91,35 @@ class _ServicePaymentViewState extends State<_ServicePaymentView> {
             );
           }
         },
-        buildWhen: (prev, curr) => curr is ContractDetailsLoaded || curr is ContractPaymentLoading,
+        buildWhen: (prev, curr) {
+          if (curr is ContractPaymentLoading || curr is ContractDetailsLoaded) return true;
+          if (curr is ContractPaymentError && prev is! ContractDetailsLoaded) return true;
+          return false;
+        },
         builder: (context, state) {
           if (state is ContractPaymentLoading) {
             return _buildPaymentShimmer(colors);
           }
           if (state is ContractDetailsLoaded) {
             return _buildForm(context, state, colors);
+          }
+          if (state is ContractPaymentError) {
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(PhosphorIconsRegular.warningCircle, size: 48, color: colors.error),
+                  const SizedBox(height: 16),
+                  Text(context.tr('error_loading_data'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: colors.textHeading)),
+                  const SizedBox(height: 16),
+                  OutlinedButton.icon(
+                    onPressed: () => context.read<ContractPaymentBloc>().add(LoadContractDetailsEvent(widget.contract.contractId)),
+                    icon: Icon(PhosphorIconsRegular.arrowsClockwise, size: 18),
+                    label: Text(context.tr('retry')),
+                  ),
+                ],
+              ),
+            );
           }
           return const SizedBox.shrink();
         },

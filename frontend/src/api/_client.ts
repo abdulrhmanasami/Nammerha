@@ -153,7 +153,19 @@ export function request<T>(
   if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
     // PLATINUM FIX: Binary Data Cross-Pollination (Zero-Day P0-DATA)
     // Using a static string for FormData causes concurrent uploads to collide and drop data.
-    const idempotencyKey = (options.headers as Record<string, string>)?.['Idempotency-Key'];
+    let idempotencyKey: string | null | undefined;
+    if (options.headers) {
+      if (options.headers instanceof Headers) {
+        idempotencyKey = options.headers.get('Idempotency-Key');
+      } else if (Array.isArray(options.headers)) {
+        const header = options.headers.find((h) => h[0].toLowerCase() === 'idempotency-key');
+        idempotencyKey = header?.[1];
+      } else {
+        const headersRecord = options.headers as Record<string, string>;
+        const key = Object.keys(headersRecord).find((k) => k.toLowerCase() === 'idempotency-key');
+        if (key) idempotencyKey = headersRecord[key];
+      }
+    }
     let bodyStr = typeof options.body === 'string' ? options.body : null;
 
     // PLATINUM FIX: Deterministic Binary Hashing (Prevent Double-Submission)

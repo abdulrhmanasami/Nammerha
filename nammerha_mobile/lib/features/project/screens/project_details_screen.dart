@@ -185,7 +185,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
           Expanded(
             child: BlocConsumer<ProjectDetailsBloc, ProjectDetailsState>(
         
-        buildWhen: (previous, current) => current is! ProjectDetailsError,listener: (context, state) {},
+        buildWhen: (previous, current) => true,listener: (context, state) {},
         builder: (context, state) {
           if (state is ProjectDetailsLoading || state is ProjectDetailsInitial) {
             return Center(

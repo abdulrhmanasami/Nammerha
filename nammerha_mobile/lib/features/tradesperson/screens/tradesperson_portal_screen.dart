@@ -89,7 +89,7 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
       ),
       body: BlocConsumer<TradespersonBloc, TradespersonState>(
         
-        buildWhen: (previous, current) => current is! TradespersonError && current is! ActionSuccess,listener: (context, state) {
+        buildWhen: (previous, current) => current is! ActionSuccess,listener: (context, state) {
           if (state is TradespersonError) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.error), backgroundColor: colors.error));
           } else if (state is ActionSuccess) {

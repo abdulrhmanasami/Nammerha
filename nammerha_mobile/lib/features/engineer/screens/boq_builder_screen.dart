@@ -90,7 +90,7 @@ class _BoqBuilderViewState extends State<_BoqBuilderView> {
       ),
       body: BlocConsumer<BoqBloc, BoqState>(
         
-        buildWhen: (previous, current) => current is! BoqPublishSuccess && current is! BoqError,listener: (context, state) {
+        buildWhen: (previous, current) => current is! BoqPublishSuccess,listener: (context, state) {
           if (state is BoqPublishSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(context.tr('eng_boq_published')), backgroundColor: colors.success),

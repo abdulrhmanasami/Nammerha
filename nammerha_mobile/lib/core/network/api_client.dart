@@ -502,6 +502,25 @@ class NammerhaApiClient {
         // PLATINUM UX FIX: Financial Lock
         OfflineInterceptor.validateOfflineRequest(query, variables);
 
+        if (idempotent) {
+          await OfflineQueue.instance.enqueue(QueuedRequest(
+            id: headers['Idempotency-Key'] ?? _generateUUID(),
+            endpoint: '', // unused for GraphQL
+            method: 'POST',
+            body: {
+              'query': query,
+              if (variables != null) 'variables': variables,
+              if (operationName != null) 'operationName': operationName,
+            },
+            extraHeaders: {'X-GraphQL-Mutation': 'true'},
+            enqueuedAt: DateTime.now(),
+          ));
+          throw const ApiException(
+            'تم حفظ الطلب — سيُرسل تلقائياً عند عودة الاتصال.',
+            statusCode: 0,
+          );
+        }
+
         throw const ApiException(
           'لا يوجد اتصال بالإنترنت. تحقق من الشبكة وحاول مرة أخرى.',
         );
@@ -514,6 +533,25 @@ class NammerhaApiClient {
 
         // PLATINUM UX FIX: Financial Lock
         OfflineInterceptor.validateOfflineRequest(query, variables);
+
+        if (idempotent) {
+          await OfflineQueue.instance.enqueue(QueuedRequest(
+            id: headers['Idempotency-Key'] ?? _generateUUID(),
+            endpoint: '', // unused for GraphQL
+            method: 'POST',
+            body: {
+              'query': query,
+              if (variables != null) 'variables': variables,
+              if (operationName != null) 'operationName': operationName,
+            },
+            extraHeaders: {'X-GraphQL-Mutation': 'true'},
+            enqueuedAt: DateTime.now(),
+          ));
+          throw const ApiException(
+            'تم حفظ الطلب — سيُرسل تلقائياً عند عودة الاتصال.',
+            statusCode: 0,
+          );
+        }
 
         throw const ApiException(
           'انتهت مهلة الاتصال — تحقق من اتصالك بالإنترنت وحاول مرة أخرى.',

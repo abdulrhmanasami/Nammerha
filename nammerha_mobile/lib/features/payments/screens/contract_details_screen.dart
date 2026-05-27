@@ -46,7 +46,7 @@ class _ContractDetailsView extends StatelessWidget {
       appBar: AppBar(title: Text(context.tr('contract_details'))),
       body: BlocConsumer<ContractPaymentBloc, ContractPaymentState>(
         
-        buildWhen: (previous, current) => current is! ContractPaymentError,listener: (context, state) {
+        buildWhen: (previous, current) => true,listener: (context, state) {
           if (state is PaymentCreated) {
             HapticFeedback.mediumImpact();
             ScaffoldMessenger.of(context).showSnackBar(

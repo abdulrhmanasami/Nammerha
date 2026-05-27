@@ -13,6 +13,7 @@ import '../../../core/services/reality_capture_api.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/widgets/shimmer_loader.dart';
 import '../../../core/widgets/bottom_sheet_grabber.dart';
+import '../../../core/widgets/error_state.dart';
 import '../bloc/reality_capture_bloc.dart';
 import '../bloc/capture_form_cubit.dart';
 import '../../../core/utils/animation_budget.dart';
@@ -111,12 +112,12 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
         label: Text(context.tr('new_capture'), style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
       ),
       body: BlocConsumer<RealityCaptureBloc, RealityCaptureState>(
-        
         buildWhen: (previous, current) {
-        if (current.runtimeType == previous.runtimeType) return false;
-        final s = current.toString();
-        return !s.contains('Error') && !s.contains('Success');
-      },listener: (ctx, state) {
+          if (current is CaptureSubmitted) return false;
+          if (current is RealityCaptureError && previous is CapturesLoaded) return false;
+          return true;
+        },
+        listener: (ctx, state) {
           if (state is CaptureSubmitted) {
             ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text(state.message), backgroundColor: colors.success));
           } else if (state is RealityCaptureError) {
@@ -126,6 +127,12 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
         builder: (ctx, state) {
           if (state is CaptureUploading) {
             return _uploadingView(state.stage, colors);
+          }
+          if (state is RealityCaptureError) {
+            return NammerhaErrorState(
+              message: state.message,
+              onRetry: () => ctx.read<RealityCaptureBloc>().add(LoadCaptures(projectId: widget.projectId)),
+            );
           }
           return TabBarView(
             controller: _tabController,

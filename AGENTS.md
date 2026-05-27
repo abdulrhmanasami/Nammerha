@@ -18,6 +18,19 @@
 
 ## 🛑 ZERO-REGRESSION MEMOS (CRITICAL AI MEMORY)
 
+**MEMO 23: The Demonic State Machine & GraphQL Offline Blackhole (May 27, 2026)**
+
+- **Root Cause Destroyed:**
+  1. `Idempotency-Key` extraction in `api/_client.ts` assumed headers were always a `Record<string, string>`, causing the In-Flight Mutation Multiplexer to silently fail for `Headers` objects or arrays.
+  2. Flutter Engine `imageCache` limits were hardcoded, but low-end phones lacked a native listener for OS memory pressure, leading to unhandled OOM crashes.
+  3. Bidding flow state machines (`SubmitFormCubit`, `BidsFetchCubit`) executed async transitions (e.g., `setSubmitting(false)`) inside `finally` blocks AFTER the Navigator popped the screen. This fired on closed BLoCs, crashing the app (The Demonic State Machine).
+  4. GraphQL mutations with `idempotent: true` completely bypassed the `OfflineQueue` logic, validating the request but then throwing a network error instead of physically enqueuing the query (The GraphQL Offline Blackhole).
+- **New Logic Built:**
+  1. The In-Flight Multiplexer now robustly parses `Headers` instances, arrays, and standard objects to flawlessly enforce global idempotency.
+  2. `WidgetsBindingObserver.didHaveMemoryPressure` is injected into the root `_AppFlowController` to violently wipe both `imageCache` and `clearLiveImages()` on OS memory warnings.
+  3. Strict mathematical `isClosed` and `mounted` locks are placed on all async `finally` blocks inside BLoC/Cubits to guarantee no transitions fire post-disposal.
+  4. The `graphql` interceptor natively packages `Query`, `Variables`, and `OperationName`, flags it with `X-GraphQL-Mutation: true`, and strictly enqueues it to the `OfflineQueue` alongside REST requests.
+
 **MEMO 22: Platinum UI/UX Forensic Audit - Phantom Freshness & Infinite Loops (May 27, 2026)**
 
 - **Root Cause Destroyed:**

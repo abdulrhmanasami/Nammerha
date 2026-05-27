@@ -309,8 +309,29 @@ class _AppFlowController extends StatefulWidget {
   State<_AppFlowController> createState() => _AppFlowControllerState();
 }
 
-class _AppFlowControllerState extends State<_AppFlowController> {
+class _AppFlowControllerState extends State<_AppFlowController> with WidgetsBindingObserver {
   _AppScreen _currentScreen = _AppScreen.splash;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didHaveMemoryPressure() {
+    super.didHaveMemoryPressure();
+    // PLATINUM UX FIX: Aggressively clear image cache on OS memory warning
+    // Prevents fatal OOM crashes on low-end 1GB-2GB RAM Syrian phones.
+    PaintingBinding.instance.imageCache.clear();
+    PaintingBinding.instance.imageCache.clearLiveImages();
+  }
 
   void _navigateTo(_AppScreen screen) {
     setState(() => _currentScreen = screen);

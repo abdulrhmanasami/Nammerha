@@ -6,6 +6,7 @@ import '../../../core/services/review_api.dart';
 import '../../../core/theme/semantic_colors.dart';
 import '../../../core/widgets/shimmer_loader.dart';
 import '../../../core/widgets/bottom_sheet_grabber.dart';
+import '../../../core/widgets/error_state.dart';
 import '../bloc/review_bloc.dart';
 import '../../../core/i18n/t.dart';
 import '../../../core/utils/haptics.dart';
@@ -60,12 +61,12 @@ class _ReviewsView extends StatelessWidget {
         label: Text(context.tr('rv_add_review'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
       ),
       body: BlocConsumer<ReviewBloc, ReviewState>(
-        
         buildWhen: (previous, current) {
-        if (current.runtimeType == previous.runtimeType) return false;
-        final s = current.toString();
-        return !s.contains('Error') && !s.contains('Success');
-      },listener: (ctx, state) {
+          if (current is ReviewActionSuccess || current is ReviewSubmitted) return false;
+          if (current is ReviewError && previous is ReviewLoaded) return false;
+          return true;
+        },
+        listener: (ctx, state) {
           if (state is ReviewSubmitted || state is ReviewActionSuccess) {
             final msg = state is ReviewSubmitted ? state.message : (state as ReviewActionSuccess).message;
             ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text(msg), backgroundColor: colors.success));
@@ -76,6 +77,12 @@ class _ReviewsView extends StatelessWidget {
         builder: (ctx, state) {
           if (state is ReviewLoading || state is ReviewSubmitting) {
             return NammerhaShimmerLoader(colors: colors, itemCount: 3);
+          }
+          if (state is ReviewError) {
+            return NammerhaErrorState(
+              message: state.message,
+              onRetry: () => ctx.read<ReviewBloc>().add(LoadReviews(type: type, entityId: entityId)),
+            );
           }
           if (state is ReviewLoaded) return _buildLoaded(ctx, state);
           return const SizedBox.shrink();

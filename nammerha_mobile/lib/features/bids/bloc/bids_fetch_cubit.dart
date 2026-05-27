@@ -69,14 +69,18 @@ class BidsFetchCubit extends Cubit<BidsFetchState> {
 
   /// Fetches bids from the API. Owns the full data lifecycle.
   Future<void> fetchBids() async {
+    if (isClosed) return;
     emit(const BidsFetchState(isLoading: true));
     try {
       final rawBids = await _engineerApi.getBids();
+      if (isClosed) return;
       final models = rawBids.map((json) => BidModel.fromJson(json)).toList();
       emit(BidsFetchState(isLoading: false, bids: models, allBids: models));
     } on ApiException catch (e) {
+      if (isClosed) return;
       emit(BidsFetchState(isLoading: false, error: localizeApiError(e.message)));
     } catch (e) {
+      if (isClosed) return;
       emit(BidsFetchState(isLoading: false, error: ErrorKeys.loadBids));
     }
   }

@@ -244,13 +244,22 @@ class OfflineQueue {
       }
 
       try {
-        await NammerhaApiClient.instance.request(
-          request.endpoint,
-          method: request.method,
-          body: request.body,
-          idempotent: request.idempotent,
-          extraHeaders: request.extraHeaders,
-        );
+        if (request.extraHeaders?['X-GraphQL-Mutation'] == 'true') {
+          await NammerhaApiClient.instance.graphql(
+            query: request.body?['query'] as String,
+            variables: request.body?['variables'] as Map<String, dynamic>?,
+            operationName: request.body?['operationName'] as String?,
+            idempotent: request.idempotent,
+          );
+        } else {
+          await NammerhaApiClient.instance.request(
+            request.endpoint,
+            method: request.method,
+            body: request.body,
+            idempotent: request.idempotent,
+            extraHeaders: request.extraHeaders,
+          );
+        }
 
         // ── SUCCESS ───────────────────────────────────────────────────────
         _queue.remove(request);

@@ -120,7 +120,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       create: (_) => ProfileFormCubit(),
       child: BlocConsumer<ProfileBloc, ProfileState>(
       
-        buildWhen: (previous, current) => current is! ProfileError && current is! ProfileSaveError,listener: (context, state) {
+        buildWhen: (previous, current) => true,listener: (context, state) {
         final isEditing = context.read<ProfileFormCubit>().state;
         if (state is ProfileLoaded && !isEditing) {
           _nameController.text = state.user['full_name']?.toString() ?? '';

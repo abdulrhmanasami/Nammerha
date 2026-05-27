@@ -294,7 +294,7 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
 
         return BlocConsumer<SpatialProofBloc, SpatialProofState>(
       
-        buildWhen: (previous, current) => current is! SpatialProofSuccess && current is! SpatialProofError,listener: (context, state) {
+        buildWhen: (previous, current) => current is! SpatialProofSuccess,listener: (context, state) {
         if (state is SpatialProofSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
