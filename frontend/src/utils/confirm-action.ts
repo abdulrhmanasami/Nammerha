@@ -119,7 +119,11 @@ export function confirmAction(opts: ConfirmActionOptions): Promise<boolean> {
     tryApplyI18n();
 
     // ── Event Handlers ────────────────────────────────────────────────
+    let isClosed = false;
     function close(confirmed: boolean): void {
+      if (isClosed) return;
+      isClosed = true;
+
       dialog.close();
       dialog.remove();
       if (confirmed) {

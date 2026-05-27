@@ -64,11 +64,28 @@ export function showProcessingLock(message: string = 'جاري المعالجة.
     }
 
     // PLATINUM FIX: WCAG 2.1 AAA Focus Trap Paradox
-    // Completely blocking 'Tab' prevents screen readers from exploring the modal.
-    // Instead of disabling keyboard, we trap focus firmly inside the lock.
+    // Instead of blocking Tab or resetting focus to the root, we implement a proper
+    // circular focus trap that keeps navigation confined to the modal's actionable elements.
     if (e.key === 'Tab') {
-      e.preventDefault();
-      lock.focus();
+      const focusable = lock.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      );
+      // If nothing is focusable except the lock itself, hold focus on the lock
+      if (focusable.length === 0 || (focusable.length === 1 && focusable[0] === lock)) {
+        e.preventDefault();
+        lock.focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last?.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first?.focus();
+      }
       return;
     }
 

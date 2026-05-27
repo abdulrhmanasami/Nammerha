@@ -37,12 +37,23 @@ export class DirtyStateGuard {
         // do not show a duplicate confirm dialog.
         if (e.defaultPrevented) return;
 
+        // PLATINUM FIX: Double Confirmation Paradox Resolution
+        // If the user already confirmed data loss for another guard in this same event loop,
+        // we silently mark this guard as clean and exit to prevent spamming confirm dialogs.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if ((e as any)._nmUserConfirmedLeave) {
+          this.markClean();
+          return;
+        }
+
         const confirmLoss = window.confirm(
           t('confirm_unsaved_leave', 'لديك بيانات غير محفوظة. هل أنت متأكد من رغبتك في المغادرة؟'),
         );
         if (!confirmLoss) {
           e.preventDefault();
         } else {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (e as any)._nmUserConfirmedLeave = true;
           this.markClean();
         }
       }
@@ -80,7 +91,7 @@ export class DirtyStateGuard {
       window.removeEventListener('nm_internal_navigate', this._internalNavListener);
 
       activeGuardsCount--;
-      
+
       // Ensure we don't go below 0 and clean up listener
       if (activeGuardsCount <= 0) {
         activeGuardsCount = 0;

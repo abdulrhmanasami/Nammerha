@@ -184,6 +184,19 @@
   1. `PopScope` now strictly delegates hardware navigation to the BLoC State Machine by evaluating `data.currentStep > 0`.
   2. It natively fires `bloc.add(PrevStepEvent())` instead of popping the navigator, mathematically guaranteeing that the hardware back button behaves identically to the software "Previous" button.
 
+**MEMO 19: The Platinum UI/UX State Hardening (May 27, 2026)**
+
+- **Root Cause Destroyed:**
+  1. The Privacy Shield (`session-timeout.ts`) used a `div`, failing to trap focus (WCAG AAA) and allowing users to bypass it using keyboard `Tab`. Scroll locks leaked permanently if auth failed.
+  2. The Double Confirmation Paradox in `dirty-guard.ts` caused a spam loop of `window.confirm` dialogs because `window.dispatchEvent` synchronously alerts all listeners, and previous guards didn't tag the event after confirmation.
+  3. The `confirm-action.ts` Promise suffered from a Double Resolution Leak when users double-tapped Esc+Cancel.
+  4. The `ui-lock.ts` focus trap was a naive `.focus()` to the root container on every `Tab` press, completely blinding screen readers.
+- **New Logic Built:**
+  1. `session-timeout.ts` MUST use a native HTML `<dialog>` element and `showModal()` for the Privacy Shield, inherently enforcing `inert` backgrounds and absolute focus trapping.
+  2. `dirty-guard.ts` tags the internal navigation event with `(e as any)._nmUserConfirmedLeave = true` to gracefully silence all other dirty guards in the same tick once the user consents to data loss.
+  3. `confirm-action.ts` strictly enforces a `let isClosed = false` closure lock to guarantee a single Promise resolution.
+  4. `ui-lock.ts` uses a legitimate circular focus trap `querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')` allowing safe internal navigation for screen readers.
+
 ## 🏗️ Platform Architecture
 
 ### Web Frontend (frontend/)

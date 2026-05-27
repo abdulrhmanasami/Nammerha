@@ -268,22 +268,21 @@ function performLogout(): void {
 
   if (document.getElementById('nm-privacy-shield')) return;
 
-  const modal = document.createElement('div');
+  const modal = document.createElement('dialog');
   modal.id = 'nm-privacy-shield';
-  // PLATINUM FIX: ARIA Semantics
-  modal.setAttribute('role', 'dialog');
-  modal.setAttribute('aria-modal', 'true');
+  // PLATINUM FIX: Native <dialog> provides role="dialog" and aria-modal="true" automatically via showModal()
   modal.setAttribute('aria-label', t('session_locked_privacy', 'تم تأمين الشاشة لحماية بياناتك'));
-  // Platinum UX: Dense blur to hide data, unbreakable z-index.
+  // Platinum UX: Dense blur to hide data, unbreakable stacking via top-layer.
+  // We apply the blur and background to the ::backdrop pseudo-element.
   modal.className =
-    'fixed inset-0 z-[10000] flex items-center justify-center bg-slate-900/80 backdrop-blur-3xl animate-fade-in-up';
+    'backdrop:bg-slate-900/80 backdrop:backdrop-blur-3xl animate-fade-in-up m-auto p-0 bg-transparent border-none overflow-visible w-full max-w-md';
 
   // PLATINUM FIX: Scroll Leak Prevention
   const originalOverflow = document.body.style.overflow;
   document.body.style.overflow = 'hidden';
 
   modal.innerHTML = `
-    <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-md h-[550px] overflow-hidden relative mx-4 border border-slate-700">
+    <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full h-[550px] overflow-hidden relative mx-auto border border-slate-700 outline-none">
       <div class="absolute top-0 inset-x-0 h-10 bg-amber-500/10 flex items-center justify-center border-b border-amber-500/20 z-20">
         <p class="text-amber-600 dark:text-amber-400 text-xs font-bold flex items-center gap-2">
           <i class="ph-fill ph-lock-key" aria-hidden="true"></i> ${t('session_locked_privacy', 'تم تأمين الشاشة لحماية بياناتك')}
@@ -298,6 +297,7 @@ function performLogout(): void {
     if (e.origin !== window.location.origin) return;
     if (e.data === 'nm_auth_success') {
       window.removeEventListener('message', onMessage);
+      modal.close();
       modal.remove();
       // PLATINUM FIX: Restore Scroll
       document.body.style.overflow = originalOverflow;
@@ -305,6 +305,14 @@ function performLogout(): void {
     }
   };
   window.addEventListener('message', onMessage);
+
+  // Prevent closing via escape key since the session is strictly dead
+  modal.addEventListener('cancel', (e) => {
+    e.preventDefault();
+  });
+
+  polyfillDialog(modal);
+  modal.showModal();
 }
 
 // ─── Cleanup ────────────────────────────────────────────────────────────────
