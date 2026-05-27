@@ -534,7 +534,7 @@ async function loadNotifications(): Promise<void> {
     // HIGH-UX-006 FIX: Wire click-to-navigate on actionable notification items.
     // Clicking marks as read (optimistic) and navigates to the resolved URL.
     body.querySelectorAll<HTMLElement>('[data-notif-href]').forEach((item) => {
-      item.addEventListener('click', async (e) => {
+      const executeNavigation = async (e: Event) => {
         // Don't navigate if they clicked the mark-read button (handled above)
         if ((e.target as HTMLElement).closest('[data-mark-read]')) {
           return;
@@ -558,6 +558,16 @@ async function loadNotifications(): Promise<void> {
             closePanel(activeBell);
           }
           window.location.href = href;
+        }
+      };
+
+      item.addEventListener('click', executeNavigation);
+
+      // PLATINUM FIX: WCAG AAA Keyboard Accessibility Guard (Enter/Space to Click)
+      item.addEventListener('keydown', (e: KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault(); // Prevent default scroll on Spacebar
+          executeNavigation(e);
         }
       });
     });

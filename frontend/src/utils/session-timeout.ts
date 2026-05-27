@@ -189,8 +189,20 @@ function showWarningDialog(remainingMs: number): void {
   }, 1000);
 
   // ── Extend Session ──
-  dialog.querySelector('#nm-timeout-extend')?.addEventListener('click', async () => {
+  const extendBtn = dialog.querySelector<HTMLButtonElement>('#nm-timeout-extend');
+  let isExtending = false;
+
+  extendBtn?.addEventListener('click', async () => {
+    if (isExtending) return;
+    isExtending = true;
     haptic.medium();
+
+    // PLATINUM FIX: Visual State Lock (Prevent Double-Submit)
+    const originalText = extendBtn.innerHTML;
+    extendBtn.disabled = true;
+    extendBtn.classList.add('opacity-70', 'cursor-not-allowed');
+    extendBtn.innerHTML = `<i class="ph ph-spinner animate-spin text-lg" aria-hidden="true"></i> جاري التمديد...`;
+
     try {
       const res = await fetch('/api/auth/me', { credentials: 'same-origin' });
       if (res.ok) {
@@ -202,14 +214,28 @@ function showWarningDialog(remainingMs: number): void {
         performLogout();
       }
     } catch {
-      // Network error — dismiss dialog, let next interaction handle it
-      dismissDialog(dialog, countdownTimer);
+      // Network error — restore state so user can try again
+      isExtending = false;
+      extendBtn.disabled = false;
+      extendBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+      extendBtn.innerHTML = originalText;
     }
   });
 
   // ── Sign Out ──
-  dialog.querySelector('#nm-timeout-logout')?.addEventListener('click', () => {
+  const logoutBtn = dialog.querySelector<HTMLButtonElement>('#nm-timeout-logout');
+  let isLoggingOut = false;
+
+  logoutBtn?.addEventListener('click', () => {
+    if (isLoggingOut) return;
+    isLoggingOut = true;
     haptic.light();
+
+    // PLATINUM FIX: Visual State Lock for Logout
+    logoutBtn.disabled = true;
+    logoutBtn.classList.add('opacity-70', 'cursor-not-allowed');
+    logoutBtn.innerHTML = `<i class="ph ph-spinner animate-spin text-lg" aria-hidden="true"></i> جاري الخروج...`;
+
     performLogout();
   });
 
@@ -276,7 +302,9 @@ function performLogout(): void {
       }
     });
 
-  if (document.getElementById('nm-privacy-shield')) {return;}
+  if (document.getElementById('nm-privacy-shield')) {
+    return;
+  }
 
   const modal = document.createElement('dialog');
   modal.id = 'nm-privacy-shield';
@@ -298,7 +326,9 @@ function performLogout(): void {
   const _shieldTouchInterceptor = (e: TouchEvent) => {
     const path = e.composedPath();
     const isInsideIframe = path.some((el) => (el as HTMLElement).tagName === 'IFRAME');
-    if (isInsideIframe) {return;}
+    if (isInsideIframe) {
+      return;
+    }
     e.preventDefault();
   };
   window.addEventListener('touchmove', _shieldTouchInterceptor, { passive: false });
@@ -316,7 +346,9 @@ function performLogout(): void {
   document.body.appendChild(modal);
 
   const onMessage = (e: MessageEvent) => {
-    if (e.origin !== window.location.origin) {return;}
+    if (e.origin !== window.location.origin) {
+      return;
+    }
     if (e.data === 'nm_auth_success') {
       window.removeEventListener('message', onMessage);
       window.removeEventListener('popstate', onPopState);

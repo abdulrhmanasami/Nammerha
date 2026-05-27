@@ -18,11 +18,24 @@
 
 ## 🛑 ZERO-REGRESSION MEMOS (CRITICAL AI MEMORY)
 
+**MEMO 39: The Demonic Concurrency & WCAG Keyboard Paradox (May 27, 2026)**
+
+- **Root Cause Destroyed:**
+  1. `session-timeout.ts` lacked a mutex on the "Extend Session" and "Logout" buttons, allowing rapid double-clicks (or Enter spam) to fire concurrent \`fetch('/api/auth/me')\` requests. This "Demonic Concurrency" broke idempotency and led to network spam.
+  2. `notification-panel.ts` assigned \`role="link"\` and \`tabindex="0"\` to custom \`<div class="nm-notif-item">\` elements, but only wired an \`.addEventListener('click')\`. When screen-reader/keyboard users pressed "Enter" or "Space", the event vanished into the void, creating a WCAG AAA Keyboard Dead-End.
+  3. The Escrow Cryptographic Theater in `admin-escrow.ts` lacked a pre-flight \`navigator.onLine\` check, causing the synchronous UI delay to run completely blind to network status, then failing abruptly.
+- **New Logic Built:**
+  1. A strict Visual State Lock (\`isExtending\`, \`isLoggingOut\`) with immediate DOM disabling and spinner injection is enforced in \`session-timeout.ts\` to completely block double submissions.
+  2. A legitimate \`keydown\` interceptor specifically checking for \`e.key === 'Enter' || e.key === ' '\` is bound to notification items to synthetically trigger the \`executeNavigation\` logic.
+  3. \`navigator.onLine\` strictly guards the Cryptographic Theater initiation.
+
 **MEMO 38: The Focus Trap Escape Paradox (Absolute Boundary Enforcement) (May 27, 2026)**
+
 - **Root Cause Destroyed:** The `ui-lock.ts` glassmorphism overlay attempted to trap keyboard focus inside the modal but failed because `element.querySelectorAll` natively excludes the root element. When `Tab` was pressed while the root container was focused, the logic failed, and focus escaped into the hidden document body, breaking WCAG AAA compliance.
 - **New Logic Built:** Focus trap logic must NEVER rely solely on `querySelectorAll`. It MUST explicitly evaluate the root container (`document.activeElement === lock`) in its conditional checks and provide an Absolute Boundary fallback (`!focusable.includes(activeElement)`) to mathematically guarantee focus redirection.
 
 **MEMO 37: The Cross-Tab Session Murder Paradox (May 27, 2026)**
+
 - **Root Cause Destroyed:** The `session-timeout.ts` script blindly spawned an auto-logout `setTimeout` when entering the 2-minute warning threshold. It ignored `sessionStorage` updates occurring in other tabs, causing active users to be forcefully logged out and locked by idle tabs.
 - **New Logic Built:** ALL idle-timeout or warning mechanisms MUST implement a `StorageEvent` listener that recalculates the session TTL dynamically. If the session is refreshed in another tab, the idle tab must self-destruct its warning modal and gracefully resume operation.
 
@@ -36,7 +49,6 @@
   1. `unknown` types are mathematically enforced in `Promise<ApiResponse<unknown>>` multiplexing and `PullRefreshEventDetail`. Type-narrowing `('scale' in event)` is strictly mandated over blind typecasting.
   2. Block-scoped `const` arrow functions are systematically enforced for localized event and UI state handlers to prevent hoisting collisions.
   3. The `/* ignore */` closure convention is strictly standardized for intentional error swallows (e.g., safe fallback parsing, private mode storage exceptions), fulfilling Platinum Code Hygiene standards (0 ESLint errors).
-
 
 **MEMO 24: Platinum Forensic State Machine Overhaul - Ghost UI, Iframe Paralysis & Silent Eviction (May 27, 2026)**
 

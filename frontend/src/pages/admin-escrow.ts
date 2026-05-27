@@ -304,10 +304,16 @@ function initActionButtons(): void {
           new Promise((resolve) => {
             const start = Date.now();
             const check = () => {
-              if (isTheaterCancelled) {return resolve(false);} // Abort theater instantly
+              if (isTheaterCancelled) {
+                return resolve(false);
+              } // Abort theater instantly
               // PLATINUM FIX: Memory Leak Guard (DOM Detachment Detection)
-              if (!document.body.contains(releaseBtn)) {return resolve(false);}
-              if (Date.now() - start >= ms) {return resolve(true);} // Proceed to next act
+              if (!document.body.contains(releaseBtn)) {
+                return resolve(false);
+              }
+              if (Date.now() - start >= ms) {
+                return resolve(true);
+              } // Proceed to next act
               requestAnimationFrame(check);
             };
             requestAnimationFrame(check);
@@ -316,6 +322,12 @@ function initActionButtons(): void {
         // Stage 1: Request sent (Fire API but catch early failures to cancel the theater)
         // PLATINUM FIX: Promise Settlement Proxy (Prevents UnhandledPromiseRejection leak)
         let apiError: unknown = null;
+
+        // PLATINUM FIX: Pre-flight network check before theater
+        if (!navigator.onLine) {
+          throw new Error(t('error_offline', 'لا يوجد اتصال بالإنترنت. يرجى التحقق من الشبكة.'));
+        }
+
         const apiPromise = admin
           .releaseEscrow({ proof_id: c.proof_id, item_id: c.item_id })
           .catch((err) => {
@@ -334,7 +346,11 @@ function initActionButtons(): void {
 
         // Await the actual API
         await apiPromise;
-        if (apiError) {throw apiError;} // Synchronous, 100% safe throw
+        if (apiError) {
+          // PLATINUM FIX: Guarantee UI un-freezes before bubbling error
+          isTheaterCancelled = true;
+          throw apiError;
+        } // Synchronous, 100% safe throw
 
         // UX: Immediate visual update
         c.status = 'released';
