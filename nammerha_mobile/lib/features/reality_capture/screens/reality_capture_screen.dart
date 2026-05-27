@@ -111,7 +111,12 @@ class _RealityCaptureViewState extends State<_RealityCaptureView>
         label: Text(context.tr('new_capture'), style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
       ),
       body: BlocConsumer<RealityCaptureBloc, RealityCaptureState>(
-        listener: (ctx, state) {
+        
+        buildWhen: (previous, current) {
+        if (current.runtimeType == previous.runtimeType) return false;
+        final s = current.toString();
+        return !s.contains('Error') && !s.contains('Success');
+      },listener: (ctx, state) {
           if (state is CaptureSubmitted) {
             ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text(state.message), backgroundColor: colors.success));
           } else if (state is RealityCaptureError) {

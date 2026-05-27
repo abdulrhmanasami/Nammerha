@@ -197,6 +197,17 @@
   3. `confirm-action.ts` strictly enforces a `let isClosed = false` closure lock to guarantee a single Promise resolution.
   4. `ui-lock.ts` uses a legitimate circular focus trap `querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')` allowing safe internal navigation for screen readers.
 
+**MEMO 20: Flutter Mobile App UI Wipeout & Transient State Hardening (May 27, 2026)**
+
+- **Root Cause Destroyed:**
+  1. 18 critical BLoC UI screens in `nammerha_mobile` completely omitted the `buildWhen` predicate inside their `BlocConsumer` widgets.
+  2. The omission allowed transient state emissions (e.g., `Error` messages triggering SnackBars or `ActionSuccess` events triggering Navigation) to maliciously trigger a full UI Builder re-execution.
+  3. The re-execution caused the main UI to instantly crash to fallback visual states (like `SizedBox.shrink()` or ShimmerLoaders), causing "Phantom Blinks" or complete "UI Wipeouts."
+- **New Logic Built:**
+  1. Mathematical AST-level `buildWhen` predicates have been injected into all 18 `BlocConsumer` nodes.
+  2. `buildWhen: (previous, current) => current is! [TargetError] && current is! [TargetSuccess]` is now strictly enforced across all mobile repositories.
+  3. NEVER create a `BlocConsumer` in the mobile app without explicitly routing transient states to the `listener` and blocking them from the `builder`.
+
 ## 🏗️ Platform Architecture
 
 ### Web Frontend (frontend/)

@@ -100,7 +100,12 @@ class _VerifyEmailViewState extends State<_VerifyEmailView> {
             child: Padding(
               padding: const EdgeInsets.all(32),
               child: BlocConsumer<VerifyEmailBloc, VerifyEmailState>(
-                listener: (context, state) {
+                
+        buildWhen: (previous, current) {
+        if (current.runtimeType == previous.runtimeType) return false;
+        final s = current.toString();
+        return !s.contains('Error') && !s.contains('Success');
+      },listener: (context, state) {
                   if (state is VerifyEmailSuccess) {
                     // Auto-navigate to login after 3 seconds
                     Future.delayed(const Duration(seconds: 3), () {

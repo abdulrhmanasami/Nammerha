@@ -66,7 +66,8 @@ class _ProjectMapViewState extends State<_ProjectMapView> {
     return Scaffold(
       backgroundColor: colors.backgroundPrimary,
       body: BlocConsumer<MapBloc, MapState>(
-        listener: (context, state) {
+        
+        buildWhen: (previous, current) => current is! MapError,listener: (context, state) {
           // When a project is selected, animate the camera to it.
           if (state is MapLoaded && state.selectedProject != null) {
             _mapController.move(

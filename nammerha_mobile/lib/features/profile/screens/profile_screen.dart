@@ -119,7 +119,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return BlocProvider(
       create: (_) => ProfileFormCubit(),
       child: BlocConsumer<ProfileBloc, ProfileState>(
-      listener: (context, state) {
+      
+        buildWhen: (previous, current) => current is! ProfileError && current is! ProfileSaveError,listener: (context, state) {
         final isEditing = context.read<ProfileFormCubit>().state;
         if (state is ProfileLoaded && !isEditing) {
           _nameController.text = state.user['full_name']?.toString() ?? '';
@@ -753,7 +754,12 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
     return BlocProvider(
       create: (_) => ChangePasswordFormCubit(),
       child: BlocConsumer<AuthBloc, AuthState>(
-        listenWhen: (prev, curr) =>
+        
+        buildWhen: (previous, current) {
+        if (current.runtimeType == previous.runtimeType) return false;
+        final s = current.toString();
+        return !s.contains('Error') && !s.contains('Success');
+      },listenWhen: (prev, curr) =>
             curr is AuthPasswordChanged ||
             curr is AuthError ||
             curr is AuthLoading,

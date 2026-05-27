@@ -68,7 +68,8 @@ class EscrowCheckoutView extends StatelessWidget {
     final colors = context.colors;
 
     return BlocConsumer<CheckoutBloc, CheckoutState>(
-      listener: (context, state) async {
+      
+        buildWhen: (previous, current) => current is! CheckoutSuccess && current is! CheckoutError,listener: (context, state) async {
         if (state is CheckoutSuccess && state.checkoutUrl != null) {
           final url = Uri.parse(state.checkoutUrl!);
           if (await canLaunchUrl(url)) {

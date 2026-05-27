@@ -60,7 +60,12 @@ class _ReviewsView extends StatelessWidget {
         label: Text(context.tr('rv_add_review'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
       ),
       body: BlocConsumer<ReviewBloc, ReviewState>(
-        listener: (ctx, state) {
+        
+        buildWhen: (previous, current) {
+        if (current.runtimeType == previous.runtimeType) return false;
+        final s = current.toString();
+        return !s.contains('Error') && !s.contains('Success');
+      },listener: (ctx, state) {
           if (state is ReviewSubmitted || state is ReviewActionSuccess) {
             final msg = state is ReviewSubmitted ? state.message : (state as ReviewActionSuccess).message;
             ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text(msg), backgroundColor: colors.success));

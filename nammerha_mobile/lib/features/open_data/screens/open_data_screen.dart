@@ -39,7 +39,12 @@ class OpenDataScreen extends StatelessWidget {
           iconTheme: IconThemeData(color: colors.textPrimary),
         ),
         body: BlocConsumer<OpenDataBloc, OpenDataState>(
-          listener: (context, state) {
+          
+        buildWhen: (previous, current) {
+        if (current.runtimeType == previous.runtimeType) return false;
+        final s = current.toString();
+        return !s.contains('Error') && !s.contains('Success');
+      },listener: (context, state) {
             if (state.error != null) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text(state.error!), backgroundColor: colors.error)

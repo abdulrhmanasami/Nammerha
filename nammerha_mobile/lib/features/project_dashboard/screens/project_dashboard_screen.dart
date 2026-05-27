@@ -75,7 +75,8 @@ class _ProjectDashboardView extends StatelessWidget {
         iconTheme: IconThemeData(color: colors.textPrimary),
       ),
       body: BlocConsumer<ProjectDashboardBloc, ProjectDashboardState>(
-        listener: (context, state) {
+        
+        buildWhen: (previous, current) => current is! ProjectDashboardError,listener: (context, state) {
           if (state is DailyLogSubmitted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(

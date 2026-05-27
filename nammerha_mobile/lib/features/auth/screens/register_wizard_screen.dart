@@ -251,7 +251,12 @@ class _RegisterWizardBodyState extends State<_RegisterWizardBody> {
     final colors = context.colors;
 
     return BlocConsumer<AuthBloc, AuthState>(
-      listener: (context, state) {
+      
+        buildWhen: (previous, current) {
+        if (current.runtimeType == previous.runtimeType) return false;
+        final s = current.toString();
+        return !s.contains('Error') && !s.contains('Success');
+      },listener: (context, state) {
         if (state is AuthRegistrationSuccess) {
           // AUD-003: Clear draft on successful registration.
           context.read<RegisterWizardCubit>().clearDraft();

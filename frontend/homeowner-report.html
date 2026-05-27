@@ -340,9 +340,11 @@
             id="neighborhood"
             class="w-full h-14 bg-white border border-slate-200 rounded-xl px-4 text-base font-medium text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-trust-blue/30 focus:border-trust-blue outline-none shadow-sm mb-5 dark:bg-dark-surface dark:border-dark-border dark:text-slate-100"
             placeholder="الحي أو المنطقة"
+            autocomplete="address-level3"
             data-i18n-placeholder="ho_neighborhood_placeholder"
             enterkeyhint="done"
-          dir="auto" />
+            dir="auto"
+          />
 
           <!-- Detect Location Button -->
           <button
@@ -439,8 +441,10 @@
               class="w-full min-h-[120px] bg-white border border-slate-200 rounded-xl p-4 text-base font-medium text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-trust-blue/30 focus:border-trust-blue outline-none shadow-sm resize-none dark:bg-dark-surface dark:border-dark-border dark:text-slate-100"
               placeholder="صف الأضرار بالتفصيل..."
               data-i18n-placeholder="ho_damage_desc_placeholder"
+              autocomplete="off"
               maxlength="1000"
-             dir="auto"></textarea>
+              dir="auto"
+            ></textarea>
             <div class="flex justify-end mt-1">
               <!-- INC-002 FIX: text-[11px] → text-3xs — micro-hint tier (char counter). -->
               <span class="text-3xs text-slate-400 dark:text-slate-500" id="desc-char-count"

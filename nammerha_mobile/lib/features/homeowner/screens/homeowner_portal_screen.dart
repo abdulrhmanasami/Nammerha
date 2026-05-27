@@ -93,7 +93,8 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
         ),
       ),
       body: BlocConsumer<HomeownerBloc, HomeownerState>(
-        listener: (context, state) {
+        
+        buildWhen: (previous, current) => current is! HomeownerError && current is! ApprovalResponseSuccess,listener: (context, state) {
           if (state is HomeownerError) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.error), backgroundColor: colors.error));
           } else if (state is ApprovalResponseSuccess) {
