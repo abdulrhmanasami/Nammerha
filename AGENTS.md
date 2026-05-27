@@ -18,6 +18,19 @@
 
 ## 🛑 ZERO-REGRESSION MEMOS (CRITICAL AI MEMORY)
 
+**MEMO 22: Platinum UI/UX Forensic Audit - Phantom Freshness & Infinite Loops (May 27, 2026)**
+
+- **Root Cause Destroyed:**
+  1. `session-timeout.ts` listened to local DOM clicks to reset the frontend session timer, but the backend JWT clock continued ticking. This "Phantom Freshness" led to silent timeouts and sudden 401s when the user submitted a form.
+  2. The `nm-privacy-shield` overlay used `overflow: hidden` on the body, which iOS Safari ignores, allowing users to scroll the background and expose sensitive data behind the blur.
+  3. `api/_client.ts` Re-Auth modal globally captured the `Escape` key to launch a `confirmAction`. Pressing `Escape` on the confirmation dialog triggered the capture listener again, spawning infinite `confirmAction` dialogs and freezing the UI thread.
+  4. `homeowner-portal.ts` used global `document.getElementById('nm-kyc-banner-dismiss')`, causing DOM target collisions if multiple elements existed.
+- **New Logic Built:**
+  1. `markOnInteraction` was completely eradicated. The session timer is strictly extended ONLY when a successful network response is received via `api/_client.ts`.
+  2. A physical `touchmove` capture listener with `e.preventDefault()` is injected alongside the privacy shield to mathematically freeze the iOS viewport.
+  3. A cryptographic mutex (`let isConfirming = false`) is wrapped around the `closeAction` to guarantee only one confirmation dialog can ever exist.
+  4. Global ID lookups replaced with absolute scoped targeting (`kycBanner.querySelector`).
+
 **MEMO 1: Unified Citizen Model & Donation Purge (May 25, 2026)**
 
 - **Root Cause Destroyed:** The platform previously had intertwined "Donation" and "Crowdfunding" logic which violated the Unified Citizen Model and caused IDOR vulnerabilities in tests and routing.
@@ -209,6 +222,7 @@
   3. NEVER create a `BlocConsumer` in the mobile app without explicitly routing transient states to the `listener` and blocking them from the `builder`.
 
 **MEMO 21: The Cross-Tab Amnesia & Lie-Fi Blackhole Annihilation (May 27, 2026)**
+
 - **Root Cause Destroyed:**
   1. `auth.ts` unconditionally executed `window.location.reload()` when a user logged into a different account in another tab, silently wiping out any active forms in the current tab (Cross-Tab Amnesia Paradox).
   2. `api/_client.ts` handled offline 401s by freezing a promise and immediately resolving `true` upon `online`, which bypassed the Re-Auth Modal entirely and caused an infinite 401 loop upon reconnection (The Lie-Fi Blackhole).

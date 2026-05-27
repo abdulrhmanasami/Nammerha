@@ -98,18 +98,9 @@ export function initSessionTimeoutWarning(): void {
   // Clean up on page unload
   window.addEventListener('beforeunload', cleanup);
 
-  // Also mark activity on user interaction (mouse/keyboard) — debounced
-  let lastInteraction = 0;
-  const markOnInteraction = (): void => {
-    const now = Date.now();
-    // Debounce: only update every 30s regardless of interaction frequency
-    if (now - lastInteraction > 30_000) {
-      lastInteraction = now;
-      markSessionActivity();
-    }
-  };
-  document.addEventListener('click', markOnInteraction, { passive: true });
-  document.addEventListener('keydown', markOnInteraction, { passive: true });
+  // PLATINUM FIX: Removed 'markOnInteraction' (Phantom Freshness Paradox).
+  // Local DOM interactions DO NOT extend the backend's HttpOnly JWT.
+  // Session activity is now strictly updated ONLY via network responses in _client.ts.
 }
 
 // ─── Core Logic ─────────────────────────────────────────────────────────────
@@ -277,9 +268,14 @@ function performLogout(): void {
   modal.className =
     'backdrop:bg-slate-900/80 backdrop:backdrop-blur-3xl animate-fade-in-up m-auto p-0 bg-transparent border-none overflow-visible w-full max-w-md';
 
-  // PLATINUM FIX: Scroll Leak Prevention
+  // PLATINUM FIX: Scroll Leak Prevention (iOS Safari Viewport Paradox)
   const originalOverflow = document.body.style.overflow;
   document.body.style.overflow = 'hidden';
+
+  // 'overflow: hidden' on body does NOT stop scrolling natively on iOS Safari.
+  // We must physically intercept the touchmove event to freeze the viewport.
+  const _shieldTouchInterceptor = (e: TouchEvent) => e.preventDefault();
+  window.addEventListener('touchmove', _shieldTouchInterceptor, { passive: false });
 
   modal.innerHTML = `
     <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full h-[550px] overflow-hidden relative mx-auto border border-slate-700 outline-none">
@@ -298,6 +294,7 @@ function performLogout(): void {
     if (e.data === 'nm_auth_success') {
       window.removeEventListener('message', onMessage);
       window.removeEventListener('popstate', onPopState);
+      window.removeEventListener('touchmove', _shieldTouchInterceptor);
       modal.close();
       modal.remove();
       // PLATINUM FIX: Restore Scroll
@@ -313,6 +310,7 @@ function performLogout(): void {
   const onPopState = () => {
     window.removeEventListener('message', onMessage);
     window.removeEventListener('popstate', onPopState);
+    window.removeEventListener('touchmove', _shieldTouchInterceptor);
     if (document.body.contains(modal)) {
       modal.close();
       modal.remove();

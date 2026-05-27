@@ -387,17 +387,20 @@ async function _requestInternal<T>(
                 // PLATINUM FIX: Silent Re-Auth Dismissal Wipeout
                 // Ensure users don't accidentally click 'X' or press Escape and lose all
                 // unsaved form data. Wrap the dismissal in a confirmation dialog.
+                let isConfirming = false;
                 const closeAction = async () => {
+                  if (isConfirming) return;
+                  isConfirming = true;
                   const { confirmAction } = await import('../utils/confirm-action');
                   const confirmed = await confirmAction({
                     title: t('cancel_reauth_title', 'إلغاء العملية؟'),
                     message: t(
                       'cancel_reauth_msg',
-                      'إلغاء تسجيل الدخول سيؤدي إلى إنهاء الجلسة تماماً وفقدان أي بيانات غير محفوظة. هل أنت متأكد؟'
+                      'إلغاء تسجيل الدخول سيؤدي إلى إنهاء الجلسة تماماً وفقدان أي بيانات غير محفوظة. هل أنت متأكد؟',
                     ),
                     confirmLabel: t('common_leave', 'نعم، قم بالمغادرة'),
                     variant: 'danger',
-                    onConfirm: () => {}
+                    onConfirm: () => {},
                   });
 
                   if (confirmed) {
@@ -406,6 +409,8 @@ async function _requestInternal<T>(
                     clearAuth();
                     window.location.href = '/auth.html?reason=session_expired';
                     resolve(false);
+                  } else {
+                    isConfirming = false;
                   }
                 };
 

@@ -200,7 +200,7 @@ document.addEventListener(
         mainContent.insertBefore(kycBanner, mainContent.firstChild);
 
         // P2-STM-003 FIX: Dismiss handler — persists to localStorage with timestamp.
-        document.getElementById('nm-kyc-banner-dismiss')?.addEventListener('click', () => {
+        kycBanner.querySelector('#nm-kyc-banner-dismiss')?.addEventListener('click', () => {
           kycBanner.classList.add('animate-fade-out');
           setTimeout(() => kycBanner.remove(), 300);
           try {
