@@ -21,10 +21,10 @@ import { escapeHtml as esc } from '../utils/xss';
 export function mountTourReplayFAB(tourId?: string): void {
   // Auto-detect from URL if not specified
   const resolved = tourId ?? detectTourId();
-  if (!resolved) return;
+  if (!resolved) {return;}
 
   // Prevent duplicates
-  if (document.getElementById('nm-tour-replay-fab')) return;
+  if (document.getElementById('nm-tour-replay-fab')) {return;}
 
   const fab = document.createElement('button');
   fab.id = 'nm-tour-replay-fab';

@@ -36,7 +36,7 @@ export class LiveOracleTicker {
 
   public render(): void {
     const container = document.getElementById(this.containerId);
-    if (!container) return;
+    if (!container) {return;}
 
     // Platinum UI: Elegant ticker styling with a pulsing indicator and smooth marquee
     const template = `
@@ -83,7 +83,7 @@ export class LiveOracleTicker {
 
   private populateTicker(): void {
     const contentContainer = document.getElementById('oracle-marquee-content');
-    if (!contentContainer) return;
+    if (!contentContainer) {return;}
 
     const formatter = new Intl.NumberFormat('ar-SY', { style: 'currency', currency: 'SYP', maximumFractionDigits: 0 });
 
@@ -111,9 +111,9 @@ export class LiveOracleTicker {
   }
 
   public startUpdates(): void {
-    if (this.autoUpdateInterval) return;
+    if (this.autoUpdateInterval) {return;}
     this.autoUpdateInterval = window.setInterval(() => {
-      if (!this.isConnected) return;
+      if (!this.isConnected) {return;}
       // Simulate real-time price fluctuation
       mockOracleData.forEach(item => {
         if (Math.random() > 0.7) {

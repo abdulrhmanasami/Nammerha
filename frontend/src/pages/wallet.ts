@@ -361,7 +361,7 @@ async function loadTransactions(): Promise<void> {
       if (filtersEl) {
         filtersEl.addEventListener('click', (e: Event) => {
           const chip = (e.target as HTMLElement).closest<HTMLButtonElement>('.nm-filter-chip');
-          if (!chip) return;
+          if (!chip) {return;}
           haptic.light();
           const filterVal = chip.dataset['filter'] ?? 'all';
 
@@ -391,10 +391,10 @@ async function loadTransactions(): Promise<void> {
       receiptDelegationWired = true;
       listEl.addEventListener('click', (e: Event) => {
         const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.v003-receipt-btn');
-        if (!btn || btn.disabled) return;
+        if (!btn || btn.disabled) {return;}
         e.stopPropagation();
         const escrowId = btn.dataset['escrowId'];
-        if (!escrowId) return;
+        if (!escrowId) {return;}
         haptic.light(); // UX-004: Tactile download feedback
 
         // PLAT-UX-006 FIX: Tactile & Visual closure for silent downloads
@@ -462,7 +462,7 @@ function init(): void {
     container: 'transaction-list',
     timeoutMs: 15000,
     onRetry: () => {
-      if (cancelTxSkeleton) cancelTxSkeleton(); // Reset the guard
+      if (cancelTxSkeleton) {cancelTxSkeleton();} // Reset the guard
       loadTransactions();
     },
   });

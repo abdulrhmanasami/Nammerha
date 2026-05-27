@@ -944,7 +944,7 @@ function init(): void {
     themeToggle.checked = isDark;
 
     // Sync UI to current state
-    function syncThemeUI(dark: boolean): void {
+    const syncThemeUI = (dark: boolean): void => {
       if (themeIcon) {
         themeIcon.className = dark
           ? 'ph ph-sun-dim text-amber-500'
@@ -1018,7 +1018,7 @@ function init(): void {
 
   async function loadActiveSessions(): Promise<void> {
     const container = document.getElementById('v005-sessions-list');
-    if (!container) return;
+    if (!container) {return;}
 
     container.innerHTML = `<div class="flex justify-center py-4"><div class="nm-skeleton-pulse rounded-lg" style="width:100%;height:48px"></div></div>`;
 
@@ -1078,7 +1078,7 @@ function init(): void {
       container.querySelectorAll<HTMLButtonElement>('.v005-revoke-btn').forEach((btn) => {
         btn.addEventListener('click', async () => {
           const deviceId = btn.dataset['device'];
-          if (!deviceId) return;
+          if (!deviceId) {return;}
           btn.disabled = true;
           btn.textContent = '...';
           try {
@@ -1162,7 +1162,7 @@ function init(): void {
   async function loadMfaStatus(): Promise<void> {
     const badge = document.getElementById('mfa-status-badge');
     const actionArea = document.getElementById('mfa-action-area');
-    if (!badge || !actionArea) return;
+    if (!badge || !actionArea) {return;}
 
     try {
       const res = await auth.mfaStatus();
@@ -1202,14 +1202,14 @@ function init(): void {
           const password = prompt(
             t('mfa_enter_password', 'أدخل كلمة المرور لتأكيد إلغاء المصادقة الثنائية:'),
           );
-          if (!password) return;
+          if (!password) {return;}
           disableMfaAction(password);
         });
 
         // Wire regenerate button
         document.getElementById('mfa-regen-codes-btn')?.addEventListener('click', async () => {
           if (!confirm(t('mfa_regen_confirm', 'سيتم إبطال الرموز القديمة. هل تريد المتابعة؟')))
-            return;
+            {return;}
           try {
             const res = await auth.mfaRegenerateCodes();
             if (res.success && res.data) {
@@ -1245,10 +1245,10 @@ function init(): void {
   async function startMfaSetup(): Promise<void> {
     const setupFlow = document.getElementById('mfa-setup-flow');
     const actionArea = document.getElementById('mfa-action-area');
-    if (!setupFlow) return;
+    if (!setupFlow) {return;}
 
     // Hide action area, show setup flow
-    if (actionArea) actionArea.classList.add('nm-hidden');
+    if (actionArea) {actionArea.classList.add('nm-hidden');}
     setupFlow.classList.remove('nm-hidden');
     setupFlow.innerHTML = `<div class="flex justify-center py-4"><div class="nm-skeleton-pulse rounded-lg" style="width:100%;height:120px"></div></div>`;
 
@@ -1301,13 +1301,13 @@ function init(): void {
       document.getElementById('mfa-setup-cancel')?.addEventListener('click', () => {
         setupFlow.classList.add('nm-hidden');
         setupFlow.innerHTML = '';
-        if (actionArea) actionArea.classList.remove('nm-hidden');
+        if (actionArea) {actionArea.classList.remove('nm-hidden');}
       });
 
       // Wire confirm
       let isConfirming = false;
-      async function confirmSetup(): Promise<void> {
-        if (isConfirming) return;
+      const confirmSetup = async (): Promise<void> => {
+        if (isConfirming) {return;}
         const codeInput = document.getElementById('mfa-setup-code') as HTMLInputElement | null;
         const code = codeInput?.value.trim() ?? '';
         const errorEl = document.getElementById('mfa-setup-error');
@@ -1323,8 +1323,8 @@ function init(): void {
         isConfirming = true;
         const confirmBtn = document.getElementById('mfa-setup-confirm') as HTMLButtonElement | null;
         const confirmText = document.getElementById('mfa-setup-confirm-text');
-        if (confirmBtn) confirmBtn.classList.add('btn-loading');
-        if (confirmText) confirmText.textContent = t('mfa_verifying', 'جاري التحقق…');
+        if (confirmBtn) {confirmBtn.classList.add('btn-loading');}
+        if (confirmText) {confirmText.textContent = t('mfa_verifying', 'جاري التحقق…');}
 
         try {
           const result = await auth.mfaConfirm({ token: code });
@@ -1341,7 +1341,7 @@ function init(): void {
               errorEl.textContent = result.error ?? t('mfa_invalid_code', 'رمز غير صحيح');
               errorEl.classList.remove('nm-hidden');
             }
-            if (codeInput) codeInput.value = '';
+            if (codeInput) {codeInput.value = '';}
             codeInput?.focus();
           }
         } catch (err) {
@@ -1350,12 +1350,12 @@ function init(): void {
               err instanceof Error ? err.message : t('mfa_setup_failed', 'فشل التأكيد');
             errorEl.classList.remove('nm-hidden');
           }
-          if (codeInput) codeInput.value = '';
+          if (codeInput) {codeInput.value = '';}
           codeInput?.focus();
         } finally {
           isConfirming = false;
-          if (confirmBtn) confirmBtn.classList.remove('btn-loading');
-          if (confirmText) confirmText.textContent = t('mfa_confirm_btn', 'تأكيد');
+          if (confirmBtn) {confirmBtn.classList.remove('btn-loading');}
+          if (confirmText) {confirmText.textContent = t('mfa_confirm_btn', 'تأكيد');}
         }
       }
 
@@ -1393,7 +1393,7 @@ function init(): void {
   function showRecoveryCodes(codes: string[]): void {
     // Show a modal/dialog with recovery codes
     const existing = document.getElementById('mfa-recovery-dialog');
-    if (existing) existing.remove();
+    if (existing) {existing.remove();}
 
     const dialog = document.createElement('div');
     dialog.id = 'mfa-recovery-dialog';
@@ -1487,17 +1487,17 @@ function init(): void {
   async function loadDeletionStatus(): Promise<void> {
     const banner = document.getElementById('gdpr-deletion-banner');
     const deleteBtn = document.getElementById('gdpr-delete-account-btn');
-    if (!banner) return;
+    if (!banner) {return;}
 
     try {
       const res = await auth.deletionStatus();
-      if (!res.success || !res.data) return;
+      if (!res.success || !res.data) {return;}
 
       const { deletion_pending, grace_period_ends, days_remaining } = res.data;
 
       if (deletion_pending && grace_period_ends) {
         banner.classList.remove('nm-hidden');
-        if (deleteBtn) deleteBtn.classList.add('nm-hidden');
+        if (deleteBtn) {deleteBtn.classList.add('nm-hidden');}
 
         const msgEl = document.getElementById('gdpr-deletion-message');
         const dateEl = document.getElementById('gdpr-deletion-date');
@@ -1525,7 +1525,7 @@ function init(): void {
                 'success',
               );
               banner.classList.add('nm-hidden');
-              if (deleteBtn) deleteBtn.classList.remove('nm-hidden');
+              if (deleteBtn) {deleteBtn.classList.remove('nm-hidden');}
             } else {
               showToast(cancelRes.error ?? t('cancel_failed', 'فشل إلغاء الحذف'), 'error');
             }
@@ -1615,13 +1615,13 @@ function init(): void {
     // Wire cancel
     document.getElementById('gdpr-cancel-dialog')?.addEventListener('click', () => dialog.remove());
     dialog.addEventListener('click', (e) => {
-      if (e.target === dialog) dialog.remove();
+      if (e.target === dialog) {dialog.remove();}
     });
 
     // Wire confirm
     let isDeleting = false;
     document.getElementById('gdpr-confirm-delete')?.addEventListener('click', async () => {
-      if (isDeleting) return;
+      if (isDeleting) {return;}
 
       const confirmText =
         (document.getElementById('gdpr-confirm-text') as HTMLInputElement)?.value.trim() ?? '';
@@ -1652,8 +1652,8 @@ function init(): void {
       isDeleting = true;
       const confirmBtn = document.getElementById('gdpr-confirm-delete') as HTMLButtonElement | null;
       const confirmBtnText = document.getElementById('gdpr-confirm-delete-text');
-      if (confirmBtn) confirmBtn.classList.add('btn-loading');
-      if (confirmBtnText) confirmBtnText.textContent = t('deleting', 'جاري الحذف…');
+      if (confirmBtn) {confirmBtn.classList.add('btn-loading');}
+      if (confirmBtnText) {confirmBtnText.textContent = t('deleting', 'جاري الحذف…');}
 
       try {
         const res = await auth.deleteAccount({
@@ -1697,8 +1697,8 @@ function init(): void {
         }
       } finally {
         isDeleting = false;
-        if (confirmBtn) confirmBtn.classList.remove('btn-loading');
-        if (confirmBtnText) confirmBtnText.textContent = t('delete_confirm_btn', 'حذف الحساب');
+        if (confirmBtn) {confirmBtn.classList.remove('btn-loading');}
+        if (confirmBtnText) {confirmBtnText.textContent = t('delete_confirm_btn', 'حذف الحساب');}
       }
     });
 
@@ -1713,7 +1713,7 @@ function init(): void {
         t('confirm_sign_out_all', 'تسجيل الخروج من جميع الأجهزة؟ ستحتاج لتسجيل الدخول مجدداً.'),
       )
     )
-      return;
+      {return;}
     try {
       await auth.revokeAllSessions();
       showToast(

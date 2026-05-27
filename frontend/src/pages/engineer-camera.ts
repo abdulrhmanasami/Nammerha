@@ -109,7 +109,7 @@ function initTimestamp(): void {
 function injectMiniMapMount(): void {
   // Try to mount after the GPS coordinates section
   const gpsSection = gpsCoordsEl?.closest('.flex, .grid, div') ?? document.querySelector('main');
-  if (!gpsSection) return;
+  if (!gpsSection) {return;}
 
   // Create mount wrapper
   const mount = document.createElement('div');
@@ -360,7 +360,7 @@ function setupSync(): void {
     if (!navigator.onLine) {
       showToast(t('cam_offline_saved', 'أنت غير متصل. الإثباتات محفوظة بأمان في جهازك.'));
       const icon = syncBtn.querySelector('i.ph');
-      if (icon) icon.className = 'ph ph-wifi-slash text-warm-earth text-xl';
+      if (icon) {icon.className = 'ph ph-wifi-slash text-warm-earth text-xl';}
       return;
     }
 

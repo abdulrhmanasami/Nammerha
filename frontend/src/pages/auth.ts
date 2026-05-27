@@ -99,7 +99,7 @@ const FORGOT_PW_COOLDOWN_KEY = 'nmh_forgot_pw_cooldown_until';
 function isForgotPwOnCooldown(): boolean {
   try {
     const until = sessionStorage.getItem(FORGOT_PW_COOLDOWN_KEY);
-    if (!until) return false;
+    if (!until) {return false;}
     return Date.now() < parseInt(until, 10);
   } catch {
     return false;
@@ -109,7 +109,7 @@ function isForgotPwOnCooldown(): boolean {
 function getForgotPwCooldownRemaining(): number {
   try {
     const until = sessionStorage.getItem(FORGOT_PW_COOLDOWN_KEY);
-    if (!until) return 0;
+    if (!until) {return 0;}
     return Math.max(0, Math.ceil((parseInt(until, 10) - Date.now()) / 1000));
   } catch {
     return 0;
@@ -131,7 +131,7 @@ function setForgotPwCooldown(seconds: number): void {
 function isResendOnCooldown(): boolean {
   try {
     const until = sessionStorage.getItem(RESEND_COOLDOWN_KEY);
-    if (!until) return false;
+    if (!until) {return false;}
     return Date.now() < parseInt(until, 10);
   } catch {
     return false;
@@ -141,7 +141,7 @@ function isResendOnCooldown(): boolean {
 function getResendCooldownRemaining(): number {
   try {
     const until = sessionStorage.getItem(RESEND_COOLDOWN_KEY);
-    if (!until) return 0;
+    if (!until) {return 0;}
     return Math.max(0, Math.ceil((parseInt(until, 10) - Date.now()) / 1000));
   } catch {
     return 0;
@@ -464,7 +464,7 @@ function saveRegDraft(): void {
 function restoreRegDraft(): void {
   try {
     const raw = sessionStorage.getItem(REG_DRAFT_KEY);
-    if (!raw) return;
+    if (!raw) {return;}
     const draft = JSON.parse(raw) as { name?: string; email?: string; step?: number };
     const nameEl = document.getElementById('reg-name') as HTMLInputElement | null;
     const emailEl = document.getElementById('reg-email') as HTMLInputElement | null;
@@ -776,7 +776,7 @@ formRegister?.addEventListener('keydown', (e: KeyboardEvent) => {
     // the submit handler while isSubmitting was true but formRegister?.requestSubmit()
     // fired before the guard check at L1227.
     // Standard: OWASP Rate Limiting, FinTech Double-Submit Prevention.
-    if (state.isSubmitting) return;
+    if (state.isSubmitting) {return;}
     // P2-W12-001 FIX: Scroll to unchecked terms checkbox on Enter.
     // PREVIOUS: Validation error shown but terms checkbox not scrolled into view.
     // Standard: WCAG 3.3.1 (Error Identification), Material Design 3.
@@ -913,7 +913,7 @@ function hideBanner(): void {
 (function restoreLockoutTimer(): void {
   try {
     const lockoutUntilStr = sessionStorage.getItem('nmh_lockout_until');
-    if (!lockoutUntilStr) return;
+    if (!lockoutUntilStr) {return;}
     const lockoutUntil = parseInt(lockoutUntilStr, 10);
     let remainingSeconds = Math.ceil((lockoutUntil - Date.now()) / 1000);
     if (remainingSeconds <= 0) {
@@ -962,7 +962,7 @@ function hideBanner(): void {
 (function restoreRegLockoutTimer(): void {
   try {
     const lockoutUntilStr = sessionStorage.getItem('nmh_reg_lockout_until');
-    if (!lockoutUntilStr) return;
+    if (!lockoutUntilStr) {return;}
     const lockoutUntil = parseInt(lockoutUntilStr, 10);
     let remainingSeconds = Math.ceil((lockoutUntil - Date.now()) / 1000);
     if (remainingSeconds <= 0) {
@@ -1312,8 +1312,8 @@ formLogin?.addEventListener('submit', async (e) => {
   const password = (document.getElementById('login-password') as HTMLInputElement)?.value ?? '';
 
   if (!email || !password) {
-    if (!email) document.getElementById('login-email')?.setAttribute('aria-invalid', 'true');
-    if (!password) document.getElementById('login-password')?.setAttribute('aria-invalid', 'true');
+    if (!email) {document.getElementById('login-email')?.setAttribute('aria-invalid', 'true');}
+    if (!password) {document.getElementById('login-password')?.setAttribute('aria-invalid', 'true');}
     showBanner('error', t('auth_enter_email_password', 'أدخل البريد الإلكتروني وكلمة المرور'));
     return;
   }
@@ -1537,7 +1537,7 @@ formLogin?.addEventListener('submit', async (e) => {
           // NOW: On visibilitychange, recalculates from the sessionStorage timestamp.
           // Standard: Page Visibility API, Mobile Safari Timer Throttling Resilience.
           const _lockoutVisibilityHandler = (): void => {
-            if (document.visibilityState !== 'visible') return;
+            if (document.visibilityState !== 'visible') {return;}
             try {
               const storedUntil = sessionStorage.getItem('nmh_lockout_until');
               if (!storedUntil) {
@@ -2010,14 +2010,14 @@ regForgotBtn?.addEventListener('click', async (e) => {
 // ─────────────────────────────────────────────────────────────────────────────
 (function restoreForgotCooldown(): void {
   const remaining = getForgotPwCooldownRemaining();
-  if (remaining <= 0) return;
+  if (remaining <= 0) {return;}
 
   const forgotBtns = [
     document.getElementById('forgot-password-btn'),
     document.getElementById('reg-forgot-password-btn'),
   ].filter(Boolean) as HTMLElement[];
 
-  if (forgotBtns.length === 0) return;
+  if (forgotBtns.length === 0) {return;}
 
   forgotBtns.forEach((btn) => {
     btn.classList.add('nm-btn-cooldown');
@@ -2137,7 +2137,7 @@ function showEmailSentConfirmation(emailAddress: string): void {
     // Clear previously entered values for a fresh start
     const regNameInput = document.getElementById('reg-name') as HTMLInputElement | null;
     const regEmailInput = document.getElementById('reg-email') as HTMLInputElement | null;
-    if (regNameInput) regNameInput.value = '';
+    if (regNameInput) {regNameInput.value = '';}
     if (regEmailInput) {
       regEmailInput.value = '';
       regEmailInput.focus();
@@ -2515,8 +2515,8 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
     setFormFocusable(formRegister, false); // P2-AUD-W16-009
   }
   // Hide tabs
-  if (tabLogin) tabLogin.classList.add('nm-hidden');
-  if (tabRegister) tabRegister.classList.add('nm-hidden');
+  if (tabLogin) {tabLogin.classList.add('nm-hidden');}
+  if (tabRegister) {tabRegister.classList.add('nm-hidden');}
   hideBanner();
 
   // Create MFA panel
@@ -2692,7 +2692,7 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
     // Standard: WCAG 3.3.1 (Error Prevention), Apple HIG (Keyboard Management).
     input.addEventListener('beforeinput', (e: InputEvent) => {
       // Allow deletion, navigation, and composition events
-      if (!e.data) return;
+      if (!e.data) {return;}
       // Block non-numeric characters
       if (/\D/.test(e.data)) {
         e.preventDefault();
@@ -2715,7 +2715,7 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
   const mfaTimerEl = document.getElementById('mfa-expiry-timer');
 
   function updateMfaTimerDisplay(): void {
-    if (!mfaTimerEl) return;
+    if (!mfaTimerEl) {return;}
     const mins = Math.floor(mfaSecondsRemaining / 60);
     const secs = mfaSecondsRemaining % 60;
     const timeStr = `${mins}:${String(secs).padStart(2, '0')}`;
@@ -2740,8 +2740,8 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
         restoreForm.classList.remove('nm-hidden');
         setFormFocusable(restoreForm, true);
       }
-      if (tabLogin) tabLogin.classList.remove('nm-hidden');
-      if (tabRegister) tabRegister.classList.remove('nm-hidden');
+      if (tabLogin) {tabLogin.classList.remove('nm-hidden');}
+      if (tabRegister) {tabRegister.classList.remove('nm-hidden');}
       state.isSubmitting = false;
       showBanner(
         'error',
@@ -2760,11 +2760,11 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
   // NOW: Focus cycles between first and last focusable elements within the panel.
   // Standard: WAI-ARIA Dialog Practices, WCAG 2.1.1 (Keyboard).
   mfaPanel.addEventListener('keydown', (e: KeyboardEvent) => {
-    if (e.key !== 'Tab') return;
+    if (e.key !== 'Tab') {return;}
     const focusableEls = mfaPanel.querySelectorAll<HTMLElement>(
       'input:not([tabindex="-1"]):not([disabled]), button:not([tabindex="-1"]):not([disabled])',
     );
-    if (focusableEls.length === 0) return;
+    if (focusableEls.length === 0) {return;}
     const firstEl = focusableEls[0];
     const lastEl = focusableEls[focusableEls.length - 1];
     if (e.shiftKey) {
@@ -2790,7 +2790,7 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
   let _mfaFailCount = 0;
 
   async function submitMfaTotp(): Promise<void> {
-    if (isMfaSubmitting) return;
+    if (isMfaSubmitting) {return;}
     const code = getFullCode();
     if (code.length !== 6 || !/^\d{6}$/.test(code)) {
       showMfaError(t('mfa_enter_6_digits', 'أدخل 6 أرقام'));
@@ -2800,8 +2800,8 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
     isMfaSubmitting = true;
     const verifyBtn = document.getElementById('mfa-verify-btn') as HTMLButtonElement | null;
     const verifyText = document.getElementById('mfa-verify-text');
-    if (verifyBtn) verifyBtn.classList.add('btn-loading');
-    if (verifyText) verifyText.textContent = t('mfa_verifying', 'جاري التحقق…');
+    if (verifyBtn) {verifyBtn.classList.add('btn-loading');}
+    if (verifyText) {verifyText.textContent = t('mfa_verifying', 'جاري التحقق…');}
     haptic.medium();
 
     try {
@@ -2847,8 +2847,8 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
       digitInputs[0]?.focus();
     } finally {
       isMfaSubmitting = false;
-      if (verifyBtn) verifyBtn.classList.remove('btn-loading');
-      if (verifyText) verifyText.textContent = t('mfa_verify_btn', 'تحقق');
+      if (verifyBtn) {verifyBtn.classList.remove('btn-loading');}
+      if (verifyText) {verifyText.textContent = t('mfa_verify_btn', 'تحقق');}
     }
   }
 
@@ -2857,7 +2857,7 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
 
   // ── Recovery Code Submit ──
   async function submitRecoveryCode(): Promise<void> {
-    if (isMfaSubmitting) return;
+    if (isMfaSubmitting) {return;}
     const recoveryInput = document.getElementById('mfa-recovery-input') as HTMLInputElement | null;
     const code = recoveryInput?.value.trim() ?? '';
     if (!code) {
@@ -2877,8 +2877,8 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
     isMfaSubmitting = true;
     const recoveryBtn = document.getElementById('mfa-recovery-btn') as HTMLButtonElement | null;
     const recoveryText = document.getElementById('mfa-recovery-text');
-    if (recoveryBtn) recoveryBtn.classList.add('btn-loading');
-    if (recoveryText) recoveryText.textContent = t('mfa_verifying', 'جاري التحقق…');
+    if (recoveryBtn) {recoveryBtn.classList.add('btn-loading');}
+    if (recoveryText) {recoveryText.textContent = t('mfa_verifying', 'جاري التحقق…');}
     haptic.medium();
 
     try {
@@ -2892,7 +2892,7 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
         );
       } else {
         showMfaError(response.error ?? t('mfa_invalid_recovery', 'رمز استرداد غير صحيح'));
-        if (recoveryInput) recoveryInput.value = '';
+        if (recoveryInput) {recoveryInput.value = '';}
         recoveryInput?.focus();
       }
     } catch (err) {
@@ -2902,12 +2902,12 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
       } else {
         showMfaError(t('auth_network_error_short', 'خطأ في الشبكة'));
       }
-      if (recoveryInput) recoveryInput.value = '';
+      if (recoveryInput) {recoveryInput.value = '';}
       recoveryInput?.focus();
     } finally {
       isMfaSubmitting = false;
-      if (recoveryBtn) recoveryBtn.classList.remove('btn-loading');
-      if (recoveryText) recoveryText.textContent = t('mfa_recovery_btn', 'استخدم رمز الاسترداد');
+      if (recoveryBtn) {recoveryBtn.classList.remove('btn-loading');}
+      if (recoveryText) {recoveryText.textContent = t('mfa_recovery_btn', 'استخدم رمز الاسترداد');}
     }
   }
 
@@ -2926,7 +2926,7 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
     if (showingRecovery) {
       totpSection?.classList.add('nm-hidden');
       recoverySection?.classList.remove('nm-hidden');
-      if (toggleBtn) toggleBtn.textContent = t('mfa_use_authenticator', 'استخدم تطبيق المصادقة');
+      if (toggleBtn) {toggleBtn.textContent = t('mfa_use_authenticator', 'استخدم تطبيق المصادقة');}
       // P2-W12-003 FIX: Tabindex management for hidden/visible MFA sections.
       // PREVIOUS: Hidden section inputs remained tab-accessible — screen readers
       // could tab into invisible fields, causing keyboard trap confusion.
@@ -2942,7 +2942,7 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
     } else {
       totpSection?.classList.remove('nm-hidden');
       recoverySection?.classList.add('nm-hidden');
-      if (toggleBtn) toggleBtn.textContent = t('mfa_use_recovery', 'استخدم رمز الاسترداد');
+      if (toggleBtn) {toggleBtn.textContent = t('mfa_use_recovery', 'استخدم رمز الاسترداد');}
       // P2-W12-003: Restore TOTP input tabindex, hide recovery input.
       totpSection?.querySelectorAll<HTMLInputElement>('input').forEach((i) => {
         i.removeAttribute('tabindex');
@@ -2966,8 +2966,8 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
       restoreForm.classList.remove('nm-hidden');
       setFormFocusable(restoreForm, true);
     }
-    if (tabLogin) tabLogin.classList.remove('nm-hidden');
-    if (tabRegister) tabRegister.classList.remove('nm-hidden');
+    if (tabLogin) {tabLogin.classList.remove('nm-hidden');}
+    if (tabRegister) {tabRegister.classList.remove('nm-hidden');}
     state.isSubmitting = false;
   });
 
@@ -3298,7 +3298,7 @@ function openGoogleOAuthPopup(clientId: string, triggerBtn?: HTMLButtonElement):
 
   if (!popup) {
     showBanner('error', t('auth_google_popup_blocked', 'نافذة Google المنبثقة محظورة'));
-    if (triggerBtn) setSocialBtnLoading(triggerBtn, false);
+    if (triggerBtn) {setSocialBtnLoading(triggerBtn, false);}
     return;
   }
 
@@ -3329,7 +3329,7 @@ function openGoogleOAuthPopup(clientId: string, triggerBtn?: HTMLButtonElement):
         // P0-AUD-002 FIX: Reset social button loading state when popup is closed.
         // PREVIOUS: User closed the popup → loading spinner persisted forever.
         // Standard: Nielsen #1 (Visibility of System Status), Cleanup on Cancel.
-        if (triggerBtn) setSocialBtnLoading(triggerBtn, false);
+        if (triggerBtn) {setSocialBtnLoading(triggerBtn, false);}
         return;
       }
       // Check if the popup has navigated back to our origin
@@ -3429,7 +3429,7 @@ function openGoogleOAuthPopup(clientId: string, triggerBtn?: HTMLButtonElement):
     } catch {
       /* ignore */
     }
-    if (triggerBtn) setSocialBtnLoading(triggerBtn, false);
+    if (triggerBtn) {setSocialBtnLoading(triggerBtn, false);}
   }, 120000);
   addTrackedTimer(safetyTimeout);
 }

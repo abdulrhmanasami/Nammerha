@@ -35,7 +35,7 @@ export class DirtyStateGuard {
       if (this.isDirty) {
         // PLATINUM FIX: If another guard already intercepted and canceled the navigation,
         // do not show a duplicate confirm dialog.
-        if (e.defaultPrevented) return;
+        if (e.defaultPrevented) {return;}
 
         // PLATINUM FIX: Double Confirmation Paradox Resolution
         // If the user already confirmed data loss for another guard in this same event loop,

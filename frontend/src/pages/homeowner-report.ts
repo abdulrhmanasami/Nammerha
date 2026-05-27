@@ -945,7 +945,7 @@ function compressImage(
 }
 
 async function processPhotoFile(file: File) {
-  if (!photoThumbnails) return;
+  if (!photoThumbnails) {return;}
   try {
     const { dataUrl, blob } = await compressImage(file);
 
@@ -993,7 +993,7 @@ async function processPhotoFile(file: File) {
               const ring = progressOverlay.querySelector<HTMLElement>('.nm-upload-ring');
               const label = progressOverlay.querySelector<HTMLElement>('span');
 
-              if (ring) ring.style.setProperty('--progress', String(visualPct));
+              if (ring) {ring.style.setProperty('--progress', String(visualPct));}
               if (label) {
                 if (visualPct >= 90) {
                   // Contextual Reassurance
@@ -1021,7 +1021,7 @@ async function processPhotoFile(file: File) {
           </div>
         `;
         const countEl = document.getElementById('photo-count');
-        if (countEl) countEl.textContent = String(state.photoCount);
+        if (countEl) {countEl.textContent = String(state.photoCount);}
       } else {
         throw new Error();
       }
@@ -1048,7 +1048,7 @@ async function processPhotoFile(file: File) {
       photoThumbnails.appendChild(thumb);
       state.photoCount++;
       const countEl = document.getElementById('photo-count');
-      if (countEl) countEl.textContent = String(state.photoCount);
+      if (countEl) {countEl.textContent = String(state.photoCount);}
     };
     reader.readAsDataURL(file);
   }
@@ -1071,7 +1071,7 @@ function updateMaxPhotosUI() {
 
 if (photoUploadZone && photoInput) {
   photoUploadZone.addEventListener('click', () => {
-    if (state.photoCount >= 5) return;
+    if (state.photoCount >= 5) {return;}
     const scanner = new SmartScanner({
       containerId: 'main-content',
       mode: 'document',
@@ -1082,7 +1082,9 @@ if (photoUploadZone && photoInput) {
           const file = new File([blob], `scan_${Date.now()}.jpg`, { type: 'image/jpeg' });
           await processPhotoFile(file);
           updateMaxPhotosUI();
-        } catch {}
+        } catch {
+          /* ignore error */
+        }
       },
       onCancel: () => photoInput.click(),
     });
@@ -1091,12 +1093,12 @@ if (photoUploadZone && photoInput) {
 
   photoInput.addEventListener('change', async () => {
     const files = photoInput.files;
-    if (!files || !photoThumbnails) return;
+    if (!files || !photoThumbnails) {return;}
 
     const count = Math.min(files.length, 5 - state.photoCount);
     for (let i = 0; i < count; i++) {
       const f = files[i];
-      if (f) await processPhotoFile(f);
+      if (f) {await processPhotoFile(f);}
     }
     updateMaxPhotosUI();
   });

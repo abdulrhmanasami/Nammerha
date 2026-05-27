@@ -58,10 +58,10 @@ function latLngToTile(
  */
 export function createGPSMiniMap(mountPointId: string): void {
   const mount = document.getElementById(mountPointId);
-  if (!mount) return;
+  if (!mount) {return;}
 
   // Prevent duplicates
-  if (document.getElementById('nm-gps-minimap')) return;
+  if (document.getElementById('nm-gps-minimap')) {return;}
 
   const container = document.createElement('div');
   container.id = 'nm-gps-minimap';
@@ -109,7 +109,7 @@ export function createGPSMiniMap(mountPointId: string): void {
  * Call this whenever GPS position changes (from watchPosition callback).
  */
 export function updateGPSMiniMap(lat: number, lng: number, accuracy: number): void {
-  if (!mapState) return;
+  if (!mapState) {return;}
 
   // Avoid redundant redraws for tiny position changes (< ~1 meter)
   if (
@@ -160,7 +160,7 @@ export function updateGPSMiniMap(lat: number, lng: number, accuracy: number): vo
  * Update accuracy circle and badge.
  */
 function updateAccuracyDisplay(accuracy: number): void {
-  if (!mapState) return;
+  if (!mapState) {return;}
 
   // Accuracy badge
   const badgeEl = mapState.container.querySelector('#nm-minimap-badge');
@@ -200,7 +200,7 @@ function updateAccuracyDisplay(accuracy: number): void {
  * Show GPS error state on the mini-map.
  */
 export function showGPSError(message: string): void {
-  if (!mapState) return;
+  if (!mapState) {return;}
 
   mapState.coordsEl.innerHTML = `
     <i class="ph ph-warning-circle text-xs" aria-hidden="true"></i>

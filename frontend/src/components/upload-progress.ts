@@ -25,8 +25,8 @@ export interface UploadState {
  * Syrian networks are slow — showing MB helps set expectations.
  */
 function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024) {return `${bytes} B`;}
+  if (bytes < 1048576) {return `${(bytes / 1024).toFixed(1)} KB`;}
   return `${(bytes / 1048576).toFixed(1)} MB`;
 }
 
@@ -40,7 +40,7 @@ function formatFileSize(bytes: number): string {
  */
 export function updateUploadProgress(containerId: string, state: UploadState): HTMLElement | null {
   const container = document.getElementById(containerId);
-  if (!container) return null;
+  if (!container) {return null;}
 
   let indicator = document.getElementById(`nm-upload-${state.id}`);
 
@@ -136,11 +136,11 @@ export function removeUploadProgress(uploadId: string): void {
  */
 export function createUploadContainer(mountPointId: string): HTMLElement | null {
   const mount = document.getElementById(mountPointId);
-  if (!mount) return null;
+  if (!mount) {return null;}
 
   // Prevent duplicate containers
   const existing = mount.querySelector('.nm-upload-container');
-  if (existing) return existing as HTMLElement;
+  if (existing) {return existing as HTMLElement;}
 
   const container = document.createElement('div');
   container.id = `nm-uploads-${mountPointId}`;

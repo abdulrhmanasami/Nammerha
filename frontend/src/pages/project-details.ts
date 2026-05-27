@@ -520,7 +520,7 @@ function showExpirationModal() {
 function startCartLockTimer() {
   const timerContainer = document.getElementById('cart-lock-timer');
   const countdownEl = document.getElementById('cart-timer-countdown');
-  if (!timerContainer || !countdownEl) return;
+  if (!timerContainer || !countdownEl) {return;}
 
   timerContainer.classList.remove('nm-hidden');
 
@@ -559,7 +559,7 @@ function startCartLockTimer() {
     }
 
     if (timeLeft <= 0) {
-      if (cartTimerInterval) window.clearInterval(cartTimerInterval);
+      if (cartTimerInterval) {window.clearInterval(cartTimerInterval);}
       countdownEl.textContent = '00:00';
       showExpirationModal();
       setTimeout(() => timerContainer.classList.add('nm-hidden'), 3000);
@@ -579,9 +579,9 @@ document.addEventListener('visibilitychange', () => {
       const expiry = parseInt(storedExpiry, 10);
       if (now >= expiry) {
         // Timer expired while in background
-        if (cartTimerInterval) window.clearInterval(cartTimerInterval);
+        if (cartTimerInterval) {window.clearInterval(cartTimerInterval);}
         const timerContainer = document.getElementById('cart-lock-timer');
-        if (timerContainer) timerContainer.classList.add('nm-hidden');
+        if (timerContainer) {timerContainer.classList.add('nm-hidden');}
         showExpirationModal();
       }
     }
@@ -654,10 +654,10 @@ async function loadProjectData(): Promise<void> {
 // ─────────────────────────────────────────────────────────────────────────────
 function renderRoleCTA(projectId: string): void {
   const user = getCurrentUser();
-  if (!user) return; // Unauthenticated → no CTA
+  if (!user) {return;} // Unauthenticated → no CTA
 
   const main = document.querySelector('main');
-  if (!main) return;
+  if (!main) {return;}
 
   // Determine primary role CTA
   interface RoleCTA {
@@ -705,7 +705,7 @@ function renderRoleCTA(projectId: string): void {
     };
   }
 
-  if (!cta) return;
+  if (!cta) {return;}
 
   const section = document.createElement('section');
   section.id = 'nm-role-cta';
@@ -767,7 +767,7 @@ const ACTION_COLORS: Record<string, string> = {
 async function renderActivityTimeline(projectId: string): Promise<void> {
   // Find or create activity container after BOQ section
   const main = document.querySelector('main');
-  if (!main) return;
+  if (!main) {return;}
 
   // Create timeline section
   const section = document.createElement('section');
@@ -792,13 +792,13 @@ async function renderActivityTimeline(projectId: string): Promise<void> {
   main.appendChild(section);
 
   const timeline = document.getElementById('v004-timeline');
-  if (!timeline) return;
+  if (!timeline) {return;}
 
   let currentOffset = 0;
   const pageSize = 15;
 
   async function loadEvents(append = false): Promise<void> {
-    if (!timeline) return;
+    if (!timeline) {return;}
     try {
       const res = await dashboard.getActivity(projectId, {
         limit: pageSize,
@@ -877,10 +877,10 @@ function formatRelativeTime(isoDate: string): string {
   const diffHr = Math.floor(diffMs / 3_600_000);
   const diffDay = Math.floor(diffMs / 86_400_000);
 
-  if (diffMin < 1) return t('just_now', 'الآن');
-  if (diffMin < 60) return `${diffMin}${t('min_ago', 'منذ دقيقة')}`;
-  if (diffHr < 24) return `${diffHr}${t('hr_ago', 'منذ ساعة')}`;
-  if (diffDay < 7) return `${diffDay}${t('day_ago', 'منذ يوم')}`;
+  if (diffMin < 1) {return t('just_now', 'الآن');}
+  if (diffMin < 60) {return `${diffMin}${t('min_ago', 'منذ دقيقة')}`;}
+  if (diffHr < 24) {return `${diffHr}${t('hr_ago', 'منذ ساعة')}`;}
+  if (diffDay < 7) {return `${diffDay}${t('day_ago', 'منذ يوم')}`;}
   return new Date(isoDate).toLocaleDateString();
 }
 

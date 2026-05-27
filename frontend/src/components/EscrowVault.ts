@@ -23,7 +23,7 @@ export class EscrowVault {
 
   public render(): void {
     this.container = document.getElementById(this.containerId);
-    if (!this.container) return;
+    if (!this.container) {return;}
 
     const totalStr = this.formatCurrency(this.state.depositedAmountCents);
     const releasedStr = this.formatCurrency(this.state.releasedAmountCents);

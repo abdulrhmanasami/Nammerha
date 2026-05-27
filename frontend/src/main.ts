@@ -73,7 +73,7 @@ async function initMapIfNeeded(): Promise<void> {
     document.getElementById('map') ??
     document.getElementById('nammerha-map');
 
-  if (!mapContainer) return;
+  if (!mapContainer) {return;}
 
   async function attemptLoad() {
     let timeoutFired = false;
@@ -490,7 +490,7 @@ function initPinchToZoomBlocker(): void {
   document.addEventListener(
     'touchmove',
     function (event: TouchEvent) {
-      if ((event as any).scale !== 1 || event.touches.length > 1) {
+      if (('scale' in event && typeof event.scale === 'number' && event.scale !== 1) || event.touches.length > 1) {
         event.preventDefault();
       }
     },

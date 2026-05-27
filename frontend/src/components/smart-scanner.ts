@@ -130,33 +130,33 @@ export class SmartScanner {
       phase++;
       
       if (phase === 2) {
-        if (msgEl) msgEl.textContent = t('scanner_hold_steady', 'حافظ على ثبات الكاميرا...');
+        if (msgEl) {msgEl.textContent = t('scanner_hold_steady', 'حافظ على ثبات الكاميرا...');}
         corners.forEach(c => c?.classList.add('border-warning-yellow'));
         corners.forEach(c => c?.classList.remove('border-trust-blue'));
       } else if (phase === 4) {
-        if (msgEl) msgEl.textContent = t('scanner_perfect', 'ممتاز! الإضاءة جيدة.');
+        if (msgEl) {msgEl.textContent = t('scanner_perfect', 'ممتاز! الإضاءة جيدة.');}
         corners.forEach(c => c?.classList.add('border-smoky-jade'));
         corners.forEach(c => c?.classList.remove('border-warning-yellow'));
         // Auto-capture or let user press button
-        if ('vibrate' in navigator) navigator.vibrate(50);
+        if ('vibrate' in navigator) {navigator.vibrate(50);}
         clearInterval(interval);
       }
     }, 1500);
   }
 
   private capture(): void {
-    if (!this.video) return;
+    if (!this.video) {return;}
     
     const canvas = document.createElement('canvas');
     canvas.width = this.video.videoWidth;
     canvas.height = this.video.videoHeight;
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!ctx) {return;}
     
     ctx.drawImage(this.video, 0, 0);
     const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
     
-    if ('vibrate' in navigator) navigator.vibrate([50, 50]);
+    if ('vibrate' in navigator) {navigator.vibrate([50, 50]);}
     
     // Flash effect
     const flash = document.createElement('div');

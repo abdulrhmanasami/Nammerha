@@ -124,7 +124,7 @@ function handleTouchMove(e: TouchEvent): void {
 export const REFRESH_EVENT = 'nammerha:pull-refresh';
 
 export interface PullRefreshEventDetail {
-  wait?: Promise<any>;
+  wait?: Promise<unknown>;
 }
 
 function resetIndicator(): void {
@@ -179,6 +179,42 @@ function showRefreshComplete(): void {
   }, 700);
 }
 
+/**
+ * PLATINUM FIX: Cryptographic Theater Paradox (False Success Haptic/Visual)
+ * If the refresh promise rejects (e.g. offline, 500 error), do NOT show a
+ * success checkmark or fire a success haptic. Show an error state instead.
+ */
+function showRefreshFailed(): void {
+  if (!indicator) {
+    return;
+  }
+
+  if (resetTimer) {
+    clearTimeout(resetTimer);
+    resetTimer = null;
+  }
+
+  indicator.classList.remove('pull-refresh-loading');
+  indicator.classList.add('pull-refresh-complete');
+
+  const icon = indicator.querySelector<HTMLElement>('.pull-refresh-spinner i');
+  if (icon) {
+    icon.classList.remove('ph-arrow-counter-clockwise');
+    icon.classList.add('ph-x-circle', 'text-rose-500');
+  }
+
+  haptic.heavy();
+
+  resetTimer = setTimeout(() => {
+    resetIndicator();
+    if (icon) {
+      icon.classList.remove('ph-x-circle', 'text-rose-500');
+      icon.classList.add('ph-arrow-counter-clockwise');
+    }
+    resetTimer = null;
+  }, 700);
+}
+
 function handleTouchEnd(): void {
   if (!pulling) {
     return;
@@ -200,9 +236,13 @@ function handleTouchEnd(): void {
         // PLATINUM FIX: Cryptographic Theater Race Condition Guard
         // Delay showing the completion checkmark until the async fetch actually finishes.
         if (detail.wait) {
-          detail.wait.finally(() => {
-            showRefreshComplete();
-          });
+          detail.wait
+            .then(() => {
+              showRefreshComplete();
+            })
+            .catch(() => {
+              showRefreshFailed();
+            });
         } else {
           showRefreshComplete();
         }

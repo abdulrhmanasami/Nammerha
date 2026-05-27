@@ -20,7 +20,7 @@ export function initRageTapInterception(): void {
         const target = e.target as HTMLElement;
         const button = target.closest('button, [role="button"]') as HTMLButtonElement | HTMLElement;
         
-        if (!button) return;
+        if (!button) {return;}
 
         const isDisabled = button.hasAttribute('disabled') || button.getAttribute('aria-disabled') === 'true' || button.classList.contains('cursor-not-allowed');
         
@@ -40,7 +40,7 @@ export function initRageTapInterception(): void {
         const target = e.target as HTMLElement;
         const button = target.closest('button, [role="button"], .cursor-not-allowed') as HTMLButtonElement | HTMLElement;
         
-        if (!button) return;
+        if (!button) {return;}
 
         const isDisabled = (button as HTMLButtonElement).disabled || 
                            button.getAttribute('aria-disabled') === 'true' || 

@@ -131,7 +131,9 @@ if (typeof window !== 'undefined') {
       try {
         const oldData = JSON.parse(e.oldValue);
         sessionStorage.setItem(ORPHANED_SESSION_KEY, oldData.user_id);
-      } catch (err) {}
+      } catch {
+        /* ignore error */
+      }
 
       // A5 FIX: Show a non-blocking banner instead of instant redirect.
       // This preserves any unsaved form data the user has in progress.

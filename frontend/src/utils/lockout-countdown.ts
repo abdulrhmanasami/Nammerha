@@ -113,7 +113,7 @@ export function restoreLockoutFromStorage(config: RestoreLockoutConfig): ReturnT
 
   try {
     const lockoutUntilStr = sessionStorage.getItem(storageKey);
-    if (!lockoutUntilStr) return null;
+    if (!lockoutUntilStr) {return null;}
 
     const lockoutUntil = parseInt(lockoutUntilStr, 10);
     let remainingSeconds = Math.ceil((lockoutUntil - Date.now()) / 1000);

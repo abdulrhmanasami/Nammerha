@@ -153,9 +153,9 @@ function showStep(index: number): void {
     // 'top'/'bottom' are block-direction and don't need flipping.
     const resolvedPosition = (() => {
       const pos = step.position;
-      if (!pos || !rtl) return pos;
-      if (pos === 'right') return 'left';
-      if (pos === 'left') return 'right';
+      if (!pos || !rtl) {return pos;}
+      if (pos === 'right') {return 'left';}
+      if (pos === 'left') {return 'right';}
       return pos;
     })();
 
@@ -371,7 +371,7 @@ function createTooltip(): HTMLElement {
 // Injected once into DOM; textContent updated on each step change.
 let liveRegion: HTMLElement | null = null;
 function ensureLiveRegion(): HTMLElement {
-  if (liveRegion && document.body.contains(liveRegion)) return liveRegion;
+  if (liveRegion && document.body.contains(liveRegion)) {return liveRegion;}
   const el = document.createElement('div');
   el.setAttribute('role', 'status');
   el.setAttribute('aria-live', 'polite');
@@ -412,7 +412,7 @@ function handleKeyboard(e: KeyboardEvent): void {
       const focusable = activeTour.tooltip.querySelectorAll<HTMLElement>(
         'button, [href], [tabindex]:not([tabindex="-1"])',
       );
-      if (focusable.length === 0) break;
+      if (focusable.length === 0) {break;}
       const arr = Array.from(focusable);
       const activeEl = document.activeElement as HTMLElement | null;
       const currentIdx = activeEl ? arr.indexOf(activeEl) : -1;

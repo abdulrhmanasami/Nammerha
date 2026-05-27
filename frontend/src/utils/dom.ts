@@ -25,7 +25,7 @@ export function setText(id: string, text: string): void {
  */
 export function shouldSkipFlicker(containerId: string): boolean {
   const container = document.getElementById(containerId);
-  if (!container) return false;
+  if (!container) {return false;}
 
   // If the container has substantial text content and no active skeletons, it's already hydrated.
   const content = container.textContent?.trim() || '';

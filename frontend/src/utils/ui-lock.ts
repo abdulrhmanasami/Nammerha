@@ -13,7 +13,7 @@ let _lockTouchInterceptor: ((e: TouchEvent) => void) | null = null;
 
 export function showProcessingLock(message: string = 'جاري المعالجة...'): () => void {
   // Prevent multiple locks
-  if (document.getElementById('nm-ui-lock')) return () => {};
+  if (document.getElementById('nm-ui-lock')) {return () => {};}
 
   // 1. Ghost Keyboard Submissions (0-Day Fix)
   // Instantly blur active element so holding 'Enter' doesn't queue multiple submit events
@@ -123,7 +123,7 @@ export function showProcessingLock(message: string = 'جاري المعالجة.
   };
 
   const removeLock = () => {
-    if (isRemoved) return;
+    if (isRemoved) {return;}
     isRemoved = true;
     cleanupInterceptors();
 
@@ -139,7 +139,7 @@ export function showProcessingLock(message: string = 'جاري المعالجة.
   // If the user hits the browser 'Back' button while locked, the popstate event fires.
   // We instantly destroy the lock and restore scrolling, preventing a permanently locked Bfcache page.
   _lockPopstateInterceptor = () => {
-    if (isRemoved) return;
+    if (isRemoved) {return;}
     isRemoved = true;
     cleanupInterceptors();
     lock.remove(); // Remove immediately without animation to prevent breaking transitions on the new page

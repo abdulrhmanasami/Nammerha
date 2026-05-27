@@ -711,7 +711,7 @@ function openBidModal(projectId: string): void {
         oracleShockTriggered = true;
         // Simulate a live price change from Oracle while user is typing
         setTimeout(() => {
-          if (!document.getElementById('bid-modal')) return; // Modal was closed
+          if (!document.getElementById('bid-modal')) {return;} // Modal was closed
           oracleWarning.classList.remove('nm-hidden', 'opacity-0', '-translate-y-2');
           haptic.light(); // Subtle buzz to alert user of price change
           const currentVal = parseFloat(bidCostInput.value);

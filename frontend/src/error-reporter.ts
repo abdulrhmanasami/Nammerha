@@ -244,9 +244,9 @@ export function initErrorReporter(): void {
                 el.removeAttribute('disabled');
             });
             const activeLock = document.getElementById('nm-ui-lock');
-            if (activeLock) activeLock.remove();
+            if (activeLock) {activeLock.remove();}
             const originalOverflow = document.body.style.overflow;
-            if (originalOverflow === 'hidden') document.body.style.overflow = '';
+            if (originalOverflow === 'hidden') {document.body.style.overflow = '';}
         }
     });
 }

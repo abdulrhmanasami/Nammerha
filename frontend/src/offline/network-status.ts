@@ -152,8 +152,9 @@ function init(): void {
   });
 
   // SW update notification
-  document.addEventListener('nammerha:sw-update-waiting', (event: any) => {
-    showStatus('swUpdate', undefined, event.detail?.worker);
+  document.addEventListener('nammerha:sw-update-waiting', (event: Event) => {
+    const customEvent = event as CustomEvent<{ worker?: ServiceWorker }>;
+    showStatus('swUpdate', undefined, customEvent.detail?.worker);
   });
 
   // W9-001 FIX: Store interval ID and clear on page unload to prevent

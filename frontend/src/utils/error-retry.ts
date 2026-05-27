@@ -191,6 +191,12 @@ export function renderErrorWithRetry(
         await new Promise((r) => setTimeout(r, backoffMs));
       }
 
+      // PLATINUM FIX: Memory Leak Guard (Phantom Execution Prevention)
+      // If the user navigates away or closes the modal during the backoff delay, abort.
+      if (!document.body.contains(container)) {
+        return;
+      }
+
       try {
         // Reset retry count on success
         retryCountMap.delete(container);

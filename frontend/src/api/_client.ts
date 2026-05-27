@@ -141,7 +141,7 @@ interface RequestOptions extends RequestInit {
 }
 
 // ─── PLATINUM FIX: In-Flight Mutation Multiplexer (Double-Tap Annihilation) ──
-const inFlightMutations = new Map<string, Promise<ApiResponse<any>>>();
+const inFlightMutations = new Map<string, Promise<ApiResponse<unknown>>>();
 
 export function request<T>(
   endpoint: string,
@@ -163,7 +163,7 @@ export function request<T>(
       } else {
         const headersRecord = options.headers as Record<string, string>;
         const key = Object.keys(headersRecord).find((k) => k.toLowerCase() === 'idempotency-key');
-        if (key) idempotencyKey = headersRecord[key];
+        if (key) {idempotencyKey = headersRecord[key];}
       }
     }
     let bodyStr = typeof options.body === 'string' ? options.body : null;
@@ -405,7 +405,7 @@ async function _requestInternal<T>(
                 // unsaved form data. Wrap the dismissal in a confirmation dialog.
                 let isConfirming = false;
                 const closeAction = async () => {
-                  if (isConfirming) return;
+                  if (isConfirming) {return;}
                   isConfirming = true;
                   const { confirmAction } = await import('../utils/confirm-action');
                   const confirmed = await confirmAction({

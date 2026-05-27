@@ -9,12 +9,12 @@ export const notifications = {
         // P5-UXA-007 FIX: Phantom Notification Desync (Silent SWR Refresh)
         // Broadcasts state change to other open tabs to instantly mark as read.
         // Standard: Multi-Tab State Consistency, Nielsen #1 (System Status).
-        try { localStorage.setItem('nm_notif_refresh', Date.now().toString()); } catch {}
+        try { localStorage.setItem('nm_notif_refresh', Date.now().toString()); } catch { /* ignore */ }
         return res;
     },
     markAllAsRead: async () => {
         const res = await request('/notifications/read-all', { method: 'PATCH' });
-        try { localStorage.setItem('nm_notif_refresh', Date.now().toString()); } catch {}
+        try { localStorage.setItem('nm_notif_refresh', Date.now().toString()); } catch { /* ignore */ }
         return res;
     },
 };

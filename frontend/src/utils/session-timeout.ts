@@ -257,7 +257,7 @@ function performLogout(): void {
       }
     });
 
-  if (document.getElementById('nm-privacy-shield')) return;
+  if (document.getElementById('nm-privacy-shield')) {return;}
 
   const modal = document.createElement('dialog');
   modal.id = 'nm-privacy-shield';
@@ -279,7 +279,7 @@ function performLogout(): void {
   const _shieldTouchInterceptor = (e: TouchEvent) => {
     const path = e.composedPath();
     const isInsideIframe = path.some((el) => (el as HTMLElement).tagName === 'IFRAME');
-    if (isInsideIframe) return;
+    if (isInsideIframe) {return;}
     e.preventDefault();
   };
   window.addEventListener('touchmove', _shieldTouchInterceptor, { passive: false });
@@ -297,7 +297,7 @@ function performLogout(): void {
   document.body.appendChild(modal);
 
   const onMessage = (e: MessageEvent) => {
-    if (e.origin !== window.location.origin) return;
+    if (e.origin !== window.location.origin) {return;}
     if (e.data === 'nm_auth_success') {
       window.removeEventListener('message', onMessage);
       window.removeEventListener('popstate', onPopState);

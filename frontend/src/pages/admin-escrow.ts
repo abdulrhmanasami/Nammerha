@@ -278,8 +278,8 @@ function initActionButtons(): void {
       try {
         // Hash Check (fetch latest state to prevent Schrödinger's Escrow)
         const latestStateRes = await admin.getPendingVerifications();
-        const stillPending = (latestStateRes.data as any[])?.find(
-          (v: any) => v.proof_id === c.proof_id,
+        const stillPending = (latestStateRes.data as { proof_id: string }[])?.find(
+          (v) => v.proof_id === c.proof_id,
         );
 
         if (!stillPending) {
@@ -304,10 +304,10 @@ function initActionButtons(): void {
           new Promise((resolve) => {
             const start = Date.now();
             const check = () => {
-              if (isTheaterCancelled) return resolve(false); // Abort theater instantly
+              if (isTheaterCancelled) {return resolve(false);} // Abort theater instantly
               // PLATINUM FIX: Memory Leak Guard (DOM Detachment Detection)
-              if (!document.body.contains(releaseBtn)) return resolve(false);
-              if (Date.now() - start >= ms) return resolve(true); // Proceed to next act
+              if (!document.body.contains(releaseBtn)) {return resolve(false);}
+              if (Date.now() - start >= ms) {return resolve(true);} // Proceed to next act
               requestAnimationFrame(check);
             };
             requestAnimationFrame(check);
@@ -334,7 +334,7 @@ function initActionButtons(): void {
 
         // Await the actual API
         await apiPromise;
-        if (apiError) throw apiError; // Synchronous, 100% safe throw
+        if (apiError) {throw apiError;} // Synchronous, 100% safe throw
 
         // UX: Immediate visual update
         c.status = 'released';

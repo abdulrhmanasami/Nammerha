@@ -22,7 +22,7 @@ const DB_VERSION = 1;
 let dbPromise: Promise<IDBDatabase> | null = null;
 
 function initDB(): Promise<IDBDatabase> {
-  if (dbPromise) return dbPromise;
+  if (dbPromise) {return dbPromise;}
   
   dbPromise = new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);

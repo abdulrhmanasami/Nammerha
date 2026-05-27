@@ -17,7 +17,7 @@ const AUTOSAVE_PREFIX = 'nm_autosave_';
  */
 export function initAutoSaveTextareas(): void {
   // Only run in browser environment
-  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+  if (typeof window === 'undefined' || typeof document === 'undefined') {return;}
 
   // Use event delegation for better performance and to handle dynamically added textareas
   document.body.addEventListener('input', (e) => {
@@ -29,7 +29,7 @@ export function initAutoSaveTextareas(): void {
       const el = target as HTMLTextAreaElement | HTMLInputElement;
       // We need a unique identifier for this field
       const key = el.id || el.name;
-      if (!key) return;
+      if (!key) {return;}
 
       // Save to sessionStorage (isolated per tab, clears when tab closes normally)
       // But survives accidental refresh or navigation within the same tab.
@@ -51,7 +51,7 @@ export function recoverAutoSavedFields(): void {
     .querySelectorAll<HTMLTextAreaElement | HTMLInputElement>('textarea, input.nm-autosave')
     .forEach((el) => {
       const key = el.id || el.name;
-      if (!key) return;
+      if (!key) {return;}
 
       try {
         const savedValue = sessionStorage.getItem(`${AUTOSAVE_PREFIX}${key}`);
@@ -80,7 +80,7 @@ export function recoverAutoSavedFields(): void {
  */
 export function clearAutoSave(formOrElementId: string): void {
   const el = document.getElementById(formOrElementId);
-  if (!el) return;
+  if (!el) {return;}
 
   if (el.tagName === 'FORM') {
     el.querySelectorAll<HTMLTextAreaElement | HTMLInputElement>(

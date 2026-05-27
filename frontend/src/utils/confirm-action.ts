@@ -121,7 +121,7 @@ export function confirmAction(opts: ConfirmActionOptions): Promise<boolean> {
     // ── Event Handlers ────────────────────────────────────────────────
     let isClosed = false;
     function close(confirmed: boolean): void {
-      if (isClosed) return;
+      if (isClosed) {return;}
       isClosed = true;
 
       dialog.close();
