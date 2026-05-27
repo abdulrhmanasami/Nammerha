@@ -192,8 +192,9 @@
          On md+, full navbar with search, cart, and profile. Native-app feel on mobile.
          UXD-001 FIX: Raised from sm (640px) to md (768px) to close tablet dead zone. -->
     <nav
-      class="glass-nav fixed top-0 start-0 end-0 z-50 px-4 py-3 hidden md:flex items-center justify-between gap-3"
+      class="glass-nav fixed top-0 start-0 end-0 z-50 px-4 py-3 hidden md:flex justify-center"
     >
+      <div class="w-full max-w-5xl flex items-center justify-between gap-3">
       <a href="/" class="flex items-center gap-2">
         <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-9 w-auto" />
         <img src="/brand/nammerha_text_logo_vector.svg" alt="Nammerha" class="h-5 w-auto" />
@@ -248,6 +249,7 @@
       >
         <i class="ph ph-user text-trust-blue text-lg" aria-hidden="true"></i>
       </a>
+      </div>
     </nav>
 
     <!-- CONF-N03 FIX: Mobile search trigger (hidden on sm+ where full nav has inline search). -->
@@ -256,10 +258,10 @@
     <header
       class="md:hidden fixed top-0 start-0 end-0 z-50 glass-nav flex items-center justify-between px-4 h-14"
     >
-      <a href="/" class="flex items-center gap-2">
+      <a href="/" class="flex items-center gap-2 shrink-0">
         <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-8 w-auto" />
       </a>
-      <div class="flex items-center gap-1">
+      <div class="flex items-center gap-1 shrink-0">
         <button
           type="button"
           data-search-trigger
@@ -495,7 +497,7 @@
           <!-- Skeleton loading state -->
           <div id="projects-skeleton" class="flex gap-4">
             <div
-              class="min-w-[280px] w-[280px] glass-card rounded-2xl overflow-hidden shadow-md animate-pulse snap-start snap-always"
+              class="shrink-0 min-w-[280px] w-[280px] glass-card rounded-2xl overflow-hidden shadow-md animate-pulse snap-start snap-always"
              aria-hidden="true">
               <div class="h-44 bg-slate-200"></div>
               <div class="p-4 space-y-3">
@@ -506,7 +508,7 @@
               </div>
             </div>
             <div
-              class="min-w-[280px] w-[280px] glass-card rounded-2xl overflow-hidden shadow-md animate-pulse snap-start snap-always"
+              class="shrink-0 min-w-[280px] w-[280px] glass-card rounded-2xl overflow-hidden shadow-md animate-pulse snap-start snap-always"
              aria-hidden="true">
               <div class="h-44 bg-slate-200"></div>
               <div class="p-4 space-y-3">

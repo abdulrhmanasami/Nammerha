@@ -69,8 +69,8 @@ class CartStoreImpl {
       // If localStorage is full, we must notify the user. Silently keeping it in-memory
       // creates a Schrödinger state where checkout fails or refreshes destroy the cart.
       if (err instanceof DOMException && (err.name === 'QuotaExceededError' || err.code === 22)) {
-        import('../utils/toast').then(({ toast }) => {
-          toast.error('مساحة التخزين ممتلئة. لا يمكن حفظ سلة المشتريات. يرجى تفريغ المساحة.');
+        import('../utils/toast').then(({ showToast }) => {
+          showToast('مساحة التخزين ممتلئة. لا يمكن حفظ سلة المشتريات. يرجى تفريغ المساحة.', 'error');
         });
       }
       reportWarning('[Cart] Failed to persist cart to localStorage', {

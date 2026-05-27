@@ -3,6 +3,16 @@
    Source of Truth: تصميم هوية وتجربة تطبيق Nammerha.pdf
    ============================================================================ */
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   CSS @import directives — CSS spec mandates these precede ALL other statements.
+   Partials extracted from main.css for SRP (Single Responsibility Principle).
+   ═══════════════════════════════════════════════════════════════════════════ */
+@import './_dashboard.css'; /* FRIC-AUD-F02: Dashboard sidebar system */
+@import './_nav.css'; /* DEF-CSS-001: Bottom navigation */
+@import './_dialogs.css'; /* FRIC-AUD-04: Dialogs & state components */
+@import './_about.css'; /* DEFECT-01: About page styles */
+@import './_wizard.css'; /* FRIC-AUD-F02: Registration wizard */
+
 /* ─── Fonts — Self-Hosted (P0-F1 FIX: Zero-CDN) ───────────────────────────── */
 /* REMOVED: 3x render-blocking @import url('https://fonts.googleapis.com/...')
    CSS @import is synchronous — the browser halted ALL rendering until Google
@@ -73,15 +83,7 @@
   font-display: swap;
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   CSS @import directives — CSS spec mandates these precede ALL other statements.
-   Partials extracted from main.css for SRP (Single Responsibility Principle).
-   ═══════════════════════════════════════════════════════════════════════════ */
-@import './_dashboard.css'; /* FRIC-AUD-F02: Dashboard sidebar system */
-@import './_nav.css'; /* DEF-CSS-001: Bottom navigation */
-@import './_dialogs.css'; /* FRIC-AUD-04: Dialogs & state components */
-@import './_about.css'; /* DEFECT-01: About page styles */
-@import './_wizard.css'; /* FRIC-AUD-F02: Registration wizard */
+/* @import directives moved to the absolute top of the file to comply with W3C CSS spec */
 
 @tailwind base;
 @tailwind components;
@@ -318,9 +320,10 @@ body {
   color: var(--text-body);
   /* P0-OVF-001 FIX: Root-level overflow containment to prevent absolutely
        positioned background elements (e.g. .gradient-orb) from stretching 
-       the document width on mobile and causing horizontal scroll. */
+       the document width on mobile and causing horizontal scroll. 
+       Vicious Cycle Fix: Changed max-width: 100vw to 100% to prevent horizontal jitter. */
   overflow-x: clip;
-  max-width: 100vw;
+  max-width: 100%;
 }
 
 /* ─── CSS Custom Properties (Design Tokens) ────────────────────────────────── */

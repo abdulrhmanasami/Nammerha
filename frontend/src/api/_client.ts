@@ -22,6 +22,7 @@ import { markSessionActivity } from '../utils/session-timeout';
 // Standard: Single Responsibility, Race Condition Prevention.
 let sessionExpiring = false;
 let activeReauthPromise: Promise<boolean> | null = null;
+let activeCsrfPromise: Promise<string> | null = null;
 
 // ─── PLATINUM FIX: Async DOM Disassociation Guard ─────────────────────────
 let globalRouteAbortController = new AbortController();
@@ -64,24 +65,35 @@ async function ensureCsrfToken(): Promise<string> {
     return existing;
   }
 
-  // Fetch a new CSRF token from the backend
-  try {
-    const res = await fetch(`${API_BASE}/csrf-token`, { credentials: 'same-origin' });
+  // PLATINUM FIX: CSRF Race Condition Mutex
+  // Prevent concurrent POST requests from spawning multiple CSRF fetches.
+  if (activeCsrfPromise) {
+    return activeCsrfPromise;
+  }
+
+  activeCsrfPromise = (async () => {
+    try {
+      const res = await fetch(`${API_BASE}/csrf-token`, { credentials: 'same-origin' });
     if (!res.ok) {
       throw new Error(`Failed to fetch CSRF: ${res.status}`);
     }
-    const data = (await res.json()) as { csrfToken?: string };
-    if (!data.csrfToken) {
-      throw new Error('CSRF Token missing from response payload');
+      const data = (await res.json()) as { csrfToken?: string };
+      if (!data.csrfToken) {
+        throw new Error('CSRF Token missing from response payload');
+      }
+      return data.csrfToken;
+    } catch (err) {
+      // CSRF failure MUST be fatal for HttpOnly cookie sessions
+      reportError(new Error('CSRF Token Handshake Failed'), {
+        error: err instanceof Error ? err.message : String(err),
+      });
+      throw new Error(t('error_csrf_missing', 'فشل الاتصال الآمن. يرجى تحديث الصفحة للمتابعة.'));
+    } finally {
+      activeCsrfPromise = null;
     }
-    return data.csrfToken;
-  } catch (err) {
-    // CSRF failure MUST be fatal for HttpOnly cookie sessions
-    reportError(new Error('CSRF Token Handshake Failed'), {
-      error: err instanceof Error ? err.message : String(err),
-    });
-    throw new Error(t('error_csrf_missing', 'فشل الاتصال الآمن. يرجى تحديث الصفحة للمتابعة.'));
-  }
+  })();
+
+  return activeCsrfPromise;
 }
 
 // ─── W3-P2-002 FIX: CSRF Pre-Warm ──────────────────────────────────────────
@@ -391,10 +403,23 @@ async function _requestInternal<T>(
                 document.body.appendChild(modal);
                 document.body.classList.add('overflow-hidden');
 
+                // PLATINUM FIX: Iframe Scroll Paralysis & Background Leak (iOS Safari)
+                // 'overflow: hidden' on body does NOT stop scrolling natively on iOS.
+                const _reauthTouchInterceptor = (e: TouchEvent) => {
+                  const path = e.composedPath();
+                  const isInsideIframe = path.some((el) => (el as HTMLElement).tagName === 'IFRAME');
+                  if (isInsideIframe) {
+                    return; // Allow scrolling inside the auth iframe
+                  }
+                  e.preventDefault(); // Freeze the background viewport
+                };
+                window.addEventListener('touchmove', _reauthTouchInterceptor, { passive: false });
+
                 const cleanup = () => {
                   window.removeEventListener('message', onMessage);
                   window.removeEventListener('keydown', onKeyDown, true);
                   window.removeEventListener('popstate', onPopState);
+                  window.removeEventListener('touchmove', _reauthTouchInterceptor);
                   document.body.classList.remove('overflow-hidden');
                   modal.remove();
                   activeReauthPromise = null;

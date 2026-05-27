@@ -192,8 +192,8 @@ function buildProjectCard(project: ProjectCard, index: number): string {
         </div>
       </div>
       <div class="p-4 flex flex-col flex-1">
-        <div class="flex justify-between items-start mb-2">
-          <h3 class="font-bold text-base leading-tight" dir="auto">${escapeHtml(project.title)}</h3>
+        <div class="flex justify-between items-start mb-2 gap-2">
+          <h3 class="font-bold text-base leading-tight flex-1 min-w-0 line-clamp-2" dir="auto">${escapeHtml(project.title)}</h3>
           <div class="relative size-10 shrink-0">
             <svg class="size-full -rotate-90" viewBox="0 0 36 36">
               <circle class="stroke-slate-200" cx="18" cy="18" r="16" fill="none" stroke-width="3"></circle>
@@ -203,14 +203,14 @@ function buildProjectCard(project: ProjectCard, index: number): string {
             <span class="absolute inset-0 flex items-center justify-center text-3xs font-extrabold text-smoky-jade dark:text-emerald-400">${Math.round(pct)}%</span>
           </div>
         </div>
-        <div class="flex justify-between items-center mt-auto pt-3 border-t border-slate-100 dark:border-dark-border">
-          <div>
-            <p class="text-3xs text-slate-400 font-bold uppercase dark:text-slate-500" data-i18n="card_funded">Funded</p>
-            <p class="text-sm font-bold text-trust-blue">${formatCents(project.funded_amount)}</p>
+        <div class="flex justify-between items-center mt-auto pt-3 border-t border-slate-100 dark:border-dark-border gap-2">
+          <div class="min-w-0">
+            <p class="text-3xs text-slate-400 font-bold uppercase dark:text-slate-500 truncate" data-i18n="card_funded">Funded</p>
+            <p class="text-sm font-bold text-trust-blue truncate">${formatCents(project.funded_amount)}</p>
           </div>
-          <span class="btn-secondary nm-cta-inline font-bold">
-            <span data-i18n="${ctaI18nKey}">${ctaLabel}</span>
-            <i class="ph ${ctaIcon} ph-sm" aria-hidden="true"></i>
+          <span class="btn-secondary nm-cta-inline font-bold shrink-0 max-w-[140px]">
+            <span class="truncate" data-i18n="${ctaI18nKey}">${ctaLabel}</span>
+            <i class="ph ${ctaIcon} ph-sm shrink-0" aria-hidden="true"></i>
           </span>
         </div>
       </div>
