@@ -18,6 +18,17 @@
 
 ## 🛑 ZERO-REGRESSION MEMOS (CRITICAL AI MEMORY)
 
+**MEMO 41: Wallet Ledger Poisoning & Phantom UI Freeze (May 27, 2026)**
+
+- **Root Cause Destroyed:**
+  1. `loadEscrowSummary` used `return;` when detecting non-integer escrow balances, instantly freezing the UI by abandoning the CSS skeleton loaders (Phantom Loading Trap).
+  2. `loadTransactions` blindly pushed transactions without checking if `amount` was a safe integer, leading to Wallet Ledger Poisoning via backend floats or NaNs.
+  3. `Array.prototype.sort` evaluated `NaN` for invalid dates, instantly destroying the chronological sorting mechanism and breaking the history view.
+- **New Logic Built:**
+  1. Early `throw new Error(...)` ensures the `catch` block correctly hydrates the UI with $0.00 and gracefully disables skeletons.
+  2. `Number.isSafeInteger(tx.amount)` is strictly enforced before any transaction enters the ledger array.
+  3. `Number.isNaN()` guard safely pushes invalid dates to the bottom of the list without poisoning the entire sort operation.
+
 **MEMO 40: Cart Engine Cross-Tab Annihilation & Float Poisoning (May 27, 2026)**
 
 - **Root Cause Destroyed:**

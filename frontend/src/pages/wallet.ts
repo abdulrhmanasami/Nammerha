@@ -164,9 +164,13 @@ async function loadEscrowSummary(): Promise<void> {
       // P3-AUD-NEW-003 FIX: Runtime guard — gracefully handle API shape drift
       // PLAT-FIN-001 FIX: Enforce strict integer check for financial amounts.
       // NaN and Infinity bypass `typeof === 'number'`, which destroys UI trust.
+      // PLATINUM FIX: Phantom Loading Trap (UI Freeze)
+      // PREVIOUS: `return;` on invalid integer abandoned the UI state, leaving skeletons spinning infinitely.
+      // NOW: We `throw` to violently reject the corrupted data and trigger the `catch` block,
+      // which gracefully degrades the UI to $0.00 and stops the skeletons.
       const summary = response.data as Partial<EscrowSummary>;
       if (!Number.isSafeInteger(summary.total_locked)) {
-        return;
+        throw new Error(`Float poisoning detected in escrow balance: ${summary.total_locked}`);
       }
       if (balanceEl) {
         balanceEl.textContent = formatCents(summary.total_locked ?? 0);
@@ -324,26 +328,47 @@ async function loadTransactions(): Promise<void> {
 
     const transactions: Transaction[] = [];
 
+    // PLATINUM FIX: Transaction Float Poisoning (Ledger Corruption)
+    // PREVIOUS: We pushed unchecked arrays, allowing backend floats (e.g. 1.5) or NaN
+    // to bypass the frontend ledger and render as 'NaN' or crash formatting.
+    // NOW: We rigorously validate `Number.isSafeInteger(tx.amount)` before injecting into the UI pool.
+    const extractValidTxs = (rawData: unknown) => {
+      if (Array.isArray(rawData)) {
+        rawData.forEach((tx) => {
+          if (tx && Number.isSafeInteger(tx.amount)) {
+            transactions.push(tx as Transaction);
+          } else {
+            reportWarning('[Wallet] Float poisoning dropped tx', { tx_id: tx?.transaction_id });
+          }
+        });
+      }
+    };
+
     if (
       donRes &&
       donRes.status === 'fulfilled' &&
-      (donRes.value as { success: boolean; data?: unknown }).success &&
-      Array.isArray((donRes.value as { data?: unknown }).data)
+      (donRes.value as { success: boolean; data?: unknown }).success
     ) {
-      transactions.push(...(donRes.value as { data: Transaction[] }).data);
+      extractValidTxs((donRes.value as { data?: unknown }).data);
     }
     if (
       payRes.status === 'fulfilled' &&
-      (payRes.value as { success: boolean; data?: unknown }).success &&
-      Array.isArray((payRes.value as { data?: unknown }).data)
+      (payRes.value as { success: boolean; data?: unknown }).success
     ) {
-      transactions.push(...(payRes.value as { data: Transaction[] }).data);
+      extractValidTxs((payRes.value as { data?: unknown }).data);
     }
 
-    // Sort by date descending
-    transactions.sort(
-      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-    );
+    // PLATINUM FIX: Chronological Sort Poisoning
+    // PREVIOUS: `new Date(created_at).getTime()` can evaluate to `NaN` on bad strings.
+    // In V8/JS, `NaN - number` is `NaN`, which instantly destroys `Array.prototype.sort()`.
+    // NOW: We strictly check `Number.isNaN` and safely push invalid dates to the bottom.
+    transactions.sort((a, b) => {
+      const timeA = new Date(a.created_at).getTime();
+      const timeB = new Date(b.created_at).getTime();
+      if (Number.isNaN(timeA)) return 1;
+      if (Number.isNaN(timeB)) return -1;
+      return timeB - timeA;
+    });
 
     // CRIT-UX-004: Store transactions for filtering
     allTransactions = transactions;
@@ -361,7 +386,9 @@ async function loadTransactions(): Promise<void> {
       if (filtersEl) {
         filtersEl.addEventListener('click', (e: Event) => {
           const chip = (e.target as HTMLElement).closest<HTMLButtonElement>('.nm-filter-chip');
-          if (!chip) {return;}
+          if (!chip) {
+            return;
+          }
           haptic.light();
           const filterVal = chip.dataset['filter'] ?? 'all';
 
@@ -391,10 +418,14 @@ async function loadTransactions(): Promise<void> {
       receiptDelegationWired = true;
       listEl.addEventListener('click', (e: Event) => {
         const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.v003-receipt-btn');
-        if (!btn || btn.disabled) {return;}
+        if (!btn || btn.disabled) {
+          return;
+        }
         e.stopPropagation();
         const escrowId = btn.dataset['escrowId'];
-        if (!escrowId) {return;}
+        if (!escrowId) {
+          return;
+        }
         haptic.light(); // UX-004: Tactile download feedback
 
         // PLAT-UX-006 FIX: Tactile & Visual closure for silent downloads
@@ -462,7 +493,9 @@ function init(): void {
     container: 'transaction-list',
     timeoutMs: 15000,
     onRetry: () => {
-      if (cancelTxSkeleton) {cancelTxSkeleton();} // Reset the guard
+      if (cancelTxSkeleton) {
+        cancelTxSkeleton();
+      } // Reset the guard
       loadTransactions();
     },
   });
