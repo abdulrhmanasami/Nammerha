@@ -16,7 +16,7 @@ import {
 import {
   recordTip,
   getTipSummary,
-  getDonorTips,
+  getUserTips,
   getPlatformRevenueSummary,
 } from '../services/tip.service';
 
@@ -252,7 +252,7 @@ router.get('/donor/tips', authMiddleware, async (req, res) => {
     const limit = parseInt(req.query['limit'] as string, 10) || 50;
     const offset = parseInt(req.query['offset'] as string, 10) || 0;
 
-    const result = await getDonorTips(donorId, limit, offset);
+    const result = await getUserTips(donorId, limit, offset);
     res.json({ success: true, data: result });
   } catch (err) {
     res.status(500).json({
