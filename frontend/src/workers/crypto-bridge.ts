@@ -16,6 +16,8 @@
 // ============================================================================
 
 import { reportWarning } from '../error-reporter';
+import { addTrackedTimer } from '../utils/tracked-timers';
+
 
 // ─── Response Types ─────────────────────────────────────────────────────────
 
@@ -142,12 +144,12 @@ export async function hashBlob(blob: Blob): Promise<string> {
         );
 
         // Safety timeout: 30s — if Worker hangs, reject and fallback
-        setTimeout(() => {
+        addTrackedTimer(setTimeout(() => {
             if (_pending.has(id)) {
                 _pending.delete(id);
                 reject(new Error('Worker SHA-256 timeout (30s)'));
             }
-        }, 30_000);
+        }, 30_000));
     });
 }
 
@@ -176,12 +178,12 @@ export async function hashDataUrl(dataUrl: string): Promise<string> {
 
         worker.postMessage({ id, type: 'dataurl-to-hash', payload: dataUrl });
 
-        setTimeout(() => {
+        addTrackedTimer(setTimeout(() => {
             if (_pending.has(id)) {
                 _pending.delete(id);
                 reject(new Error('Worker dataurl-to-hash timeout (30s)'));
             }
-        }, 30_000);
+        }, 30_000));
     });
 }
 

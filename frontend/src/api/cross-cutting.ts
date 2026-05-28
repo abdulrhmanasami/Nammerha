@@ -1,5 +1,7 @@
 // ─── Notifications, Health, Contact, Payments ───────────────────────────────
 import { request } from './_client';
+import { addTrackedTimer } from '../utils/tracked-timers';
+
 
 export const notifications = {
     getAll: () => request('/notifications'),
@@ -27,7 +29,7 @@ export const health = {
     check: async () => {
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10_000);
+            const timeoutId = addTrackedTimer(setTimeout(() => controller.abort(), 10_000));
             const res = await fetch('/health', {
                 credentials: 'same-origin',
                 signal: controller.signal,

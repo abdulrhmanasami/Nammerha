@@ -1,3 +1,4 @@
+import { escapeHtml as esc } from './xss';
 /**
  * P1-UXA-002 FIX: Client-Side Progressive Rendering Utility
  * ══════════════════════════════════════════════════════════════════════════
@@ -29,6 +30,7 @@
 
 import { t } from './i18n';
 import { tryApplyI18n } from '../utils/i18n-apply';
+
 
 interface ProgressiveConfig<T> {
     /** Full array of items (all data) */
@@ -141,6 +143,6 @@ function updateButtonText(btn: HTMLButtonElement, shown: number, total: number):
     const remaining = total - shown;
     btn.innerHTML = `
         <i class="ph ph-arrow-down text-base" aria-hidden="true"></i>
-        ${t('show_more_count', `Show More (${remaining} remaining)`).replace('${count}', String(remaining))}
+        ${esc(t('show_more_count', `Show More (${remaining} remaining)`).replace('${count}', String(remaining)))}
     `;
 }

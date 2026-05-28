@@ -1,3 +1,4 @@
+import { escapeHtml as esc } from './xss';
 /**
  * ═══════════════════════════════════════════════════════════════════════════
  * Nammerha — Connection Quality Indicator (P2-PLT-004)
@@ -29,6 +30,7 @@
 
 import { t } from './i18n';
 import { tryApplyI18n } from './i18n-apply';
+
 
 type ConnectionQuality = 'good' | 'slow' | 'offline';
 
@@ -119,8 +121,8 @@ function renderQuality(quality: ConnectionQuality): void {
   target.setAttribute('role', 'status');
   target.setAttribute('aria-live', 'polite');
   target.innerHTML = `
-    <i class="ph ${config.icon} text-xs" aria-hidden="true"></i>
-    <span data-i18n="${config.i18nKey}">${t(config.i18nKey, config.fallback)}</span>
+    <i class="ph ${esc(config.icon)} text-xs" aria-hidden="true"></i>
+    <span data-i18n="${esc(config.i18nKey)}">${esc(t(config.i18nKey, config.fallback))}</span>
   `;
   tryApplyI18n();
 }

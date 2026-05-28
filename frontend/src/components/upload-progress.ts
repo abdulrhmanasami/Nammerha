@@ -9,6 +9,9 @@
 
 import { t } from '../utils/i18n';
 import { escapeHtml } from '../utils/xss';
+const esc = escapeHtml;
+import { addTrackedTimer } from '../utils/tracked-timers';
+
 
 /** Upload state for a single file */
 export interface UploadState {
@@ -85,14 +88,13 @@ export function updateUploadProgress(containerId: string, state: UploadState): H
   indicator.setAttribute('aria-label', `${escapeHtml(state.fileName)} — ${statusLabel}`);
 
   indicator.innerHTML = `
-    <div class="nm-upload-header ${statusClass}">
-      <i class="ph ${statusIcon} nm-upload-icon" aria-hidden="true"></i>
+    <div class="nm-upload-header ${esc(statusClass)}">
+      <i class="ph ${esc(statusIcon)} nm-upload-icon" aria-hidden="true"></i>
       <div class="nm-upload-info">
         <span class="nm-upload-name">${escapeHtml(state.fileName)}</span>
-        <span class="nm-upload-meta">${formatFileSize(state.fileSize)} · ${statusLabel}</span>
+        <span class="nm-upload-meta">${esc(formatFileSize(state.fileSize))} · ${esc(statusLabel)}</span>
       </div>
-      ${
-        state.status === 'uploading'
+      ${esc(state.status === 'uploading'
           ? `
         <button type="button" class="nm-upload-cancel" data-upload-id="${escapeHtml(state.id)}"
                 aria-label="${escapeHtml(t('upload_cancel', 'إلغاء الرفع'))}"
@@ -100,20 +102,19 @@ export function updateUploadProgress(containerId: string, state: UploadState): H
           <i class="ph ph-x" aria-hidden="true"></i>
         </button>
       `
-          : ''
-      }
+          : '')}
     </div>
     <div class="nm-upload-track">
-      <div class="nm-upload-fill ${statusClass}" style="width: ${Math.min(state.progress, 100)}%"></div>
+      <div class="nm-upload-fill ${esc(statusClass)}" style="width: ${esc(Math.min(state.progress, 100))}%"></div>
     </div>
   `;
 
   // Auto-remove completed uploads after 3 seconds
   if (state.status === 'complete') {
-    setTimeout(() => {
+    addTrackedTimer(setTimeout(() => {
       indicator?.classList.add('nm-upload--fade-out');
       indicator?.addEventListener('animationend', () => indicator?.remove(), { once: true });
-    }, 3000);
+    }, 3000));
   }
 
   return indicator;

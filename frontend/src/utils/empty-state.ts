@@ -20,6 +20,7 @@
 
 import { escapeHtml as esc } from './xss';
 
+
 interface EmptyStateConfig {
   /** Phosphor icon name (without ph- prefix) */
   icon: string;

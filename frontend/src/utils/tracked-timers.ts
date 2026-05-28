@@ -58,6 +58,7 @@ export function clearAllTrackedTimers(): void {
  * so clearInterval() on a setTimeout ID is valid and vice versa.
  * Use this when you need to track a setTimeout alongside intervals.
  */
-export function addTrackedTimer(timerId: ReturnType<typeof setTimeout>): void {
+export function addTrackedTimer(timerId: ReturnType<typeof setTimeout>): ReturnType<typeof setTimeout> {
   _activeTimers.add(timerId as unknown as ReturnType<typeof setInterval>);
+  return timerId;
 }

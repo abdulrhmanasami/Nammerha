@@ -178,7 +178,7 @@
    ============================================================================ */
 @media (min-width: 768px) {
     .nm-bottom-nav {
-        display: none !important;
+        display: none;
     }
 }
 

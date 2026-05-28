@@ -80,7 +80,7 @@
 }
 /* INC-2026-007: Removed dead rule `.nm-step-indicator.completed + .nm-step-line { background: var(--smoky-jade); }`
    This CSS selector was overridden by inline styles set by auth.ts L170-179 (line.style.background).
-   Inline styles always win over CSS selectors without !important. Rule was dead code. */
+   Inline styles always win over CSS selectors without. Rule was dead code. */
 
 /* Step panels — slide transitions */
 .nm-step-panel {

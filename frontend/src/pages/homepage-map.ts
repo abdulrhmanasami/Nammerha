@@ -14,6 +14,8 @@ import { escapeHtml as esc } from '../utils/xss';
 import { initPullToRefresh } from '../utils/pull-refresh';
 import { autoTriggerTour } from '../components/tour-engine';
 import { initBackToTop } from '../components/back-to-top';
+import { addTrackedTimer } from '../utils/tracked-timers';
+
 initPullToRefresh();
 initBackToTop();
 autoTriggerTour();
@@ -37,14 +39,14 @@ async function initHomepageMap(): Promise<void> {
   // the UI doesn't hang infinitely on "Detecting active region...".
   const regionEl = document.getElementById('map-active-region');
   const countEl = document.getElementById('map-active-count');
-  const loadGuard = setTimeout(() => {
+  const loadGuard = addTrackedTimer(setTimeout(() => {
     if (regionEl) {
       regionEl.textContent = t('map_region_syria', 'سوريا');
     }
     if (countEl && countEl.textContent?.includes('…')) {
       countEl.textContent = t('map_projects_syncing', 'جاري مزامنة المشاريع...');
     }
-  }, 4000);
+  }, 4000));
 
   try {
     // ─── Initialize Map ─────────────────────────────────────────────────

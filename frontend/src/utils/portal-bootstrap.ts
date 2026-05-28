@@ -38,6 +38,8 @@ import { initSessionTimeoutWarning } from './session-timeout';
 import { initConnectionQuality } from './connection-quality';
 // Platinum UX: Intercept rage taps on disabled UI elements.
 import { initRageTapInterception } from './rage-tap';
+import { addTrackedTimer } from './tracked-timers';
+
 
 /**
  * PLT-UX-AUD P2-PTR-001 FIX: Simpler event for page modules to listen to.
@@ -163,13 +165,13 @@ function showPortalOrientationIfNeeded(): void {
   import('../utils/toast')
     .then(({ showToast }) => {
       // Small delay for the page to render first
-      setTimeout(() => {
+      addTrackedTimer(setTimeout(() => {
         showToast(
           `Welcome to your ${portal.nameFallback}! Use the sidebar menu on the left to navigate.`,
           'info',
           { duration: 6000 }, // longer display for orientation
         );
-      }, 1200);
+      }, 1200));
     })
     .catch(() => {
       /* toast module failed — degrade silently */

@@ -5,6 +5,8 @@
 // ============================================================================
 
 import { haptic } from './haptic';
+import { addTrackedTimer } from './tracked-timers';
+
 
 const THRESHOLD_PX = 60;
 const MAX_PULL_PX = 120;
@@ -168,7 +170,7 @@ function showRefreshComplete(): void {
   haptic.success();
 
   // Hold the checkmark visible for 700ms, then slide up and hide
-  resetTimer = setTimeout(() => {
+  resetTimer = addTrackedTimer(setTimeout(() => {
     resetIndicator();
     // Restore original icon for next pull
     if (icon) {
@@ -176,7 +178,7 @@ function showRefreshComplete(): void {
       icon.classList.add('ph-arrow-counter-clockwise');
     }
     resetTimer = null;
-  }, 700);
+  }, 700));
 }
 
 /**
@@ -205,14 +207,14 @@ function showRefreshFailed(): void {
 
   haptic.heavy();
 
-  resetTimer = setTimeout(() => {
+  resetTimer = addTrackedTimer(setTimeout(() => {
     resetIndicator();
     if (icon) {
       icon.classList.remove('ph-x-circle', 'text-rose-500');
       icon.classList.add('ph-arrow-counter-clockwise');
     }
     resetTimer = null;
-  }, 700);
+  }, 700));
 }
 
 function handleTouchEnd(): void {
@@ -252,7 +254,7 @@ function handleTouchEnd(): void {
         if (spinner) {
           spinner.addEventListener('animationiteration', () => location.reload(), { once: true });
         } else {
-          setTimeout(() => location.reload(), 600);
+          addTrackedTimer(setTimeout(() => location.reload(), 600));
         }
       }
     } else {

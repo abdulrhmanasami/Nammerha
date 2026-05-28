@@ -15,6 +15,7 @@ import { DEMO_PROJECTS, DEMO_STATS } from './data/demo-projects';
 // P2-STALE-001 FIX: SWR cache for homepage perceived-instant loading.
 import { swrFetch } from './utils/swr-cache';
 import { escapeHtml } from './utils/xss';
+const esc = escapeHtml;
 import { formatCents } from './utils/format';
 import { registerServiceWorker } from './offline/sw-register';
 import './offline/network-status'; // Self-injecting: bilingual offline status bar
@@ -77,10 +78,10 @@ async function initMapIfNeeded(): Promise<void> {
 
   async function attemptLoad() {
     let timeoutFired = false;
-    const fallbackTimer = setTimeout(() => {
+    const fallbackTimer = addTrackedTimer(setTimeout(() => {
       timeoutFired = true;
       showFallback();
-    }, 5_000);
+    }, 5_000));
 
     function showFallback() {
       if (mapContainer && !mapContainer.querySelector('canvas')) {
@@ -390,10 +391,10 @@ function initFirstTimeVisitorOverlay(): void {
   const el = overlay;
 
   // Show overlay with a small delay for map to start rendering underneath
-  setTimeout(() => {
+  addTrackedTimer(setTimeout(() => {
     el.classList.remove('nm-hidden');
     el.classList.add('animate-fade-in');
-  }, 800);
+  }, 800));
 
   // Dismiss handler — shared by both CTA buttons
   function dismissOverlay(): void {
@@ -418,12 +419,12 @@ function initFirstTimeVisitorOverlay(): void {
     e.preventDefault();
     dismissOverlay();
     // Smooth scroll to quick actions section after overlay fades
-    setTimeout(() => {
+    addTrackedTimer(setTimeout(() => {
       document.getElementById('quick-actions-section')?.scrollIntoView({
         behavior: 'smooth',
         block: 'start',
       });
-    }, 350);
+    }, 350));
   });
   document.getElementById('ftv-dismiss-btn')?.addEventListener('click', dismissOverlay);
 }
@@ -593,6 +594,8 @@ function showAllQuickActions(): void {
 // Previously: WORKSPACE_META was duplicated here and in welcome-chooser.ts.
 // Now: utils/workspace-map.ts is the canonical whitelist.
 import { WORKSPACE_DISPLAY, WS_STORAGE_KEY } from './utils/workspace-map';
+import { addTrackedTimer } from './utils/tracked-timers';
+
 
 function initWorkspaceDiscovery(): void {
   const wsSection = document.getElementById('workspace-discovery');
@@ -622,19 +625,19 @@ function initWorkspaceDiscovery(): void {
         preferredCard?.querySelector<HTMLElement>('[data-i18n]')?.textContent ?? preferredId;
 
       continueSlot.innerHTML = `
-                <a href="${meta.href}"
+                <a href="${esc(meta.href)}"
                    class="nm-ws-continue glass-card p-4 rounded-2xl flex items-center gap-3 mb-3 group"
-                   data-workspace-id="${preferredId}">
+                   data-workspace-id="${esc(preferredId)}">
                     <div class="size-10 rounded-xl flex items-center justify-center shrink-0 nm-ws-continue-icon">
-                        <i class="ph ${meta.icon} text-xl text-white" aria-hidden="true"></i>
+                        <i class="ph ${esc(meta.icon)} text-xl text-white" aria-hidden="true"></i>
                     </div>
                     <div class="flex-1 min-w-0">
                         <span class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500"
                               data-i18n="ws_continue_to">Continue to</span>
                         <span class="text-sm font-bold text-slate-800 block dark:text-slate-200"
-                              data-i18n="${labelKey}">${fallbackLabel}</span>
+                              data-i18n="${esc(labelKey)}">${esc(fallbackLabel)}</span>
                     </div>
-                    <i class="ph ph-caret-right text-lg ${meta.colorClass} nm-dir-shift" aria-hidden="true"></i>
+                    <i class="ph ph-caret-right text-lg ${esc(meta.colorClass)} nm-dir-shift" aria-hidden="true"></i>
                 </a>`;
 
       // Highlight the preferred card in the grid
@@ -688,7 +691,7 @@ function initSearchInput(): void {
     if (!query) {
       // Empty search — flash the input border to signal "type something"
       // DEF-FLASH-001 FIX: Replaced setTimeout + 2 Tailwind ring classes with CSS animation.
-      // Previous: add('ring-2', 'ring-red-400/50') + setTimeout(remove, 800) — timing hack.
+      // Previous: add('ring-2', 'ring-red-400/50') + addTrackedTimer(setTimeout(remove, 800)) — timing hack.
       // Standard: P1-SST-001 governance, CSS-driven animation, zero setTimeout.
       input.classList.add('nm-input-flash-error');
       input.addEventListener(
@@ -730,7 +733,7 @@ function initSearchInput(): void {
         noResults.innerHTML = `
                     <i class="ph ph-magnifying-glass nm-icon-32" aria-hidden="true"></i>
                     <p class="mt-2 text-sm font-medium" data-i18n="search_no_results">No featured projects match your search</p>
-                    <a href="/projects.html?q=${encodeURIComponent(query)}" class="inline-flex items-center gap-2 mt-4 px-5 py-2.5 bg-trust-blue text-white text-sm font-bold rounded-xl hover:bg-trust-blue-hover transition-colors shadow-sm">
+                    <a href="/projects.html?q=${esc(encodeURIComponent(query))}" class="inline-flex items-center gap-2 mt-4 px-5 py-2.5 bg-trust-blue text-white text-sm font-bold rounded-xl hover:bg-trust-blue-hover transition-colors shadow-sm">
                         <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
                         <span data-i18n="search_all_projects">Search all projects</span>
                         <i class="ph ph-arrow-right ph-sm nm-dir-shift" aria-hidden="true"></i>

@@ -1,3 +1,4 @@
+import { escapeHtml as esc } from './xss';
 /**
  * P1-UXA-002 FIX: Progressive Load-More Pagination Utility
  * ══════════════════════════════════════════════════════════════════════════
@@ -28,6 +29,7 @@
 
 import { t } from './i18n';
 import { renderErrorWithRetry } from './error-retry';
+
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -116,7 +118,7 @@ export function createPaginator<T>(config: PaginatorConfig<T>): Paginator {
     btn.disabled = false;
     btn.innerHTML = `
             <i class="ph ph-arrow-down text-base" aria-hidden="true"></i>
-            ${t('load_more', 'تحميل المزيد')}
+            ${esc(t('load_more', 'تحميل المزيد'))}
         `;
   }
 
@@ -125,7 +127,7 @@ export function createPaginator<T>(config: PaginatorConfig<T>): Paginator {
     btn.disabled = true;
     btn.innerHTML = `
             <i class="ph ph-spinner-gap ph-spin text-base" aria-hidden="true"></i>
-            ${t('loading', 'جاري التحميل...')}
+            ${esc(t('loading', 'جاري التحميل...'))}
         `;
   }
 
@@ -213,7 +215,7 @@ export function createPaginator<T>(config: PaginatorConfig<T>): Paginator {
           btn.disabled = false;
           btn.innerHTML = `
                         <i class="ph ph-warning-circle text-base text-red-400" aria-hidden="true"></i>
-                        ${t('load_more_retry', 'فشل — اضغط لإعادة المحاولة')}
+                        ${esc(t('load_more_retry', 'فشل — اضغط لإعادة المحاولة'))}
                     `;
         }
       }

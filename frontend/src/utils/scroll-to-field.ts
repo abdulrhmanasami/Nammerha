@@ -1,3 +1,5 @@
+import { addTrackedTimer } from './tracked-timers';
+
 // ============================================================================
 // Nammerha — P1-006: Scroll-to-Field Utility
 // ============================================================================
@@ -56,7 +58,7 @@ export function scrollToField(
     // Step 2: Focus after scroll animation settles.
     // `preventScroll: true` avoids the browser's native focus-scroll
     // fighting with our smooth scrollIntoView.
-    setTimeout(() => {
+    addTrackedTimer(setTimeout(() => {
         field.focus({ preventScroll: true });
 
         // Step 3: Highlight flash — brief visual cue that THIS is the problem field.
@@ -72,5 +74,5 @@ export function scrollToField(
                 field.classList.remove('nm-field-highlight');
             }, { once: true });
         }
-    }, delay);
+    }, delay));
 }

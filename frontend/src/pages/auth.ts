@@ -312,7 +312,7 @@ function switchTab(mode: 'login' | 'register'): void {
       exitingPanel.classList.remove('auth-panel-exit');
     } else {
       exitingPanel.classList.add('auth-panel-exit');
-      // SRG-13 FIX: Replaced setTimeout(250) with animationend event.
+      // SRG-13 FIX: Replaced addTrackedTimer(setTimeout(250)) with animationend event.
       // Previous: Hardcoded 250ms assumed CSS animation-duration wouldn't change.
       // This is a timing coupling fragility — if CSS duration changes, JS breaks.
       // Now: JS listens for the actual animation end, with a 400ms safety fallback.
@@ -323,11 +323,11 @@ function switchTab(mode: 'login' | 'register'): void {
       };
       exitingPanel.addEventListener('animationend', onExitEnd, { once: true });
       // Safety fallback: if animationend never fires (e.g., display:none race)
-      setTimeout(() => {
+      addTrackedTimer(setTimeout(() => {
         if (exitingPanel.classList.contains('auth-panel-exit')) {
           onExitEnd();
         }
-      }, 400);
+      }, 400));
     }
   }
 
@@ -2478,17 +2478,17 @@ async function handleLoginRedirect(
     return;
   }
 
-  setTimeout(() => {
+  addTrackedTimer(setTimeout(() => {
     window.location.href = finalTarget;
-  }, 800);
+  }, 800));
   // P2-W12-006 FIX: Safety restore if redirect fails.
   // PREVIOUS: If window.location.href assignment was blocked (browser extension,
   // Content-Security-Policy, or beforeunload handler), page stayed non-interactive.
   // NOW: 3s safety timeout restores interactivity.
   // Standard: Defense-in-Depth, Resilience Engineering.
-  setTimeout(() => {
+  addTrackedTimer(setTimeout(() => {
     document.body.classList.remove('nm-body-frozen');
-  }, 3000);
+  }, 3000));
 }
 
 // ─── MFA Challenge Panel (Migration 046) ──────────────────────────────────
@@ -2823,12 +2823,12 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
           inp.value = '';
           inp.disabled = true;
         });
-        setTimeout(() => {
+        addTrackedTimer(setTimeout(() => {
           digitInputs.forEach((inp) => {
             inp.disabled = false;
           });
           digitInputs[0]?.focus();
-        }, delayMs);
+        }, delayMs));
       }
     } catch (err) {
       haptic.heavy();
@@ -3421,7 +3421,7 @@ function openGoogleOAuthPopup(clientId: string, triggerBtn?: HTMLButtonElement):
   // full timeout. 2 minutes is generous for Google's OAuth flow (~15-30s typical)
   // but drastically reduces worst-case stuck-spinner duration.
   // Standard: UX Timeout Best Practices, Safari Compatibility.
-  const safetyTimeout = setTimeout(() => {
+  const safetyTimeout = addTrackedTimer(setTimeout(() => {
     clearTrackedInterval(pollTimer);
     // Clean up stale state if popup was abandoned
     try {
@@ -3430,7 +3430,7 @@ function openGoogleOAuthPopup(clientId: string, triggerBtn?: HTMLButtonElement):
       /* ignore */
     }
     if (triggerBtn) {setSocialBtnLoading(triggerBtn, false);}
-  }, 120000);
+  }, 120000));
   addTrackedTimer(safetyTimeout);
 }
 
@@ -3634,10 +3634,10 @@ function loadFacebookSDK(): Promise<FacebookSDK> {
     // if any other code set fbAsyncInit between the two declarations.
     // NOW: Single declaration with timeout clear and FB.init inline.
     // Standard: Single Responsibility, Defense against Re-entrant Wrapping.
-    const timeoutId = setTimeout(() => {
+    const timeoutId = addTrackedTimer(setTimeout(() => {
       fbSDKPromise = null; // Allow retry on next click
       reject(new Error('Facebook SDK load timeout'));
-    }, 8000);
+    }, 8000));
 
     (window as unknown as Record<string, unknown>).fbAsyncInit = function () {
       clearTimeout(timeoutId);

@@ -24,7 +24,7 @@
  * ╚═══════════════════════════════════════════════════════════════════════════╝*/
 
 :lang(ar) {
-  font-family: 'IBM Plex Sans Arabic', 'Plus Jakarta Sans', sans-serif !important;
+  font-family: 'IBM Plex Sans Arabic', 'Plus Jakarta Sans', sans-serif;
   letter-spacing: 0; /* Arabic doesn't benefit from letter-spacing */
 }
 
@@ -33,7 +33,7 @@
 :lang(ar) select,
 :lang(ar) textarea,
 :lang(ar) button {
-  font-family: 'IBM Plex Sans Arabic', 'Plus Jakarta Sans', sans-serif !important;
+  font-family: 'IBM Plex Sans Arabic', 'Plus Jakarta Sans', sans-serif;
 }
 
 /* ╔═══════════════════════════════════════════════════════════════════════════╗

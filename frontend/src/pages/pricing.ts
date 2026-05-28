@@ -19,6 +19,8 @@ import { t } from '../utils/i18n';
 import { formatCents } from '../utils/format';
 // W6-005 FIX: Import escapeHtml for defense-in-depth XSS protection on innerHTML.
 import { escapeHtml } from '../utils/xss';
+import { addTrackedTimer } from '../utils/tracked-timers';
+
 
 // ─── Price Constants (all in cents) ─────────────────────────────────────────
 
@@ -59,7 +61,7 @@ function updateAllPrices(): void {
     // Standard: CSS Single Source of Truth, class-driven animation.
     el.classList.add('nm-price-exit');
 
-    setTimeout(() => {
+    addTrackedTimer(setTimeout(() => {
       el.textContent = formatCents(price);
       el.classList.remove('nm-price-exit');
       el.classList.add('nm-price-enter');
@@ -74,7 +76,7 @@ function updateAllPrices(): void {
         },
         { once: true },
       );
-    }, 150);
+    }, 150));
   });
 
   intervalEls.forEach((el) => {
@@ -137,9 +139,9 @@ async function handleSubscribe(planSlug: string): Promise<void> {
       const btn = document.getElementById(`btn-plan-${planSlug}`);
       if (btn) {
         btn.textContent = body.error ?? t('pricing_error', 'فشل تحميل الأسعار');
-        setTimeout(() => {
+        addTrackedTimer(setTimeout(() => {
           btn.textContent = btn.dataset['originalText'] ?? t('pricing_try_again', 'حاول مرة أخرى');
-        }, 3000);
+        }, 3000));
       }
     }
   } catch (err) {
@@ -147,9 +149,9 @@ async function handleSubscribe(planSlug: string): Promise<void> {
     const btn = document.getElementById(`btn-plan-${planSlug}`);
     if (btn) {
       btn.textContent = t('pricing_error', 'فشل تحميل الأسعار');
-      setTimeout(() => {
+      addTrackedTimer(setTimeout(() => {
         btn.textContent = btn.dataset['originalText'] ?? t('pricing_try_again', 'حاول مرة أخرى');
-      }, 3000);
+      }, 3000));
     }
     // BONUS-01: Replaced console.error with centralized error reporting
     reportError(new Error(`[pricing] Subscribe error: ${errMsg}`), { planSlug });

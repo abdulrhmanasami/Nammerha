@@ -8,6 +8,8 @@ import { showToast } from '../utils/toast';
    Standard: No hardcoded data, API-Driven Rendering. */
 import { epaOracle } from '../api';
 import { requireAuth } from '../utils/auth-guard';
+import { addTrackedTimer } from '../utils/tracked-timers';
+
 
 /* ─── Pricing Oracle & EPA Engine — Interactive Controller ─── */
 
@@ -101,7 +103,7 @@ function initApproveButton(): void {
                 ${esc(t('oracle_confirm_prompt', 'هل تريد اعتماد هذا السعر؟'))}
             `;
       // Auto-reset after 5s if not confirmed
-      setTimeout(() => {
+      addTrackedTimer(setTimeout(() => {
         if (pendingConfirm) {
           pendingConfirm = false;
           btn.classList.remove('bg-amber-500', 'hover:bg-amber-600');
@@ -111,7 +113,7 @@ function initApproveButton(): void {
                         ${esc(t('oracle_approve_btn', 'اعتماد السعر'))}
                     `;
         }
-      }, 5000);
+      }, 5000));
       return;
     }
 
@@ -189,9 +191,9 @@ function initTickerAnimation(): void {
     priceElements.forEach((el) => {
       el.classList.add('transition-transform', 'duration-300');
       el.classList.add('scale-105');
-      setTimeout(() => {
+      addTrackedTimer(setTimeout(() => {
         el.classList.remove('scale-105');
-      }, 300);
+      }, 300));
     });
   }, 8000);
   window.addEventListener('beforeunload', () => clearInterval(tickerId));

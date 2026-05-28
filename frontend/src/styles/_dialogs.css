@@ -22,9 +22,9 @@
 /* ============================================================================
    GAP-006 FIX: KPI Skeleton Dark Mode
    ============================================================================ */
-/* SRG-02 FIX: Removed !important — doubled selector specificity (0,2,0)
-   overrides Tailwind's bg-* classes (0,1,0) without !important.
-   Standard: CSS Architecture — zero unnecessary !important. */
+/* SRG-02 FIX: Removed — doubled selector specificity (0,2,0)
+   overrides Tailwind's bg-* classes (0,1,0) without.
+   Standard: CSS Architecture — zero unnecessary. */
 html[data-theme="dark"] .kpi-skeleton.kpi-skeleton span {
     background-color: var(--dark-border);
 }

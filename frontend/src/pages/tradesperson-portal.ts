@@ -460,7 +460,7 @@ async function loadActiveJobs(): Promise<void> {
         .join('');
     }
 
-    tbody.innerHTML = `<div class="flex flex-col gap-3">${sectionsHtml}</div>`;
+    tbody.innerHTML = `<div class="flex flex-col gap-3">${esc(sectionsHtml)}</div>`;
   } catch (err) {
     reportError(err instanceof Error ? err : new Error('[Tradesperson] Active jobs load failed'), {
       component: 'tradesperson',

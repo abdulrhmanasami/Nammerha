@@ -12,6 +12,8 @@ import { requireAuth } from '../utils/auth-guard';
 import { relativeTimeAgo } from '../utils/format';
 import { renderProgressive } from '../utils/progressive-render';
 import { renderErrorWithRetry } from '../utils/error-retry';
+import { addTrackedTimer } from '../utils/tracked-timers';
+
 
 /* ─── KYC Verification Portal — API-Driven Controller ─── */
 
@@ -395,7 +397,7 @@ function initActionButtons(): void {
         verifyBtn.classList.remove('bg-smoky-jade/10', 'text-smoky-jade');
         verifyBtn.innerHTML = `<i class="ph ph-warning text-lg" aria-hidden="true"></i> ${esc(t('kyc_confirm_verify', 'هل ترغب في اعتماد هذا الطلب؟'))} ${esc(entry.full_name)}`;
         // TICKET-002: Store timer ID so it can be cleared on applicant change.
-        verifyRevertTimer = setTimeout(() => {
+        verifyRevertTimer = addTrackedTimer(setTimeout(() => {
           if (verifyPending) {
             verifyPending = false;
             verifyBtn.classList.remove('bg-amber-500', 'text-white');
@@ -403,7 +405,7 @@ function initActionButtons(): void {
             verifyBtn.innerHTML = `<i class="ph ph-seal-check text-lg" aria-hidden="true"></i> ${esc(t('kyc_verify_btn', 'اعتمد'))}`;
           }
           verifyRevertTimer = null;
-        }, 5000);
+        }, 5000));
         return;
       }
 

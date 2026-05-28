@@ -1,3 +1,5 @@
+import { addTrackedTimer } from './tracked-timers';
+
 // ============================================================================
 // Nammerha — Hydration Signal Utility (GAP-2601 FIX)
 // ============================================================================
@@ -35,4 +37,4 @@ export function signalHydrated(): void {
 // being imported, signal automatically. This prevents the load-guard banner
 // on pages that load data successfully but forgot to call signalHydrated().
 // 8s < 10s (GUARD_TIMEOUT_MS) gives a 2s safety margin.
-const _autoTimer = setTimeout(signalHydrated, 8_000);
+const _autoTimer = addTrackedTimer(setTimeout(signalHydrated, 8_000));

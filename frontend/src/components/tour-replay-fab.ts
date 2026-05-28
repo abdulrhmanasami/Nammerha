@@ -11,6 +11,8 @@ import { t } from '../utils/i18n';
 import { startTour, resetTour } from './tour-engine';
 import { haptic } from '../utils/haptic';
 import { escapeHtml as esc } from '../utils/xss';
+import { addTrackedTimer } from '../utils/tracked-timers';
+
 
 /**
  * Mount the Tour Replay FAB on the current page.
@@ -49,10 +51,10 @@ export function mountTourReplayFAB(tourId?: string): void {
   fab.appendChild(tooltip);
 
   // Auto-hide tooltip after 3 seconds
-  setTimeout(() => {
+  addTrackedTimer(setTimeout(() => {
     tooltip.classList.add('nm-tour-fab-tooltip--hidden');
     tooltip.addEventListener('animationend', () => tooltip.remove(), { once: true });
-  }, 3000);
+  }, 3000));
 }
 
 /**

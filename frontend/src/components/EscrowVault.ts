@@ -69,7 +69,7 @@ export class EscrowVault {
             <span class="font-mono tabular-nums">${esc(totalStr)}</span>
           </div>
           <div class="h-2.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden" dir="ltr">
-            <div class="h-full bg-gradient-to-r from-trust-blue to-smoky-jade transition-all duration-1000 ease-out" style="width: ${progressPct}%"></div>
+            <div class="h-full bg-gradient-to-r from-trust-blue to-smoky-jade transition-all duration-1000 ease-out" style="width: ${esc(progressPct)}%"></div>
           </div>
         </div>
       </div>

@@ -10,6 +10,8 @@ import { t } from './utils/i18n';
 // Previous: Raw i18n strings used in innerHTML — XSS vector via localStorage injection.
 // Standard: AGENTS.md mandatory pattern, OWASP XSS Prevention.
 import { escapeHtml } from './utils/xss';
+import { addTrackedTimer } from './utils/tracked-timers';
+
 
 export type UserRole =
   | 'homeowner'
@@ -251,7 +253,7 @@ if (typeof window !== 'undefined') {
         logoutBanner.style.transition = 'opacity 0.3s ease-out, transform 0.3s ease-out';
         logoutBanner.style.opacity = '0';
         logoutBanner.style.transform = 'translateY(-100%)';
-        setTimeout(() => logoutBanner.remove(), 300);
+        addTrackedTimer(setTimeout(() => logoutBanner.remove(), 300));
       }
     }
   });

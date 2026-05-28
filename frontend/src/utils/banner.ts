@@ -1,3 +1,5 @@
+import { addTrackedTimer } from './tracked-timers';
+
 /**
  * ═══════════════════════════════════════════════════════════════════════════
  * Shared Banner Utility — Nammerha Platform
@@ -119,8 +121,8 @@ export function showSimpleBanner(
   banner.classList.remove('nm-hidden');
 
   if (autoDismissMs > 0) {
-    setTimeout(() => {
+    addTrackedTimer(setTimeout(() => {
       banner.classList.add('nm-hidden');
-    }, autoDismissMs);
+    }, autoDismissMs));
   }
 }

@@ -112,10 +112,10 @@ html[data-theme="light"] .glass:hover {
   box-shadow: 0 4px 20px rgba(0,0,0,0.06);
   border-color: rgba(0,0,0,0.1);
 }
-/* DT-01 FIX: Removed !important — specificity boosted with body.about-page.
-   Previous: `html[data-theme="light"] .bento-large { ...!important }` to override .glass.
+/* DT-01 FIX: Removed — specificity boosted with body.about-page.
+   Previous: `html[data-theme="light"] .bento-large { ... }` to override .glass.
    Now: `html[data-theme="light"] body.about-page .bento-large` (0,3,1) > .glass (0,1,0).
-   Standard: CSS Architecture — zero unnecessary !important. */
+   Standard: CSS Architecture — zero unnecessary. */
 html[data-theme="light"] body.about-page .bento-large {
   background: linear-gradient(135deg, rgba(26,115,232,0.04), rgba(16,145,115,0.02));
   border-color: rgba(26,115,232,0.08);
@@ -150,8 +150,8 @@ html[data-theme="light"] .divider {
   background: linear-gradient(to right, transparent, rgba(0,0,0,0.06), transparent);
 }
 /* Leader cards */
-/* DT-01 FIX: Removed !important — specificity boosted with body.about-page.
-   Standard: CSS Architecture — zero unnecessary !important. */
+/* DT-01 FIX: Removed — specificity boosted with body.about-page.
+   Standard: CSS Architecture — zero unnecessary. */
 html[data-theme="light"] body.about-page .leader-card {
   background: rgba(255,255,255,0.9);
 }
@@ -223,7 +223,7 @@ html.nm-theme-transition,
 html.nm-theme-transition *,
 html.nm-theme-transition *::before,
 html.nm-theme-transition *::after {
-  transition: background-color 0.4s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease !important;
+  transition: background-color 0.4s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 /* ─── About Page: Body ────────────────────────────────────────── */
@@ -735,10 +735,10 @@ body.about-page a { text-decoration: none; color: inherit; }
   line-height: 2;
 }
 
-/* DT-01 FIX: Removed !important — specificity boosted with body.about-page.
-   Previous: `.bento-large { ...!important }` to override `.glass` base background.
+/* DT-01 FIX: Removed — specificity boosted with body.about-page.
+   Previous: `.bento-large { ... }` to override `.glass` base background.
    Now: `body.about-page .bento-large` (0,2,1) > `.glass` (0,1,0).
-   Standard: CSS Architecture — zero unnecessary !important. */
+   Standard: CSS Architecture — zero unnecessary. */
 body.about-page .bento-large {
   background: linear-gradient(135deg, rgba(26,115,232,0.08), rgba(16,145,115,0.05));
   border-color: rgba(26,115,232,0.12);

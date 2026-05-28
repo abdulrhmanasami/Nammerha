@@ -12,6 +12,8 @@ import { reportError } from '../error-reporter';
 import { t } from '../utils/i18n';
 // P0-PLT-002 FIX: Track session freshness for timeout warning.
 import { markSessionActivity } from '../utils/session-timeout';
+import { addTrackedTimer } from '../utils/tracked-timers';
+
 
 // ─── P0-UXA-002 FIX: Session Expiry Mutex ───────────────────────────────────
 // When JWT expires, multiple concurrent API calls all receive 401.
@@ -322,7 +324,7 @@ async function _requestInternal<T>(
     globalRouteAbortController.signal.addEventListener('abort', abortOnNav);
 
     // P1-UXA-007 FIX: Lie-Fi Syndrome - Reduce timeout to 8s instead of 30s
-    const timeoutId = setTimeout(() => controller.abort(), 8_000);
+    const timeoutId = addTrackedTimer(setTimeout(() => controller.abort(), 8_000));
 
     try {
       const res = await fetch(`${API_BASE}${endpoint}`, {
@@ -337,7 +339,7 @@ async function _requestInternal<T>(
 
       // Resilient Idempotency failover (502/503/504)
       if (!res.ok && attempt < maxRetries && [502, 503, 504].includes(res.status)) {
-        await new Promise((r) => setTimeout(r, 1000 * Math.pow(2, attempt))); // Exponential backoff
+        await new Promise((r) => addTrackedTimer(setTimeout(r, 1000 * Math.pow(2, attempt)))); // Exponential backoff
         continue;
       }
 
@@ -561,7 +563,7 @@ async function _requestInternal<T>(
       if (!skipAntiFlicker) {
         const elapsed = Date.now() - startTime;
         if (elapsed < 300) {
-          await new Promise((r) => setTimeout(r, 300 - elapsed));
+          await new Promise((r) => addTrackedTimer(setTimeout(r, 300 - elapsed)));
         }
       }
 
@@ -595,7 +597,7 @@ async function _requestInternal<T>(
         attempt < maxRetries &&
         (err instanceof TypeError || (err instanceof DOMException && err.name === 'AbortError'))
       ) {
-        await new Promise((r) => setTimeout(r, 1000 * Math.pow(2, attempt)));
+        await new Promise((r) => addTrackedTimer(setTimeout(r, 1000 * Math.pow(2, attempt))));
         lastErr = err;
         continue;
       }

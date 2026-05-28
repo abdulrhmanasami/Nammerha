@@ -21,6 +21,8 @@
  */
 
 import { escapeHtml } from './xss';
+import { addTrackedTimer } from './tracked-timers';
+
 
 /**
  * Apply a loading spinner + text to a button, disabling it.
@@ -66,11 +68,11 @@ export function setLoadingState(
             // PLT-AUD5-001 FIX: CSS class replaces Tailwind bang-modifiers
             // Previous: btn.classList.add('!bg-smoky-jade', '!text-white')
             btn.classList.add('nm-btn-success-flash');
-            setTimeout(() => {
+            addTrackedTimer(setTimeout(() => {
                 btn.innerHTML = originalHTML;
                 btn.disabled = originalDisabled;
                 btn.classList.remove('nm-btn-success-flash');
-            }, 600);
+            }, 600));
         } else if (outcome === 'error') {
             // Brief error flash (800ms) before restoring
             btn.innerHTML = `
@@ -79,11 +81,11 @@ export function setLoadingState(
             // PLT-AUD5-001 FIX: CSS class replaces Tailwind bang-modifiers
             // Previous: btn.classList.add('!bg-red-500', '!text-white')
             btn.classList.add('nm-btn-error-flash');
-            setTimeout(() => {
+            addTrackedTimer(setTimeout(() => {
                 btn.innerHTML = originalHTML;
                 btn.disabled = originalDisabled;
                 btn.classList.remove('nm-btn-error-flash');
-            }, 800);
+            }, 800));
         } else {
             btn.innerHTML = originalHTML;
             btn.disabled = originalDisabled;

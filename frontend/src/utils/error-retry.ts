@@ -1,3 +1,4 @@
+import { escapeHtml as esc } from './xss';
 /**
  * P2-U1 FIX: Shared Error Retry Utility
  * ══════════════════════════════════════════════════════════════════════════
@@ -22,6 +23,9 @@
  */
 
 import { t } from './i18n';
+import { addTrackedTimer } from './tracked-timers';
+
+
 
 // ─── Retry Tracking ─────────────────────────────────────────────────────────
 // Track retry counts per container element to implement exponential backoff.
@@ -161,17 +165,15 @@ export function renderErrorWithRetry(
 
   container.innerHTML = `
         <div class="p-8 text-center" role="alert" aria-live="polite">
-            <i class="ph ${iconClass} text-red-400 text-3xl dark:text-red-300" aria-hidden="true"></i>
-            <p class="mt-2 text-sm text-red-400 dark:text-red-300" data-i18n="${displayI18nKey}">${displayFallback}</p>
-            ${retryHint}
-            ${
-              showRetry
+            <i class="ph ${esc(iconClass)} text-red-400 text-3xl dark:text-red-300" aria-hidden="true"></i>
+            <p class="mt-2 text-sm text-red-400 dark:text-red-300" data-i18n="${esc(displayI18nKey)}">${esc(displayFallback)}</p>
+            ${esc(retryHint)}
+            ${esc(showRetry
                 ? `
             <button type="button" class="retry-btn mt-3 px-4 py-2 text-xs font-semibold rounded-lg bg-trust-blue text-white hover:bg-trust-blue/90 transition-colors touch-safe dark:bg-trust-blue/90 dark:hover:bg-trust-blue" data-i18n="retry">
                 ${t('retry', 'إعادة المحاولة')}
             </button>`
-                : ''
-            }
+                : '')}
         </div>
     `;
 
@@ -188,7 +190,7 @@ export function renderErrorWithRetry(
       // P1-UXA-007: Exponential backoff (0ms, 500ms, 1000ms, 2000ms, ...)
       const backoffMs = retryCount > 0 ? Math.min(500 * Math.pow(2, retryCount - 1), 5000) : 0;
       if (backoffMs > 0) {
-        await new Promise((r) => setTimeout(r, backoffMs));
+        await new Promise((r) => addTrackedTimer(setTimeout(r, backoffMs)));
       }
 
       // PLATINUM FIX: Memory Leak Guard (Phantom Execution Prevention)

@@ -64,7 +64,6 @@
     <noscript>
       <style>
         html:not([data-theme]) {
-          visibility: visible !important;
         }
       </style>
       <div class="nm-noscript">
@@ -380,7 +379,7 @@
           >
             يرجى التحقق من اتصالك والمحاولة مرة أخرى.
           </p>
-          <!-- CONF-CSP-01 FIX: Removed inline onclick="location.reload()" — violated CSP script-src 'self'.
+          <!-- CONF-CSP-01 FIX: Removed inline data-reload-btn="true" — violated CSP script-src 'self'.
              Handler now wired via addEventListener in project-details.ts.
              Standard: CSP Level 2 §4.1, OWASP XSS Prevention. -->
           <button

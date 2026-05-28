@@ -83,7 +83,6 @@
     <noscript>
       <style>
         html:not([data-theme]) {
-          visibility: visible !important;
         }
       </style>
       <div class="nm-noscript">
@@ -235,12 +234,12 @@
 
             <!-- Crosshair overlay -->
             <!-- UXA-001 FIX: Physical left/right → logical start/end for RTL field engineers.
-           Center lines (left-1/2, inset-x-0) remain physical — centering is direction-agnostic.
+           Center lines (start-1/2, inset-x-0) remain physical — centering is direction-agnostic.
            Corner brackets use start/end → they flip correctly in RTL mode.
            Standard: CSS Logical Properties, Platform RTL-First Architecture. -->
             <div class="absolute inset-0 pointer-events-none select-none">
               <div
-                class="absolute left-1/2 top-0 bottom-0 w-px bg-trust-blue/8 dark:bg-trust-blue/10"
+                class="absolute start-1/2 top-0 bottom-0 w-px bg-trust-blue/8 dark:bg-trust-blue/10"
               ></div>
               <div
                 class="absolute top-1/2 inset-x-0 h-px bg-trust-blue/8 dark:bg-trust-blue/10"

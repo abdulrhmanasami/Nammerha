@@ -1,3 +1,5 @@
+import { addTrackedTimer } from './tracked-timers';
+
 // ============================================================================
 // Nammerha Frontend — Zero-Latency Prefetch Engine (P1-NAV-001 Enhanced)
 // ============================================================================
@@ -64,9 +66,9 @@ export function initPrefetchEngine(): void {
         // P1-NAV-001 FIX: 200ms dwell threshold (was 50ms).
         // 50ms triggered on casual scroll-past — wasted bandwidth.
         // 200ms confirms genuine hover intent without noticeable delay.
-        hoverTimer = setTimeout(() => {
+        hoverTimer = addTrackedTimer(setTimeout(() => {
             prefetchUrl(anchor.href);
-        }, 200);
+        }, 200));
     });
 
     document.addEventListener('mouseout', (e: MouseEvent) => {

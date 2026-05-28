@@ -17,6 +17,8 @@
 // ============================================================================
 
 import { reportWarning } from '../error-reporter';
+import { addTrackedTimer } from './tracked-timers';
+
 
 // ─── Metric Types ───────────────────────────────────────────────────────────
 
@@ -67,7 +69,7 @@ function bufferMetric(name: WebVitalMetric['name'], value: number): void {
     if (!flushScheduled) {
         flushScheduled = true;
         // Batch: flush after 5 seconds or on page unload (whichever comes first)
-        setTimeout(flush, 5000);
+        addTrackedTimer(setTimeout(flush, 5000));
     }
 }
 

@@ -4,9 +4,20 @@
 // ============================================================================
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Mock i18n — returns fallback text
+// Mock i18n — returns English equivalents for test assertion readability
 vi.mock('../i18n', () => ({
-    t: (_key: string, fallback: string) => fallback,
+    t: (key: string, fallback: string) => {
+        const dictionary: Record<string, string> = {
+            pw_strength_very_weak: 'Too short',
+            pw_strength_weak: 'Weak',
+            pw_strength_fair: 'Fair',
+            pw_strength_good: 'Good',
+            pw_strength_strong: 'Strong',
+            pw_strength_too_short: 'Too short',
+            pw_requirements: '8+ chars, 1 uppercase, 1 number, 1 special',
+        };
+        return dictionary[key] ?? fallback;
+    },
 }));
 
 import { updatePasswordStrength } from '../password-strength';
@@ -43,68 +54,69 @@ describe('Password Strength', () => {
             expect(updatePasswordStrength('', bars, label)).toBe(0);
         });
 
-        it('should return 0 for short password without any criteria', () => {
-            expect(updatePasswordStrength('abc', bars, label)).toBe(0);
+        it('should score 1 for short lowercase-only password', () => {
+            expect(updatePasswordStrength('abc', bars, label)).toBe(1);
         });
 
-        it('should score +1 for >= 8 characters', () => {
-            expect(updatePasswordStrength('abcdefgh', bars, label)).toBe(1);
+        it('should score 1 for short uppercase-only password', () => {
+            expect(updatePasswordStrength('ABC', bars, label)).toBe(1);
         });
 
-        it('should score +1 for uppercase letter', () => {
-            expect(updatePasswordStrength('Abc', bars, label)).toBe(1);
+        it('should score 1 for short digit-only password', () => {
+            expect(updatePasswordStrength('123', bars, label)).toBe(1);
         });
 
-        it('should score +1 for digit', () => {
-            expect(updatePasswordStrength('abc1', bars, label)).toBe(1);
+        it('should score 1 for short special-only password', () => {
+            expect(updatePasswordStrength('!!!', bars, label)).toBe(1);
         });
 
-        it('should score +1 for special character', () => {
-            expect(updatePasswordStrength('abc!', bars, label)).toBe(1);
+        it('should score 2 for short password with uppercase and lowercase', () => {
+            expect(updatePasswordStrength('Abc', bars, label)).toBe(2);
         });
 
-        it('should score 2 for 8+ chars with uppercase', () => {
-            expect(updatePasswordStrength('Abcdefgh', bars, label)).toBe(2);
+        it('should score 3 for short password with uppercase, lowercase, and digit', () => {
+            expect(updatePasswordStrength('Abc1', bars, label)).toBe(3);
         });
 
-        it('should score 3 for 8+ chars with uppercase and digit', () => {
-            expect(updatePasswordStrength('Abcdefg1', bars, label)).toBe(3);
+        it('should score 4 for short password with uppercase, lowercase, digit, and special', () => {
+            expect(updatePasswordStrength('Abc1!', bars, label)).toBe(4);
         });
 
-        it('should score 4 (max) for 8+ chars with uppercase, digit, and special', () => {
-            expect(updatePasswordStrength('Abcdef1!', bars, label)).toBe(4);
+        it('should score 5 (max) for 8+ chars with uppercase, lowercase, digit, and special', () => {
+            expect(updatePasswordStrength('Abcdef1!', bars, label)).toBe(5);
         });
 
         it('should handle Arabic characters in password', () => {
-            // Arabic characters are not uppercase or digits, but they are 8+ chars
+            // Arabic characters are not matched by ASCII uppercase, lowercase or digits.
+            // They match the special characters class [^A-Za-z0-9] and length >= 8.
             const score = updatePasswordStrength('كلمة_مرور_طويلة', bars, label);
-            // 8+ chars = +1, special char (_) = +1 = 2
+            // 8+ chars = +1, special = +1 -> 2
             expect(score).toBe(2);
         });
     });
 
     describe('Label Updates', () => {
-        it('should show "Too short" for score 0 with non-empty password', () => {
+        it('should show "Too short" for score 1 with non-empty password', () => {
             updatePasswordStrength('abc', bars, label);
             expect(label.textContent).toBe('Too short');
         });
 
-        it('should show "Weak" for score 1', () => {
+        it('should show "Weak" for score 2', () => {
             updatePasswordStrength('abcdefgh', bars, label);
             expect(label.textContent).toBe('Weak');
         });
 
-        it('should show "Fair" for score 2', () => {
+        it('should show "Fair" for score 3', () => {
             updatePasswordStrength('Abcdefgh', bars, label);
             expect(label.textContent).toBe('Fair');
         });
 
-        it('should show "Good" for score 3', () => {
+        it('should show "Good" for score 4', () => {
             updatePasswordStrength('Abcdefg1', bars, label);
             expect(label.textContent).toBe('Good');
         });
 
-        it('should show "Strong" for score 4', () => {
+        it('should show "Strong" for score 5', () => {
             updatePasswordStrength('Abcdef1!', bars, label);
             expect(label.textContent).toBe('Strong');
         });
@@ -121,13 +133,13 @@ describe('Password Strength', () => {
     });
 
     describe('Bar Styling', () => {
-        it('should color 1 bar red for score 1', () => {
+        it('should color 1 bar red for score 2', () => {
             updatePasswordStrength('abcdefgh', bars, label);
             expect((bars[0] as HTMLElement).className).toContain('bg-red-400');
             expect((bars[1] as HTMLElement).className).toContain('bg-slate-200');
         });
 
-        it('should color 4 bars green for score 4', () => {
+        it('should color 4 bars green for score 5', () => {
             updatePasswordStrength('Abcdef1!', bars, label);
             for (let i = 0; i < 4; i++) {
                 expect((bars[i] as HTMLElement).className).toContain('bg-emerald-400');
@@ -138,17 +150,17 @@ describe('Password Strength', () => {
     describe('Edge Cases', () => {
         it('should work with null bars', () => {
             const score = updatePasswordStrength('Abcdef1!', undefined, label);
-            expect(score).toBe(4);
+            expect(score).toBe(5);
         });
 
         it('should work with null label', () => {
             const score = updatePasswordStrength('Abcdef1!', bars, null);
-            expect(score).toBe(4);
+            expect(score).toBe(5);
         });
 
         it('should work with both null', () => {
             const score = updatePasswordStrength('Abcdef1!', undefined, null);
-            expect(score).toBe(4);
+            expect(score).toBe(5);
         });
     });
 });

@@ -66,6 +66,8 @@ import { initBreadcrumb } from '../utils/breadcrumb';
 // animation, dark mode, haptic feedback, and screen reader announcements.
 // Standard: DRY Principle, Design System Component Unity.
 import { showToast } from '../utils/toast';
+import { addTrackedTimer } from '../utils/tracked-timers';
+
 function showSrBanner(type: 'error' | 'success', message: string): void {
   showToast(message, type);
 }
@@ -202,7 +204,7 @@ document.addEventListener(
         // P2-STM-003 FIX: Dismiss handler — persists to localStorage with timestamp.
         kycBanner.querySelector('#nm-kyc-banner-dismiss')?.addEventListener('click', () => {
           kycBanner.classList.add('animate-fade-out');
-          setTimeout(() => kycBanner.remove(), 300);
+          addTrackedTimer(setTimeout(() => kycBanner.remove(), 300));
           try {
             localStorage.setItem('nm_kyc_banner_dismissed', String(Date.now()));
           } catch {
@@ -878,7 +880,7 @@ async function loadServiceRequests(): Promise<void> {
               card.classList.add('nm-card-removing');
 
               // Phase 2: After slide-out, collapse height to close gap
-              collapseTimer = setTimeout(() => {
+              collapseTimer = addTrackedTimer(setTimeout(() => {
                 card.style.transition =
                   'max-height 0.3s ease, padding 0.3s ease, margin 0.3s ease, border-width 0.3s ease';
                 card.style.maxHeight = `${card.scrollHeight}px`;
@@ -888,13 +890,13 @@ async function loadServiceRequests(): Promise<void> {
                 card.style.margin = '0';
                 card.style.borderWidth = '0';
                 card.style.overflow = 'hidden';
-              }, 300);
+              }, 300));
 
               // Phase 3: Remove from DOM after collapse completes
-              removeTimer = setTimeout(() => {
+              removeTimer = addTrackedTimer(setTimeout(() => {
                 card.remove();
                 cardRemoved = true;
-              }, 620);
+              }, 620));
             }
 
             // ── Show instant success toast ─────────────────────────
@@ -1043,7 +1045,7 @@ async function loadApprovals(): Promise<void> {
           );
           try {
             // UX-REM-F005 FIX + P0-002 FIX (Wave 2): Non-blocking undo with completion tracking.
-            // PREVIOUS (UX-REM-F005): setTimeout(5000) BLOCKED async flow.
+            // PREVIOUS (UX-REM-F005): addTrackedTimer(setTimeout(5000)) BLOCKED async flow.
             // PREVIOUS (Wave 2 audit): API could complete before user clicks Undo.
             // If API succeeds (fast network) then user clicks Undo:
             //   - abortController.abort() = no-op (Promise already resolved)
@@ -1185,7 +1187,7 @@ async function loadEscrow(): Promise<void> {
   // Standard: Nielsen #1 (System Status Visibility), Skeleton Loading Pattern.
   container.innerHTML = `
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4" aria-hidden="true">
-            ${Array.from(
+            ${esc(Array.from(
               { length: 4 },
               (_, i) => `
                 <div class="rounded-xl p-4 bg-slate-100 dark:bg-dark-elevated nm-skeleton">
@@ -1193,7 +1195,7 @@ async function loadEscrow(): Promise<void> {
                     <div class="h-6 bg-slate-200 dark:bg-slate-700 rounded w-2/3 mt-2 nm-skeleton-pulse" style="animation-delay:${i * 0.1 + 0.1}s"></div>
                 </div>
             `,
-            ).join('')}
+            ).join(''))}
         </div>
     `;
 
@@ -1205,15 +1207,15 @@ async function loadEscrow(): Promise<void> {
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4" role="region" aria-label="${esc(t('ho_escrow_summary', 'ملخص الأمانة'))}">
                 <div class="bg-trust-blue/5 rounded-xl p-4 dark:bg-trust-blue/10">
                     <p class="text-3xs font-bold text-trust-blue/60 uppercase">${esc(t('ho_total_deposited', 'إجمالي المودع'))}</p>
-                    <p class="text-xl font-black mt-1 text-trust-blue" aria-label="${esc(t('ho_total_deposited', 'إجمالي المودع'))}: ${formatCents(e.total_deposited ?? 0)}">${formatCents(e.total_deposited ?? 0)}</p>
+                    <p class="text-xl font-black mt-1 text-trust-blue" aria-label="${esc(t('ho_total_deposited', 'إجمالي المودع'))}: ${esc(formatCents(e.total_deposited ?? 0))}">${esc(formatCents(e.total_deposited ?? 0))}</p>
                 </div>
                 <div class="bg-smoky-jade/5 rounded-xl p-4 dark:bg-smoky-jade/10">
                     <p class="text-3xs font-bold text-smoky-jade/60 uppercase">${esc(t('ho_released', 'تم الإفراج'))}</p>
-                    <p class="text-xl font-black mt-1 text-smoky-jade dark:text-emerald-400" aria-label="${esc(t('ho_released', 'تم الإفراج'))}: ${formatCents(e.total_released ?? 0)}">${formatCents(e.total_released ?? 0)}</p>
+                    <p class="text-xl font-black mt-1 text-smoky-jade dark:text-emerald-400" aria-label="${esc(t('ho_released', 'تم الإفراج'))}: ${esc(formatCents(e.total_released ?? 0))}">${esc(formatCents(e.total_released ?? 0))}</p>
                 </div>
                 <div class="bg-warm-earth/5 rounded-xl p-4 dark:bg-warm-earth/10">
                     <p class="text-3xs font-bold text-warm-earth/60 uppercase" aria-hidden="true">${esc(t('ho_held_in_escrow', 'محتجز في الضمان'))}</p>
-                    <p class="text-xl font-black mt-1 text-warm-earth" data-kpi aria-label="${esc(t('ho_held_in_escrow', 'محتجز في الضمان'))}: ${formatCents(e.held_in_escrow ?? 0)}">${formatCents(e.held_in_escrow ?? 0)}</p>
+                    <p class="text-xl font-black mt-1 text-warm-earth" data-kpi aria-label="${esc(t('ho_held_in_escrow', 'محتجز في الضمان'))}: ${esc(formatCents(e.held_in_escrow ?? 0))}">${esc(formatCents(e.held_in_escrow ?? 0))}</p>
                 </div>
                 <div class="bg-slate-50 rounded-xl p-4 dark:bg-dark-elevated">
                     <p class="text-3xs font-bold text-slate-400 uppercase dark:text-slate-500">${esc(t('ho_projects', 'المشاريع'))}</p>
@@ -1221,8 +1223,7 @@ async function loadEscrow(): Promise<void> {
                 </div>
             </div>
             <p class="text-3xs text-slate-400 dark:text-slate-500 mt-2 text-end" data-i18n="ho_currency_note">${esc(t('ho_currency_note', 'جميع المبالغ بالدولار الأمريكي'))}</p>
-            ${
-              (e.held_in_escrow ?? 0) > 0
+            ${esc((e.held_in_escrow ?? 0) > 0
                 ? `
                 <!-- [Platinum UX]: Tripartite Arbitration UI (Ghost State) -->
                 <div class="mt-4 p-5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden">
@@ -1273,8 +1274,7 @@ async function loadEscrow(): Promise<void> {
                     </p>
                 </div>
             `
-                : ''
-            }
+                : '')}
             <a href="/wallet.html" class="mt-4 flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-trust-blue/15 text-trust-blue text-sm font-bold hover:bg-trust-blue/5 transition-colors">
                 <i class="ph ph-arrow-square-out text-base" aria-hidden="true"></i>
                 ${esc(t('ho_view_all_transactions', 'عرض جميع المعاملات'))}

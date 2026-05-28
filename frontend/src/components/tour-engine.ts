@@ -1,3 +1,4 @@
+import { escapeHtml as esc } from '../utils/xss';
 // ============================================================================
 // Nammerha — Interactive Product Tour Engine
 // ============================================================================
@@ -19,6 +20,8 @@ import { TOUR_DEFINITIONS, type TourDefinition } from './tour-definitions';
 // Local getLocale() is kept — it returns 'en'|'ar' (bilingual selector),
 // different from utils/locale.ts getLocale() which returns a full locale string.
 import { isRTL, t } from '../utils/i18n';
+import { addTrackedTimer } from '../utils/tracked-timers';
+
 
 const STORAGE_KEY_PREFIX = 'nammerha-tour-';
 const OVERLAY_ID = 'nmr-tour-overlay';
@@ -114,9 +117,9 @@ export function autoTriggerTour(): void {
 
   if (tourId) {
     // Small delay to let page render
-    setTimeout(() => {
+    addTrackedTimer(setTimeout(() => {
       startTour(tourId!);
-    }, 1200);
+    }, 1200));
   }
 }
 
@@ -160,10 +163,10 @@ function showStep(index: number): void {
     })();
 
     // Position spotlight
-    setTimeout(() => {
+    addTrackedTimer(setTimeout(() => {
       positionSpotlight(spotlight, target);
       positionTooltip(tooltip, target, resolvedPosition);
-    }, 350);
+    }, 350));
   } else {
     // Target not found — hide spotlight, show tooltip centered
     // DEF-UX-008 FIX: CSS class toggle replaces inline style.opacity.
@@ -194,20 +197,20 @@ function showStep(index: number): void {
   tooltip.dir = rtl ? 'rtl' : 'ltr';
   tooltip.innerHTML = `
         <div class="nmr-tour-header">
-            <span class="nmr-tour-step-count">${index + 1} / ${steps.length}</span>
+            <span class="nmr-tour-step-count">${esc(index + 1)} / ${esc(steps.length)}</span>
             <button type="button" class="nmr-tour-close" aria-label="Close" data-action="skip"><i class="ph ph-x" aria-hidden="true"></i></button>
         </div>
         <div class="nmr-tour-progress">
-            <div class="nmr-tour-progress-bar nm-progress-bar" style="--progress:${((index + 1) / steps.length) * 100}%"></div>
+            <div class="nmr-tour-progress-bar nm-progress-bar" style="--progress:${esc(((index + 1) / steps.length) * 100)}%"></div>
         </div>
-        <h3 class="nmr-tour-title">${title}</h3>
-        <p class="nmr-tour-content">${content}</p>
+        <h3 class="nmr-tour-title">${esc(title)}</h3>
+        <p class="nmr-tour-content">${esc(content)}</p>
         <div class="nmr-tour-actions">
-            <button type="button" class="nmr-tour-btn nmr-tour-btn--skip" data-action="skip">${skipLabel}</button>
+            <button type="button" class="nmr-tour-btn nmr-tour-btn--skip" data-action="skip">${esc(skipLabel)}</button>
             <div class="nmr-tour-nav">
-                ${!isFirst ? `<button type="button" class="nmr-tour-btn nmr-tour-btn--prev" data-action="prev">${prevLabel}</button>` : ''}
-                <button type="button" class="nmr-tour-btn nmr-tour-btn--next" data-action="${isLast ? 'done' : 'next'}">
-                    ${isLast ? doneLabel : nextLabel}
+                ${esc(!isFirst ? `<button type="button" class="nmr-tour-btn nmr-tour-btn--prev" data-action="prev">${prevLabel}</button>` : '')}
+                <button type="button" class="nmr-tour-btn nmr-tour-btn--next" data-action="${esc(isLast ? 'done' : 'next')}">
+                    ${esc(isLast ? doneLabel : nextLabel)}
                 </button>
             </div>
         </div>

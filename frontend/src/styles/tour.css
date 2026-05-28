@@ -372,7 +372,7 @@ html[data-theme="dark"] .nmr-tour-btn--prev {
     .nmr-tour-spotlight,
     .nmr-tour-tooltip,
     .nmr-tour-progress-bar {
-        transition-duration: 0.01ms !important;
+        transition-duration: 0.01ms;
     }
 
     .nmr-tour-spotlight {

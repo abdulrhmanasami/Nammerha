@@ -177,7 +177,7 @@ function updateAccuracyDisplay(accuracy: number): void {
     badgeEl.className = `nm-minimap-badge ${qualityClass}`;
     badgeEl.innerHTML = `
       <i class="ph ph-crosshair text-xs" aria-hidden="true"></i>
-      <span>±${accuracy.toFixed(0)}m · ${esc(qualityLabel)}</span>
+      <span>±${esc(accuracy.toFixed(0))}m · ${esc(qualityLabel)}</span>
     `;
   }
 

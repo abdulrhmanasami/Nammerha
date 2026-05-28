@@ -1,3 +1,4 @@
+import { escapeHtml as esc } from './xss';
 // ============================================================================
 // Nammerha — Skeleton Timeout Guard
 // P3-UX-004 FIX: Prevents skeleton loaders from persisting indefinitely
@@ -7,6 +8,9 @@
 // user-friendly "still loading" message + retry button.
 
 import { tryTranslate } from './i18n-apply';
+import { addTrackedTimer } from './tracked-timers';
+
+
 
 interface SkeletonGuardConfig {
     /** Container element or ID containing the skeleton */
@@ -42,7 +46,7 @@ export function guardSkeleton(config: SkeletonGuardConfig): () => void {
 
     // P2-003 FIX: Progressive feedback — 5s reassurance before 15s timeout
     const earlyHintMs = Math.min(5000, timeoutMs - 1000); // Show hint at 5s (or earlier if timeoutMs < 6s)
-    const earlyTimerId = setTimeout(() => {
+    const earlyTimerId = addTrackedTimer(setTimeout(() => {
         const skeletons = container.querySelectorAll('.animate-pulse');
         if (skeletons.length === 0) { return; }
         // Inject subtle "still loading" text below the skeleton — DON'T replace it
@@ -53,9 +57,9 @@ export function guardSkeleton(config: SkeletonGuardConfig): () => void {
         if (!container.querySelector('.nm-skeleton-hint')) {
             container.appendChild(hint);
         }
-    }, earlyHintMs);
+    }, earlyHintMs));
 
-    const timerId = setTimeout(() => {
+    const timerId = addTrackedTimer(setTimeout(() => {
         // Check if skeleton is still showing (has `animate-pulse` children)
         const skeletons = container.querySelectorAll('.animate-pulse');
         if (skeletons.length === 0) {
@@ -70,8 +74,8 @@ export function guardSkeleton(config: SkeletonGuardConfig): () => void {
         container.innerHTML = `
             <div class="text-center py-8 animate-fade-in-up">
                 <i class="ph ph-hourglass-medium text-slate-300 nm-icon-40" aria-hidden="true"></i>
-                <p class="text-slate-500 text-sm font-medium mt-3 dark:text-slate-400">${msg}</p>
-                ${onRetry ? `<button type="button" class="nm-skeleton-retry mt-3 px-4 py-2 bg-trust-blue text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-colors">${retryLabel}</button>` : ''}
+                <p class="text-slate-500 text-sm font-medium mt-3 dark:text-slate-400">${esc(msg)}</p>
+                ${esc(onRetry ? `<button type="button" class="nm-skeleton-retry mt-3 px-4 py-2 bg-trust-blue text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-colors">${retryLabel}</button>` : '')}
             </div>
         `;
 
@@ -90,7 +94,7 @@ export function guardSkeleton(config: SkeletonGuardConfig): () => void {
                 onRetry();
             });
         }
-    }, timeoutMs);
+    }, timeoutMs));
 
     // Return cancel function — clears both timers
     return () => {

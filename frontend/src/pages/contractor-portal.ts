@@ -57,6 +57,8 @@ import { renderProgressive } from '../utils/progressive-render';
 import { staggerDelay } from '../constants/animation';
 // PLATINUM FIX: DirtyStateGuard to protect modal forms from Cross-Tab Eviction
 import { DirtyStateGuard } from '../utils/dirty-guard';
+import { addTrackedTimer } from '../utils/tracked-timers';
+
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Contractor Portal — Dashboard, Marketplace, Bids, Payments
@@ -681,10 +683,10 @@ function openBidModal(projectId: string): void {
 
     dialog.style.opacity = '0';
     dialog.style.transition = 'opacity 200ms ease-out';
-    setTimeout(() => {
+    addTrackedTimer(setTimeout(() => {
       dialog.close();
       triggerEl?.focus();
-    }, 200);
+    }, 200));
   }
 
   // Native dialog auto-closes on Escape; we listen for cleanup + focus restore
@@ -723,7 +725,7 @@ function openBidModal(projectId: string): void {
       if (!oracleShockTriggered && bidCostInput.value.length > 2) {
         oracleShockTriggered = true;
         // Simulate a live price change from Oracle while user is typing
-        setTimeout(() => {
+        addTrackedTimer(setTimeout(() => {
           // PLATINUM FIX: Oracle State Mutation Race
           // PREVIOUS: If the user clicked submit just before the timeout fired, the UI would visually
           // inflate the price by 2% while the backend processed the old price, causing severe cognitive desync.
@@ -745,7 +747,7 @@ function openBidModal(projectId: string): void {
               bidCostInput.classList.remove('bg-amber-50', 'border-amber-400');
             }, 1500);
           }
-        }, 1200); // Trigger 1.2s after they start typing
+        }, 1200)); // Trigger 1.2s after they start typing
       }
     });
   }

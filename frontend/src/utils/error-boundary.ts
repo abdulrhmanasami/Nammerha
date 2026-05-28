@@ -1,3 +1,4 @@
+import { escapeHtml as esc } from './xss';
 /**
  * ═══════════════════════════════════════════════════════════════════════════
  * Nammerha — Global Page Error Boundary (P0-PLT-001)
@@ -32,6 +33,9 @@
 import { t } from './i18n';
 import { tryApplyI18n } from './i18n-apply';
 import { reportError } from '../error-reporter';
+import { addTrackedTimer } from './tracked-timers';
+
+
 
 /** Tracks if the error boundary has already rendered — prevents stacking. */
 let boundaryRendered = false;
@@ -67,22 +71,22 @@ function renderErrorBoundary(error: unknown): void {
         <i class="ph ph-warning-circle text-red-500 nm-icon-40" aria-hidden="true"></i>
       </div>
       <h2 class="text-lg font-bold text-slate-900 dark:text-slate-100" data-i18n="error_boundary_title">
-        ${t('error_boundary_title', 'حدث خطأ غير متوقع')}
+        ${esc(t('error_boundary_title', 'حدث خطأ غير متوقع'))}
       </h2>
       <p class="text-sm text-slate-500 max-w-xs dark:text-slate-400" data-i18n="error_boundary_msg">
-        ${t('error_boundary_msg', 'لم نتمكن من تحميل هذه الصفحة. يرجى المحاولة مرة أخرى.')}
+        ${esc(t('error_boundary_msg', 'لم نتمكن من تحميل هذه الصفحة. يرجى المحاولة مرة أخرى.'))}
       </p>
       <div class="flex gap-3 mt-2">
         <button type="button" id="nm-boundary-retry" class="btn-primary nm-btn-inline">
           <i class="ph ph-arrow-clockwise" aria-hidden="true"></i>
-          <span data-i18n="common_retry">${t('common_retry', 'إعادة المحاولة')}</span>
+          <span data-i18n="common_retry">${esc(t('common_retry', 'إعادة المحاولة'))}</span>
         </button>
         <a href="/" class="btn-secondary nm-btn-inline">
           <i class="ph ph-house" aria-hidden="true"></i>
-          <span data-i18n="go_home">${t('go_home', 'الصفحة الرئيسية')}</span>
+          <span data-i18n="go_home">${esc(t('go_home', 'الصفحة الرئيسية'))}</span>
         </a>
       </div>
-      ${import.meta.env.DEV ? `<pre class="mt-4 text-xs text-start bg-slate-100 dark:bg-dark-elevated rounded-lg p-3 max-w-md overflow-auto text-red-600 dark:text-red-400">${errorMsg}</pre>` : ''}
+      ${esc(import.meta.env.DEV ? `<pre class="mt-4 text-xs text-start bg-slate-100 dark:bg-dark-elevated rounded-lg p-3 max-w-md overflow-auto text-red-600 dark:text-red-400">${errorMsg}</pre>` : '')}
     </div>
   `;
 
@@ -137,7 +141,7 @@ export function initErrorBoundary(): void {
   // Use a short delay to detect if main-content still has skeleton loaders
   // after a reasonable initialization window (3 seconds)
   window.addEventListener('load', () => {
-    setTimeout(() => {
+    addTrackedTimer(setTimeout(() => {
       // Check if page is stuck in skeleton state (no hydration signal)
       const mainContent = document.getElementById('main-content');
       if (!mainContent) {
@@ -161,6 +165,6 @@ export function initErrorBoundary(): void {
           skeletonCount: skeletons.length,
         });
       }
-    }, 8_000); // 8 seconds — generous for Syria 2G
+    }, 8_000)); // 8 seconds — generous for Syria 2G
   });
 }

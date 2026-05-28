@@ -19,10 +19,13 @@
 import { notifications } from '../api';
 import { getCurrentUser } from '../auth';
 import { escapeHtml } from '../utils/xss';
+const esc = escapeHtml;
 import { t } from '../utils/i18n';
 import { relativeTimeAgo } from '../utils/format';
 // PLT-UX-AUD P3-LOG-006 FIX: Structured telemetry for silent catch blocks.
 import { reportWarning } from '../error-reporter';
+import { addTrackedTimer } from '../utils/tracked-timers';
+
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -297,7 +300,7 @@ export function initNotificationPanel(): void {
     document.addEventListener('DOMContentLoaded', attach);
   } else {
     // Small delay to allow header-normalize to inject the bell first
-    setTimeout(attach, 50);
+    addTrackedTimer(setTimeout(attach, 50));
   }
 }
 
@@ -327,7 +330,7 @@ async function updateBadge(): Promise<void> {
         badge.classList.remove('hidden', 'nm-hidden');
         // Subtle pulse animation on new notifications
         badge.classList.add('nm-notif-pulse');
-        setTimeout(() => badge.classList.remove('nm-notif-pulse'), 600);
+        addTrackedTimer(setTimeout(() => badge.classList.remove('nm-notif-pulse'), 600));
       } else {
         badge.classList.add('hidden', 'nm-hidden');
       }
@@ -354,7 +357,7 @@ function togglePanel(bell: HTMLElement): void {
 
 async function openPanel(bell: HTMLElement): Promise<void> {
   // SYS-005 FIX (Race Vector 1): Cancel any pending close timer.
-  // PREVIOUS: closePanel() scheduled panel.remove() via setTimeout(200ms).
+  // PREVIOUS: closePanel() scheduled panel.remove() via addTrackedTimer(setTimeout(200ms)).
   // If user clicked bell again within that 200ms window, the stale timer
   // would fire mid-use — the guard `if (panel && !isOpen)` catches most
   // cases, but edge cases with CSS animation state remain.
@@ -392,10 +395,10 @@ async function openPanel(bell: HTMLElement): Promise<void> {
   // Loading state
   panel.innerHTML = `
         <div class="nm-notif-header">
-            <h3 class="nm-notif-title" data-i18n="notifications">${t('notifications', 'الإشعارات')}</h3>
+            <h3 class="nm-notif-title" data-i18n="notifications">${esc(t('notifications', 'الإشعارات'))}</h3>
             <button type="button" id="nm-mark-all-read" class="nm-notif-mark-all" data-i18n="mark_all_read"
-                    aria-label="${t('mark_all_read', 'تعيين الكل كمقروء')}">
-                ${t('mark_all_read', 'تعيين الكل كمقروء')}
+                    aria-label="${esc(t('mark_all_read', 'تعيين الكل كمقروء'))}">
+                ${esc(t('mark_all_read', 'تعيين الكل كمقروء'))}
             </button>
         </div>
         <div class="nm-notif-body">
@@ -465,13 +468,13 @@ function closePanel(bell: HTMLElement): void {
   if (panel) {
     panel.classList.remove('nm-notif-panel-open');
     // Remove after animation — SYS-005: Track timer for cancellation on reopen
-    closeTimerId = setTimeout(() => {
+    closeTimerId = addTrackedTimer(setTimeout(() => {
       closeTimerId = null;
       if (panel && !isOpen) {
         panel.remove();
         panel = null;
       }
-    }, 200);
+    }, 200));
   }
 
   // P2-015 FIX: Return focus to bell on ALL close paths.
@@ -495,7 +498,7 @@ async function loadNotifications(): Promise<void> {
       body.innerHTML = `
                 <div class="nm-notif-empty">
                     <i class="ph ph-bell-slash text-slate-300 text-3xl" aria-hidden="true"></i>
-                    <p data-i18n="no_notifications">${t('no_notifications', 'لا توجد إشعارات بعد')}</p>
+                    <p data-i18n="no_notifications">${esc(t('no_notifications', 'لا توجد إشعارات بعد'))}</p>
                 </div>
             `;
       return;
@@ -575,7 +578,7 @@ async function loadNotifications(): Promise<void> {
     body.innerHTML = `
             <div class="nm-notif-empty">
                 <i class="ph ph-warning-circle text-red-400 text-2xl" aria-hidden="true"></i>
-                <p data-i18n="failed_to_load">${t('failed_to_load', 'فشل التحميل')}</p>
+                <p data-i18n="failed_to_load">${esc(t('failed_to_load', 'فشل التحميل'))}</p>
             </div>
         `;
   }
@@ -644,21 +647,25 @@ function positionPanel(bell: HTMLElement): void {
 
   // Reset both physical + logical to avoid stale values
   panel.style.left = '';
-  panel.style.right = '';
   panel.style.insetInlineStart = '';
+  panel.style.insetInlineEnd = '';
   // Align panel to the 'end' edge — near the bell icon
   panel.style.insetInlineEnd = `${Math.max(8, window.innerWidth - rect.right)}px`;
 
-  // Clamp horizontal: prevent left-edge overflow on narrow viewports
-  // (schedule after next frame to read computed layout)
+  // Clamp horizontal: prevent start-edge overflow on narrow viewports
+  panel.style.insetInlineStart = '';
+  panel.style.insetInlineEnd = '';
+  panel.style.transform = '';
   requestAnimationFrame(() => {
     if (!panel) {
       return;
     }
     const panelRect = panel.getBoundingClientRect();
+    // If overflow on the start edge (LTR: left, RTL: right)
     if (panelRect.left < 8) {
-      panel.style.insetInlineEnd = '';
       panel.style.insetInlineStart = '8px';
+      panel.style.insetInlineEnd = 'auto';
+      panel.style.transform = 'none';
     }
   });
 }

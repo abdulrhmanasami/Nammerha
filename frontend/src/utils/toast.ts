@@ -6,6 +6,8 @@
 
 import { haptic } from './haptic';
 import { tryTranslate } from './i18n-apply';
+import { addTrackedTimer } from './tracked-timers';
+
 
 type ToastType = 'success' | 'error' | 'info' | 'warning';
 
@@ -166,6 +168,6 @@ export function showToast(
     }
 
     if (duration > 0) {
-        setTimeout(() => removeToast(el), duration);
+        addTrackedTimer(setTimeout(() => removeToast(el), duration));
     }
 }

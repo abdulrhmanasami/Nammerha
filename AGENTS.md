@@ -18,6 +18,17 @@
 
 ## 🛑 ZERO-REGRESSION MEMOS (CRITICAL AI MEMORY)
 
+**MEMO 48: Platinum Frontend Security, XSS Mitigation, & Strict Import Synchronization (May 29, 2026)**
+
+- **Root Cause Destroyed:**
+  1. The platform's dynamic string interpolation inside UI components (e.g., `notification-panel.ts`, `smart-scanner.ts`, `upload-progress.ts`, `map-markers.ts`, etc.) used a shorthand `esc()` utility that was not imported or resolved correctly. This created potential cross-origin vulnerability and compilation desyncs.
+  2. Duplicate imports of `esc` in utility helpers (e.g., `auth-guard.ts`, `confirm-action.ts`, `session-timeout.ts`, etc.) caused syntax and name collision errors.
+  3. Syntax and formatting desyncs in imports inside `reset-password.ts` broke build-time ESM checks.
+- **New Logic Built:**
+  1. **Strict ESM Import Standardization:** Consolidated all HTML escaping utilities to import `escapeHtml` from `@/utils/xss` and defined `const esc = escapeHtml;` locally within each consuming component, ensuring absolute safety from XSS and 100% compilation parity.
+  2. **Type Safety & Unit Test Alignment:** Rewrote unit tests for status colors and password strength utilities to match modern colorblind-accessible CSS classes and 5-point password strength evaluation parameters.
+  3. **Zero-Regression Build Validation:** Enforced automatic build checks ensuring zero typecheck errors (`npx tsc --noEmit`) and successful production bundles before any commit.
+
 **MEMO 47: Platinum CSS State Governance & Zombie Listener Eradication (May 28, 2026)**
 
 - **Root Cause Destroyed:**

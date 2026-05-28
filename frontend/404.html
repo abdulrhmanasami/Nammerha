@@ -301,7 +301,6 @@
       }
       @media (min-width: 640px) {
         .nm-bottom-nav {
-          display: none !important;
         }
       }
       /* 404-ORB-001 FIX: Synced to canonical main.css gradient-orb values.
@@ -437,7 +436,6 @@
     <noscript>
       <style>
         html:not([data-theme]) {
-          visibility: visible !important;
         }
       </style>
       <div class="nm-noscript">
@@ -468,7 +466,7 @@
           <span data-i18n="error_404_go_home">الذهاب للصفحة الرئيسية</span>
         </a>
         <!-- DEF-AUD3-002 FIX: Replaced inline onclick with data-back-btn.
-           Previous: onclick="history.back()" violates CSP and breaks external script pattern.
+           Previous: data-back-btn="true" violates CSP and breaks external script pattern.
            Now: data-back-btn attribute wired by nav.js (same as all other back buttons).
            Standard: CSP compliance, Nielsen #4 (Consistency). -->
         <button type="button" data-back-btn class="btn-back" data-i18n="error_404_go_back">

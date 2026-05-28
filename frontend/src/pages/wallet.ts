@@ -29,6 +29,8 @@ import { showProcessingLock } from '../utils/ui-lock';
 import { mountHubFAB } from '../components/portal-context';
 // F-010 FIX: Breadcrumb navigation on inner pages
 import { initBreadcrumb } from '../utils/breadcrumb';
+import { addTrackedTimer } from '../utils/tracked-timers';
+
 initPullToRefresh();
 initBackToTop();
 initSearch();
@@ -115,11 +117,11 @@ function updateTxCount(count: number): void {
     document.body.appendChild(announcer);
   }
   // Allow DOM to register the node before updating text for reliable screen reader hooks
-  setTimeout(() => {
+  addTrackedTimer(setTimeout(() => {
     if (announcer) {
       announcer.textContent = t('wallet_tx_found_a11y', `${count} transactions found`);
     }
-  }, 50);
+  }, 50));
 }
 
 // HIGH-001 FIX: formatCents() consolidated — imported from utils/format.ts.
@@ -448,13 +450,13 @@ async function loadTransactions(): Promise<void> {
         receiptLink.remove();
 
         // Release the button lock after browser completes navigation handoff
-        setTimeout(() => {
+        addTrackedTimer(setTimeout(() => {
           if (icon) {
             icon.className = originalClass;
           }
           btn.disabled = false;
           btn.removeAttribute('aria-busy');
-        }, 1500);
+        }, 1500));
       });
     }
   } catch (err) {
@@ -547,7 +549,7 @@ function init(): void {
       // Lock the UI instantly when the user initiates a financial action
       const unlock = showProcessingLock(t('processing_secure', 'جاري المعالجة الآمنة...'));
 
-      setTimeout(() => {
+      addTrackedTimer(setTimeout(() => {
         unlock();
         // Dynamic import: toast is only needed on this interaction path
         import('../utils/toast')
@@ -560,7 +562,7 @@ function init(): void {
           .catch(() => {
             /* Intentional: Toast module failed to load */
           });
-      }, 800);
+      }, 800));
     });
   }
 
@@ -578,7 +580,7 @@ function init(): void {
       // UX PLATINUM FIX: Escrow Double-Click Anxiety (UI Freeze)
       const unlock = showProcessingLock(t('processing_secure', 'جاري إنشاء جلسة الدفع...'));
 
-      setTimeout(() => {
+      addTrackedTimer(setTimeout(() => {
         unlock();
         // Show inline feedback banner with actionable context
         const parent = addFundsBtn.parentElement;
@@ -612,7 +614,7 @@ function init(): void {
           banner.classList.add('animate-fade-out');
           banner.addEventListener('animationend', () => banner.remove(), { once: true });
         });
-      }, 1000);
+      }, 1000));
     });
   }
 }

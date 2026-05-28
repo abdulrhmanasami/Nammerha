@@ -84,11 +84,34 @@
 
             focusTrapHandler = function (e) {
                 if (e.key !== 'Tab') { return; }
-                var focusable = sidebar.querySelectorAll(FOCUSABLE);
-                if (focusable.length === 0) { return; }
+                var focusableList = sidebar.querySelectorAll(FOCUSABLE);
+                var focusable = Array.prototype.slice.call(focusableList);
+                
+                if (focusable.length === 0) {
+                    e.preventDefault();
+                    sidebar.focus();
+                    return;
+                }
 
                 var first = focusable[0];
                 var last = focusable[focusable.length - 1];
+
+                // PLATINUM FIX: Absolute Boundary Trap
+                if (document.activeElement === sidebar) {
+                    e.preventDefault();
+                    if (e.shiftKey) {
+                        last.focus();
+                    } else {
+                        first.focus();
+                    }
+                    return;
+                }
+
+                if (!focusable.includes(document.activeElement) && document.activeElement !== sidebar) {
+                    e.preventDefault();
+                    sidebar.focus();
+                    return;
+                }
 
                 if (e.shiftKey && document.activeElement === first) {
                     e.preventDefault();

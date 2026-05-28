@@ -35,6 +35,8 @@ import { getCurrentUser } from '../auth';
 import { initSearch } from '../utils/search-overlay';
 // UX PLATINUM FIX: UI Lock for Escrow Idempotency Feedback
 import { showProcessingLock } from '../utils/ui-lock';
+import { addTrackedTimer } from '../utils/tracked-timers';
+
 initPullToRefresh();
 initBackToTop();
 autoTriggerTour();
@@ -136,7 +138,7 @@ function renderHero(project: ProjectData): void {
   // Now: skeleton fades out (200ms), then content fades in (300ms).
   if (skeleton) {
     skeleton.classList.add('nm-skeleton-exit');
-    setTimeout(() => skeleton.classList.add('nm-hidden'), 200);
+    addTrackedTimer(setTimeout(() => skeleton.classList.add('nm-hidden'), 200));
   }
   content.classList.remove('nm-hidden');
   content.classList.add('nm-content-reveal');
@@ -159,11 +161,11 @@ function renderHero(project: ProjectData): void {
       load360Btn.classList.add('opacity-80', 'cursor-not-allowed');
 
       // Simulate network request for the 4MB 360 panorama asset
-      setTimeout(() => {
+      addTrackedTimer(setTimeout(() => {
         progressiveOverlay.classList.add('nm-hidden');
         // Real app would init 360 viewer (e.g. Pannellum) here on the imgContainer
         showToast(t('view_360_loaded', 'تم تحميل العرض البانورامي 360° بنجاح'), 'success');
-      }, 1500);
+      }, 1500));
     });
   }
 }
@@ -359,7 +361,7 @@ function renderBOQ(items: BOQItem[], projectId: string): void {
   // F-020 FIX: Skeleton → content crossfade transition (BOQ section).
   if (skeleton) {
     skeleton.classList.add('nm-skeleton-exit');
-    setTimeout(() => skeleton.classList.add('nm-hidden'), 200);
+    addTrackedTimer(setTimeout(() => skeleton.classList.add('nm-hidden'), 200));
   }
   container.classList.remove('nm-hidden');
   container.classList.add('nm-content-reveal');
@@ -386,11 +388,11 @@ function showError(type: 'not-found' | 'generic' = 'generic'): void {
     boqError.innerHTML = `
             <div class="p-8 text-center" role="alert" aria-live="polite">
                 <i class="ph ph-magnifying-glass text-slate-300 text-4xl dark:text-slate-600" aria-hidden="true"></i>
-                <p class="mt-3 text-base font-semibold text-slate-700 dark:text-slate-300" data-i18n="error_project_not_found">${t('error_project_not_found', 'المشروع غير موجود')}</p>
-                <p class="mt-1 text-sm text-slate-400 dark:text-slate-500" data-i18n="error_project_not_found_desc">${t('error_project_not_found_desc', 'ربما تم حذف هذا المشروع أو الرابط غير صالح.')}</p>
+                <p class="mt-3 text-base font-semibold text-slate-700 dark:text-slate-300" data-i18n="error_project_not_found">${esc(t('error_project_not_found', 'المشروع غير موجود'))}</p>
+                <p class="mt-1 text-sm text-slate-400 dark:text-slate-500" data-i18n="error_project_not_found_desc">${esc(t('error_project_not_found_desc', 'ربما تم حذف هذا المشروع أو الرابط غير صالح.'))}</p>
                 <a href="projects.html" class="inline-flex items-center gap-2 mt-4 px-4 py-2 text-sm font-semibold rounded-lg bg-trust-blue text-white hover:bg-trust-blue/90 transition-colors">
                     <i class="ph ph-arrow-left nm-dir-shift" aria-hidden="true"></i>
-                    <span data-i18n="error_browse_projects">${t('error_browse_projects', 'تصفّح المشاريع')}</span>
+                    <span data-i18n="error_browse_projects">${esc(t('error_browse_projects', 'تصفّح المشاريع'))}</span>
                 </a>
             </div>
         `;
@@ -431,7 +433,7 @@ function initCartButtons(): void {
       // Simulating the backend escrow allocation lock for the BOQ item
       const unlock = showProcessingLock(t('processing_escrow', 'جاري تأمين المادة في الضمان...'));
 
-      setTimeout(() => {
+      addTrackedTimer(setTimeout(() => {
         unlock();
 
         CartStore.addItem({
@@ -459,12 +461,12 @@ function initCartButtons(): void {
           renderCartBadge(cartBadge);
           markAsAdded(btn);
         }
-      }, 600);
+      }, 600));
     });
   }
 
   // Mark items already in cart after render
-  setTimeout(() => {
+  addTrackedTimer(setTimeout(() => {
     const addButtons = document.querySelectorAll<HTMLButtonElement>('.add-to-cart-btn');
     addButtons.forEach((btn) => {
       const itemId = btn.dataset.itemId;
@@ -472,7 +474,7 @@ function initCartButtons(): void {
         markAsAdded(btn);
       }
     });
-  }, 0);
+  }, 0));
 
   // Listen for cross-tab/cross-page cart updates
   window.addEventListener('cart:updated', () => renderCartBadge(cartBadge));
@@ -562,7 +564,7 @@ function startCartLockTimer() {
       if (cartTimerInterval) {window.clearInterval(cartTimerInterval);}
       countdownEl.textContent = '00:00';
       showExpirationModal();
-      setTimeout(() => timerContainer.classList.add('nm-hidden'), 3000);
+      addTrackedTimer(setTimeout(() => timerContainer.classList.add('nm-hidden'), 3000));
     }
   };
 
@@ -711,12 +713,12 @@ function renderRoleCTA(projectId: string): void {
   section.id = 'nm-role-cta';
   section.className = 'mt-4 px-4 animate-fade-in-up';
   section.innerHTML = `
-    <a href="${esc(cta.href)}" class="flex items-center gap-3 p-4 rounded-xl border ${cta.bgClass} no-underline transition-all hover:shadow-md group">
-      <div class="size-10 rounded-lg ${cta.bgClass} flex items-center justify-center shrink-0">
-        <i class="ph ${esc(cta.icon)} ${cta.textClass} text-xl" aria-hidden="true"></i>
+    <a href="${esc(cta.href)}" class="flex items-center gap-3 p-4 rounded-xl border ${esc(cta.bgClass)} no-underline transition-all hover:shadow-md group">
+      <div class="size-10 rounded-lg ${esc(cta.bgClass)} flex items-center justify-center shrink-0">
+        <i class="ph ${esc(cta.icon)} ${esc(cta.textClass)} text-xl" aria-hidden="true"></i>
       </div>
-      <span class="flex-1 text-sm font-semibold ${cta.textClass}">${esc(cta.label)}</span>
-      <i class="ph ph-arrow-right nm-dir-shift ${cta.textClass} group-hover:translate-x-1 transition-transform" aria-hidden="true"></i>
+      <span class="flex-1 text-sm font-semibold ${esc(cta.textClass)}">${esc(cta.label)}</span>
+      <i class="ph ph-arrow-right nm-dir-shift ${esc(cta.textClass)} group-hover:translate-x-1 transition-transform" aria-hidden="true"></i>
     </a>
   `;
 

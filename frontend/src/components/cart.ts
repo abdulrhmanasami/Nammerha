@@ -8,6 +8,8 @@
 import { reportWarning } from '../error-reporter';
 // FRIC-2026-F04 FIX: Import isRTL for logical positioning in fly-to-cart animation.
 import { isRTL } from '../utils/i18n';
+import { addTrackedTimer } from '../utils/tracked-timers';
+
 
 export interface CartItem {
   id: string;
@@ -277,10 +279,10 @@ export function flyToCart(
   );
 
   // Fallback cleanup
-  setTimeout(() => {
+  addTrackedTimer(setTimeout(() => {
     if (flyEl.parentNode) {
       flyEl.remove();
       onComplete?.();
     }
-  }, 800);
+  }, 800));
 }

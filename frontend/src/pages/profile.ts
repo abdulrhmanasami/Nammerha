@@ -34,6 +34,8 @@ import { updatePasswordStrength } from '../utils/password-strength';
 // PREVIOUS: profile.ts only checked `length < 8` — no uppercase/digit/special checks.
 import { validatePasswordComplexity } from '../utils/validators';
 import { DirtyStateGuard } from '../utils/dirty-guard';
+import { addTrackedTimer } from '../utils/tracked-timers';
+
 
 const profileGuard = new DirtyStateGuard();
 
@@ -587,7 +589,7 @@ async function saveProfile(): Promise<void> {
       t('profile_saved_locally', "✓ Saved to this device — won't appear on other devices yet"),
     );
     profileGuard.markClean();
-    setTimeout(() => toggleEditMode(false), 800);
+    addTrackedTimer(setTimeout(() => toggleEditMode(false), 800));
   } catch (err) {
     restoreBtn?.('error');
     reportWarning('[Profile] Edit save failed', {
@@ -884,7 +886,7 @@ function init(): void {
           target instanceof HTMLButtonElement ||
           target instanceof HTMLSelectElement
         ) {
-          // PTR-FOCUS FIX: Replaced setTimeout(400) timing hack with immediate focus.
+          // PTR-FOCUS FIX: Replaced addTrackedTimer(setTimeout(400)) timing hack with immediate focus.
           // preventScroll avoids interfering with the ongoing smooth scrollIntoView.
           // Standard: CSS-driven scroll, no arbitrary delays.
           target.focus({ preventScroll: true });
@@ -994,9 +996,9 @@ function init(): void {
       }
 
       // Remove transition class after animation
-      setTimeout(() => {
+      addTrackedTimer(setTimeout(() => {
         document.documentElement.classList.remove('nm-theme-transition');
-      }, 500);
+      }, 500));
     });
 
     // Listen for external theme changes (e.g., OS preference change)
@@ -1185,7 +1187,7 @@ function init(): void {
             <div class="flex items-center justify-between p-3 bg-cloud-dancer dark:bg-slate-700/30 rounded-lg">
               <div>
                 <p class="text-sm font-medium text-slate-700 dark:text-slate-200">${esc(t('mfa_recovery_codes', 'رموز الاسترداد'))}</p>
-                <p class="text-xs text-slate-400">${esc(t('mfa_remaining', 'المتبقي'))}: <strong class="${recovery_codes_remaining <= 2 ? 'text-red-500' : 'text-smoky-jade'}">${recovery_codes_remaining}</strong></p>
+                <p class="text-xs text-slate-400">${esc(t('mfa_remaining', 'المتبقي'))}: <strong class="${esc(recovery_codes_remaining <= 2 ? 'text-red-500' : 'text-smoky-jade')}">${esc(recovery_codes_remaining)}</strong></p>
               </div>
               <button id="mfa-regen-codes-btn" class="text-xs text-trust-blue hover:text-trust-blue-hover font-medium transition-colors">
                 ${esc(t('mfa_regenerate', 'إعادة توليد'))}
@@ -1417,7 +1419,7 @@ function init(): void {
           <p class="text-xs text-red-500 font-medium mt-1">${esc(t('mfa_codes_warning', '⚠️ احفظ هذه الرموز — لن تُعرض مرة أخرى!'))}</p>
         </div>
         <div class="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 mb-4 text-center" dir="ltr">
-          ${codesHtml}
+          ${esc(codesHtml)}
         </div>
         <p class="text-xs text-slate-400 mb-4 text-center">
           ${esc(t('mfa_codes_info', 'كل رمز يُستخدم مرة واحدة فقط. استخدمه إذا فقدت الوصول لتطبيق المصادقة.'))}
@@ -1669,9 +1671,9 @@ function init(): void {
             t('account_deleted_msg', 'تم جدولة حذف حسابك. لديك 30 يوم لإلغاء القرار.'),
             'success',
           );
-          setTimeout(() => {
+          addTrackedTimer(setTimeout(() => {
             window.location.href = '/auth.html';
-          }, 2500);
+          }, 2500));
         } else {
           // Handle blockers
           const data = res.data as Record<string, unknown> | undefined;
@@ -1720,9 +1722,9 @@ function init(): void {
         t('all_sessions_revoked', 'تم تسجيل الخروج من جميع الأجهزة. جاري التحويل...'),
         'success',
       );
-      setTimeout(() => {
+      addTrackedTimer(setTimeout(() => {
         window.location.href = '/auth.html';
-      }, 1500);
+      }, 1500));
     } catch {
       showToast(t('session_revoke_error', 'فشل تسجيل الخروج من الجهاز'), 'error');
     }
@@ -1762,7 +1764,7 @@ function init(): void {
       btn.textContent = t('kyc_scanning', 'جاري مسح الهوية...');
 
       // Simulate AI scanning failure
-      setTimeout(() => {
+      addTrackedTimer(setTimeout(() => {
         kycFailures++;
         btn.disabled = false;
         btn.textContent = t('kyc_start_scan', 'إعادة المسح');
@@ -1801,7 +1803,7 @@ function init(): void {
             });
           }
         }
-      }, 1000);
+      }, 1000));
     });
   }
 

@@ -18,6 +18,8 @@ import { formatCents } from '../utils/format';
 import { t } from '../utils/i18n';
 // UX-004 FIX: Centralized haptic module (replaces inline navigator.vibrate)
 import { haptic } from '../utils/haptic';
+import { addTrackedTimer } from '../utils/tracked-timers';
+
 
 // ═══════════════════════════════════════════════════════════════════════════
 // STATE
@@ -219,21 +221,17 @@ function createProjectCard(project: ProjectCard, index: number): HTMLElement {
   card.innerHTML = `
         <!-- Cover -->
         <div class="relative h-32 bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden">
-            ${
-              project.cover_image_url
+            ${esc(project.cover_image_url
                 ? `<img src="${esc(project.cover_image_url)}" class="w-full h-full object-cover" alt="${esc(project.title)}" loading="lazy" />`
-                : `<div class="flex items-center justify-center h-full"><i class="ph ${esc(config.icon)} text-slate-300 nm-icon-48" aria-hidden="true"></i></div>`
-            }
+                : `<div class="flex items-center justify-center h-full"><i class="ph ${esc(config.icon)} text-slate-300 nm-icon-48" aria-hidden="true"></i></div>`)}
             <!-- Damage type badge -->
             <span class="absolute top-2 start-2 text-3xs font-bold uppercase px-2 py-0.5 rounded-full ${esc(config.color)}">
                 ${esc(project.damage_type)}
             </span>
             <!-- Status badge -->
-            ${
-              project.status === 'published'
+            ${esc(project.status === 'published'
                 ? `<span class="absolute top-2 end-2 text-3xs font-bold uppercase px-2 py-0.5 rounded-full bg-smoky-jade/10 text-smoky-jade dark:text-emerald-400">${esc(t('projects_active', 'نشط'))}</span>`
-                : ''
-            }
+                : '')}
         </div>
         <!-- Content -->
         <div class="p-4">
@@ -244,13 +242,13 @@ function createProjectCard(project: ProjectCard, index: number): HTMLElement {
             </p>
             <!-- Funding progress -->
             <div class="flex items-center justify-between text-3xs mb-1.5">
-                <span class="font-bold text-slate-700 dark:text-slate-300">${pct}% ${esc(t('projects_funded', 'مموّل'))}</span>
-                <span class="text-slate-400 dark:text-slate-500">${formatCents(project.total_funded ?? 0)} / ${formatCents(project.total_cost ?? 0)}</span>
+                <span class="font-bold text-slate-700 dark:text-slate-300">${esc(pct)}% ${esc(t('projects_funded', 'مموّل'))}</span>
+                <span class="text-slate-400 dark:text-slate-500">${esc(formatCents(project.total_funded ?? 0))} / ${esc(formatCents(project.total_cost ?? 0))}</span>
             </div>
             <div class="nm-progress-track">
-                <div class="${urgencyClass} nm-progress-bar" style="--progress:${pct}%"></div>
+                <div class="${esc(urgencyClass)} nm-progress-bar" style="--progress:${esc(pct)}%"></div>
             </div>
-            ${pct < 30 ? `<span class="inline-block mt-2 text-3xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full dark:bg-red-500/10">${esc(t('projects_most_needed', 'الأكثر احتياجاً'))}</span>` : ''}
+            ${esc(pct < 30 ? `<span class="inline-block mt-2 text-3xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full dark:bg-red-500/10">${esc(t('projects_most_needed', 'الأكثر احتياجاً'))}</span>` : '')}
         </div>
     `;
 
@@ -299,7 +297,7 @@ searchInput?.addEventListener('input', () => {
   if (searchTimer) {
     clearTimeout(searchTimer);
   }
-  searchTimer = setTimeout(() => {
+  searchTimer = addTrackedTimer(setTimeout(() => {
     state.search = searchInput.value.trim();
     const displayed = applySearch(state.projects);
     if (displayed.length === 0 && state.projects.length > 0) {
@@ -338,7 +336,7 @@ searchInput?.addEventListener('input', () => {
       renderProjects(displayed);
       showView('grid');
     }
-  }, 300);
+  }, 300));
 });
 
 // Load more

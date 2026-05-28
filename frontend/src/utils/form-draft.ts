@@ -13,6 +13,8 @@
 
 import { safeSessionStorageSet } from './safe-storage';
 import { getCurrentUser } from '../auth';
+import { addTrackedTimer } from './tracked-timers';
+
 
 /**
  * Debounce timer handle — module-scoped to prevent memory leaks.
@@ -46,7 +48,7 @@ export function saveDraft<T extends Record<string, unknown>>(
 
   timers.set(
     key,
-    setTimeout(() => {
+    addTrackedTimer(setTimeout(() => {
       const user = getCurrentUser();
       const owner_uid = user ? user.user_id : 'anonymous';
 
@@ -58,7 +60,7 @@ export function saveDraft<T extends Record<string, unknown>>(
           owner_uid,
         }),
       );
-    }, debounceMs),
+    }, debounceMs)),
   );
 }
 

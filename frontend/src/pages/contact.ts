@@ -3,6 +3,7 @@ import { initPullToRefresh } from '../utils/pull-refresh';
 initPullToRefresh();
 import { contact } from '../api';
 import { escapeHtml } from '../utils/xss';
+const esc = escapeHtml;
 import { t } from '../utils/i18n';
 // P1-013 FIX: Auto-detect required fields and add asterisk markers to labels.
 import '../utils/required-markers';
@@ -95,7 +96,7 @@ function showResult(type: 'success' | 'error', message: string): void {
   // P1-002 FIX: escapeHtml() prevents XSS from API error messages
   resultBox.innerHTML = `
         <div class="flex items-start gap-3">
-            <i class="ph ${type === 'success' ? 'ph-check-circle text-emerald-600' : 'ph-warning-circle text-red-600'} shrink-0 text-xl" aria-hidden="true"></i>
+            <i class="ph ${esc(type === 'success' ? 'ph-check-circle text-emerald-600' : 'ph-warning-circle text-red-600')} shrink-0 text-xl" aria-hidden="true"></i>
             <p>${escapeHtml(message)}</p>
         </div>`;
   // DEF-VIS-003 FIX: Replaced style.display with classList toggle.

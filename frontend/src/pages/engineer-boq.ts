@@ -11,6 +11,8 @@ import { initBreadcrumb } from '../utils/breadcrumb';
 // W5-001 FIX: Auth guard — was missing on this engineer page.
 import { requireAuth } from '../utils/auth-guard';
 import { initAutoSaveTextareas } from '../utils/auto-save';
+import { addTrackedTimer } from '../utils/tracked-timers';
+
 
 initAutoSaveTextareas();
 
@@ -227,7 +229,7 @@ materialSearch?.addEventListener('input', () => {
   if (searchTimeout) {
     clearTimeout(searchTimeout);
   }
-  searchTimeout = setTimeout(async () => {
+  searchTimeout = addTrackedTimer(setTimeout(async () => {
     const query = materialSearch.value.trim();
     if (query.length < 2) {
       return;
@@ -272,7 +274,7 @@ materialSearch?.addEventListener('input', () => {
       // W13-002 FIX: Show user-facing feedback on oracle search failure.
       showToast(t('boq_search_error', 'خطأ في البحث'));
     }
-  }, 400);
+  }, 400));
 });
 
 // ─── Publish to Marketplace ─────────────────────────────────────────────────
@@ -329,9 +331,9 @@ publishBtn?.addEventListener('click', async () => {
       publishBtn.classList.add('btn-jade');
     }
 
-    setTimeout(() => {
+    addTrackedTimer(setTimeout(() => {
       window.location.href = `/project-details.html?project=${state.projectId}`;
-    }, 1200);
+    }, 1200));
   } catch (err) {
     const message = err instanceof Error ? err.message : t('boq_publish_failed', 'فشل النشر');
     // FIX-002B: Replaced inline DOM error banner with shared showToast().

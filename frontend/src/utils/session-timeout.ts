@@ -1,3 +1,4 @@
+import { escapeHtml as esc } from './xss';
 /**
  * ═══════════════════════════════════════════════════════════════════════════
  * Nammerha — Session Timeout Warning (P0-PLT-002)
@@ -32,6 +33,9 @@ import { t } from './i18n';
 import { tryApplyI18n } from './i18n-apply';
 import { polyfillDialog } from './dialog-polyfill';
 import { haptic } from './haptic';
+import { addTrackedTimer } from './tracked-timers';
+
+
 
 // ─── Configuration ──────────────────────────────────────────────────────────
 
@@ -151,19 +155,19 @@ function showWarningDialog(remainingMs: number): void {
       <div class="size-14 rounded-full bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center mx-auto mb-3">
         <i class="ph ph-hourglass-medium text-amber-500 nm-icon-28" aria-hidden="true"></i>
       </div>
-      <h3 data-i18n="session_timeout_title">${t('session_timeout_title', 'جلستك على وشك الانتهاء')}</h3>
-      <p data-i18n="session_timeout_msg">${t(
+      <h3 data-i18n="session_timeout_title">${esc(t('session_timeout_title', 'جلستك على وشك الانتهاء'))}</h3>
+      <p data-i18n="session_timeout_msg">${esc(t(
         'session_timeout_msg',
         `ستنتهي جلستك خلال ${remainingMinutes} دقيقة. هل تريد تمديد الجلسة؟`,
-      )}</p>
+      ))}</p>
       <p id="nm-timeout-countdown" class="text-xs text-amber-600 dark:text-amber-400 font-mono font-bold mt-2"></p>
     </div>
     <div class="nm-confirm-actions">
       <button type="button" class="nm-confirm-cancel" id="nm-timeout-logout" data-i18n="session_timeout_logout">
-        ${t('session_timeout_logout', 'تسجيل الخروج')}
+        ${esc(t('session_timeout_logout', 'تسجيل الخروج'))}
       </button>
       <button type="button" class="nm-confirm-warning" id="nm-timeout-extend" data-i18n="session_timeout_extend">
-        ${t('session_timeout_extend', 'تمديد الجلسة')}
+        ${esc(t('session_timeout_extend', 'تمديد الجلسة'))}
       </button>
     </div>
   `;
@@ -246,10 +250,10 @@ function showWarningDialog(remainingMs: number): void {
   });
 
   // ── Auto-logout timer ──
-  autoLogoutTimer = setTimeout(() => {
+  autoLogoutTimer = addTrackedTimer(setTimeout(() => {
     dismissDialog(dialog, countdownTimer);
     performLogout();
-  }, AUTO_LOGOUT_MS);
+  }, AUTO_LOGOUT_MS));
 
   // ── PLATINUM FIX: Cross-Tab State Synchronizer (Cross-Tab Session Murder Fix) ──
   _currentStorageListener = (e: StorageEvent) => {
@@ -337,7 +341,7 @@ function performLogout(): void {
     <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full h-[550px] overflow-hidden relative mx-auto border border-slate-700 outline-none">
       <div class="absolute top-0 inset-x-0 h-10 bg-amber-500/10 flex items-center justify-center border-b border-amber-500/20 z-20">
         <p class="text-amber-600 dark:text-amber-400 text-xs font-bold flex items-center gap-2">
-          <i class="ph-fill ph-lock-key" aria-hidden="true"></i> ${t('session_locked_privacy', 'تم تأمين الشاشة لحماية بياناتك')}
+          <i class="ph-fill ph-lock-key" aria-hidden="true"></i> ${esc(t('session_locked_privacy', 'تم تأمين الشاشة لحماية بياناتك'))}
         </p>
       </div>
       <iframe src="/auth.html?mode=modal&reason=session_expired" class="w-full h-full border-none pt-10"></iframe>

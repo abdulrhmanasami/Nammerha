@@ -19,6 +19,8 @@ import { confirmAction } from '../utils/confirm-action';
 import { initBreadcrumb } from '../utils/breadcrumb';
 import { DirtyStateGuard } from '../utils/dirty-guard';
 import { initAutoSaveTextareas } from '../utils/auto-save';
+import { addTrackedTimer } from '../utils/tracked-timers';
+
 
 initAutoSaveTextareas();
 
@@ -378,7 +380,7 @@ if (nextBtn) {
 
         restoreBtn('success');
         // Small delay for visual feedback before transitioning
-        setTimeout(() => showStep(4), 650);
+        addTrackedTimer(setTimeout(() => showStep(4), 650));
       } catch (err) {
         restoreBtn('error');
         const message =
@@ -401,9 +403,9 @@ if (nextBtn) {
         // NOW: Smooth scroll to the banner + focus it for screen reader announcement.
         // Standard: WCAG 3.3.1 (Error Identification), Nielsen #9 (Help Users Recover).
         errDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        setTimeout(() => errDiv.focus({ preventScroll: true }), 350);
+        addTrackedTimer(setTimeout(() => errDiv.focus({ preventScroll: true }), 350));
 
-        setTimeout(() => errDiv.remove(), 5000);
+        addTrackedTimer(setTimeout(() => errDiv.remove(), 5000));
       }
     }
   });
@@ -573,7 +575,7 @@ if (detectLocationBtn) {
         // to the damage site after initial detection, they couldn't update GPS.
         // NOW: After a brief delay, button text changes to "Re-detect" and is
         // re-enabled. Standard: Nielsen #3 (User Control & Freedom).
-        setTimeout(() => {
+        addTrackedTimer(setTimeout(() => {
           (detectLocationBtn as HTMLButtonElement).disabled = false;
           detectLocationBtn.classList.remove('opacity-60');
           if (btnIcon) {
@@ -583,7 +585,7 @@ if (detectLocationBtn) {
           if (btnLabel) {
             btnLabel.textContent = t('hr_redetect_location', 'إعادة تحديد الموقع');
           }
-        }, 2000);
+        }, 2000));
 
         // GAP-NEW-06: Persist GPS coords to sessionStorage
         saveWizardState();
@@ -738,7 +740,7 @@ function showVoiceError(_type: string, message: string): void {
     'rounded-xl p-3 text-sm font-medium flex items-center gap-2 bg-red-50 text-red-700 border border-red-200 mt-2 animate-fade-in-up dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20';
   errDiv.innerHTML = `<i class="ph ph-warning-circle shrink-0" aria-hidden="true"></i> ${esc(message)}`;
   target.appendChild(errDiv);
-  setTimeout(() => errDiv.remove(), 5000);
+  addTrackedTimer(setTimeout(() => errDiv.remove(), 5000));
 }
 
 function startVoice(): void {
@@ -1031,7 +1033,7 @@ async function processPhotoFile(file: File) {
       errDiv.className = 'w-full rounded bg-red-50 text-red-700 text-xs p-2 mt-2';
       errDiv.textContent = t('hr_upload_failed', 'فشل الرفع');
       photoThumbnails.parentElement?.appendChild(errDiv);
-      setTimeout(() => errDiv.remove(), 4000);
+      addTrackedTimer(setTimeout(() => errDiv.remove(), 4000));
     }
   } catch {
     const reader = new FileReader();
@@ -1248,7 +1250,7 @@ if (hasRestoredState && state.currentStep > 1) {
                     <i class="ph ph-check-circle text-smoky-jade nm-icon-28 dark:text-emerald-400" aria-hidden="true"></i>
                 </div>
                 <p class="text-smoky-jade text-sm font-bold dark:text-emerald-400" role="status">${esc(t('hr_max_photos_reached', 'تم رفع الحد الأقصى ٥ صور'))}</p>
-                <p class="text-slate-400 text-3xs dark:text-slate-500">${state.photoCount}/${maxPhotos} • ${esc(t('hr_all_photos_ready', 'جميع الصور جاهزة'))}</p>
+                <p class="text-slate-400 text-3xs dark:text-slate-500">${esc(state.photoCount)}/${esc(maxPhotos)} • ${esc(t('hr_all_photos_ready', 'جميع الصور جاهزة'))}</p>
             `;
     }
     if (input) {

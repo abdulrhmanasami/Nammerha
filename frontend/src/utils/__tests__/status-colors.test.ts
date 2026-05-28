@@ -44,12 +44,12 @@ describe('Status Colors', () => {
             ];
             for (const s of statuses) {
                 const color = statusColor(s);
-                expect(color).not.toBe('bg-slate-100 text-slate-600'); // not fallback
+                expect(color).not.toBe('bg-slate-100 text-slate-600 rounded-md'); // not fallback
             }
         });
 
         it('should return fallback for unknown status', () => {
-            expect(statusColor('nonexistent')).toBe('bg-slate-100 text-slate-600');
+            expect(statusColor('nonexistent')).toBe('bg-slate-100 text-slate-600 rounded-md');
         });
     });
 

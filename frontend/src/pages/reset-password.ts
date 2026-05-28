@@ -35,6 +35,7 @@ import '../utils/required-markers';
 // PREVIOUS: Identical timer tracking code duplicated in auth.ts and reset-password.ts.
 // Standard: DRY Principle, Timer Hygiene.
 import {
+  addTrackedTimer,
   createTrackedInterval,
   clearTrackedInterval,
   clearAllTrackedTimers,
@@ -499,9 +500,9 @@ form?.addEventListener('submit', async (e) => {
         bannerParent.insertBefore(fallbackContainer, banner.nextSibling);
       }
 
-      setTimeout(() => {
+      addTrackedTimer(setTimeout(() => {
         window.location.href = `/auth.html${emailParam}`;
-      }, 2000);
+      }, 2000));
     } else {
       showBanner('error', data.error ?? t('reset_failed', 'فشلت إعادة التعيين'));
       // P1-AUTH-002 FIX: If the error indicates an expired token, show the

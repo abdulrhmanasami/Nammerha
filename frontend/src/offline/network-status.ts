@@ -1,3 +1,4 @@
+import { escapeHtml as esc } from '../utils/xss';
 // ============================================================================
 // Nammerha — Network Status Bar (Self-Injecting Component)
 // ============================================================================
@@ -14,6 +15,8 @@
 import { listenToServiceWorker, initNetworkListeners, isOnline } from './sw-register';
 import { getPendingCount, replayQueue } from './offline-queue';
 import { t, isRTL } from '../utils/i18n';
+import { addTrackedTimer } from '../utils/tracked-timers';
+
 
 const STATUS_BAR_ID = 'nammerha-network-status';
 
@@ -59,8 +62,8 @@ function showStatus(type: StatusType, autoHideMs?: number, worker?: ServiceWorke
     const refreshLabel = t('network_refresh', 'تحديث');
     bar.innerHTML = `
             <span class="network-status__icon"><i class="ph ph-arrows-clockwise" aria-hidden="true"></i></span>
-            <span class="network-status__text">${msg}</span>
-            <button type="button" class="network-status__action" id="nm-sw-refresh-btn">${refreshLabel}</button>
+            <span class="network-status__text">${esc(msg)}</span>
+            <button type="button" class="network-status__action" id="nm-sw-refresh-btn">${esc(refreshLabel)}</button>
         `;
     // NMR-NS-001 FIX: Replaced inline onclick="location.reload()" with addEventListener.
     // Previous: inline handler — blocked by CSP script-src 'self', making refresh button dead.
@@ -86,17 +89,17 @@ function showStatus(type: StatusType, autoHideMs?: number, worker?: ServiceWorke
       swUpdate: '<i class="ph ph-arrows-clockwise" aria-hidden="true"></i>',
     };
     bar.innerHTML = `
-            <span class="network-status__icon">${icons[type]}</span>
-            <span class="network-status__text">${t(STATUS_KEYS[type].key, STATUS_KEYS[type].fb)}</span>
+            <span class="network-status__icon">${esc(icons[type])}</span>
+            <span class="network-status__text">${esc(t(STATUS_KEYS[type].key, STATUS_KEYS[type].fb))}</span>
         `;
   }
 
   bar.classList.add('network-status--visible');
 
   if (autoHideMs) {
-    setTimeout(() => {
+    addTrackedTimer(setTimeout(() => {
       bar.classList.remove('network-status--visible');
-    }, autoHideMs);
+    }, autoHideMs));
   }
 }
 

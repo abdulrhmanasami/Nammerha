@@ -18,6 +18,8 @@ import { computeImageHash } from '../utils/image-hash';
 import { saveCameraProof, getCameraProofs, deleteCameraProof, CameraProofRecord } from '../utils/offline-db';
 // CRIT-UX-010 FIX: GPS Mini-Map preview — visual GPS verification
 import { createGPSMiniMap, updateGPSMiniMap, showGPSError } from '../components/gps-minimap';
+import { addTrackedTimer } from '../utils/tracked-timers';
+
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Engineer Camera — Site Verification & Spatial Proof Engine
@@ -309,10 +311,10 @@ function setupCapture(): void {
       }
       const textEl = captureBtn.querySelector('span');
       if (textEl) {
-        textEl.innerHTML = `${esc(t('cam_captured', 'تم الالتقاط'))} #${captureCount} <i class="ph ph-check nm-icon-gap-start" aria-hidden="true"></i>`;
+        textEl.innerHTML = `${esc(t('cam_captured', 'تم الالتقاط'))} #${esc(captureCount)} <i class="ph ph-check nm-icon-gap-start" aria-hidden="true"></i>`;
       }
 
-      setTimeout(() => {
+      addTrackedTimer(setTimeout(() => {
         cameraReady.classList.remove('nm-hidden');
         cameraCaptured.classList.add('nm-hidden');
         captureBtn.classList.remove('captured');
@@ -324,7 +326,7 @@ function setupCapture(): void {
         if (textEl) {
           textEl.textContent = t('cam_capture_360', 'تصوير 360 ومزامنة');
         }
-      }, 2000);
+      }, 2000));
     }
 
     // Haptic feedback
@@ -438,7 +440,7 @@ function setupSync(): void {
         (icon as HTMLElement).classList.add('nm-upload-success');
       }
       if (label) {
-        label.innerHTML = `${uploaded} ${esc(t('cam_proofs_synced', 'إثبات(ات) تمت مزامنتها'))} <i class="ph ph-check nm-icon-gap-start" aria-hidden="true"></i>`;
+        label.innerHTML = `${esc(uploaded)} ${esc(t('cam_proofs_synced', 'إثبات(ات) تمت مزامنتها'))} <i class="ph ph-check nm-icon-gap-start" aria-hidden="true"></i>`;
         // P3-CAM-002 FIX: CSS class replaces inline style.color.
         label.classList.add('nm-upload-success');
       }

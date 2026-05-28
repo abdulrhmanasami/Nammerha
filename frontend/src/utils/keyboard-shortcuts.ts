@@ -1,3 +1,4 @@
+import { escapeHtml as esc } from './xss';
 // ============================================================================
 // Nammerha — Keyboard Shortcuts (Desktop Power Users)
 // P3-UX-002 FIX: Navigation shortcuts for engineers and admins.
@@ -18,6 +19,9 @@
 import { t } from './i18n';
 // SYS-004 FIX: Dialog polyfill for older Android WebViews (Syria).
 import { polyfillDialog } from './dialog-polyfill';
+import { addTrackedTimer } from './tracked-timers';
+
+
 
 let gPressed = false;
 let gTimer: ReturnType<typeof setTimeout> | null = null;
@@ -56,18 +60,18 @@ function showShortcutHelp(): void {
 
   dialog.innerHTML = `
         <div class="nm-confirm-body">
-            <h3>${t('keyboard_shortcuts', 'اختصارات لوحة المفاتيح')}</h3>
+            <h3>${esc(t('keyboard_shortcuts', 'اختصارات لوحة المفاتيح'))}</h3>
             <div class="mt-3 space-y-2 text-start text-sm">
-                <div class="flex justify-between"><span class="text-slate-500">G → D</span><span>${t('go_dashboard', 'لوحة التحكم')}</span></div>
-                <div class="flex justify-between"><span class="text-slate-500">G → P</span><span>${t('go_projects', 'المشاريع')}</span></div>
-                <div class="flex justify-between"><span class="text-slate-500">G → W</span><span>${t('go_wallet', 'المحفظة')}</span></div>
-                <div class="flex justify-between"><span class="text-slate-500">G → S</span><span>${t('go_settings', 'الملف الشخصي')}</span></div>
-                <div class="flex justify-between"><span class="text-slate-500">/</span><span>${t('focus_search', 'البحث')}</span></div>
-                <div class="flex justify-between"><span class="text-slate-500">?</span><span>${t('show_shortcuts', 'عرض هذه المساعدة')}</span></div>
+                <div class="flex justify-between"><span class="text-slate-500">G → D</span><span>${esc(t('go_dashboard', 'لوحة التحكم'))}</span></div>
+                <div class="flex justify-between"><span class="text-slate-500">G → P</span><span>${esc(t('go_projects', 'المشاريع'))}</span></div>
+                <div class="flex justify-between"><span class="text-slate-500">G → W</span><span>${esc(t('go_wallet', 'المحفظة'))}</span></div>
+                <div class="flex justify-between"><span class="text-slate-500">G → S</span><span>${esc(t('go_settings', 'الملف الشخصي'))}</span></div>
+                <div class="flex justify-between"><span class="text-slate-500">/</span><span>${esc(t('focus_search', 'البحث'))}</span></div>
+                <div class="flex justify-between"><span class="text-slate-500">?</span><span>${esc(t('show_shortcuts', 'عرض هذه المساعدة'))}</span></div>
             </div>
         </div>
         <div class="nm-confirm-actions">
-            <button type="button" class="nm-confirm-cancel" id="shortcut-close">${t('common_close', 'إغلاق')}</button>
+            <button type="button" class="nm-confirm-cancel" id="shortcut-close">${esc(t('common_close', 'إغلاق'))}</button>
         </div>`;
 
   document.body.appendChild(dialog);
@@ -138,9 +142,9 @@ export function initKeyboardShortcuts(): void {
         clearTimeout(gTimer);
       }
       // Reset after 1s if no second key
-      gTimer = setTimeout(() => {
+      gTimer = addTrackedTimer(setTimeout(() => {
         gPressed = false;
-      }, 1000);
+      }, 1000));
       return;
     }
 

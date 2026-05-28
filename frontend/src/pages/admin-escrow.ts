@@ -16,6 +16,8 @@ import { admin } from '../api';
 import { setText } from '../utils/dom';
 import { formatCents, relativeTimeAgo } from '../utils/format';
 import { renderErrorWithRetry } from '../utils/error-retry';
+import { addTrackedTimer } from '../utils/tracked-timers';
+
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Concierge Escrow — API-Driven Controller
@@ -249,9 +251,9 @@ function initActionButtons(): void {
         releasePending = true;
         releaseBtn.classList.remove('bg-trust-blue');
         releaseBtn.classList.add('bg-amber-500');
-        releaseBtn.innerHTML = `<i class="ph ph-warning text-lg" aria-hidden="true"></i> ${esc(t('esc_confirm_release', 'تأكيد الإفراج عن الأموال'))} ${formatCents(c.amount)}`;
+        releaseBtn.innerHTML = `<i class="ph ph-warning text-lg" aria-hidden="true"></i> ${esc(t('esc_confirm_release', 'تأكيد الإفراج عن الأموال'))} ${esc(formatCents(c.amount))}`;
         // Auto-reset after 5s
-        releaseRevertTimer = setTimeout(() => {
+        releaseRevertTimer = addTrackedTimer(setTimeout(() => {
           if (releasePending) {
             releasePending = false;
             releaseBtn.classList.remove('bg-amber-500');
@@ -259,7 +261,7 @@ function initActionButtons(): void {
             releaseBtn.innerHTML = `<i class="ph ph-check-circle text-lg" aria-hidden="true"></i> ${esc(t('esc_release_funds', 'تم التحقق: تحرير الأموال للمورد'))}`;
           }
           releaseRevertTimer = null;
-        }, 5000);
+        }, 5000));
         return;
       }
 

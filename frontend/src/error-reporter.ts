@@ -1,3 +1,5 @@
+import { addTrackedTimer } from './utils/tracked-timers';
+
 // ============================================================================
 // Nammerha Frontend — Error Reporter (PLT-AUDIT-007 + PLT-2026-AUD-002)
 // ============================================================================
@@ -104,7 +106,7 @@ function queueReport(payload: ErrorPayload): void {
 
     // Debounce: wait 2 seconds to batch multiple rapid reports
     if (!batchTimer) {
-        batchTimer = setTimeout(flushReports, BATCH_INTERVAL_MS);
+        batchTimer = addTrackedTimer(setTimeout(flushReports, BATCH_INTERVAL_MS));
     }
 }
 

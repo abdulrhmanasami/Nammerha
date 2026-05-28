@@ -15,6 +15,8 @@ import { navigateWithTransition } from '../utils/view-transition';
 import { nmClearAllListeners } from '../utils/event-registry';
 // SYS-004 FIX: Dialog polyfill for older Android WebViews (Syria).
 import { polyfillDialog } from '../utils/dialog-polyfill';
+import { addTrackedTimer } from '../utils/tracked-timers';
+
 
 // ─── Portal Registry ────────────────────────────────────────────────────────
 // Single source of truth for all user-facing portals.
@@ -331,7 +333,7 @@ export function mountHubFAB(currentPortalId: string): void {
         closeSheet();
         nmClearAllListeners();
         // Small delay for close animation before navigating
-        setTimeout(() => navigateWithTransition(href), 150);
+        addTrackedTimer(setTimeout(() => navigateWithTransition(href), 150));
       }
     });
   }
@@ -340,11 +342,11 @@ export function mountHubFAB(currentPortalId: string): void {
   function closeSheet(): void {
     dialog.classList.remove('nm-hub-sheet--open');
     // Wait for exit animation before actually closing
-    setTimeout(() => {
+    addTrackedTimer(setTimeout(() => {
       if (dialog.open) {
         dialog.close();
       }
-    }, 200);
+    }, 200));
   }
 
   // ── Swipe-to-Dismiss (Touch Gesture) ──
@@ -482,6 +484,6 @@ export function mountContextSwitcher(): void {
     );
   } else {
     // Fallback: prefetch after 2s delay
-    setTimeout(() => prefetchPortals(currentPortalId), 2000);
+    addTrackedTimer(setTimeout(() => prefetchPortals(currentPortalId), 2000));
   }
 }

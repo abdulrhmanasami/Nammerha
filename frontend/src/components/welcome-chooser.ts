@@ -261,7 +261,7 @@ function showChooser(): void {
                 </div>
             </div>
             <div class="nm-wc-cards">
-                ${cardsHtml}
+                ${esc(cardsHtml)}
             </div>
             <div class="nm-wc-footer">
                 <button type="button" class="nm-wc-dismiss" data-action="dismiss">
@@ -352,28 +352,39 @@ function wireChooserEvents(modal: HTMLElement): void {
     }
 
     const focusable = modal.querySelectorAll<HTMLElement>(
-      'button, [href], [tabindex]:not([tabindex="-1"])',
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
     );
     if (focusable.length === 0) {
+      e.preventDefault();
+      modal.focus();
       return;
     }
 
     const arr = Array.from(focusable);
-    const activeEl = document.activeElement as HTMLElement | null;
-    const currentIdx = activeEl ? arr.indexOf(activeEl) : -1;
+    const first = arr[0];
+    const last = arr[arr.length - 1];
 
-    if (e.shiftKey) {
-      // Shift+Tab → previous
-      if (currentIdx <= 0) {
-        e.preventDefault();
-        arr[arr.length - 1]?.focus();
+    if (document.activeElement === modal) {
+      e.preventDefault();
+      if (e.shiftKey) {
+        last?.focus();
+      } else {
+        first?.focus();
       }
-    } else {
-      // Tab → next
-      if (currentIdx >= arr.length - 1) {
-        e.preventDefault();
-        arr[0]?.focus();
-      }
+      return;
+    }
+
+    if (!arr.includes(document.activeElement as HTMLElement) && document.activeElement !== modal) {
+      e.preventDefault();
+      modal.focus();
+      return;
+    }
+
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last?.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
     }
   });
 

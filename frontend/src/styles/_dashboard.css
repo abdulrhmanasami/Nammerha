@@ -38,7 +38,7 @@
     transform: translateX(-100%);
     transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
     /* P1-WILL-002 FIX: Removed permanent will-change: transform.
-       On desktop (md+), sidebar is transform:none!important — will-change was pure GPU waste.
+       On desktop (md+), sidebar is transform:none — will-change was pure GPU waste.
        Promoted to compositing layer only during active animation via .sidebar-open below.
        Standard: CSS will-change Best Practices, Web Performance. */
   }
@@ -125,14 +125,14 @@
 @media (min-width: 768px) {
   .dashboard-sidebar {
     position: relative;
-    transform: none !important;
+    transform: none;
     flex-shrink: 0;
   }
   .sidebar-overlay {
-    display: none !important;
+    display: none;
   }
   .sidebar-toggle {
-    display: none !important;
+    display: none;
   }
 }
 
@@ -163,7 +163,7 @@
 /* Navigation links get a subtle icon indicator to show they leave the page */
 .dashboard-sidebar [role="tablist"] + div > a::after {
   content: "\e092";
-  font-family: "Phosphor" !important;
+  font-family: "Phosphor";
   /* FIX-04: Removed deprecated `speak: never`. Icon elements use aria-hidden="true".
      Standard: CSS Speech Module (speak is deprecated), WCAG 1.3.1. */
   font-style: normal;

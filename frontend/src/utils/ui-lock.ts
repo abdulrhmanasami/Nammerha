@@ -5,6 +5,8 @@
  * glassmorphism overlay and a spinner.
  */
 import { escapeHtml } from './xss';
+import { addTrackedTimer } from './tracked-timers';
+
 
 // Global interceptors to guarantee cleanup and prevent ghost inputs
 let _lockKeydownInterceptor: ((e: KeyboardEvent) => void) | null = null;
@@ -152,10 +154,10 @@ export function showProcessingLock(message: string = 'جاري المعالجة.
 
     lock.classList.add('opacity-0');
     document.getElementById('nm-ui-lock-modal')?.classList.add('scale-95');
-    setTimeout(() => {
+    addTrackedTimer(setTimeout(() => {
       lock.remove();
       document.body.style.overflow = originalOverflow;
-    }, 300);
+    }, 300));
   };
 
   // 2. Scroll Lock Memory Leak / Bfcache Zombie Scroll Fix

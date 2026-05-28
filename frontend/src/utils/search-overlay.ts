@@ -1,3 +1,4 @@
+import { escapeHtml as esc } from './xss';
 /**
  * Nammerha — Global Search Overlay (FRC-005 FIX)
  *
@@ -17,6 +18,7 @@
  */
 
 import { t, isRTL } from './i18n';
+
 
 interface SearchResult {
   title: string;
@@ -197,16 +199,16 @@ function createOverlay(): HTMLDivElement {
             <div class="search-input-wrapper">
                 <i class="ph ph-magnifying-glass text-slate-400 text-xl dark:text-slate-500" aria-hidden="true"></i>
                 <input type="search" id="search-input" class="search-input"
-                       placeholder="${t('search_pages', 'ابحث عن صفحات، ميزات...')}" autocomplete="off"
+                       placeholder="${esc(t('search_pages', 'ابحث عن صفحات، ميزات...'))}" autocomplete="off"
                        data-i18n-placeholder="search_pages" />
                 <kbd class="search-kbd">ESC</kbd>
             </div>
             <div id="search-results" class="search-results"></div>
             <div class="search-footer">
                 <span class="text-slate-500 text-xs flex items-center gap-1.5 dark:text-slate-400">
-                    <kbd class="search-kbd-mini">↑↓</kbd> ${t('search_navigate', 'تنقّل')}
-                    <kbd class="search-kbd-mini">↵</kbd> ${t('search_select', 'اختيار')}
-                    <kbd class="search-kbd-mini">esc</kbd> ${t('search_close', 'إغلاق')}
+                    <kbd class="search-kbd-mini">↑↓</kbd> ${esc(t('search_navigate', 'تنقّل'))}
+                    <kbd class="search-kbd-mini">↵</kbd> ${esc(t('search_select', 'اختيار'))}
+                    <kbd class="search-kbd-mini">esc</kbd> ${esc(t('search_close', 'إغلاق'))}
                 </span>
             </div>
         </div>`;
@@ -222,8 +224,8 @@ function renderResults(query: string): void {
   if (!query.trim()) {
     // Show suggested pages
     resultsEl.innerHTML = `
-            <div class="px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500">${t('search_suggestions', 'اقتراحات')}</div>
-            ${PAGE_INDEX.slice(0, 6).map(buildResultHTML).join('')}`;
+            <div class="px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500">${esc(t('search_suggestions', 'اقتراحات'))}</div>
+            ${esc(PAGE_INDEX.slice(0, 6).map(buildResultHTML).join(''))}`;
     return;
   }
 
@@ -242,8 +244,8 @@ function renderResults(query: string): void {
     resultsEl.innerHTML = `
             <div class="flex flex-col items-center py-8 text-center">
                 <i class="ph ph-magnifying-glass text-slate-300 nm-icon-32" aria-hidden="true"></i>
-                <p class="text-sm text-slate-500 mt-2 font-medium dark:text-slate-400">${t('search_no_results', 'لا توجد مشاريع مطابقة لبحثك')}</p>
-                <p class="text-xs text-slate-400 mt-1 dark:text-slate-500">${t('search_try_different', 'جرّب مصطلح بحث مختلف')}</p>
+                <p class="text-sm text-slate-500 mt-2 font-medium dark:text-slate-400">${esc(t('search_no_results', 'لا توجد مشاريع مطابقة لبحثك'))}</p>
+                <p class="text-xs text-slate-400 mt-1 dark:text-slate-500">${esc(t('search_try_different', 'جرّب مصطلح بحث مختلف'))}</p>
             </div>`;
     return;
   }
@@ -255,9 +257,9 @@ function renderResults(query: string): void {
   );
   resultsEl.innerHTML = `
         <div class="px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500">
-            ${countLabel}
+            ${esc(countLabel)}
         </div>
-        ${matches.map(buildResultHTML).join('')}`;
+        ${esc(matches.map(buildResultHTML).join(''))}`;
 }
 
 function buildResultHTML(result: SearchResult): string {

@@ -6,6 +6,7 @@ import maplibregl from 'maplibre-gl';
 import type { ProjectFilter } from './map-controls';
 import { t } from './i18n-bridge';
 import { escapeHtml } from '../utils/xss';
+const esc = escapeHtml;
 import { reportError } from '../error-reporter';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -235,28 +236,28 @@ function createProjectPopup(props: Record<string, unknown>): HTMLElement {
             <h4 class="font-bold text-sm text-slate-900 leading-tight dark:text-slate-100">
                 ${escapeHtml(String(props['title'] ?? 'Untitled Project'))}
             </h4>
-            ${props['address_text'] ? `<p class="text-3xs text-slate-500 dark:text-slate-400">${escapeHtml(String(props['address_text']))}</p>` : ''}
+            ${esc(props['address_text'] ? `<p class="text-3xs text-slate-500 dark:text-slate-400">${escapeHtml(String(props['address_text']))}</p>` : '')}
             <div class="flex items-center gap-2">
                 <span class="text-3xs font-bold px-1.5 py-0.5 rounded-full nm-role-badge-bg" 
-                      style="--role-color: ${statusColor}">
-                    ${statusLabel}
+                      style="--role-color: ${esc(statusColor)}">
+                    ${esc(statusLabel)}
                 </span>
-                <span class="text-3xs text-slate-400 dark:text-slate-500">${String(props['damage_type'] ?? '')}</span>
+                <span class="text-3xs text-slate-400 dark:text-slate-500">${esc(String(props['damage_type'] ?? ''))}</span>
             </div>
             <div class="mt-2">
                 <div class="flex justify-between text-3xs mb-1">
-                    <span class="text-slate-500 dark:text-slate-400">${t('map_funded', 'مموّل')}</span>
-                    <span class="font-bold text-slate-700 dark:text-slate-300">${fundedPct.toFixed(1)}%</span>
+                    <span class="text-slate-500 dark:text-slate-400">${esc(t('map_funded', 'مموّل'))}</span>
+                    <span class="font-bold text-slate-700 dark:text-slate-300">${esc(fundedPct.toFixed(1))}%</span>
                 </div>
                 <div class="nm-progress-track">
                     <div class="nm-progress-bar" 
-                         style="--progress: ${Math.min(fundedPct, 100)}%; --status-color: ${statusColor}"></div>
+                         style="--progress: ${esc(Math.min(fundedPct, 100))}%; --status-color: ${esc(statusColor)}"></div>
                 </div>
             </div>
             <a href="project-details.html?id=${escapeHtml(String(props['project_id'] ?? ''))}" 
                class="block mt-2 text-center text-3xs font-bold text-trust-blue bg-trust-blue/10 
                       rounded-lg py-1.5 hover:bg-trust-blue/20 transition-colors">
-                ${t('map_view_project', 'عرض المشروع')} <i class="ph ph-arrow-right nm-icon-va nm-dir-shift" aria-hidden="true"></i>
+                ${esc(t('map_view_project', 'عرض المشروع'))} <i class="ph ph-arrow-right nm-icon-va nm-dir-shift" aria-hidden="true"></i>
             </a>
         </div>
     `;

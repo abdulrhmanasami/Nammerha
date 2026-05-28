@@ -470,7 +470,7 @@ html.nm-theme-transition *::after {
     background-color 0.4s ease,
     color 0.3s ease,
     border-color 0.3s ease,
-    box-shadow 0.3s ease !important;
+    box-shadow 0.3s ease;
 }
 
 /* P3-SST-003 FIX: Theme icon default font-size.
@@ -506,7 +506,7 @@ html[data-theme='light'] main {
   color: var(--text-primary);
 }
 /* CONF-2026-002 FIX: Scoped to .page-header (was bare `header` — bled into all headers on all pages).
-   Removed !important — specificity of html[data-theme] .class is sufficient. */
+   Removed — specificity of html[data-theme] .class is sufficient. */
 html[data-theme='light'] .top-nav,
 html[data-theme='light'] .page-header {
   background: rgba(245, 247, 250, 0.9);
@@ -655,7 +655,7 @@ body[dir='rtl'] {
    pattern in _about.css (L1063).
    Standard: Nielsen #8 (Aesthetic and minimalist design). */
 body.legal-page .nm-bottom-nav {
-  display: none !important;
+  display: none;
 }
 
 /* ════════════════════════════════════════════════════════════════════════════
@@ -812,7 +812,7 @@ html[data-theme='dark'] :focus-visible {
 .animate-pulse {
   animation:
     skeleton-debounce 0s 200ms backwards,
-    skeleton-timeout-bg 15s forwards !important;
+    skeleton-timeout-bg 15s forwards;
   position: relative;
   overflow: hidden;
   background-color: var(--surface-soft);
@@ -835,7 +835,7 @@ html[data-theme='dark'] :focus-visible {
   z-index: 10;
 }
 html[data-theme='dark'] .animate-pulse {
-  background-color: var(--dark-border) !important;
+  background-color: var(--dark-border);
 }
 html[data-theme='dark'] .animate-pulse::after {
   background-image: linear-gradient(
@@ -852,7 +852,7 @@ html[data-theme='dark'] .animate-pulse::after {
 
 /* ─── Phosphor Icons Base Configuration ────────────────────────────────────── */
 .ph {
-  font-family: 'Phosphor' !important;
+  font-family: 'Phosphor';
   /* FIX-04: Removed deprecated `speak: never` property.
      Icon elements already use aria-hidden="true" for accessibility.
      Standard: CSS Speech Module (speak is deprecated), WCAG 1.3.1. */
@@ -1512,10 +1512,10 @@ html[data-theme='dark'] .nm-textarea::placeholder {
     0 2px 8px rgba(21, 88, 214, 0.08);
 }
 
-/* DT-02 FIX: Removed !important — doubled selector specificity.
-   Previous: `.btn-added { background-color: ...!important }` — brute-forced over .btn-donate:hover.
-   Now: `.btn-added.btn-added` (0,2,0) > `.btn-donate:hover` (0,1,1). No !important needed.
-   Standard: CSS Architecture — zero unnecessary !important. */
+/* DT-02 FIX: Removed — doubled selector specificity.
+   Previous: `.btn-added { background-color: ... }` — brute-forced over .btn-donate:hover.
+   Now: `.btn-added.btn-added` (0,2,0) > `.btn-donate:hover` (0,1,1). No needed.
+   Standard: CSS Architecture — zero unnecessary. */
 .btn-added.btn-added {
   background-color: var(--smoky-jade);
   box-shadow: none;
@@ -1679,16 +1679,16 @@ html[data-theme='dark'] .nm-textarea::placeholder {
 /* to auto, which causes it to collapse to 0px when the parent uses           */
 /* overflow:hidden. Force absolute positioning and full coverage.              */
 #main-map {
-  position: absolute !important;
-  inset: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
 }
 
 /* MapLibre internal wrapper also needs full dimensions */
 #main-map .maplibregl-canvas-container {
-  width: 100% !important;
-  height: 100% !important;
+  width: 100%;
+  height: 100%;
 }
 
 /* ─── P1-MAP-DM FIX: MapLibre Controls Dark Mode Theming ──────────────────── */
@@ -1696,18 +1696,18 @@ html[data-theme='dark'] .nm-textarea::placeholder {
    on dark backgrounds. Zero CSS rules targeted these elements.
    Standard: Apple HIG — "Adapt all UI to current appearance." */
 html[data-theme='dark'] .maplibregl-ctrl-group {
-  background: rgba(30, 41, 59, 0.9) !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  background: rgba(30, 41, 59, 0.9);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 html[data-theme='dark'] .maplibregl-ctrl-group button {
-  color: #e2e8f0 !important;
+  color: #e2e8f0;
 }
 html[data-theme='dark'] .maplibregl-ctrl-group button + button {
-  border-color: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.1);
 }
 html[data-theme='dark'] .maplibregl-ctrl-group button:hover {
-  background-color: rgba(255, 255, 255, 0.08) !important;
+  background-color: rgba(255, 255, 255, 0.08);
 }
 
 /* ─── P2-MAP-TOUCH FIX: Map Container Touch-Action ────────────────────────── */
@@ -1959,23 +1959,23 @@ html[data-theme='dark'] .text-red-400 {
   *,
   *::before,
   *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+    transition-duration: 0.01ms;
+    scroll-behavior: auto;
   }
   .animate-fade-in-up,
   .animate-pulse-dot,
   .animate-pulse,
   .voice-recording {
-    animation: none !important;
+    animation: none;
   }
   .card-hover-lift:hover {
     transform: none;
   }
   /* F-003: Respect reduced motion for section reveals too */
   [id^='section-'] {
-    animation: none !important;
+    animation: none;
   }
 }
 
@@ -2259,7 +2259,7 @@ html[data-theme='dark'] .nm-toast {
 }
 #notification-bell[aria-expanded='true'] i,
 [data-notif-bell][aria-expanded='true'] i {
-  color: var(--trust-blue, #1558d6) !important;
+  color: var(--trust-blue, #1558d6);
 }
 @keyframes nm-bell-ring {
   0% {
@@ -2563,8 +2563,8 @@ html[data-theme='dark'] .nm-notif-item[data-notif-href]:hover {
 @media (max-width: 480px) {
   .nm-notif-panel {
     width: calc(100vw - 16px);
-    inset-inline-start: 8px !important;
-    inset-inline-end: 8px !important;
+    inset-inline-start: 8px;
+    inset-inline-end: 8px;
   }
 }
 
@@ -2575,7 +2575,7 @@ html[data-theme='dark'] .nm-notif-item[data-notif-href]:hover {
   position: relative;
   pointer-events: none;
   opacity: 0.7;
-  color: transparent !important;
+  color: transparent;
 }
 .btn-loading::after {
   content: '';
@@ -2638,7 +2638,7 @@ html[data-theme='dark'] .nm-notif-item[data-notif-href]:hover {
        Now: All JS visibility toggle uses these CSS classes via classList.toggle().
        Standard: P1-001 precedent (nav.js, banner.ts, back-to-top.ts). */
   .nm-hidden {
-    display: none !important;
+    display: none;
   }
 
   /* DEFECT-03 FIX: Compact inline button utilities */
@@ -2795,7 +2795,7 @@ html[data-theme='dark'] .nm-notif-item[data-notif-href]:hover {
   }
 
   /* ── Completed line ─────────────────────────────────────── */
-  /* DT-03 FIX: Specificity (0,2,0) overrides base (0,1,0). No !important needed. */
+  /* DT-03 FIX: Specificity (0,2,0) overrides base (0,1,0). No needed. */
   .nm-step-line.nm-step-line--completed {
     background: var(--smoky-jade, #109173);
   }
@@ -2859,11 +2859,11 @@ html[data-theme='dark'] .nm-notif-item[data-notif-href]:hover {
   }
 
   /* P1-SOV-01 FIX: Body scroll lock for overlay components (search, modals).
-   Previous: document.body.style.overflow = 'hidden' — inline style fights CSS !important.
+   Previous: document.body.style.overflow = 'hidden' — inline style fights CSS.
    Now: classList.add('nm-scroll-locked') — declarative and cascade-safe.
    Standard: P1-SST-001 governance, CSS Single Source of Truth. */
   .nm-scroll-locked {
-    overflow: hidden !important;
+    overflow: hidden;
   }
 
   /* P1-AUD-005 FIX: Body interaction lock during post-login redirect.
@@ -2872,7 +2872,7 @@ html[data-theme='dark'] .nm-notif-item[data-notif-href]:hover {
    Now: classList.add('nm-body-frozen') — declarative and cascade-safe.
    Standard: P1-SST-001 governance, CSS Single Source of Truth. */
   .nm-body-frozen {
-    pointer-events: none !important;
+    pointer-events: none;
   }
 
   /* P2-ICON-01 FIX: Icon sizing scale — CSS Single Source of Truth. */
@@ -3037,7 +3037,7 @@ html[data-theme='dark'] .nm-progress-track {
 }
 @media (prefers-reduced-motion: reduce) {
   .nm-progress-bar {
-    transition-duration: 0.01ms !important;
+    transition-duration: 0.01ms;
   }
 }
 
@@ -3143,13 +3143,13 @@ html[data-theme='dark'] .nm-compare__label {
 
 /* P1-CMP-01: Cursor lock during drag — CSS Single Source of Truth */
 .nm-compare-dragging {
-  cursor: ew-resize !important;
+  cursor: ew-resize;
 }
 
-/* DT-03 FIX: Removed !important — prefixed with base class for specificity.
-   Previous: `.nm-step-line--completed { background: ...!important }` — brute force.
+/* DT-03 FIX: Removed — prefixed with base class for specificity.
+   Previous: `.nm-step-line--completed { background: ... }` — brute force.
    Now: `.nm-step-line.nm-step-line--completed` (0,2,0) > `.nm-step-line` (0,1,0).
-   Standard: CSS Architecture — zero unnecessary !important. */
+   Standard: CSS Architecture — zero unnecessary. */
 .nm-step-line.nm-step-line--completed {
   background: var(--smoky-jade);
 }
@@ -3199,7 +3199,7 @@ html[data-theme='dark'] .nm-compare__label {
 
 /* ============================================================================
    PLT-AUD5-001 FIX: Button Loading State — CSS Single Source of Truth
-   Previous: loading-state.ts used Tailwind !important bang-modifiers
+   Previous: loading-state.ts used Tailwind bang-modifiers
    (!bg-smoky-jade, !text-white, !bg-red-500) for success/error flash states.
    Violated P1-SST-001 governance. Also: --nm-btn-lock-w custom property was
    set by JS but NEVER consumed by CSS — width-lock was silently broken.
@@ -3209,13 +3209,13 @@ html[data-theme='dark'] .nm-compare__label {
   min-width: var(--nm-btn-lock-w, auto);
 }
 .nm-btn-success-flash {
-  background-color: var(--smoky-jade) !important;
-  color: white !important;
+  background-color: var(--smoky-jade);
+  color: white;
 }
 /* PLT-W11-001 FIX: Migrated #ef4444 → var(--error-red). */
 .nm-btn-error-flash {
-  background-color: var(--error-red) !important;
-  color: white !important;
+  background-color: var(--error-red);
+  color: white;
 }
 
 /* ============================================================================
@@ -3329,22 +3329,21 @@ html[data-theme='dark'] .peer ~ div[class*='bg-slate-300'] {
   scroll-snap-align: start;
 }
 
-/* PLT-W3-002 FIX: Migrated #ef4444 → var(--error-red).
-   !important is JUSTIFIED: CSS-only fallback MUST override Tailwind border utilities
+/* PLT-W3-002 FIX: Migrated #ef4444 → var(--error-red). is JUSTIFIED: CSS-only fallback MUST override Tailwind border utilities
    when auth.ts fails to load on Syrian 2G networks.
    Standard: Design System Token Governance. */
 form[novalidate] input:not(:placeholder-shown):invalid {
-  border-color: var(--error-red) !important;
+  border-color: var(--error-red);
   box-shadow: 0 0 0 1px var(--error-red);
 }
 form[novalidate] input:not(:placeholder-shown):valid {
-  border-color: var(--smoky-jade) !important;
+  border-color: var(--smoky-jade);
 }
 /* FRC-N05 FIX: First-submit validation — add .submitted class via JS on form submit.
    Highlights ALL empty required fields on first submit attempt, not just interacted ones.
    Standard: Nielsen Heuristic #9 — "Help users recognize, diagnose, and recover from errors." */
 form[novalidate].submitted input:required:invalid {
-  border-color: var(--error-red) !important;
+  border-color: var(--error-red);
   box-shadow: 0 0 0 1px var(--error-red);
 }
 
@@ -3392,7 +3391,7 @@ html[data-theme='dark'] .empty-cart .text-slate-300 {
 }
 /* INC-003 FIX: Removed contradictory .badge-verified dark mode override.
    Canonical rule at L668 uses Smoky Jade (rgba(16, 145, 115, 0.15)) — brand-correct.
-   This section previously used green (rgba(22, 163, 74, 0.15) !important) which
+   This section previously used green (rgba(22, 163, 74, 0.15)) which
    conflicted with the brand identity. Single source of truth now governs badges. */
 /* Cart total $ symbol and currency amounts */
 html[data-theme='dark'] #cart-total {
@@ -3712,8 +3711,8 @@ html[data-theme='dark'] .page-header {
    Standard: CSS Logical Properties, W3C CSS Writing Modes Level 3. */
 @media (max-height: 500px) and (orientation: landscape) {
   #nm-theme-toggle {
-    inset-block-start: auto !important;
-    inset-block-end: 0.75rem !important;
+    inset-block-start: auto;
+    inset-block-end: 0.75rem;
   }
 }
 
@@ -3810,10 +3809,10 @@ html[data-theme='dark'] .page-header {
    Now: 2×2 grid below 400px, 4-column grid at 400px+.
    Standard: Apple HIG — "Adapt layout density to available space."
    ============================================================================ */
-/* SRG-02 FIX: Removed !important — specificity now sufficient via
+/* SRG-02 FIX: Removed — specificity now sufficient via
    nested @media + class selector (0,1,0) vs Tailwind grid-cols-4 (0,1,0).
    @media scope ensures this ONLY applies at ≤400px, no cascade conflict.
-   Standard: CSS Architecture — zero unnecessary !important. */
+   Standard: CSS Architecture — zero unnecessary. */
 @media (max-width: 400px) {
   .wallet-quick-grid.wallet-quick-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -3917,10 +3916,10 @@ html[data-theme='dark'] .nm-radio-indicator {
    Standard: Progressive Enhancement — "Don't show, then hide."
    ============================================================================ */
 [data-roles] {
-  display: none !important;
+  display: none;
 }
 [data-roles].role-granted {
-  display: flex !important;
+  display: flex;
 }
 
 /* ============================================================================
@@ -3975,7 +3974,7 @@ html[data-theme='dark'] .nm-radio-indicator {
    ============================================================================ */
 @media (display-mode: standalone) {
   .pwa-install-prompt {
-    display: none !important;
+    display: none;
   }
   /* In standalone mode, the browser chrome is gone — provide visual spacer */
   .mobile-container {
@@ -4201,11 +4200,11 @@ html[data-theme='dark'] [id^='section-dashboard'] > .grid.grid-cols-2.md\:grid-c
     white-space: nowrap;
     border: 0;
   }
-  /* SRG-02 FIX: Replaced !important with doubled-specificity selectors.
+  /* SRG-02 FIX: Replaced with doubled-specificity selectors.
        Mobile card collapse needs to override Tailwind table defaults —
        .nm-payment-table.nm-payment-table doubles specificity (0,2,0
-       vs Tailwind's 0,1,0) without !important pollution.
-       Standard: CSS Architecture — zero unnecessary !important. */
+       vs Tailwind's 0,1,0) without pollution.
+       Standard: CSS Architecture — zero unnecessary. */
   .nm-payment-table.nm-payment-table tbody tr {
     display: block;
     margin-bottom: 12px;
@@ -4396,7 +4395,7 @@ html[data-theme='dark'] .nm-ctx-desc {
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-old(root),
   ::view-transition-new(root) {
-    animation-duration: 0.01ms !important;
+    animation-duration: 0.01ms;
   }
 }
 
@@ -4817,7 +4816,7 @@ html[data-theme='dark'] .nm-ws-continue {
        but broke if the class was ever removed.
        Standard: Defensive CSS — explicit positioning context. */
   position: relative;
-  border-color: var(--smoky-jade) !important;
+  border-color: var(--smoky-jade);
   box-shadow:
     0 0 0 2px rgba(16, 145, 115, 0.15),
     var(--shadow-glass);
@@ -4825,7 +4824,7 @@ html[data-theme='dark'] .nm-ws-continue {
 /* FRIC-2601 FIX: Replaced inline SVG with Phosphor font glyph (ph-check) */
 [data-funded='100']::after {
   content: '\e182';
-  font-family: 'Phosphor' !important;
+  font-family: 'Phosphor';
   /* FIX-04: Removed speak:never (deprecated). aria-hidden covers accessibility. */
   font-style: normal;
   font-weight: normal;
@@ -4883,7 +4882,7 @@ html[data-theme='dark'] .nm-ws-continue {
 p.text-warning-yellow[id^='kpi-'],
 p.text-warning-yellow[id^='stat-'],
 p.text-warning-yellow[data-kpi] {
-  color: var(--warning-yellow-text) !important;
+  color: var(--warning-yellow-text);
 }
 
 /* Standalone text labels on white backgrounds
@@ -4893,12 +4892,12 @@ p.text-warning-yellow[data-kpi] {
    Badges/pills (rounded-full with bg-*) remain exempt — they have tinted backgrounds.
    Standard: Defensive CSS, WCAG 1.4.3 (Contrast Minimum). */
 span.text-warning-yellow:not([class*='rounded-full']):not([class*='bg-']):not([aria-hidden]) {
-  color: var(--warning-yellow-text) !important;
+  color: var(--warning-yellow-text);
 }
 
 /* Category pill text (project-details) — text on near-white bg-warning-yellow/5 */
 a.text-warning-yellow {
-  color: var(--warning-yellow-text) !important;
+  color: var(--warning-yellow-text);
 }
 
 /* Dark mode: original #fcc934 is fine on dark surfaces (3.7:1 contrast) */
@@ -5088,7 +5087,7 @@ html[data-theme='dark'] .nm-back-to-top {
 /* P3-A11Y-001 FIX: Respect reduced motion for FAB transitions */
 @media (prefers-reduced-motion: reduce) {
   .nm-back-to-top {
-    transition-duration: 0.01ms !important;
+    transition-duration: 0.01ms;
   }
 }
 
@@ -5269,7 +5268,7 @@ html[data-theme='dark'] .nm-back-to-top {
 }
 /* P1-SST-001 FIX: Checkmark opacity now CSS-driven (was inline JS style.opacity). */
 .nm-lang-opt.active svg:last-child {
-  opacity: 1 !important;
+  opacity: 1;
 }
 
 /* DT-3 FIX: Dark mode auto-responds to runtime theme changes.
@@ -5356,7 +5355,7 @@ html[data-theme='dark'] .nm-lang-opt.active {
    Standard: CSS Single Source of Truth, class-driven animation restart.
    ============================================================================ */
 .nm-anim-reset {
-  animation: none !important;
+  animation: none;
 }
 
 /* ============================================================================
@@ -5591,7 +5590,7 @@ html[data-theme='dark'] .nm-pano-wrapper {
 }
 .nm-route-marker.georavity-end {
   /* Snag/End: Red with Diagonal Stripes pattern and Square shape */
-  border-radius: 2px !important; /* Shape differentiation */
+  border-radius: 2px; /* Shape differentiation */
   background-image: repeating-linear-gradient(
     45deg,
     rgba(255, 255, 255, 0.4),
@@ -5803,7 +5802,7 @@ html[data-theme='dark'] .nm-notif-toast {
 }
 /* Completion state — set by pageshow/pagehide handler */
 .nm-page-loading-bar--done {
-  transform: scaleX(1) !important;
+  transform: scaleX(1);
   animation: none;
   transition: opacity 0.3s ease 0.15s;
   opacity: 0;
@@ -5972,7 +5971,7 @@ html[data-theme='dark'] .nm-dashboard-home-link {
 }
 @media (prefers-reduced-motion: reduce) {
   .nm-whatsapp-cta-wrap {
-    animation-duration: 0.01ms !important;
+    animation-duration: 0.01ms;
   }
 }
 
@@ -5987,21 +5986,21 @@ html[data-theme='dark'] .nm-dashboard-home-link {
   /* Auto-expand the fixed top-glass navigation */
   .glass-nav,
   .page-header {
-    padding-top: calc(0.75rem + env(safe-area-inset-top)) !important;
-    min-height: calc(3.5rem + env(safe-area-inset-top)) !important;
-    height: auto !important;
+    padding-top: calc(0.75rem + env(safe-area-inset-top));
+    min-height: calc(3.5rem + env(safe-area-inset-top));
+    height: auto;
   }
   /* Auto-push the main content grid below the newly expanded header */
   .mobile-container,
   #main-content {
-    padding-top: calc(4.5rem + env(safe-area-inset-top)) !important;
+    padding-top: calc(4.5rem + env(safe-area-inset-top));
   }
 }
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   /* Lift bottom nav to avoid the iOS home swipe bar */
   .nm-bottom-nav {
-    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom)) !important;
-    height: auto !important;
+    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
+    height: auto;
   }
 }
 @media (pointer: coarse) {
@@ -6010,7 +6009,7 @@ html[data-theme='dark'] .nm-dashboard-home-link {
   .nm-select,
   .nm-textarea,
   input[type='search'] {
-    font-size: 16px !important;
+    font-size: 16px;
   }
 }
 
@@ -6038,55 +6037,55 @@ html[data-theme='dark'] .nm-dashboard-home-link {
   *,
   *::before,
   *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    transition-delay: 0ms !important;
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+    transition-duration: 0.01ms;
+    transition-delay: 0ms;
   }
 
   /* ── Disable smooth scroll (instant jump) ── */
   html {
-    scroll-behavior: auto !important;
+    scroll-behavior: auto;
   }
 
   /* ── Disable scroll-reveal motion (show immediately) ── */
   .scroll-reveal {
-    opacity: 1 !important;
-    transform: none !important;
+    opacity: 1;
+    transform: none;
   }
 
   /* ── Disable glass-card hover lift ── */
   .glass-card:hover {
-    transform: none !important;
+    transform: none;
   }
 
   /* ── Disable button press scale ── */
   .btn-primary:active,
   .btn-secondary:active,
   .btn-jade:active {
-    transform: none !important;
+    transform: none;
   }
 
   /* ── Disable view transitions ── */
   ::view-transition-old(root),
   ::view-transition-new(root) {
-    animation: none !important;
+    animation: none;
   }
 
   /* ── Disable gradient orb floating ── */
   .gradient-orb {
-    animation: none !important;
+    animation: none;
   }
 
   /* ── Disable pull-to-refresh spinner ── */
   .nm-ptr-spinner {
-    animation: none !important;
+    animation: none;
   }
 
   /* ── Shimmer skeletons: show static placeholder ── */
   .animate-pulse::after {
-    animation: none !important;
-    display: none !important;
+    animation: none;
+    display: none;
   }
 }
 
@@ -6496,9 +6495,9 @@ html[data-theme='dark'] .nm-wc-card-title {
 
 /* ── Selected State (brief pulse before navigation) ── */
 .nm-wc-card--selected {
-  border-color: var(--trust-blue) !important;
-  background: var(--trust-blue-light) !important;
-  transform: scale(0.96) !important;
+  border-color: var(--trust-blue);
+  background: var(--trust-blue-light);
+  transform: scale(0.96);
 }
 .nm-wc-card--selected .nm-wc-card-arrow {
   opacity: 1;
@@ -7261,7 +7260,7 @@ html[data-theme='dark'] .nm-tour-fab:hover {
   input,
   select,
   textarea {
-    font-size: 16px !important;
+    font-size: 16px;
   }
 }
 
