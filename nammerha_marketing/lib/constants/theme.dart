@@ -3,8 +3,8 @@ import 'package:jaspr/dom.dart';
 /// Semantic Colors System (Platinum Standard)
 /// Synchronized with `nammerha_mobile` Flutter Application
 class SemanticColors {
-  static const primaryBrand = Color('#0F172A'); // Deep Indigo
-  static const primaryBrandDark = Color('#38BDF8'); // Sky Blue Accent
+  static const primaryBrand = Color('#1558D6'); // Trust Blue Brand Color
+  static const primaryBrandDark = Color('#5C9CE6'); // Cobalt Light Accent
   
   static const backgroundPrimary = Color('#FFFFFF');
   static const backgroundSecondary = Color('#F1F5F9');

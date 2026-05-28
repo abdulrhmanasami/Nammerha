@@ -1,6 +1,6 @@
 /* Platinum Semantic Design Parity */
 body {
-  background-color: #020617;
+  background-color: #0F1117;
   color: #F8FAFC;
   font-family: 'Inter', sans-serif;
   margin: 0;
@@ -17,10 +17,10 @@ header {
   padding: 1rem 2rem;
   justify-content: center;
   z-index: 100;
-  background-color: rgba(2, 6, 23, 0.8);
+  background-color: rgba(15, 17, 23, 0.8);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid #1E293B;
+  border-bottom: 1px solid #1F2231;
 }
 nav {
   display: flex;
@@ -35,7 +35,7 @@ nav {
   gap: 0.5rem;
   font-size: 1.5rem;
   font-weight: 800;
-  color: #38BDF8;
+  color: #5C9CE6;
   text-transform: uppercase;
 }
 .nav-links {
@@ -45,21 +45,21 @@ nav {
 .cta-button {
   padding: 0.75rem 1.5rem;
   border-radius: 8px;
-  background-color: #38BDF8;
+  background-color: #5C9CE6;
   color: #ffffff;
   border: none;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s;
 }
-.cta-button:hover { background-color: #0284C7; }
+.cta-button:hover { background-color: #4A8BD4; }
 nav a {
   text-decoration: none;
   color: #CBD5E1;
   font-weight: 600;
   transition: color 0.2s;
 }
-nav a:hover, div.active > a { color: #38BDF8; }
+nav a:hover, div.active > a { color: #5C9CE6; }
 
 /* Home / Hero */
 .home-container, .vision-container {
@@ -85,7 +85,7 @@ nav a:hover, div.active > a { color: #38BDF8; }
   color: #F8FAFC;
   line-height: 1.1;
 }
-.highlight { color: #38BDF8; }
+.highlight { color: #5C9CE6; }
 .hero-subtitle {
   font-size: 1.25rem;
   color: #94A3B8;
@@ -108,9 +108,9 @@ nav a:hover, div.active > a { color: #38BDF8; }
   position: relative;
   display: flex;
   flex-direction: column;
-  background-color: rgba(15, 23, 42, 0.8);
+  background-color: rgba(30, 34, 46, 0.85);
   border-radius: 24px;
-  border: 1px solid #1E293B;
+  border: 1px solid rgba(255, 255, 255, 0.06);
   overflow: hidden;
   padding: 2rem;
   min-height: 350px;
@@ -133,13 +133,13 @@ nav a:hover, div.active > a { color: #38BDF8; }
   height: 200px;
   width: 100%;
   border-radius: 16px;
-  background-color: #1E293B;
+  background-color: #1E222E;
 }
 .placeholder-3d.sm { height: 150px; }
 @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
 .shimmer {
   animation: shimmer 2s infinite linear;
-  background: linear-gradient(90deg, #1E293B 25%, #334155 50%, #1E293B 75%);
+  background: linear-gradient(90deg, #1E222E 25%, #2A2F3E 50%, #1E222E 75%);
   background-size: 200% 100%;
 }
 
@@ -151,16 +151,16 @@ nav a:hover, div.active > a { color: #38BDF8; }
   text-align: center;
   max-width: 800px;
   padding: 4rem;
-  background-color: rgba(15, 23, 42, 0.8);
+  background-color: rgba(30, 34, 46, 0.85);
   border-radius: 24px;
-  border: 1px solid #1E293B;
+  border: 1px solid rgba(255, 255, 255, 0.06);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
 }
 .vision-glass-card h1 {
   font-size: 2.5rem;
   font-weight: 800;
-  color: #38BDF8;
+  color: #5C9CE6;
   margin-bottom: 1rem;
 }
 .vision-glass-card p {

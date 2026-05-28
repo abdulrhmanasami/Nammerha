@@ -743,9 +743,9 @@ function openBidModal(projectId: string): void {
             bidCostInput.value = Math.ceil(currentVal * 1.02).toString();
             // Pulse the input to draw attention
             bidCostInput.classList.add('bg-amber-50', 'border-amber-400');
-            setTimeout(() => {
+            addTrackedTimer(setTimeout(() => {
               bidCostInput.classList.remove('bg-amber-50', 'border-amber-400');
-            }, 1500);
+            }, 1500));
           }
         }, 1200)); // Trigger 1.2s after they start typing
       }
