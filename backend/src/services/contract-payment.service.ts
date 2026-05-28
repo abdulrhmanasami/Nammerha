@@ -63,7 +63,7 @@ export async function getMyContracts(
                 (SELECT SUM(cp.amount) FROM contract_payments cp
                  WHERE cp.contract_id = sc.contract_id AND cp.status = 'completed'),
                 0
-            )::int AS total_paid,
+            )::bigint AS total_paid,
             (SELECT COUNT(*)::int FROM contract_milestones cm
              WHERE cm.contract_id = sc.contract_id) AS milestone_count,
             (SELECT COUNT(*)::int FROM contract_milestones cm
@@ -87,7 +87,11 @@ export async function getMyContracts(
     params.push(limit, offset);
 
     const result = await query(sql, params);
-    return result.rows;
+    return result.rows.map((row: any) => ({
+        ...row,
+        total_paid: Number(row.total_paid),
+        total_agreed_amount: Number(row.total_agreed_amount)
+    }));
 }
 
 /**
@@ -343,13 +347,14 @@ export async function createPayment(
 
         // 4. Validate amount doesn't exceed remaining balance
         const paidResult = await client.query(
-            `SELECT COALESCE(SUM(amount), 0)::int AS total_paid
+            `SELECT COALESCE(SUM(amount), 0)::bigint AS total_paid
              FROM contract_payments
              WHERE contract_id = $1 AND status IN ('completed', 'pending', 'payer_confirmed', 'payee_confirmed')`,
             [contractId],
         );
-        const totalPaid = paidResult.rows[0]?.total_paid ?? 0;
-        const remaining = contract.total_agreed_amount - totalPaid;
+        const totalPaid = Number(paidResult.rows[0]?.total_paid ?? 0);
+        const agreedAmount = Number(contract.total_agreed_amount);
+        const remaining = agreedAmount - totalPaid;
 
         if (input.amount > remaining) {
             throw new Error(

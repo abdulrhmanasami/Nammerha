@@ -148,9 +148,11 @@
 
     // ─── Show / Hide Banner ─────────────────────────────────────────────
     var dismissTimer = null;
+    var animationTimer = null;
 
     function showOffline() {
         clearTimeout(dismissTimer);
+        clearTimeout(animationTimer);
 
         var banner = createBanner();
         var icon = banner.querySelector('i');
@@ -196,10 +198,11 @@
 
         // Auto-dismiss after delay
         clearTimeout(dismissTimer);
+        clearTimeout(animationTimer);
         dismissTimer = setTimeout(function () {
             banner.classList.remove('nm-offline-visible');
             // Clean up DOM after slide-up animation completes
-            setTimeout(function () {
+            animationTimer = setTimeout(function () {
                 banner.classList.remove('nm-online-state');
             }, ANIMATION_DURATION);
         }, ONLINE_DISMISS_DELAY);
