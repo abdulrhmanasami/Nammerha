@@ -8,7 +8,7 @@
 //   4. Never Cache                — /api/auth/*, /api/csrf-token
 // ============================================================================
 
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3';
 const SHELL_CACHE  = `nammerha-shell-${CACHE_VERSION}`;
 const API_CACHE    = `nammerha-api-${CACHE_VERSION}`;
 const IMG_CACHE    = `nammerha-img-${CACHE_VERSION}`;
@@ -35,9 +35,9 @@ const SHELL_ASSETS = [
     '/privacy.html',
     '/terms.html',
     '/refund-policy.html',
-    '/nav.js?v=7',
-    '/i18n.js?v=7',
-    '/i18n.css?v=7',
+    '/nav.js?v=8',
+    '/i18n.js?v=8',
+    '/i18n.css?v=8',
     '/i18n/wallet.js',
     '/fonts/phosphor/phosphor.css',
     '/theme-boot.js',
@@ -76,6 +76,11 @@ const STORE_NAME = 'pending-requests';
 
 // ─── Install: Pre-cache App Shell ───────────────────────────────────────────
 self.addEventListener('install', (event) => {
+    // MEMO 45 FIX: Force the new Service Worker to take over immediately.
+    // Without this, the browser waits until ALL tabs are closed, trapping 
+    // the user in a "Mirage Loop" of stale cached UI (e.g., Ghost Dark Mode toggle).
+    self.skipWaiting();
+    
     event.waitUntil(
         caches.open(SHELL_CACHE)
             .then((cache) => cache.addAll(SHELL_ASSETS))
