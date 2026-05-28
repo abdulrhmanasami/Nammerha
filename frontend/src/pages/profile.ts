@@ -1785,7 +1785,7 @@ function init(): void {
               <h4 class="text-trust-blue font-bold mb-2">${esc(t('kyc_human_help_title', 'يبدو أن الكاميرا لا تساعدنا اليوم'))}</h4>
               <p class="text-sm text-trust-blue/80 mb-4">${esc(t('kyc_human_help_desc', 'لا تقلق، لقد حفظنا بياناتك الأساسية. احجز مكالمة فيديو لمدة دقيقة واحدة مع موظف التوثيق لمساعدتك فوراً دون الحاجة لإعادة التصوير.'))}</p>
               <button id="kyc-video-call-btn" class="nm-btn bg-trust-blue text-white px-6 w-full text-sm hover:bg-trust-blue-hover shadow-lg">
-                <i class="ph ph-video-camera mr-1"></i> ${esc(t('kyc_book_call', 'حجز مكالمة فيديو'))}
+                <i class="ph ph-video-camera me-1"></i> ${esc(t('kyc_book_call', 'حجز مكالمة فيديو'))}
               </button>
             `;
 

@@ -2532,10 +2532,10 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
   mfaPanel.innerHTML = `
     <div class="text-center py-6">
       <div class="text-[2.5rem] mb-3">🔐</div>
-      <h2 class="text-xl font-bold text-[color:var(--nm-text-primary,#242424)] dark:text-white mb-2">
+      <h2 class="text-xl font-bold text-slate-900 dark:text-white mb-2">
         ${esc(t('mfa_title', 'التحقق بخطوتين'))}
       </h2>
-      <p class="text-sm text-[color:var(--nm-text-secondary,#666)] dark:text-slate-400 mb-6">
+      <p class="text-sm text-slate-600 dark:text-slate-400 mb-6">
         ${esc(t('mfa_subtitle', 'أدخل الرمز المكوّن من 6 أرقام من تطبيق المصادقة'))}
       </p>
 

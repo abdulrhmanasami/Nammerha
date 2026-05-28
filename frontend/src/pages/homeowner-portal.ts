@@ -1226,7 +1226,7 @@ async function loadEscrow(): Promise<void> {
                 ? `
                 <!-- [Platinum UX]: Tripartite Arbitration UI (Ghost State) -->
                 <div class="mt-4 p-5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-1 bg-trust-blue h-full"></div>
+                    <div class="absolute top-0 end-0 w-1 bg-trust-blue h-full"></div>
                     <div class="flex items-center gap-2 text-slate-800 dark:text-slate-200 mb-4">
                         <i class="ph-fill ph-scales text-trust-blue text-xl" aria-hidden="true"></i>
                         <h4 class="text-sm font-bold">${esc(t('ho_arbitration_status', 'حالة الأموال والتحكيم'))}</h4>
@@ -1248,7 +1248,7 @@ async function loadEscrow(): Promise<void> {
                         <div class="flex flex-col items-center z-10 opacity-50 grayscale hover:opacity-100 hover:grayscale-0 transition-all cursor-help" style="width: 70px;" title="${esc(t('arb_tooltip', 'يتم تفعيل التحكيم الثلاثي في حال النزاع'))}">
                             <div class="size-8 rounded-full bg-warning-yellow text-white flex items-center justify-center shadow-md mb-2 relative">
                                 <i class="ph-bold ph-gavel text-base"></i>
-                                <span class="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                                <span class="absolute -top-1 -end-1 flex h-2.5 w-2.5">
                                   <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-warning-yellow opacity-75"></span>
                                   <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-warning-yellow"></span>
                                 </span>

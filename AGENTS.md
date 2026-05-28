@@ -18,6 +18,16 @@
 
 ## 🛑 ZERO-REGRESSION MEMOS (CRITICAL AI MEMORY)
 
+**MEMO 46: The Platinum HTML/CSS Integrity Audit & RTL Physical Annihilation (May 28, 2026)**
+
+- **Root Cause Destroyed:** 
+  1. The AI Agent found lingering Physical CSS classes (`right-0`, `-right-1`) inside the Arbitration Ghost State UI in `homeowner-portal.ts`, which would instantly break the UI upon RTL flip (Arabic).
+  2. The MFA Challenge Panel in `auth.ts` used Tailwind JIT arbitrary color injections (`text-[color:var(--nm-text-primary)]`) instead of standard semantic tokens, disrupting the Dark Mode state parity and violating Design System governance.
+- **New Logic Built:**
+  1. **Strict Logical CSS Enforced:** `right-0` mathematically replaced with `end-0`. ALL physical properties (`ml-`, `pr-`, `text-left`) are zero-tolerance.
+  2. **Strict Semantic Colors:** Arbitrary inline-like `[color:var(...)]` classes permanently banned. We enforce native semantic Tailwind (`text-slate-900 dark:text-white`).
+  3. **XSS & Ghost State Zero-Day Certification:** All dynamic `innerHTML` strictly wrapped in `esc()`. No `!important` overriding tags were found.
+
 **MEMO 45: The Deployment Mirage Loop (Mandatory Deployment Protocol) (May 28, 2026)**
 
 - **Root Cause Destroyed:** The AI Agent spent two months executing "Platinum Standard Audits" locally, successfully wiping bugs (like the Ghost Dark Mode Toggle), but *failed to deploy the code to the live server*. This created a Mirage Loop where the human evaluated the live server, saw the bug, and instructed the Agent to fix it again. The Agent assumed its previous fix failed and wrote unnecessarily complex UI patches (`!important`, DOM Observers) for code that was already correct locally.
