@@ -12,6 +12,7 @@
  */
 
 import { abortPendingRouteRequests } from '../api/_client';
+import { nmClearAllListeners } from './event-registry';
 
 /**
  * Create a hash-based router scoped to a known set of tab names.
@@ -70,6 +71,11 @@ export function createHashRouter<T extends string>(
         }
 
         abortPendingRouteRequests();
+        
+        // PLATINUM FIX: Purge all transient event listeners (scroll, click, popstate)
+        // attached by the outgoing portal/tab to prevent Zombie DOM memory leaks and Event Storms.
+        nmClearAllListeners();
+
         const newTab = resolveHash();
         currentHash = newTab;
         handler(newTab);

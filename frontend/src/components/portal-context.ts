@@ -12,6 +12,7 @@
 
 import { t } from '../utils/i18n';
 import { navigateWithTransition } from '../utils/view-transition';
+import { nmClearAllListeners } from '../utils/event-registry';
 // SYS-004 FIX: Dialog polyfill for older Android WebViews (Syria).
 import { polyfillDialog } from '../utils/dialog-polyfill';
 
@@ -187,6 +188,7 @@ function wireTransitionClicks(container: Element): void {
       e.preventDefault();
       const href = (e.currentTarget as HTMLAnchorElement).getAttribute('href');
       if (href) {
+        nmClearAllListeners();
         navigateWithTransition(href);
       }
     });
@@ -327,6 +329,7 @@ export function mountHubFAB(currentPortalId: string): void {
       const href = (e.currentTarget as HTMLAnchorElement).getAttribute('href');
       if (href) {
         closeSheet();
+        nmClearAllListeners();
         // Small delay for close animation before navigating
         setTimeout(() => navigateWithTransition(href), 150);
       }
