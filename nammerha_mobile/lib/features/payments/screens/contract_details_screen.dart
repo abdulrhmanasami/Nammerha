@@ -46,7 +46,13 @@ class _ContractDetailsView extends StatelessWidget {
       appBar: AppBar(title: Text(context.tr('contract_details'))),
       body: BlocConsumer<ContractPaymentBloc, ContractPaymentState>(
         
-        buildWhen: (previous, current) => true,listener: (context, state) {
+        // PLAT-UX-007 FIX: Prevent Screen Wipeout Blink
+        buildWhen: (previous, current) {
+          if (current is ContractPaymentLoading || current is ContractDetailsLoaded) return true;
+          if (current is ContractPaymentError && previous is! ContractDetailsLoaded) return true;
+          return false;
+        },
+        listener: (context, state) {
           if (state is PaymentCreated) {
             HapticFeedback.mediumImpact();
             ScaffoldMessenger.of(context).showSnackBar(

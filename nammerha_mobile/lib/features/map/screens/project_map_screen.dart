@@ -67,7 +67,13 @@ class _ProjectMapViewState extends State<_ProjectMapView> {
       backgroundColor: colors.backgroundPrimary,
       body: BlocConsumer<MapBloc, MapState>(
         
-        buildWhen: (previous, current) => true,listener: (context, state) {
+        // PLAT-UX-007 FIX: Prevent Screen Wipeout Blink
+        buildWhen: (previous, current) {
+          if (current is MapLoading || current is MapLoaded) return true;
+          if (current is MapError && previous is! MapLoaded) return true;
+          return false;
+        },
+        listener: (context, state) {
           // When a project is selected, animate the camera to it.
           if (state is MapLoaded && state.selectedProject != null) {
             _mapController.move(

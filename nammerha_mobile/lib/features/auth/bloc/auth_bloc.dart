@@ -267,6 +267,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     try {
       final user = await _authRepository.getCurrentUser();
+      if (isClosed) return;
       if (user != null) {
         emit(AuthAuthenticated(user));
       } else {
@@ -289,6 +290,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         fullName: event.fullName,
         remember: event.remember,
       );
+
+      if (isClosed) return;
 
       if (result.mfaRequired && result.mfaToken != null) {
         emit(AuthMfaRequired(mfaToken: result.mfaToken!, email: ''));
@@ -428,6 +431,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         remember: event.remember,
       );
 
+      if (isClosed) return;
+
       // P1-W14-002 FIX: Handle MFA challenge response.
       // PREVIOUS: login() returned NammerhaUser directly — if backend returned
       // mfa_required, the repository tried to parse data['user'] → null → crash.
@@ -486,6 +491,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         // PREVIOUS: phone was never passed — mobile users couldn't register with phone.
         phone: event.phone,
       );
+      if (isClosed) return;
       emit(AuthRegistrationSuccess(message));
     } on ApiException catch (e) {
       if (kDebugMode) debugPrint('[Nammerha] bloc/auth_bloc: $e');
@@ -499,6 +505,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   Future<void> _onLogout(AuthLogoutRequested event, Emitter<AuthState> emit) async {
     await _authRepository.logout();
+    if (isClosed) return;
     emit(AuthUnauthenticated());
   }
 
@@ -508,6 +515,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     try {
       final message = await _authRepository.forgotPassword(email: event.email);
+      if (isClosed) return;
       emit(AuthPasswordResetSent(message));
     } on ApiException catch (e) {
       if (kDebugMode) debugPrint('[Nammerha] bloc/auth_bloc: $e');
@@ -528,6 +536,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       );
       // Re-fetch user to get fresh token state
       final user = await _authRepository.getCurrentUser();
+      if (isClosed) return;
       if (user != null) {
         emit(AuthPasswordChanged(message));
         emit(AuthAuthenticated(user));
@@ -551,6 +560,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         token: event.token,
         newPassword: event.newPassword,
       );
+      if (isClosed) return;
       emit(AuthPasswordResetSuccess(message));
     } on ApiException catch (e) {
       if (kDebugMode) debugPrint('[Nammerha] bloc/auth_bloc: $e');
@@ -573,6 +583,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         mfaToken: event.mfaToken,
         code: event.code,
       );
+      if (isClosed) return;
       emit(AuthAuthenticated(user));
     } on ApiException catch (e) {
       if (kDebugMode) debugPrint('[Nammerha] bloc/auth_bloc: $e');
@@ -594,6 +605,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         mfaToken: event.mfaToken,
         recoveryCode: event.recoveryCode,
       );
+      if (isClosed) return;
       emit(AuthAuthenticated(user));
     } on ApiException catch (e) {
       if (kDebugMode) debugPrint('[Nammerha] bloc/auth_bloc: $e');

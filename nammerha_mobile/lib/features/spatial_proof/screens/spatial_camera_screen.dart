@@ -294,7 +294,12 @@ class _SpatialCameraViewState extends State<_SpatialCameraView> {
 
         return BlocConsumer<SpatialProofBloc, SpatialProofState>(
       
-        buildWhen: (previous, current) => current is! SpatialProofSuccess,listener: (context, state) {
+        // PLAT-UX-007 FIX: Prevent Screen Wipeout Blink
+        buildWhen: (previous, current) {
+          if (current is SpatialProofInitial || current is SpatialProofLoading || current is SpatialProofError) return true;
+          return false;
+        },
+        listener: (context, state) {
         if (state is SpatialProofSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

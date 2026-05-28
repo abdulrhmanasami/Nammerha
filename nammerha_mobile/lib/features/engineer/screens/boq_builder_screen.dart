@@ -90,7 +90,13 @@ class _BoqBuilderViewState extends State<_BoqBuilderView> {
       ),
       body: BlocConsumer<BoqBloc, BoqState>(
         
-        buildWhen: (previous, current) => current is! BoqPublishSuccess,listener: (context, state) {
+        // PLAT-UX-007 FIX: Prevent Screen Wipeout Blink
+        buildWhen: (previous, current) {
+          if (current is BoqInitial || current is BoqLoading || current is BoqLoaded || current is BoqPublishLoading) return true;
+          if (current is BoqError && previous is! BoqLoaded) return true;
+          return false;
+        },
+        listener: (context, state) {
           if (state is BoqPublishSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(context.tr('eng_boq_published')), backgroundColor: colors.success),

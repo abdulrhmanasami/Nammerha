@@ -69,7 +69,12 @@ class EscrowCheckoutView extends StatelessWidget {
 
     return BlocConsumer<CheckoutBloc, CheckoutState>(
       
-        buildWhen: (previous, current) => current is! CheckoutSuccess,listener: (context, state) async {
+        // PLAT-UX-007 FIX: Prevent Screen Wipeout Blink
+        buildWhen: (previous, current) {
+          if (current is CheckoutInitial || current is CheckoutLoading || current is CheckoutError) return true;
+          return false;
+        },
+        listener: (context, state) async {
         if (state is CheckoutSuccess && state.checkoutUrl != null) {
           final url = Uri.parse(state.checkoutUrl!);
           if (await canLaunchUrl(url)) {

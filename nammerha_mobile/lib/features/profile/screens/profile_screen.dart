@@ -120,7 +120,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
       create: (_) => ProfileFormCubit(),
       child: BlocConsumer<ProfileBloc, ProfileState>(
       
-        buildWhen: (previous, current) => true,listener: (context, state) {
+        // PLAT-UX-007 FIX: Prevent Screen Wipeout Blink
+        buildWhen: (previous, current) {
+          if (current is ProfileInitial || current is ProfileLoading || current is ProfileLoaded) return true;
+          if (current is ProfileError && previous is! ProfileLoaded) return true;
+          if (current is ProfileSaveError && previous is! ProfileLoaded) return true;
+          return false;
+        },
+        listener: (context, state) {
         final isEditing = context.read<ProfileFormCubit>().state;
         if (state is ProfileLoaded && !isEditing) {
           _nameController.text = state.user['full_name']?.toString() ?? '';

@@ -18,8 +18,10 @@ class EscrowBloc extends Bloc<EscrowEvent, EscrowState> {
     emit(EscrowLoading());
     try {
       final summary = await repository.fetchEscrowSummary();
+      if (isClosed) return;
       emit(EscrowSummaryLoaded(summary));
     } catch (e) {
+      if (isClosed) return;
       emit(EscrowError(e.toString()));
     }
   }
@@ -34,8 +36,10 @@ class EscrowBloc extends Bloc<EscrowEvent, EscrowState> {
         limit: event.limit,
         offset: event.offset,
       );
+      if (isClosed) return;
       emit(EscrowTransactionsLoaded(transactions));
     } catch (e) {
+      if (isClosed) return;
       emit(EscrowError(e.toString()));
     }
   }

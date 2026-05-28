@@ -41,9 +41,11 @@ class DamageReportBloc extends Bloc<DamageReportEvent, DamageReportState> {
     try {
       final position = await repository.detectGPS();
       final newData = state.formData.copyWith(gpsPosition: position);
+      if (isClosed) return;
       emit(DamageReportDraft(newData));
     } on LocationServiceDisabledException {
       // HIGH-MOB-005 FIX: Specific error key for GPS service disabled.
+      if (isClosed) return;
       emit(DamageReportError(state.formData, ErrorKeys.gpsPermissionRequired));
       // CRIT-MOB-001 FIX: Do NOT re-emit DamageReportDraft here.
       // The BlocConsumer.listener shows the SnackBar, and the user's next
@@ -54,6 +56,7 @@ class DamageReportBloc extends Bloc<DamageReportEvent, DamageReportState> {
       final errorKey = e.toString().contains(ErrorKeys.gpsPermissionRequired)
           ? ErrorKeys.gpsPermissionRequired
           : ErrorKeys.network;
+      if (isClosed) return;
       emit(DamageReportError(state.formData, errorKey));
       // CRIT-MOB-001 FIX: Terminal state — no immediate DamageReportDraft re-emit.
     }
@@ -63,16 +66,20 @@ class DamageReportBloc extends Bloc<DamageReportEvent, DamageReportState> {
     emit(DamageReportLoading(state.formData, message: 'msg_submitting_report'));
     try {
       await repository.submitReport(state.formData);
+      if (isClosed) return;
       emit(DamageReportSuccess(state.formData));
     } on ApiException catch (e) {
       if (e.statusCode == 0) {
         // Platform UX: Intercept offline queued requests and show success,
         // rather than treating it as a failure.
+        if (isClosed) return;
         emit(DamageReportOfflineSaved(state.formData));
       } else {
+        if (isClosed) return;
         emit(DamageReportError(state.formData, ErrorKeys.damageReportFailed));
       }
     } catch (e) {
+      if (isClosed) return;
       emit(DamageReportError(state.formData, ErrorKeys.damageReportFailed));
       // CRIT-MOB-001 FIX: Terminal state — no immediate DamageReportDraft re-emit.
       // The listener shows the SnackBar. The user retries by tapping Submit again,

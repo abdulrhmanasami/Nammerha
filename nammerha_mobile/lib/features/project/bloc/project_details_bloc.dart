@@ -37,10 +37,12 @@ class ProjectDetailsBloc extends Bloc<ProjectDetailsEvent, ProjectDetailsState> 
     }
       
       if (projectData == null) {
+        if (isClosed) return;
         emit(const ProjectDetailsError('err_project_not_found'));
         return;
       }
       
+      if (isClosed) return;
       emit(ProjectDetailsLoaded(
         project: projectData,
         boqItems: boqData,
@@ -48,6 +50,7 @@ class ProjectDetailsBloc extends Bloc<ProjectDetailsEvent, ProjectDetailsState> 
       ));
     } catch (e) {
       debugPrint('[Nammerha] bloc/project_details_bloc: $e');
+      if (isClosed) return;
       emit(const ProjectDetailsError('err_project_details_load'));
     }
   }

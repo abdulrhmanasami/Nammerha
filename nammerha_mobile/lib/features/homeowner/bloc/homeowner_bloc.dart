@@ -34,9 +34,11 @@ class HomeownerBloc extends Bloc<HomeownerEvent, HomeownerState> {
           updatedData = await repository.loadEscrow(updatedData);
           break;
       }
+      if (isClosed) return;
       emit(HomeownerLoaded(updatedData));
     } catch (e) {
       // M2 FIX: Error message uses generic key — will be localized via i18n
+      if (isClosed) return;
       emit(HomeownerError(state.data, ErrorKeys.homeownerLoadFailed));
     }
   }
@@ -45,12 +47,15 @@ class HomeownerBloc extends Bloc<HomeownerEvent, HomeownerState> {
     emit(HomeownerLoading(state.data));
     try {
       await repository.respondToApproval(event.approvalId, event.decision);
+      if (isClosed) return;
       emit(ApprovalResponseSuccess(state.data));
       // Reload approvals and dashboard to reflect changes
       var updatedData = await repository.loadApprovals(state.data);
       updatedData = await repository.loadDashboard();
+      if (isClosed) return;
       emit(HomeownerLoaded(updatedData));
     } catch (e) {
+      if (isClosed) return;
       emit(HomeownerError(state.data, ErrorKeys.homeownerActionFailed));
       emit(HomeownerLoaded(state.data)); // Fallback
     }
@@ -64,8 +69,10 @@ class HomeownerBloc extends Bloc<HomeownerEvent, HomeownerState> {
       // Reload service requests + stats to reflect cancellation
       var updatedData = await repository.loadServiceRequests(state.data);
       updatedData = await repository.loadDashboard();
+      if (isClosed) return;
       emit(HomeownerLoaded(updatedData));
     } catch (e) {
+      if (isClosed) return;
       emit(HomeownerError(state.data, ErrorKeys.homeownerCancelFailed));
       emit(HomeownerLoaded(state.data));
     }

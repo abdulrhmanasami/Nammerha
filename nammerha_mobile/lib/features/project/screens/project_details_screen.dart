@@ -185,7 +185,13 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
           Expanded(
             child: BlocConsumer<ProjectDetailsBloc, ProjectDetailsState>(
         
-        buildWhen: (previous, current) => true,listener: (context, state) {},
+        // PLAT-UX-007 FIX: Prevent Screen Wipeout Blink
+        buildWhen: (previous, current) {
+          if (current is ProjectDetailsInitial || current is ProjectDetailsLoading || current is ProjectDetailsLoaded) return true;
+          if (current is ProjectDetailsError && previous is! ProjectDetailsLoaded) return true;
+          return false;
+        },
+        listener: (context, state) {},
         builder: (context, state) {
           if (state is ProjectDetailsLoading || state is ProjectDetailsInitial) {
             return Center(

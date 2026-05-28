@@ -36,8 +36,10 @@ class TradespersonBloc extends Bloc<TradespersonEvent, TradespersonState> {
           updatedData = await repository.loadProfile(updatedData);
           break;
       }
+      if (isClosed) return;
       emit(TradespersonLoaded(updatedData));
     } catch (e) {
+      if (isClosed) return;
       emit(TradespersonError(state.data, ErrorKeys.tradespersonLoadFailed));
       emit(TradespersonLoaded(state.data));
     }
@@ -46,9 +48,11 @@ class TradespersonBloc extends Bloc<TradespersonEvent, TradespersonState> {
   Future<void> _onLoadProfile(LoadProfileEvent event, Emitter<TradespersonState> emit) async {
     try {
       final updatedData = await repository.loadProfile(state.data);
+      if (isClosed) return;
       emit(TradespersonLoaded(updatedData));
     } catch (e) {
       // C3 FIX: Silent catch eliminated — surface error
+      if (isClosed) return;
       emit(TradespersonError(state.data, ErrorKeys.tradespersonProfileFailed));
       emit(TradespersonLoaded(state.data));
     }
@@ -58,8 +62,10 @@ class TradespersonBloc extends Bloc<TradespersonEvent, TradespersonState> {
     try {
       await repository.updateAvailability(event.availability);
       final updatedData = state.data.copyWith(availability: event.availability);
+      if (isClosed) return;
       emit(TradespersonLoaded(updatedData));
     } catch (e) {
+      if (isClosed) return;
       emit(TradespersonError(state.data, ErrorKeys.tradespersonAvailabilityFailed));
       emit(TradespersonLoaded(state.data));
     }
@@ -69,11 +75,14 @@ class TradespersonBloc extends Bloc<TradespersonEvent, TradespersonState> {
     emit(TradespersonLoading(state.data));
     try {
       await repository.acceptRequest(event.requestId);
+      if (isClosed) return;
       emit(ActionSuccess(state.data, ErrorKeys.tradespersonTaskAccepted));
       // Reload requests
       final updatedData = await repository.loadRequests(state.data);
+      if (isClosed) return;
       emit(TradespersonLoaded(updatedData));
     } catch (e) {
+      if (isClosed) return;
       emit(TradespersonError(state.data, ErrorKeys.tradespersonTaskFailed));
       emit(TradespersonLoaded(state.data));
     }
@@ -83,11 +92,14 @@ class TradespersonBloc extends Bloc<TradespersonEvent, TradespersonState> {
     emit(TradespersonLoading(state.data));
     try {
       await repository.respondToAssignment(event.assignmentId, event.accept);
+      if (isClosed) return;
       emit(ActionSuccess(state.data, event.accept ? ErrorKeys.tradespersonTaskAccepted : ErrorKeys.tradespersonTaskRejected));
       // Reload assignments
       final updatedData = await repository.loadAssignments(state.data);
+      if (isClosed) return;
       emit(TradespersonLoaded(updatedData));
     } catch (e) {
+      if (isClosed) return;
       emit(TradespersonError(state.data, ErrorKeys.actionFailed));
       emit(TradespersonLoaded(state.data));
     }

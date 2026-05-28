@@ -20,9 +20,11 @@ class BoqBloc extends Bloc<BoqEvent, BoqState> {
     emit(BoqLoading(state.items));
     try {
       final items = await repository.loadExistingBOQ(event.projectId);
+      if (isClosed) return;
       emit(BoqLoaded(items));
     } catch (e) {
       // H1 FIX: Surface error instead of silent fallback — user sees SnackBar
+      if (isClosed) return;
       emit(BoqError(const [], ErrorKeys.boqLoadFailed));
       emit(const BoqLoaded([]));
     }
@@ -55,9 +57,11 @@ class BoqBloc extends Bloc<BoqEvent, BoqState> {
     emit(BoqPublishLoading(state.items));
     try {
       await repository.publishBOQ(event.projectId, state.items);
+      if (isClosed) return;
       emit(BoqPublishSuccess(state.items));
     } catch (e) {
       // H1 FIX: English generic error message
+      if (isClosed) return;
       emit(BoqError(state.items, ErrorKeys.boqPublishFailed));
       emit(BoqLoaded(state.items)); // Revert to loaded so they can retry
     }

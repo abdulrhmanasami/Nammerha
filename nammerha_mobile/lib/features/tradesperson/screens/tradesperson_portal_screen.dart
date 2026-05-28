@@ -89,7 +89,13 @@ class _TradespersonPortalViewState extends State<_TradespersonPortalView> with S
       ),
       body: BlocConsumer<TradespersonBloc, TradespersonState>(
         
-        buildWhen: (previous, current) => current is! ActionSuccess,listener: (context, state) {
+        // PLAT-UX-007 FIX: Prevent Screen Wipeout Blink
+        buildWhen: (previous, current) {
+          if (current is TradespersonInitial || current is TradespersonLoading || current is TradespersonLoaded) return true;
+          if (current is TradespersonError && previous is! TradespersonLoaded) return true;
+          return false;
+        },
+        listener: (context, state) {
           if (state is TradespersonError) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.error), backgroundColor: colors.error));
           } else if (state is ActionSuccess) {

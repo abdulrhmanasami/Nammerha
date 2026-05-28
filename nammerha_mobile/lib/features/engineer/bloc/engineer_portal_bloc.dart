@@ -26,8 +26,10 @@ class EngineerPortalBloc extends Bloc<EngineerPortalEvent, EngineerPortalState> 
     }
     try {
       final dashboard = await repository.loadFullDashboard();
+      if (isClosed) return;
       emit(EngineerPortalLoaded(dashboard: dashboard));
     } catch (e) {
+      if (isClosed) return;
       emit(EngineerPortalError(e.toString()));
     }
   }

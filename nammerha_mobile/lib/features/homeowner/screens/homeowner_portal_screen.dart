@@ -94,7 +94,13 @@ class _HomeownerPortalViewState extends State<_HomeownerPortalView> with SingleT
       ),
       body: BlocConsumer<HomeownerBloc, HomeownerState>(
         
-        buildWhen: (previous, current) => current is! ApprovalResponseSuccess,listener: (context, state) {
+        // PLAT-UX-007 FIX: Prevent Screen Wipeout Blink
+        buildWhen: (previous, current) {
+          if (current is HomeownerInitial || current is HomeownerLoading || current is HomeownerLoaded) return true;
+          if (current is HomeownerError && previous is! HomeownerLoaded) return true;
+          return false;
+        },
+        listener: (context, state) {
           if (state is HomeownerError) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.error), backgroundColor: colors.error));
           } else if (state is ApprovalResponseSuccess) {

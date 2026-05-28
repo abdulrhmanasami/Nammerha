@@ -30,9 +30,11 @@ class ContractorBloc extends Bloc<ContractorEvent, ContractorState> {
     }
     try {
       final dashboard = await repository.loadFullDashboard();
+      if (isClosed) return;
       emit(ContractorLoaded(dashboard: dashboard));
     } catch (e) {
       debugPrint('[Nammerha] bloc/contractor_bloc: $e');
+      if (isClosed) return;
       emit(ContractorError(e.toString()));
     }
   }
@@ -48,11 +50,13 @@ class ContractorBloc extends Bloc<ContractorEvent, ContractorState> {
         estimatedDays: event.estimatedDays,
         coverLetter: event.coverLetter,
       );
+      if (isClosed) return;
       emit(const ContractorActionSuccess(ErrorKeys.bidSubmitted));
       // Reload dashboard to reflect the new bid
       add(LoadContractorDashboard());
     } catch (e) {
       debugPrint('[Nammerha] bloc/contractor_bloc: $e');
+      if (isClosed) return;
       emit(ContractorError(ErrorKeys.bidFailed));
     }
   }
