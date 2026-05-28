@@ -291,63 +291,12 @@
         }
 
         // ── UXD-002 FIX: Inject Theme Toggle into Dashboard Sidebar ────────
-        // Dashboard pages suppress bottom nav (and its theme FAB). Without this,
-        // users in long dashboard sessions have NO theme toggle visible.
-        // Injects a compact toggle at the sidebar bottom using the same
-        // [data-nm-theme-toggle] attribute — theme-toggle.js auto-discovers it.
-        // Standard: Nielsen #3 (User Control & Freedom), Apple HIG (System Controls).
+        // PLATINUM AUDIT (2026-05-28): This block was REMOVED.
+        // It was causing a "Ghost State" by aggressively re-injecting the Dark Mode 
+        // toggle into every dashboard sidebar, overriding the user's explicit 
+        // decision to move theme settings exclusively to the Profile (Settings) page.
+        // Standard: User Control & Freedom (Respecting manual HTML removals).
         // ────────────────────────────────────────────────────────────────────────
-        var sidebarNav = sidebar.querySelector('[role="tablist"]');
-        var themeToggleExists = sidebar.querySelector('[data-nm-theme-toggle]');
-        if (sidebarNav && !themeToggleExists) {
-            var isDark = (document.documentElement.getAttribute('data-theme') || 'dark') === 'dark';
-            var themeRow = document.createElement('div');
-            themeRow.className = 'nm-sidebar-theme-row';
-            var themeBtn = document.createElement('button');
-            themeBtn.setAttribute('data-nm-theme-toggle', '');
-            themeBtn.setAttribute('data-haptic', 'tap');
-            var themeLabel = isDark
-                ? (window.NammerhaI18n && window.NammerhaI18n.t ? window.NammerhaI18n.t('nav_theme_light') : 'Light Mode')
-                : (window.NammerhaI18n && window.NammerhaI18n.t ? window.NammerhaI18n.t('nav_theme_dark') : 'Dark Mode');
-            themeBtn.title = themeLabel;
-            themeBtn.setAttribute('aria-label', themeLabel);
-            themeBtn.className = 'nm-sidebar-theme-btn';
-
-            var themeIcon = document.createElement('i');
-            themeIcon.setAttribute('data-nm-theme-icon', '');
-            themeIcon.className = isDark ? 'ph ph-sun-dim' : 'ph ph-moon-stars';
-            themeBtn.appendChild(themeIcon);
-
-            var themeBtnText = document.createElement('span');
-            themeBtnText.textContent = themeLabel;
-            themeBtnText.setAttribute('data-i18n', isDark ? 'nav_theme_light' : 'nav_theme_dark');
-            themeBtn.appendChild(themeBtnText);
-
-            themeRow.appendChild(themeBtn);
-            // Insert after the tablist navigation
-            sidebarNav.parentNode.insertBefore(themeRow, sidebarNav.nextSibling);
-
-            // Listen for theme changes to update icon/label
-            document.addEventListener('nm-theme-changed', function (e) {
-                var next = e.detail && e.detail.theme;
-                if (!next) { return; }
-                var newLabel = next === 'dark'
-                    ? (window.NammerhaI18n && window.NammerhaI18n.t ? window.NammerhaI18n.t('nav_theme_light') : 'Light Mode')
-                    : (window.NammerhaI18n && window.NammerhaI18n.t ? window.NammerhaI18n.t('nav_theme_dark') : 'Dark Mode');
-                themeBtn.title = newLabel;
-                themeBtn.setAttribute('aria-label', newLabel);
-                themeBtnText.textContent = newLabel;
-            });
-
-            // Load theme-toggle.js if not already present
-            if (!window.NammerhaTheme) {
-                var themeScript = document.createElement('script');
-                themeScript.src = '/theme-toggle.js?v=2';
-                document.head.appendChild(themeScript);
-            } else if (window.NammerhaTheme.syncAllIcons) {
-                window.NammerhaTheme.syncAllIcons();
-            }
-        }
 
         // ── UXD-003 FIX: Swipe-to-Dismiss Sidebar ─────────────────────────
         // iOS/Android users instinctively swipe to dismiss drawers. Overlay

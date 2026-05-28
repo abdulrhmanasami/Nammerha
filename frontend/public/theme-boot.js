@@ -14,10 +14,11 @@
 (function() {
   // ─── Theme Boot ────────────────────────────────────────────────────
   // THEME-SURG-001: Default theme is LIGHT for Syria-first UX.
-  // Users who prefer dark mode enable it from profile settings.
-  var fallback = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  // PLATINUM AUDIT (2026-05-28): Hard-coded light as default to respect user's explicit mandate.
+  // OS dark mode preference is no longer automatically applied.
+  var fallback = 'light';
   var t = fallback;
-  try { t = localStorage.getItem('nm-theme') || fallback; } catch(e) { /* localStorage unavailable (incognito/quota) — use OS preference */ }
+  try { t = localStorage.getItem('nm-theme') || fallback; } catch(e) { /* localStorage unavailable */ }
   document.documentElement.setAttribute('data-theme', t);
 
   // ─── Locale Boot ───────────────────────────────────────────────────

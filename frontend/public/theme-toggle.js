@@ -214,28 +214,10 @@
      * localStorage), OS changes are ignored. Otherwise, follows system.
      */
     function initSystemPreferenceListener() {
-        try {
-            var mql = window.matchMedia('(prefers-color-scheme: dark)');
-            if (!mql || !mql.addEventListener) { return; }
-
-            mql.addEventListener('change', function (e) {
-                // Only auto-sync if user hasn't manually set a preference
-                try {
-                    if (localStorage.getItem(STORAGE_KEY)) { return; }
-                } catch (ex) { /* localStorage unavailable */ }
-
-                var nextTheme = e.matches ? 'dark' : 'light';
-                document.documentElement.setAttribute('data-theme', nextTheme);
-                syncAllIcons('system');
-
-                // Dispatch so nav.js can update data-nav-theme
-                try {
-                    document.dispatchEvent(new CustomEvent('nm-theme-changed', {
-                        detail: { theme: nextTheme, mode: 'system', previousMode: 'system' }
-                    }));
-                } catch (err) { /* CustomEvent not supported */ }
-            });
-        } catch (e) { /* matchMedia not supported — graceful degradation */ }
+        // PLATINUM AUDIT (2026-05-28): System OS preference listener REMOVED.
+        // It was causing a "Ghost State" by dynamically overriding the user's
+        // explicit mandate that "Light Mode is the absolute default". 
+        // If a user's OS went dark, the app went dark against the platform's mandate.
     }
 
     // ─── Public API ─────────────────────────────────────────────────────
