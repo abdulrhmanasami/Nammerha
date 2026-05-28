@@ -18,6 +18,17 @@
 
 ## 🛑 ZERO-REGRESSION MEMOS (CRITICAL AI MEMORY)
 
+**MEMO 49: Design Token Synchronization, Logical Preloader Layout & Timer Isolation (May 29, 2026)**
+
+- **Root Cause Destroyed:**
+  1. The preloader inside `nammerha_mobile/web/index.html` used physical properties (`left: 50%`, `left: 0`, `right: 0`, `border-left-color`) violating LTR/RTL flipping. It also used an arbitrary Sky Blue accent `#38BDF8` and deep indigo background `#0F172A` not synchronized with brand standards.
+  2. The Jaspr marketing website (`nammerha_marketing/`) had non-token colors `#38BDF8` and `#0284C7` for accent highlights, and dark-theme slate background/surfaces (`#020617`, `#0F172A`, `#1E293B`) mismatched with the platform's unified dark theme.
+  3. A raw, unmanaged `setTimeout` inside `contractor-portal.ts` was used to pulse inputs, bypassing the `addTrackedTimer` quarantine and risking memory leaks during SPA navigation.
+- **New Logic Built:**
+  1. **Strict Logical Layout & Preloader Brand Colors:** Rewrote `index.html` preloader to use `inset-inline-start`, `inset-inline-end`, and `border-inline-start-color`. Integrated preferences media query utilizing `#0D47A1` (Trust Blue) in light mode and `#242424` (Tech Dark) in dark mode, and set accent border color to `#1558D6` (Trust Blue) / `#5C9CE6` (Cobalt Light).
+  2. **Marketing Theme Token Parity:** Refactored theme constants and styles inside `nammerha_marketing` to match unified dark theme parameters (`#0F1117` background, `#1E222E`/`rgba(30, 34, 46, 0.85)` surfaces, `#5C9CE6`/`#4A8BD4` brand highlights).
+  3. **Event Timer Quarantine:** Wrapped input pulse `setTimeout` inside `addTrackedTimer` to guarantee automated garbage collection on portal exit.
+
 **MEMO 48: Platinum Frontend Security, XSS Mitigation, & Strict Import Synchronization (May 29, 2026)**
 
 - **Root Cause Destroyed:**
