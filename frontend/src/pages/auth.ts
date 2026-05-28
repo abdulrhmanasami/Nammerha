@@ -2563,7 +2563,7 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
       </div>
 
       <!-- Error Display -->
-      <p id="mfa-error" class="nm-hidden text-[color:var(--nm-danger,#dc3545)] dark:text-red-400 text-[0.8125rem] mb-4"></p>
+      <p id="mfa-error" class="nm-hidden text-red-600 dark:text-red-400 text-sm mb-4"></p>
 
       <!-- Toggle Links -->
       <div class="flex flex-col gap-2 items-center">

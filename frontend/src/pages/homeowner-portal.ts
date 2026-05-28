@@ -687,9 +687,9 @@ function setupServiceRequestForm(): void {
     // negative cents or NaN to the API.
     // Standard: OWASP Input Validation, FinTech UX (Financial Input Guards).
     if (budget) {
-      const budgetNum = parseInt(budget, 10);
-      if (isNaN(budgetNum) || budgetNum <= 0) {
-        errors.push(t('ho_sr_budget_invalid', 'يجب أن تكون الميزانية رقماً موجباً'));
+      const budgetNum = Number(budget);
+      if (!Number.isSafeInteger(budgetNum) || budgetNum <= 0) {
+        errors.push(t('ho_sr_budget_invalid', 'يجب أن تكون الميزانية رقماً موجباً صحيحاً'));
       } else if (budgetNum > 10_000_000) {
         errors.push(t('ho_sr_budget_too_high', 'الميزانية تتجاوز الحد الأقصى المسموح'));
       }
@@ -710,7 +710,7 @@ function setupServiceRequestForm(): void {
         description: desc || undefined,
         address_text: address || undefined,
         urgency: (urgency || 'routine') as 'routine' | 'urgent' | 'emergency',
-        budget_max: budget ? parseInt(budget, 10) * 100 : undefined,
+        budget_max: budget ? Number(budget) * 100 : undefined,
       });
 
       if (!res.success) {

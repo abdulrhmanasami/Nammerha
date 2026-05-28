@@ -68,6 +68,8 @@ import { tryApplyI18n, tryTranslate } from './i18n-apply';
 import { haptic } from './haptic';
 // SYS-004 FIX: Dialog polyfill for older Android WebViews (Syria).
 import { polyfillDialog } from './dialog-polyfill';
+// P0-NEW-001 FIX: XSS protection for innerHTML.
+import { escapeHtml as esc } from './xss';
 
 /**
  * Shows a confirmation dialog for destructive/irreversible actions.
@@ -103,14 +105,14 @@ export function confirmAction(opts: ConfirmActionOptions): Promise<boolean> {
     dialog.innerHTML = `
             <div class="nm-confirm-body">
                 <div class="size-14 rounded-full ${variant === 'danger' ? 'bg-red-50 dark:bg-red-900/20' : 'bg-amber-50 dark:bg-amber-900/20'} flex items-center justify-center mx-auto mb-3">
-                    <i class="ph ph-${icon} ${variant === 'danger' ? 'text-red-500' : 'text-amber-500'} nm-icon-28" aria-hidden="true"></i>
+                    <i class="ph ph-${esc(icon)} ${variant === 'danger' ? 'text-red-500' : 'text-amber-500'} nm-icon-28" aria-hidden="true"></i>
                 </div>
-                <h3${i18nTitle}>${opts.title}</h3>
-                <p${i18nMsg}>${opts.message}</p>
+                <h3${i18nTitle}>${esc(opts.title)}</h3>
+                <p${i18nMsg}>${esc(opts.message)}</p>
             </div>
             <div class="nm-confirm-actions">
-                <button type="button" class="nm-confirm-cancel" id="cd-cancel"${i18nCancel}>${cancelLabel}</button>
-                <button type="button" class="${actionClass}" id="cd-confirm"${i18nConfirm}>${opts.confirmLabel}</button>
+                <button type="button" class="nm-confirm-cancel" id="cd-cancel"${i18nCancel}>${esc(cancelLabel)}</button>
+                <button type="button" class="${actionClass}" id="cd-confirm"${i18nConfirm}>${esc(opts.confirmLabel)}</button>
             </div>`;
 
     document.body.appendChild(dialog);

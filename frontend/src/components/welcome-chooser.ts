@@ -29,6 +29,8 @@ import { escapeHtml as esc } from '../utils/xss';
 import { WS_STORAGE_KEY } from '../utils/workspace-map';
 // P0-JRN-002 FIX: user role gated behind payment feature flag.
 import { PAYMENTS_ENABLED } from '../utils/feature-flags';
+// P1-W14 FIX: Zombie listeners and timeout tracking.
+import { addTrackedTimer } from '../utils/tracked-timers';
 
 const CHOOSER_SHOWN_KEY = 'nm_welcome_chooser_shown';
 const ONBOARDING_PARAM = 'onboarding';
@@ -184,13 +186,13 @@ export function initWelcomeChooser(): void {
       'nm:tour:complete',
       () => {
         // Small delay for smooth transition — don't stack modals
-        setTimeout(showChooser, 600);
+        addTrackedTimer(setTimeout(showChooser, 600));
       },
       { once: true },
     );
   } else {
     // Tour already done or not applicable → show after page settles
-    setTimeout(showChooser, 1800);
+    addTrackedTimer(setTimeout(showChooser, 1800));
   }
 }
 
@@ -284,10 +286,10 @@ function showChooser(): void {
 
   // ── Focus Management ──
   // Focus the first card after animation settles
-  setTimeout(() => {
+  addTrackedTimer(setTimeout(() => {
     const firstCard = modal.querySelector<HTMLElement>('.nm-wc-card');
     firstCard?.focus();
-  }, 500);
+  }, 500));
 }
 
 // ─── Event Handling ─────────────────────────────────────────────────────────
@@ -314,9 +316,9 @@ function wireChooserEvents(modal: HTMLElement): void {
       modal.classList.add('nm-wc-overlay--exiting');
 
       // Navigate after exit animation
-      setTimeout(() => {
+      addTrackedTimer(setTimeout(() => {
         window.location.href = href;
-      }, 350);
+      }, 350));
     });
 
     // Keyboard: Enter/Space triggers click
@@ -400,8 +402,8 @@ function dismissChooser(): void {
   chooserEl.classList.add('nm-wc-overlay--exiting');
   chooserEl.classList.remove('nm-wc-overlay--visible');
 
-  setTimeout(() => {
+  addTrackedTimer(setTimeout(() => {
     chooserEl?.remove();
     chooserEl = null;
-  }, 400);
+  }, 400));
 }

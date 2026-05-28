@@ -38,7 +38,7 @@ export function nmAddEventListener(
   options?: boolean | AddEventListenerOptions,
   nmOptions?: RegisterOptions
 ): void {
-  if (!target) return;
+  if (!target) {return;}
 
   target.addEventListener(type, listener, options);
   
@@ -56,7 +56,7 @@ export function nmRemoveEventListener(
   listener: EventListenerOrEventListenerObject,
   options?: boolean | EventListenerOptions
 ): void {
-  if (!target) return;
+  if (!target) {return;}
 
   target.removeEventListener(type, listener, options);
 
@@ -81,12 +81,13 @@ export function nmClearAllListeners(): void {
     try {
       record.target.removeEventListener(record.type, record.listener, record.options);
       purgedCount++;
-    } catch (err) {
+    } catch {
       /* ignore removal failures */
     }
   }
   
   if (import.meta.env.DEV && purgedCount > 0) {
+    // eslint-disable-next-line no-console
     console.debug(`[EventRegistry] Purged ${purgedCount} transient zombie listeners.`);
   }
 

@@ -33,6 +33,8 @@ import { isAuthenticated as checkSession } from '../auth';
 import { tryApplyI18n } from './i18n-apply';
 import { initNotificationPanel } from '../components/notification-panel';
 
+import { escapeHtml as esc } from './xss';
+
 /**
  * A3 FIX: Clears ALL user-specific localStorage keys on session termination.
  * Prevents User A's wizard drafts, workspace preferences, and form data
@@ -132,13 +134,13 @@ function showAuthRequired(): void {
   mainContent.innerHTML = `
         <div class="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center gap-4">
             <div class="size-20 rounded-full ${isExpired ? 'bg-warning-yellow/10' : 'bg-trust-blue/10'} flex items-center justify-center">
-                <i class="ph ph-${icon} ${isExpired ? 'text-warning-yellow' : 'text-trust-blue'} nm-icon-40" aria-hidden="true"></i>
+                <i class="ph ph-${esc(icon)} ${isExpired ? 'text-warning-yellow' : 'text-trust-blue'} nm-icon-40" aria-hidden="true"></i>
             </div>
-            <h2 class="text-lg font-bold" data-i18n="${titleKey}">${titleDefault}</h2>
-            <p class="text-sm text-slate-500 max-w-xs dark:text-slate-400" data-i18n="${msgKey}">
-                ${msgDefault}
+            <h2 class="text-lg font-bold" data-i18n="${esc(titleKey)}">${esc(titleDefault)}</h2>
+            <p class="text-sm text-slate-500 max-w-xs dark:text-slate-400" data-i18n="${esc(msgKey)}">
+                ${esc(msgDefault)}
             </p>
-            <a href="/auth.html?redirect=${returnPath}" class="btn-primary nm-btn-inline mt-2">
+            <a href="/auth.html?redirect=${esc(returnPath)}" class="btn-primary nm-btn-inline mt-2">
                 <i class="ph ph-sign-in" aria-hidden="true"></i>
                 <span data-i18n="sign_in_btn">تسجيل الدخول</span>
             </a>

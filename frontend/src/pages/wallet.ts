@@ -365,8 +365,8 @@ async function loadTransactions(): Promise<void> {
     transactions.sort((a, b) => {
       const timeA = new Date(a.created_at).getTime();
       const timeB = new Date(b.created_at).getTime();
-      if (Number.isNaN(timeA)) return 1;
-      if (Number.isNaN(timeB)) return -1;
+      if (Number.isNaN(timeA)) {return 1;}
+      if (Number.isNaN(timeB)) {return -1;}
       return timeB - timeA;
     });
 

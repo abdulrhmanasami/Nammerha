@@ -193,7 +193,7 @@ function showWarningDialog(remainingMs: number): void {
   let isExtending = false;
 
   extendBtn?.addEventListener('click', async () => {
-    if (isExtending) return;
+    if (isExtending) {return;}
     isExtending = true;
     haptic.medium();
 
@@ -227,7 +227,7 @@ function showWarningDialog(remainingMs: number): void {
   let isLoggingOut = false;
 
   logoutBtn?.addEventListener('click', () => {
-    if (isLoggingOut) return;
+    if (isLoggingOut) {return;}
     isLoggingOut = true;
     haptic.light();
 

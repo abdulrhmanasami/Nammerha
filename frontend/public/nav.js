@@ -129,6 +129,8 @@
         'engineer-boq.html',
         // Legal Pages (suppress nav on static content pages)
         'privacy.html', 'terms.html', 'refund-policy.html',
+        // Marketing/Informational Pages
+        'about.html',
     ];
 
     // ─── Navigation Tabs (Phosphor icons) ────────────────────────────────

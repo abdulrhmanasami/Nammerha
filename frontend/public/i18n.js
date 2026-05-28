@@ -1080,6 +1080,8 @@
 
     // ─── Mount ────────────────────────────────────────────────────────────
     function mount() {
+        if (document.body.classList.contains('about-page')) return;
+
         // Remove any old i18n widget
         var old = document.getElementById('nm-lang-widget');
         if (old) old.remove();

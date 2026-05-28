@@ -1044,25 +1044,6 @@ body.about-page .bento-large {
   .leaders-grid { grid-template-columns: 1fr; }
 }
 
-/* DEFECT-04 FIX: Force-hide floating i18n widget on about page.
-   about.html has its own nav-lang button; the global i18n widget creates
-   a duplicate language selector. Intentional suppression. */
-body.about-page #nm-lang-widget { display: none !important; }
-
-/* FIX-3: Suppress global floating theme toggle — about.html has its own
-   #themeToggle in the custom top-nav. The global FAB creates a duplicate.
-   Standard: DRY, Nielsen #4 (Consistency). */
-body.about-page #nm-global-theme-toggle { display: none !important; }
-
-/* FIX-2: Suppress platform bottom navigation bar on the About page.
-   The About page is an informational/marketing page with its own nav.
-   The portal-style bottom nav (Startseite/Projects/etc.) is for logged-in
-   portal users — showing it here creates a jarring language mismatch
-   (nav uses stored i18n locale while content is hardcoded Arabic).
-   Standard: Nielsen #4 (Consistency), Content-Context Coherence. */
-body.about-page .nm-bottom-nav {
-  display: none !important;
-}
 
 /* Theme-aware logo swapping */
 .logo-dark { display: none; }

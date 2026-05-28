@@ -18,6 +18,17 @@
 
 ## 🛑 ZERO-REGRESSION MEMOS (CRITICAL AI MEMORY)
 
+**MEMO 47: Platinum CSS State Governance & Zombie Listener Eradication (May 28, 2026)**
+
+- **Root Cause Destroyed:**
+  1. `!important` CSS tags in `_about.css` were being used as an anti-pattern (Zero-Patching violation) to forcefully hide dynamically injected `.nm-bottom-nav` and `.nm-lang-widget` elements, rather than stopping the JavaScript at the source.
+  2. The MFA panel in `auth.ts` injected Tailwind arbitrary colors (`text-[color:var(--nm-danger,#dc3545)]`), directly breaking the Design System's dark mode parity.
+  3. The `welcome-chooser.ts` utilized untracked `setTimeout` operations for entrance animations and navigation, spawning Zombie Listeners and memory leaks that persisted even if the user immediately navigated away.
+- **New Logic Built:**
+  1. **Strict Context-Aware DOM Injection:** `nav.js` and `i18n.js` now check `document.body.classList.contains('about-page')` and strictly abort mounting before polluting the DOM, eliminating the need for `!important` overrides entirely.
+  2. **Native Semantic Parity:** Arbitrary color injections have been replaced strictly with semantic Tailwind tokens (`text-red-600 dark:text-red-400`).
+  3. **Event Quarantine Pattern (Timers):** ALL `setTimeout` operations in transient components MUST be wrapped in the `addTrackedTimer()` registry (`tracked-timers.ts`) to guarantee automatic annihilation during `pagehide` navigation.
+
 **MEMO 46: The Platinum HTML/CSS Integrity Audit & RTL Physical Annihilation (May 28, 2026)**
 
 - **Root Cause Destroyed:** 
