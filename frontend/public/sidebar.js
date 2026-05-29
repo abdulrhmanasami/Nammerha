@@ -52,7 +52,7 @@
             if (window.innerWidth < 768) {
                 sidebar.classList.remove('sidebar-open');
                 // Wait for CSS transition (0.28s) to complete before hiding
-                setTimeout(function () {
+                window.addTrackedTimer(function () {
                     if (!sidebar.classList.contains('sidebar-open')) {
                         sidebar.classList.add('hidden');
                     }
@@ -152,7 +152,7 @@
                     toggleBtn.setAttribute('data-hint', 'true');
                     sessionStorage.setItem(HINT_KEY, '1');
                     // Clear hint after animation completes (3 pulses × 1.5s = 4.5s)
-                    setTimeout(function () {
+                    window.addTrackedTimer(function () {
                         toggleBtn.removeAttribute('data-hint');
                     }, 4600);
                     // Also clear on first click

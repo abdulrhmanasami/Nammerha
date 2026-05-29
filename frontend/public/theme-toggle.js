@@ -117,7 +117,7 @@
         } catch (e) { /* IE11 fallback — CustomEvent not supported */ }
 
         // Remove transition class after animation completes
-        setTimeout(function () {
+        window.addTrackedTimer(function () {
             document.documentElement.classList.remove(TRANSITION_CLASS);
         }, TRANSITION_DURATION);
 

@@ -185,7 +185,7 @@
    * falls back to setTimeout for maximum compatibility.
    */
   function scheduleGuard() {
-    var timer = setTimeout(function () {
+    var timer = window.addTrackedTimer(function () {
       if (hasUnresolvedSkeletons()) {
         injectErrorBanner();
       }

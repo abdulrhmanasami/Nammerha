@@ -1075,7 +1075,7 @@
 
     function dismissBanner(banner) {
         banner.classList.remove('visible');
-        setTimeout(function () { banner.remove(); }, 400);
+        window.addTrackedTimer(function () { banner.remove(); }, 400);
     }
 
     // ─── Mount ────────────────────────────────────────────────────────────

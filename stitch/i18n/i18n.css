@@ -23,7 +23,7 @@
  * ╚═══════════════════════════════════════════════════════════════════════════╝*/
 
 :lang(ar) {
-  font-family: 'IBM Plex Sans Arabic', 'Plus Jakarta Sans', sans-serif !important;
+  font-family: 'IBM Plex Sans Arabic', 'Plus Jakarta Sans', sans-serif;
   letter-spacing: 0; /* Arabic doesn't benefit from letter-spacing */
 }
 
@@ -32,7 +32,7 @@
 :lang(ar) select,
 :lang(ar) textarea,
 :lang(ar) button {
-  font-family: 'IBM Plex Sans Arabic', 'Plus Jakarta Sans', sans-serif !important;
+  font-family: 'IBM Plex Sans Arabic', 'Plus Jakarta Sans', sans-serif;
 }
 
 /* ╔═══════════════════════════════════════════════════════════════════════════╗
@@ -54,82 +54,82 @@ body {
 /* ─── Margin Logical Overrides ────────────────────────────────────────────── */
 /* ml-* → margin-inline-start (auto-mirrors for RTL) */
 *[class*='ml-1']:not([class*='ml-auto']):not([class*='ml-0']) {
-  margin-left: unset !important;
-  margin-inline-start: 0.25rem !important;
+  margin-left: unset;
+  margin-inline-start: 0.25rem;
 }
 *[class*='ml-2']:not([class*='ml-auto']) {
-  margin-left: unset !important;
-  margin-inline-start: 0.5rem !important;
+  margin-left: unset;
+  margin-inline-start: 0.5rem;
 }
 *[class*='ml-3']:not([class*='ml-auto']) {
-  margin-left: unset !important;
-  margin-inline-start: 0.75rem !important;
+  margin-left: unset;
+  margin-inline-start: 0.75rem;
 }
 *[class*='ml-4']:not([class*='ml-auto']) {
-  margin-left: unset !important;
-  margin-inline-start: 1rem !important;
+  margin-left: unset;
+  margin-inline-start: 1rem;
 }
 
 /* mr-* → margin-inline-end (auto-mirrors for RTL) */
 *[class*='mr-1'] {
-  margin-right: unset !important;
-  margin-inline-end: 0.25rem !important;
+  margin-right: unset;
+  margin-inline-end: 0.25rem;
 }
 *[class*='mr-2'] {
-  margin-right: unset !important;
-  margin-inline-end: 0.5rem !important;
+  margin-right: unset;
+  margin-inline-end: 0.5rem;
 }
 *[class*='mr-3'] {
-  margin-right: unset !important;
-  margin-inline-end: 0.75rem !important;
+  margin-right: unset;
+  margin-inline-end: 0.75rem;
 }
 *[class*='mr-4'] {
-  margin-right: unset !important;
-  margin-inline-end: 1rem !important;
+  margin-right: unset;
+  margin-inline-end: 1rem;
 }
 
 /* ml-auto → margin-inline-start: auto */
 *[class*='ml-auto'] {
-  margin-left: unset !important;
-  margin-inline-start: auto !important;
+  margin-left: unset;
+  margin-inline-start: auto;
 }
 /* mr-auto → margin-inline-end: auto */
 *[class*='mr-auto'] {
-  margin-right: unset !important;
-  margin-inline-end: auto !important;
+  margin-right: unset;
+  margin-inline-end: auto;
 }
 
 /* ─── Padding Logical Overrides ───────────────────────────────────────────── */
 /* pl-* → padding-inline-start */
 input[class*='pl-10'] {
-  padding-left: unset !important;
-  padding-inline-start: 2.5rem !important;
+  padding-left: unset;
+  padding-inline-start: 2.5rem;
 }
 *[class*='pl-4']:not(input[class*='pl-10']) {
-  padding-left: unset !important;
-  padding-inline-start: 1rem !important;
+  padding-left: unset;
+  padding-inline-start: 1rem;
 }
 *[class*='pl-6'] {
-  padding-left: unset !important;
-  padding-inline-start: 1.5rem !important;
+  padding-left: unset;
+  padding-inline-start: 1.5rem;
 }
 
 /* pr-* → padding-inline-end */
 *[class*='pr-4'] {
-  padding-right: unset !important;
-  padding-inline-end: 1rem !important;
+  padding-right: unset;
+  padding-inline-end: 1rem;
 }
 *[class*='pr-6'] {
-  padding-right: unset !important;
-  padding-inline-end: 1.5rem !important;
+  padding-right: unset;
+  padding-inline-end: 1.5rem;
 }
 
 /* ─── Text Alignment Logical Overrides ────────────────────────────────────── */
 .text-left {
-  text-align: start !important;
+  text-align: start;
 }
 .text-right {
-  text-align: end !important;
+  text-align: end;
 }
 
 /* ─── Positioning Logical Overrides ───────────────────────────────────────── */
@@ -137,44 +137,44 @@ input[class*='pl-10'] {
 
 /* Search icon: left-3 → inset-inline-start */
 span[class*='absolute'][class*='left-3'] {
-  left: unset !important;
-  inset-inline-start: 0.75rem !important;
+  left: unset;
+  inset-inline-start: 0.75rem;
 }
 
 /* Badges/Overlays: right-3 → inset-inline-end */
 div[class*='absolute'][class*='right-3']:not([class*='left-']) {
-  right: unset !important;
-  inset-inline-end: 0.75rem !important;
+  right: unset;
+  inset-inline-end: 0.75rem;
 }
 
 /* right-4 (single-sided) → inset-inline-end */
 div[class*='absolute'][class*='right-4']:not([class*='left-4']) {
-  right: unset !important;
-  inset-inline-end: 1rem !important;
+  right: unset;
+  inset-inline-end: 1rem;
 }
 
 /* left-4 (single-sided) → inset-inline-start */
 div[class*='absolute'][class*='left-4']:not([class*='right-4']) {
-  left: unset !important;
-  inset-inline-start: 1rem !important;
+  left: unset;
+  inset-inline-start: 1rem;
 }
 
 /* Notification dot: e.g. right-2 → inset-inline-end */
 span[class*='absolute'][class*='right-2'] {
-  right: unset !important;
-  inset-inline-end: 0.625rem !important;
+  right: unset;
+  inset-inline-end: 0.625rem;
 }
 
 /* ─── Border Logical Overrides ────────────────────────────────────────────── */
 /* border-r → border-inline-end */
 div[class*='border-r']:not([class*='border-r-']):not([class*='rounded']) {
-  border-right: none !important;
+  border-right: none;
   border-inline-end: 1px solid;
   border-inline-end-color: inherit;
 }
 /* border-l → border-inline-start */
 div[class*='border-l']:not([class*='border-l-']):not([class*='rounded']) {
-  border-left: none !important;
+  border-left: none;
   border-inline-start: 1px solid;
   border-inline-start-color: inherit;
 }
@@ -182,15 +182,15 @@ div[class*='border-l']:not([class*='border-l-']):not([class*='rounded']) {
 /* ─── Verification Corner Positioning (Camera View) ───────────────────────── */
 /* border-l-2 + left-0 → inset-inline-start: 0 + border-inline-start */
 div[class*='border-l-2'][class*='left-0'] {
-  left: unset !important;
-  inset-inline-start: 0 !important;
-  border-left: none !important;
+  left: unset;
+  inset-inline-start: 0;
+  border-left: none;
   border-inline-start: 2px solid;
 }
 div[class*='border-r-2'][class*='right-0'] {
-  right: unset !important;
-  inset-inline-end: 0 !important;
-  border-right: none !important;
+  right: unset;
+  inset-inline-end: 0;
+  border-right: none;
   border-inline-end: 2px solid;
 }
 
@@ -463,24 +463,24 @@ body:has(.nm-suggestion-banner.visible) main {
 
 /* ─── Inline style gradient orbs (set via HTML style="" — logical can't reach) */
 [dir='rtl'] .gradient-orb-primary {
-  right: auto !important;
-  left: -60px !important;
+  right: auto;
+  left: -60px;
 }
 [dir='rtl'] .gradient-orb-jade {
-  left: auto !important;
-  right: -80px !important;
+  left: auto;
+  right: -80px;
 }
 
 /* ─── Negative positioned decorative blurs (Tailwind -right-4 etc.) ───────── */
 [dir='rtl'] div[class*='absolute'][class*='-right-'] {
-  right: auto !important;
-  left: -1rem !important;
+  right: auto;
+  left: -1rem;
 }
 [dir='rtl'] div[class*='-left-32'] {
-  left: auto !important;
-  right: -8rem !important;
+  left: auto;
+  right: -8rem;
 }
 [dir='rtl'] div[class*='-right-24'] {
-  right: auto !important;
-  left: -6rem !important;
+  right: auto;
+  left: -6rem;
 }

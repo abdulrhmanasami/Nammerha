@@ -199,10 +199,10 @@
         // Auto-dismiss after delay
         clearTimeout(dismissTimer);
         clearTimeout(animationTimer);
-        dismissTimer = setTimeout(function () {
+        dismissTimer = window.addTrackedTimer(function () {
             banner.classList.remove('nm-offline-visible');
             // Clean up DOM after slide-up animation completes
-            animationTimer = setTimeout(function () {
+            animationTimer = window.addTrackedTimer(function () {
                 banner.classList.remove('nm-online-state');
             }, ANIMATION_DURATION);
         }, ONLINE_DISMISS_DELAY);
@@ -215,7 +215,7 @@
         // Check initial state — if page loaded while offline, show immediately
         if (!navigator.onLine) {
             // Small delay to let DOM settle (especially if nav.js is still building)
-            setTimeout(showOffline, 100);
+            window.addTrackedTimer(showOffline, 100);
         }
 
         // Listen for connectivity changes

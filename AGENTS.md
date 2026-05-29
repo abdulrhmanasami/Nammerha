@@ -18,6 +18,17 @@
 
 ## 🛑 ZERO-REGRESSION MEMOS (CRITICAL AI MEMORY)
 
+**MEMO 52: The Platinum Eradication (Global Timer Quarantine & RTL Mirroring) (May 29, 2026)**
+
+- **Root Cause Destroyed:**
+  1. `setTimeout` was used unmanaged across Vanilla JS assets (`nav.js`, `sidebar.js`, etc.), causing "Zombie Listeners" and memory leaks across view transitions.
+  2. Physical CSS rules (`!important`) were abused for state toggling, violating the CSS Single Source of Truth architecture.
+  3. `90deg` gradients and left-aligned transitions lacked RTL mirror handling, breaking Syrian RTL localization parity.
+- **New Logic Built:**
+  1. **Event Quarantine Registry (`nm-timers.js`):** A global `__nm_timers` registry was created and dynamically injected into all 31 frontend HTML assets. `setTimeout` was systematically replaced with `window.addTrackedTimer()`, strictly coupling all asynchronous delays to the `pagehide` lifecycle for mathematical garbage collection.
+  2. **Physical CSS Eradication:** All `!important` tags were purged from `stitch/i18n.css`. State overrides now respect specificity weighting (`body.about-page`).
+  3. **RTL Gradient Sovereignty:** Enforced `[dir='rtl']` overrides across `_about.css`, `main.css`, and `tour.css` to mirror `90deg` backgrounds to `270deg` and pivot `transform-origin` to `right`.
+
 **MEMO 51: Critical Font Preload Resolution, RTL Absolute Centering, and Marketing RTL Parity (May 29, 2026)**
 
 - **Root Cause Destroyed:**

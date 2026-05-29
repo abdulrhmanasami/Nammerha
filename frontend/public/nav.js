@@ -419,7 +419,7 @@
         window.addEventListener('pageshow', function (e) {
             if (e.persisted && _loadingBar) {
                 _loadingBar.classList.add('nm-page-loading-bar--done');
-                setTimeout(function () { if (_loadingBar) { _loadingBar.remove(); _loadingBar = null; } }, 500);
+                window.addTrackedTimer(function () { if (_loadingBar) { _loadingBar.remove(); _loadingBar = null; } }, 500);
             }
         });
 
@@ -491,7 +491,7 @@
     // signal hydration to cancel the error banner. Pages that call
     // signalHydrated() explicitly via their TS module will set this
     // attribute even earlier, making this a harmless no-op.
-    setTimeout(function () {
+    window.addTrackedTimer(function () {
         if (!document.documentElement.hasAttribute('data-hydrated')) {
             document.documentElement.setAttribute('data-hydrated', 'true');
         }
