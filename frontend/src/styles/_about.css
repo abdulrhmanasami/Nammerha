@@ -783,6 +783,8 @@ body.about-page .bento-large {
 }
 .leader-blue::before { background: linear-gradient(90deg, var(--trust-blue), transparent); }
 .leader-jade::before { background: linear-gradient(90deg, var(--smoky-jade), transparent); }
+[dir='rtl'] .leader-blue::before { background: linear-gradient(270deg, var(--trust-blue), transparent); }
+[dir='rtl'] .leader-jade::before { background: linear-gradient(270deg, var(--smoky-jade), transparent); }
 
 .leader-avatar {
   width: 72px; height: 72px;

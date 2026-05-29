@@ -18,6 +18,19 @@
 
 ## 🛑 ZERO-REGRESSION MEMOS (CRITICAL AI MEMORY)
 
+**MEMO 51: Critical Font Preload Resolution, RTL Absolute Centering, and Marketing RTL Parity (May 29, 2026)**
+
+- **Root Cause Destroyed:**
+  1. The main homepage (`index.html`) preloaded `ibm-plex-sans-arabic-regular.woff2` and `ibm-plex-sans-arabic-bold.woff2`, which did not exist on disk, causing two 404 network errors, FOUT layout shifts, and console warnings on every page load.
+  2. The mobile dashboard splash loader (`nammerha_mobile/web/index.html`) combined direction-aware `inset-inline-start: 50%` with physical `transform: translate(-50%, -50%)`. In RTL mode, this caused the splash screen image to shift out of center by exactly its own width.
+  3. The Jaspr marketing website (`nammerha_marketing/`) initialized with `lang: 'ar'` but omitted the critical `dir="rtl"` attribute from the HTML template, resulting in LTR layout parsing by browsers. Furthermore, the skeleton `.shimmer` animation was hardcoded to left-to-right gradient flow (`90deg`), creating visual friction in Arabic mode.
+  4. Top-border accent gradients on leadership cards (`_about.css`) used physical `90deg` backgrounds that failed to mirror in RTL mode.
+- **New Logic Built:**
+  1. **Font Preload Harmonization:** Corrected font preloading paths inside `frontend/index.html` to reference `ibm-plex-sans-arabic-400.woff2` and `ibm-plex-sans-arabic-700.woff2` directly.
+  2. **Direction-Neutral Centering:** Refactored `.center` and `.bottom` splash loader positioning in `nammerha_mobile/web/index.html` to use physical `left: 50%` which remains centered under both RTL and LTR viewports.
+  3. **Marketing RTL Sovereignty:** Appended `const Document.html(attributes: {'dir': 'rtl'})` inside the server-rendered document builder (`main.server.dart`) and mirrored the skeleton loading animation via `[dir="rtl"] .shimmer` with `270deg` gradient and reversed `shimmer-rtl` animation keyframes in `styles.css`.
+  4. **Leadership Card RTL Overrides:** Appended `[dir='rtl']` overrides in `_about.css` for `.leader-blue` and `.leader-jade` to mirror linear gradients to `270deg`.
+
 **MEMO 50: Zero-CDN Sovereignty, SVG Color Isolation, & RTL Gradient Mirroring (May 29, 2026)**
 
 - **Root Cause Destroyed:**

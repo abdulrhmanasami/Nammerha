@@ -32,6 +32,7 @@ void main() {
       'keywords': 'Nammerha, Construction, Syria, Spatial Proof, Escrow',
     },
     head: [
+      const Document.html(attributes: {'dir': 'rtl'}),
       link(href: 'https://nammerha.com/ar', rel: 'alternate', attributes: {'hreflang': 'ar'}),
       link(href: 'https://nammerha.com/en', rel: 'alternate', attributes: {'hreflang': 'en'}),
     ],
