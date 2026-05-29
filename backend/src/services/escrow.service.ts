@@ -229,7 +229,7 @@ export async function releaseEscrow(
       const releaseResult = await client.query<{
         transaction_id: string;
         user_id: string;
-        amount_locked: number;
+        amount_locked: string;
       }>(
         `UPDATE escrow_ledger
        SET payment_status = 'released',
@@ -262,7 +262,7 @@ export async function releaseEscrow(
       const materialName = boqResult.rows[0]?.material_name ?? 'Material';
 
       // 7. Notify ALL donors who funded this item
-      const totalReleased = releaseResult.rows.reduce((sum, r) => sum + r.amount_locked, 0);
+      const totalReleased = releaseResult.rows.reduce((sum, r) => sum + Number(r.amount_locked), 0);
       const uniqueDonorIds = [...new Set(releaseResult.rows.map((r) => r.user_id))];
 
       for (const donorId of uniqueDonorIds) {

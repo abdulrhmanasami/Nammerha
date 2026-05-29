@@ -18,6 +18,16 @@
 
 ## 🛑 ZERO-REGRESSION MEMOS (CRITICAL AI MEMORY)
 
+**MEMO 53: The Escrow Release BIGINT Type Coercion Catastrophe (May 30, 2026)**
+
+- **Root Cause Destroyed:**
+  1. `escrow.service.ts` fetched `amount_locked` from PostgreSQL using a generic typing of `<{ amount_locked: number }>`, but the `pg` driver returned the `BIGINT` field as a `string` to preserve precision.
+  2. The `releaseResult.rows.reduce` method mathematically summed `0 + r.amount_locked` resulting in a massive **String Concatenation** (e.g. `0 + "5000" + "2000" = "050002000"`).
+  3. This concatenated string was passed to `calculateEscrowFee`, coercing the string back into a `BigInt` (`50002000n`), causing exponential inflation of escrow fees and charging millions of dollars erroneously to commercial projects, representing a massive Financial Ledger Poisoning vector.
+- **New Logic Built:**
+  1. The type signature was corrected to explicitly declare `amount_locked: string`.
+  2. The string concatenation was eradicated by mathematically casting the value inside the loop `Number(r.amount_locked)` ensuring robust numeric addition.
+
 **MEMO 52: The Platinum Eradication (Global Timer Quarantine & RTL Mirroring) (May 29, 2026)**
 
 - **Root Cause Destroyed:**
