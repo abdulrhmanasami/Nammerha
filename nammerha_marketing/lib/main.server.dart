@@ -36,8 +36,8 @@ void main() {
       link(href: 'https://nammerha.com/en', rel: 'alternate', attributes: {'hreflang': 'en'}),
     ],
     styles: [
-      // Modern Inter Font for Platinum standard
-      css.import('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap'),
+      // Modern Plus Jakarta Sans Font (Self-Hosted)
+      css.import('/fonts/plus-jakarta-sans.css'),
       css.import('/styles.css'),
     ],
     body: App(),

@@ -15,163 +15,173 @@
 /* ─── Variables ────────────────────────────────────────────────────────── */
 
 :root {
-    --tour-z-overlay:   99990;
-    --tour-z-spotlight: 99991;
-    --tour-z-tooltip:   99995;
-    --tour-accent:      #b45309;     /* warm-earth */
-    --tour-accent-glow: rgba(180, 83, 9, 0.35);
-    --tour-glass-bg:    rgba(255, 255, 255, 0.88);
-    --tour-glass-border: rgba(255, 255, 255, 0.45);
-    --tour-shadow: 0 24px 60px rgba(0, 0, 0, 0.18),
-                   0 8px 20px rgba(0, 0, 0, 0.08),
-                   0 0 0 1px rgba(255, 255, 255, 0.1);
-    --tour-radius:      20px;
-    --tour-ease:        cubic-bezier(0.4, 0, 0.2, 1);
-    --tour-spring:      cubic-bezier(0.34, 1.56, 0.64, 1);
+  --tour-z-overlay: 99990;
+  --tour-z-spotlight: 99991;
+  --tour-z-tooltip: 99995;
+  --tour-accent: #b45309; /* warm-earth */
+  --tour-accent-glow: rgba(180, 83, 9, 0.35);
+  --tour-glass-bg: rgba(255, 255, 255, 0.88);
+  --tour-glass-border: rgba(255, 255, 255, 0.45);
+  --tour-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.18), 0 8px 20px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+  --tour-radius: 20px;
+  --tour-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --tour-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* ─── Overlay ──────────────────────────────────────────────────────────── */
 
 .nmr-tour-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: var(--tour-z-overlay);
-    background: rgba(15, 23, 42, 0.6);
-    opacity: 0;
-    transition: opacity 0.4s var(--tour-ease);
-    pointer-events: none;
-    -webkit-tap-highlight-color: transparent;
+  position: fixed;
+  inset: 0;
+  z-index: var(--tour-z-overlay);
+  background: rgba(15, 23, 42, 0.6);
+  opacity: 0;
+  transition: opacity 0.4s var(--tour-ease);
+  pointer-events: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .nmr-tour-overlay--visible {
-    opacity: 1;
-    pointer-events: auto;
+  opacity: 1;
+  pointer-events: auto;
 }
 
 /* ─── Spotlight Cutout ─────────────────────────────────────────────────── */
 
 .nmr-tour-spotlight {
-    position: absolute;
-    border-radius: 12px;
-    box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.6);
-    transition: all 0.5s var(--tour-ease);
-    opacity: 0;
-    z-index: var(--tour-z-spotlight);
-    pointer-events: none;
-    /* Breathing glow ring around spotlit element */
-    outline: 2px solid var(--tour-accent);
-    outline-offset: 4px;
-    animation: tour-spotlight-breathe 2s ease-in-out infinite;
+  position: absolute;
+  border-radius: 12px;
+  box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.6);
+  transition: all 0.5s var(--tour-ease);
+  opacity: 0;
+  z-index: var(--tour-z-spotlight);
+  pointer-events: none;
+  /* Breathing glow ring around spotlit element */
+  outline: 2px solid var(--tour-accent);
+  outline-offset: 4px;
+  animation: tour-spotlight-breathe 2s ease-in-out infinite;
 }
 
 /* DEF-UX-008 FIX: CSS class toggle replaces inline style.opacity.\n   Previous: spotlight.style.opacity = '0'/'1' — violated P1-SST-001.\n   Standard: CSS Single Source of Truth. */
 .nmr-tour-spotlight--visible {
-    opacity: 1;
+  opacity: 1;
 }
 
 @keyframes tour-spotlight-breathe {
-    0%, 100% { outline-color: var(--tour-accent); outline-offset: 4px; }
-    50%      { outline-color: var(--tour-accent-glow); outline-offset: 6px; }
+  0%,
+  100% {
+    outline-color: var(--tour-accent);
+    outline-offset: 4px;
+  }
+  50% {
+    outline-color: var(--tour-accent-glow);
+    outline-offset: 6px;
+  }
 }
 
 /* ─── Tooltip (Glassmorphism) ──────────────────────────────────────────── */
 
 .nmr-tour-tooltip {
-    position: absolute;
-    z-index: var(--tour-z-tooltip);
-    width: 340px;
-    max-width: calc(100vw - 24px);
-    background: var(--tour-glass-bg);
-    backdrop-filter: blur(24px) saturate(1.6);
-    -webkit-backdrop-filter: blur(24px) saturate(1.6);
-    border: 1px solid var(--tour-glass-border);
-    border-radius: var(--tour-radius);
-    box-shadow: var(--tour-shadow);
-    padding: 0;
-    opacity: 0;
-    transform: translateY(12px) scale(0.96);
-    transition: opacity 0.35s var(--tour-ease),
-                transform 0.4s var(--tour-spring);
-    pointer-events: none;
-    overflow: hidden;
+  position: absolute;
+  z-index: var(--tour-z-tooltip);
+  width: 340px;
+  max-width: calc(100vw - 24px);
+  background: var(--tour-glass-bg);
+  backdrop-filter: blur(24px) saturate(1.6);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  border: 1px solid var(--tour-glass-border);
+  border-radius: var(--tour-radius);
+  box-shadow: var(--tour-shadow);
+  padding: 0;
+  opacity: 0;
+  transform: translateY(12px) scale(0.96);
+  transition:
+    opacity 0.35s var(--tour-ease),
+    transform 0.4s var(--tour-spring);
+  pointer-events: none;
+  overflow: hidden;
 }
 
 .nmr-tour-tooltip--visible {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-    pointer-events: auto;
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
 }
 
 /* ─── Tooltip Header ───────────────────────────────────────────────────── */
 
 .nmr-tour-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 16px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 0;
 }
 
 .nmr-tour-step-count {
-    font-size: 0.6875rem;
-    font-weight: 800;
-    color: var(--tour-accent);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    background: rgba(180, 83, 9, 0.08);
-    padding: 3px 8px;
-    border-radius: 6px;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  color: var(--tour-accent);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: rgba(180, 83, 9, 0.08);
+  padding: 3px 8px;
+  border-radius: 6px;
 }
 
 .nmr-tour-close {
-    /* NMR-TR-001 FIX: Was 28×28px — below WCAG 2.5.8 minimum (44px).
+  /* NMR-TR-001 FIX: Was 28×28px — below WCAG 2.5.8 minimum (44px).
        Standard: Apple HIG 44pt minimum, WCAG 2.5.8 (Target Size). */
-    width: 36px;
-    height: 36px;
-    min-width: 44px;
-    min-height: 44px;
-    border: none;
-    background: rgba(148, 163, 184, 0.12);
-    color: var(--text-muted);
-    border-radius: 8px;
-    font-size: 0.75rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.15s ease;
+  width: 36px;
+  height: 36px;
+  min-width: 44px;
+  min-height: 44px;
+  border: none;
+  background: rgba(148, 163, 184, 0.12);
+  color: var(--text-muted);
+  border-radius: 8px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
 }
 
 .nmr-tour-close:hover {
-    background: rgba(239, 68, 68, 0.1);
-    color: var(--error-red);
-    transform: scale(1.05);
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--error-red);
+  transform: scale(1.05);
 }
 /* NMR-TR-002 FIX: Missing :active touch state on close button.
    Standard: Apple HIG — "Provide immediate, visible feedback on tap." */
 @media (pointer: coarse) {
-    .nmr-tour-close:active {
-        transform: scale(0.92);
-        opacity: 0.8;
-        transition: transform 60ms ease, opacity 60ms ease;
-    }
+  .nmr-tour-close:active {
+    transform: scale(0.92);
+    opacity: 0.8;
+    transition:
+      transform 60ms ease,
+      opacity 60ms ease;
+  }
 }
 
 /* ─── Progress Bar ─────────────────────────────────────────────────────── */
 
 .nmr-tour-progress {
-    height: 3px;
-    background: rgba(148, 163, 184, 0.15);
-    margin: 10px 16px 0;
-    border-radius: 999px;
-    overflow: hidden;
+  height: 3px;
+  background: rgba(148, 163, 184, 0.15);
+  margin: 10px 16px 0;
+  border-radius: 999px;
+  overflow: hidden;
 }
 
 .nmr-tour-progress-bar {
-    height: 100%;
-    background: linear-gradient(90deg, var(--tour-accent), #d97706);
-    border-radius: 999px;
-    transition: width 0.5s var(--tour-ease);
-    box-shadow: 0 0 8px var(--tour-accent-glow);
+  height: 100%;
+  background: linear-gradient(90deg, var(--tour-accent), #d97706);
+  border-radius: 999px;
+  transition: width 0.5s var(--tour-ease);
+  box-shadow: 0 0 8px var(--tour-accent-glow);
 }
 
 /* ─── Content ──────────────────────────────────────────────────────────── */
@@ -179,126 +189,139 @@
 /* PLT-W2-005 FIX: Migrated 2 hardcoded hex → tokens.
    Standard: Design System Token Governance. */
 .nmr-tour-title {
-    font-size: 1.0625rem;
-    font-weight: 800;
-    color: var(--text-heading);
-    margin: 14px 16px 6px;
-    line-height: 1.35;
-    letter-spacing: -0.01em;
+  font-size: 1.0625rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  margin: 14px 16px 6px;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
 }
 
 .nmr-tour-content {
-    font-size: 0.8125rem;
-    color: var(--text-secondary);
-    line-height: 1.65;
-    margin: 0 16px 16px;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  line-height: 1.65;
+  margin: 0 16px 16px;
 }
 
 /* ─── Actions Footer ──────────────────────────────────────────────────── */
 
 .nmr-tour-actions {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 16px;
-    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-    background: rgba(248, 250, 252, 0.65);
-    border-top: 1px solid rgba(241, 245, 249, 0.6);
-    backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  background: rgba(248, 250, 252, 0.65);
+  border-top: 1px solid rgba(241, 245, 249, 0.6);
+  backdrop-filter: blur(8px);
 }
 
 .nmr-tour-nav {
-    display: flex;
-    gap: 8px;
+  display: flex;
+  gap: 8px;
 }
 
 .nmr-tour-btn {
-    padding: 8px 16px;
-    border: none;
-    border-radius: 10px;
-    font-size: 0.8125rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s var(--tour-ease);
-    -webkit-tap-highlight-color: transparent;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s var(--tour-ease);
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* PLT-W2-005 FIX: Migrated 3 hardcoded hex → tokens. */
 .nmr-tour-btn--skip {
-    background: transparent;
-    color: var(--text-muted);
-    padding: 8px 12px;
+  background: transparent;
+  color: var(--text-muted);
+  padding: 8px 12px;
 }
 
 .nmr-tour-btn--skip:hover {
-    color: var(--text-secondary);
-    background: rgba(241, 245, 249, 0.8);
+  color: var(--text-secondary);
+  background: rgba(241, 245, 249, 0.8);
 }
 
 .nmr-tour-btn--prev {
-    background: rgba(241, 245, 249, 0.8);
-    color: var(--text-body);
+  background: rgba(241, 245, 249, 0.8);
+  color: var(--text-body);
 }
 
 .nmr-tour-btn--prev:hover {
-    background: rgba(226, 232, 240, 0.9);
+  background: rgba(226, 232, 240, 0.9);
 }
 
 .nmr-tour-btn--next {
-    background: linear-gradient(135deg, var(--tour-accent), #d97706);
-    color: #fff;
-    box-shadow: 0 2px 12px var(--tour-accent-glow);
-    position: relative;
-    overflow: hidden;
+  background: linear-gradient(135deg, var(--tour-accent), #d97706);
+  color: #fff;
+  box-shadow: 0 2px 12px var(--tour-accent-glow);
+  position: relative;
+  overflow: hidden;
 }
 
 .nmr-tour-btn--next::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, transparent 40%, rgba(255, 255, 255, 0.2) 50%, transparent 60%);
-    transform: translateX(-100%);
-    transition: transform 0.5s ease;
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.2) 50%,
+    transparent 60%
+  );
+  transform: translateX(-100%);
+  transition: transform 0.5s ease;
 }
 
 .nmr-tour-btn--next:hover {
-    box-shadow: 0 6px 20px var(--tour-accent-glow);
-    transform: translateY(-1px);
+  box-shadow: 0 6px 20px var(--tour-accent-glow);
+  transform: translateY(-1px);
 }
 
 .nmr-tour-btn--next:hover::after {
-    transform: translateX(100%);
+  transform: translateX(100%);
 }
 
 .nmr-tour-btn--next:active {
-    transform: translateY(0);
+  transform: translateY(0);
 }
 
 /* NMR-TR-002 FIX: Missing :active touch states on tour navigation buttons.
    On mobile (pointer:coarse), hover never fires — buttons feel dead.
    Standard: Apple HIG — "Provide immediate, visible feedback on tap." */
 @media (pointer: coarse) {
-    .nmr-tour-btn--skip:active,
-    .nmr-tour-btn--prev:active {
-        transform: scale(0.96);
-        opacity: 0.8;
-        transition: transform 60ms ease, opacity 60ms ease;
-    }
-    .nmr-tour-btn--next:active {
-        transform: scale(0.96);
-        opacity: 0.9;
-        transition: transform 60ms ease, opacity 60ms ease;
-    }
+  .nmr-tour-btn--skip:active,
+  .nmr-tour-btn--prev:active {
+    transform: scale(0.96);
+    opacity: 0.8;
+    transition:
+      transform 60ms ease,
+      opacity 60ms ease;
+  }
+  .nmr-tour-btn--next:active {
+    transform: scale(0.96);
+    opacity: 0.9;
+    transition:
+      transform 60ms ease,
+      opacity 60ms ease;
+  }
 }
 
 /* ─── RTL Support ──────────────────────────────────────────────────────── */
 
-[dir="rtl"] .nmr-tour-actions {
-    flex-direction: row-reverse;
+[dir='rtl'] .nmr-tour-actions {
+  flex-direction: row-reverse;
 }
 
-[dir="rtl"] .nmr-tour-nav {
-    flex-direction: row-reverse;
+[dir='rtl'] .nmr-tour-nav {
+  flex-direction: row-reverse;
+}
+
+[dir='rtl'] .nmr-tour-progress-bar {
+  background: linear-gradient(270deg, var(--tour-accent), #d97706);
 }
 
 /* ─── Dark Mode ────────────────────────────────────────────────────── */
@@ -309,73 +332,72 @@
    theme-boot.js). Every other CSS file uses html[data-theme="dark"].
    Standard: Platform Dark Mode Governance, CSS Architecture Consistency. */
 
-html[data-theme="dark"] {
-    --tour-glass-bg: rgba(30, 41, 59, 0.92);
-    --tour-glass-border: rgba(71, 85, 105, 0.3);
-    --tour-shadow: 0 24px 60px rgba(0, 0, 0, 0.35),
-                   0 8px 20px rgba(0, 0, 0, 0.2);
+html[data-theme='dark'] {
+  --tour-glass-bg: rgba(30, 41, 59, 0.92);
+  --tour-glass-border: rgba(71, 85, 105, 0.3);
+  --tour-shadow: 0 24px 60px rgba(0, 0, 0, 0.35), 0 8px 20px rgba(0, 0, 0, 0.2);
 }
 
-html[data-theme="dark"] .nmr-tour-overlay {
-    background: rgba(0, 0, 0, 0.75);
+html[data-theme='dark'] .nmr-tour-overlay {
+  background: rgba(0, 0, 0, 0.75);
 }
 
-html[data-theme="dark"] .nmr-tour-spotlight {
-    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.75);
+html[data-theme='dark'] .nmr-tour-spotlight {
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.75);
 }
 
-html[data-theme="dark"] .nmr-tour-title {
-    color: var(--text-heading);
+html[data-theme='dark'] .nmr-tour-title {
+  color: var(--text-heading);
 }
 
-html[data-theme="dark"] .nmr-tour-content {
-    color: var(--text-secondary);
+html[data-theme='dark'] .nmr-tour-content {
+  color: var(--text-secondary);
 }
 
-html[data-theme="dark"] .nmr-tour-step-count {
-    background: rgba(180, 83, 9, 0.15);
+html[data-theme='dark'] .nmr-tour-step-count {
+  background: rgba(180, 83, 9, 0.15);
 }
 
-html[data-theme="dark"] .nmr-tour-close {
-    background: rgba(71, 85, 105, 0.3);
-    color: var(--text-muted);
+html[data-theme='dark'] .nmr-tour-close {
+  background: rgba(71, 85, 105, 0.3);
+  color: var(--text-muted);
 }
 
-html[data-theme="dark"] .nmr-tour-actions {
-    background: rgba(15, 23, 42, 0.5);
-    border-top-color: rgba(71, 85, 105, 0.3);
+html[data-theme='dark'] .nmr-tour-actions {
+  background: rgba(15, 23, 42, 0.5);
+  border-top-color: rgba(71, 85, 105, 0.3);
 }
 
 /* PLT-W6-003 FIX: Migrated #cbd5e1 → var(--text-secondary). */
-html[data-theme="dark"] .nmr-tour-btn--prev {
-    background: rgba(71, 85, 105, 0.3);
-    color: var(--text-secondary);
+html[data-theme='dark'] .nmr-tour-btn--prev {
+  background: rgba(71, 85, 105, 0.3);
+  color: var(--text-secondary);
 }
 
 /* ─── Mobile Optimizations ─────────────────────────────────────────────── */
 
 @media (max-width: 480px) {
-    .nmr-tour-tooltip {
-        width: calc(100vw - 16px);
-        border-radius: 16px;
-    }
+  .nmr-tour-tooltip {
+    width: calc(100vw - 16px);
+    border-radius: 16px;
+  }
 
-    .nmr-tour-title {
-        font-size: 1rem;
-    }
+  .nmr-tour-title {
+    font-size: 1rem;
+  }
 }
 
 /* ─── Reduced Motion ───────────────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
-    .nmr-tour-overlay,
-    .nmr-tour-spotlight,
-    .nmr-tour-tooltip,
-    .nmr-tour-progress-bar {
-        transition-duration: 0.01ms;
-    }
+  .nmr-tour-overlay,
+  .nmr-tour-spotlight,
+  .nmr-tour-tooltip,
+  .nmr-tour-progress-bar {
+    transition-duration: 0.01ms;
+  }
 
-    .nmr-tour-spotlight {
-        animation: none;
-    }
+  .nmr-tour-spotlight {
+    animation: none;
+  }
 }

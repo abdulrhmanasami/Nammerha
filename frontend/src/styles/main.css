@@ -5785,6 +5785,7 @@ html[data-theme='dark'] .nm-notif-toast {
 }
 [dir='rtl'] .nm-page-loading-bar {
   transform-origin: right;
+  background: linear-gradient(270deg, var(--trust-blue, #1558d6), var(--smoky-jade, #109173));
 }
 @keyframes nm-loading-bar {
   0% {

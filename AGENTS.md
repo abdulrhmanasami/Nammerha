@@ -18,6 +18,19 @@
 
 ## 🛑 ZERO-REGRESSION MEMOS (CRITICAL AI MEMORY)
 
+**MEMO 50: Zero-CDN Sovereignty, SVG Color Isolation, & RTL Gradient Mirroring (May 29, 2026)**
+
+- **Root Cause Destroyed:**
+  1. The branding SVG text logos (`nammerha_text_logo_vector.svg` and full SVGs) did not separate the Shaddah diacritic (`ّ`) path, breaking cursive Arabic ligatures if styled in HTML using spans, and causing typographical errors.
+  2. The marketing website (`nammerha_marketing/`) linked to the external Google Fonts CDN (`Inter` font), leaking Syrian user requests and violating data sovereignty boundaries.
+  3. The mobile admin dashboard (`nammerha_mobile/`) loaded MapLibre GL JS/CSS bundles via the `unpkg.com` CDN, risking offline failure and data leaks.
+  4. Linear progress and loading bars in the interactive tour (`tour.css`) and global view transition loads (`main.css`) used physical `90deg` gradients and left-aligned transitions, resulting in reversed color transitions in RTL mode.
+- **New Logic Built:**
+  1. **SVG Shaddah Isolation:** Isolated the Shaddah paths natively inside vector SVG files (`nammerha_text_logo_vector.svg`, `nammerha_text_logo_vector_dark.svg`, `Nammerha_logo_Full.svg`, `Nammerha_logo_Full_dark.svg`) and filled them with `#0A6E55` (Smoky Jade) to avoid HTML span ligature splits.
+  2. **Marketing Font Self-Hosting:** Transferred `Plus Jakarta Sans` files locally to `nammerha_marketing/web/fonts/` and replaced CDN references with local font declarations.
+  3. **Local MapLibre Bundle:** Transferred MapLibre GL JS/CSS locally to `nammerha_mobile/web/` and updated `index.html`.
+  4. **RTL Gradient Mirroring:** Mirrored gradients to `270deg` and flipped transition origins to `right` under `[dir="rtl"]` wrappers in `tour.css` and `main.css`.
+
 **MEMO 49: Design Token Synchronization, Logical Preloader Layout & Timer Isolation (May 29, 2026)**
 
 - **Root Cause Destroyed:**
