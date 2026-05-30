@@ -9,6 +9,8 @@ import * as escrowService from '../services/escrow.service';
 import * as kycService from '../services/kyc.service';
 import { safeRouteError } from '../utils/safe-error';
 import type { ReleaseEscrowDTO, FlagDiscrepancyDTO, ApiResponse } from '../types';
+import { ZodError } from 'zod';
+import { releaseEscrowSchema, flagDiscrepancySchema, refundDecisionSchema, kycDecisionSchema } from '../validation/schemas';
 
 const router = Router();
 
@@ -45,16 +47,7 @@ router.post(
     requireRole('admin', 'auditor'),
     async (req: Request, res: Response) => {
         try {
-            const dto = req.body as ReleaseEscrowDTO;
-
-            if (!dto.proof_id || !dto.item_id) {
-                const response: ApiResponse = {
-                    success: false,
-                    error: 'Missing required fields: proof_id, item_id',
-                };
-                res.status(400).json(response);
-                return;
-            }
+            const dto = releaseEscrowSchema.parse(req.body) as ReleaseEscrowDTO;
 
             const result = await escrowService.releaseEscrow(getAuthUser(req).user_id, dto);
 
@@ -65,6 +58,10 @@ router.post(
             };
             res.status(200).json(response);
         } catch (error) {
+            if (error instanceof ZodError) {
+                res.status(400).json({ success: false, error: 'Validation failed', details: error.issues } as ApiResponse);
+                return;
+            }
             safeRouteError(res, error, 'Admin.ReleaseEscrow');
         }
     }
@@ -76,16 +73,7 @@ router.post(
     requireRole('admin', 'auditor'),
     async (req: Request, res: Response) => {
         try {
-            const dto = req.body as FlagDiscrepancyDTO;
-
-            if (!dto.proof_id || !dto.reason) {
-                const response: ApiResponse = {
-                    success: false,
-                    error: 'Missing required fields: proof_id, reason',
-                };
-                res.status(400).json(response);
-                return;
-            }
+            const dto = flagDiscrepancySchema.parse(req.body) as FlagDiscrepancyDTO;
 
             const proof = await escrowService.flagDiscrepancy(getAuthUser(req).user_id, dto);
 
@@ -96,6 +84,10 @@ router.post(
             };
             res.status(200).json(response);
         } catch (error) {
+            if (error instanceof ZodError) {
+                res.status(400).json({ success: false, error: 'Validation failed', details: error.issues } as ApiResponse);
+                return;
+            }
             safeRouteError(res, error, 'Admin.FlagDiscrepancy');
         }
     }
@@ -120,36 +112,7 @@ router.post(
     requireRole('admin'),
     async (req: Request, res: Response) => {
         try {
-            const { refund_id, decision, notes } = req.body as {
-                refund_id: string;
-                decision: 'approved' | 'rejected';
-                notes?: string;
-            };
-
-            if (!refund_id || !decision) {
-                res.status(400).json({
-                    success: false,
-                    error: 'Missing required fields: refund_id, decision',
-                } as ApiResponse);
-                return;
-            }
-
-            if (decision !== 'approved' && decision !== 'rejected') {
-                res.status(400).json({
-                    success: false,
-                    error: 'decision must be "approved" or "rejected"',
-                } as ApiResponse);
-                return;
-            }
-
-            // D-8 FIX: Clamp admin notes length (prevent storage bloat)
-            if (notes && notes.length > 2000) {
-                res.status(400).json({
-                    success: false,
-                    error: 'Notes must be 2000 characters or less',
-                } as ApiResponse);
-                return;
-            }
+            const { refund_id, decision, notes } = refundDecisionSchema.parse(req.body);
 
             const result = await escrowService.processRefund(
                 getAuthUser(req).user_id,
@@ -159,6 +122,10 @@ router.post(
             );
             res.json({ success: true, data: result } as ApiResponse);
         } catch (error) {
+            if (error instanceof ZodError) {
+                res.status(400).json({ success: false, error: 'Validation failed', details: error.issues } as ApiResponse);
+                return;
+            }
             safeRouteError(res, error, 'Admin.ProcessRefund');
         }
     }
@@ -226,26 +193,7 @@ router.post(
     async (req: Request, res: Response) => {
         try {
             const { userId } = req.params;
-            const { decision, reason } = req.body as {
-                decision: 'verified' | 'rejected';
-                reason?: string;
-            };
-
-            if (!decision || !['verified', 'rejected'].includes(decision)) {
-                res.status(400).json({
-                    success: false,
-                    error: 'Required: decision ("verified" or "rejected")',
-                } as ApiResponse);
-                return;
-            }
-
-            if (reason && reason.length > 2000) {
-                res.status(400).json({
-                    success: false,
-                    error: 'Reason must be 2000 characters or less',
-                } as ApiResponse);
-                return;
-            }
+            const { decision, reason } = kycDecisionSchema.parse(req.body);
 
             const result = await kycService.updateKycStatus(
                 String(userId),
@@ -261,6 +209,10 @@ router.post(
                 message: `KYC ${actionLabel}: ${result.full_name}`,
             } as ApiResponse);
         } catch (error) {
+            if (error instanceof ZodError) {
+                res.status(400).json({ success: false, error: 'Validation failed', details: error.issues } as ApiResponse);
+                return;
+            }
             safeRouteError(res, error, 'Admin.UpdateKycStatus');
         }
     }

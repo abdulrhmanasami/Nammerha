@@ -759,14 +759,14 @@ function startVoice(): void {
   recognition.continuous = true;
 
   // Timer display
-  voiceInterval = setInterval(() => {
+  voiceInterval = addTrackedTimer(setInterval(() => {
     const elapsed = Math.floor((Date.now() - voiceStart) / 1000);
     const m = String(Math.floor(elapsed / 60)).padStart(2, '0');
     const s = String(elapsed % 60).padStart(2, '0');
     if (voiceTimerEl) {
       voiceTimerEl.textContent = `${m}:${s}`;
     }
-  }, 200);
+  }, 200));
 
   haptic.custom([40, 80, 40]);
 

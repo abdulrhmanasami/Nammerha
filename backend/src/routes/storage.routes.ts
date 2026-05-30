@@ -17,6 +17,8 @@ import {
 } from '../services/storage.service';
 import { safeRouteError } from '../utils/safe-error';
 import { logger } from '../utils/logger';
+import { ZodError } from 'zod';
+import { storageUploadUrlSchema } from '../validation/schemas';
 
 const router = Router();
 
@@ -142,21 +144,7 @@ async function verifyProjectAccessFromKey(
 // SEC-001: Ownership is verified against the project_id in the request body.
 router.post('/upload-url', async (req: Request, res: Response) => {
     try {
-        const { project_id, category, filename, content_type, file_size_bytes } = req.body as {
-            project_id: string;
-            category: string;
-            filename: string;
-            content_type: string;
-            file_size_bytes?: number;
-        };
-
-        if (!project_id || !category || !filename || !content_type) {
-            res.status(400).json({
-                success: false,
-                error: 'Missing required fields: project_id, category, filename, content_type',
-            });
-            return;
-        }
+        const { project_id, category, filename, content_type, file_size_bytes } = storageUploadUrlSchema.parse(req.body);
 
         // SEC-001: Verify the user has access to this project before generating upload URL
         // P1-FIX-007: 'pending' project_id allowed for pre-project wizards (e.g. Homeowner damage report)
@@ -184,6 +172,10 @@ router.post('/upload-url', async (req: Request, res: Response) => {
 
         res.status(200).json({ success: true, data: result });
     } catch (error: unknown) {
+        if (error instanceof ZodError) {
+            res.status(400).json({ success: false, error: 'Validation failed', details: error.issues });
+            return;
+        }
         safeRouteError(res, error, 'Storage');
     }
 });

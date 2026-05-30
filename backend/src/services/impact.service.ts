@@ -25,14 +25,6 @@ interface MessageTemplate {
 type TemplateData = Record<string, string | number>;
 
 const TEMPLATES: Record<ImpactEventType, MessageTemplate> = {
-  donation_received: {
-    title_en: 'Thank You for Your Donation! 💰',
-    title_ar: 'شكراً لتبرعك! 💰',
-    body_en:
-      'Your generous contribution of ${{amount}} has been securely locked in escrow for "{{project_title}}". The funds will be released to verified suppliers as construction materials are delivered and verified by GPS.',
-    body_ar:
-      'تم تسجيل تبرعك السخي بقيمة ${{amount}} بأمان في حساب الضمان لمشروع "{{project_title}}". سيتم إفراج الأموال للموردين المعتمدين عند تسليم مواد البناء والتحقق منها بنظام GPS.',
-  },
   contractor_assigned: {
     title_en: 'Contractor Assigned to Your Project 👷',
     title_ar: 'تم تعيين مقاول لمشروعك 👷',

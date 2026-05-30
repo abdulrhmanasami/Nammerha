@@ -90,8 +90,8 @@
         submitSpatialProof(input: SubmitSpatialProofInput!): SpatialProof!
 
         # ── Escrow (Path 4) ──────────────────────────────────────────────
-        """Create a payment intent (Escrow Lock)"""
-        createPaymentIntent(input: CreatePaymentIntentInput!): [EscrowEntry!]!
+        # MEMO 59: createPaymentIntent mutation eradicated.
+        # The crowdfunding (User → Escrow) path has been permanently removed.
 
         """Release escrow funds after proof verification (admin only)"""
         releaseEscrow(input: ReleaseEscrowInput!): EscrowEntry!

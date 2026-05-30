@@ -10,6 +10,8 @@ import * as compliance from '../services/compliance.service';
 import * as securityEvents from '../services/security-events.service';
 import type { ApiResponse } from '../types';
 import { safeRouteError } from '../utils/safe-error';
+import { ZodError } from 'zod';
+import { sdnReviewSchema, importSDNSchema, addControlledMaterialSchema } from '../validation/schemas';
 
 const router = Router();
 
@@ -118,18 +120,7 @@ router.patch(
     requireRole('admin'),
     async (req: Request, res: Response) => {
         try {
-            const { decision, notes } = req.body as {
-                decision: 'false_positive' | 'confirmed_match';
-                notes?: string;
-            };
-
-            if (!decision || !['false_positive', 'confirmed_match'].includes(decision)) {
-                res.status(400).json({
-                    success: false,
-                    error: 'Required: decision (false_positive or confirmed_match)',
-                } as ApiResponse);
-                return;
-            }
+            const { decision, notes } = sdnReviewSchema.parse(req.body);
 
             const result = await compliance.reviewScreeningResult(
                 String(req.params.resultId),
@@ -145,6 +136,10 @@ router.patch(
             };
             res.json(response);
         } catch (error) {
+            if (error instanceof ZodError) {
+                res.status(400).json({ success: false, error: 'Validation failed', details: error.issues } as ApiResponse);
+                return;
+            }
             safeRouteError(res, error, 'Compliance');
         }
     }
@@ -156,15 +151,7 @@ router.post(
     requireRole('admin'),
     async (req: Request, res: Response) => {
         try {
-            const dto = req.body as compliance.ImportSDNDTO;
-
-            if (!dto.entries || !Array.isArray(dto.entries) || dto.entries.length === 0) {
-                res.status(400).json({
-                    success: false,
-                    error: 'Required: entries (array of SDN records)',
-                } as ApiResponse);
-                return;
-            }
+            const dto = importSDNSchema.parse(req.body);
 
             const result = await compliance.importSDNList(dto);
 
@@ -174,8 +161,12 @@ router.post(
                 message: `${result.imported} SDN entries imported`,
             };
             res.status(201).json(response);
-                } catch (error) {
-                    safeRouteError(res, error, 'Compliance');
+        } catch (error) {
+            if (error instanceof ZodError) {
+                res.status(400).json({ success: false, error: 'Validation failed', details: error.issues } as ApiResponse);
+                return;
+            }
+            safeRouteError(res, error, 'Compliance');
         }
     }
 );
@@ -210,15 +201,7 @@ router.post(
     requireRole('admin'),
     async (req: Request, res: Response) => {
         try {
-            const dto = req.body as compliance.AddControlledMaterialDTO;
-
-            if (!dto.material_name || !dto.material_category) {
-                res.status(400).json({
-                    success: false,
-                    error: 'Required: material_name, material_category',
-                } as ApiResponse);
-                return;
-            }
+            const dto = addControlledMaterialSchema.parse(req.body);
 
             const material = await compliance.addControlledMaterial(
                 getAuthUser(req).user_id,
@@ -232,6 +215,10 @@ router.post(
             };
             res.status(201).json(response);
         } catch (error) {
+            if (error instanceof ZodError) {
+                res.status(400).json({ success: false, error: 'Validation failed', details: error.issues } as ApiResponse);
+                return;
+            }
             safeRouteError(res, error, 'Compliance');
         }
     }

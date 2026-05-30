@@ -11,6 +11,8 @@ import * as locale from '../services/locale.service';
 import type { ApiResponse } from '../types';
 import { safeRouteError } from '../utils/safe-error';
 import { logger } from '../utils/logger';
+import { ZodError } from 'zod';
+import { translateSchema, batchTranslateRequestSchema, addGlossaryTermSchema, resolveConflictSchema } from '../validation/schemas';
 
 const router = Router();
 
@@ -101,15 +103,7 @@ router.use(requireActive);
 // ─── POST /api/translation/translate — Translate Text ───────────────────────
 router.post('/translate', async (req: Request, res: Response) => {
     try {
-        const dto = req.body as translation.TranslateDTO;
-
-        if (!dto.text || !dto.source_lang || !dto.target_lang) {
-            res.status(400).json({
-                success: false,
-                error: 'Required: text, source_lang, target_lang',
-            } as ApiResponse);
-            return;
-        }
+        const dto = translateSchema.parse(req.body) as translation.TranslateDTO;
 
         const result = await translation.translateText(dto);
 
@@ -122,6 +116,10 @@ router.post('/translate', async (req: Request, res: Response) => {
         };
         res.json(response);
     } catch (error) {
+        if (error instanceof ZodError) {
+            res.status(400).json({ success: false, error: 'Validation failed', details: error.issues } as ApiResponse);
+            return;
+        }
         safeRouteError(res, error, 'Translation');
     }
 });
@@ -129,29 +127,7 @@ router.post('/translate', async (req: Request, res: Response) => {
 // ─── POST /api/translation/translate/batch — Batch Translate ────────────────
 router.post('/translate/batch', async (req: Request, res: Response) => {
     try {
-        const { items, source_lang, target_lang, content_type, context } = req.body as {
-            items: string[];
-            source_lang: translation.SupportedLocale;
-            target_lang: translation.SupportedLocale;
-            content_type?: translation.ContentType;
-            context?: string;
-        };
-
-        if (!items || !Array.isArray(items) || items.length === 0) {
-            res.status(400).json({
-                success: false,
-                error: 'Required: items (array of strings), source_lang, target_lang',
-            } as ApiResponse);
-            return;
-        }
-
-        if (items.length > 50) {
-            res.status(400).json({
-                success: false,
-                error: 'Maximum 50 items per batch',
-            } as ApiResponse);
-            return;
-        }
+        const { items, source_lang, target_lang, content_type, context } = batchTranslateRequestSchema.parse(req.body);
 
         // P2-NEW-005 FIX: Parallel batch translation with concurrency limiting.
         // Sequential processing of 50 items risks HTTP timeout (30s+).
@@ -166,9 +142,9 @@ router.post('/translate/batch', async (req: Request, res: Response) => {
                 chunk.map((text: string) =>
                     translation.translateText({
                         text,
-                        source_lang,
-                        target_lang,
-                        content_type,
+                        source_lang: source_lang as translation.SupportedLocale,
+                        target_lang: target_lang as translation.SupportedLocale,
+                        content_type: content_type as translation.ContentType | undefined,
                         context,
                     })
                 )
@@ -202,8 +178,12 @@ router.post('/translate/batch', async (req: Request, res: Response) => {
             message: `${results.length} items translated`,
         };
         res.json(response);
-            } catch (error) {
-                safeRouteError(res, error, 'Translation');
+    } catch (error) {
+        if (error instanceof ZodError) {
+            res.status(400).json({ success: false, error: 'Validation failed', details: error.issues } as ApiResponse);
+            return;
+        }
+        safeRouteError(res, error, 'Translation');
     }
 });
 
@@ -237,15 +217,7 @@ router.post(
     requireRole('admin'),
     async (req: Request, res: Response) => {
         try {
-            const dto = req.body as translation.AddGlossaryTermDTO;
-
-            if (!dto.source_term || !dto.target_lang || !dto.approved_translation) {
-                res.status(400).json({
-                    success: false,
-                    error: 'Required: source_term, target_lang, approved_translation',
-                } as ApiResponse);
-                return;
-            }
+            const dto = addGlossaryTermSchema.parse(req.body) as translation.AddGlossaryTermDTO;
 
             const term = await translation.addGlossaryTerm(getAuthUser(req).user_id, dto);
 
@@ -256,6 +228,10 @@ router.post(
             };
             res.status(201).json(response);
         } catch (error) {
+            if (error instanceof ZodError) {
+                res.status(400).json({ success: false, error: 'Validation failed', details: error.issues } as ApiResponse);
+                return;
+            }
             safeRouteError(res, error, 'Translation');
         }
     }
@@ -321,26 +297,7 @@ router.patch(
     requireRole('admin'),
     async (req: Request, res: Response) => {
         try {
-            const { resolution, corrected_text } = req.body as {
-                resolution: 'approved' | 'corrected' | 'rejected';
-                corrected_text?: string;
-            };
-
-            if (!resolution || !['approved', 'corrected', 'rejected'].includes(resolution)) {
-                res.status(400).json({
-                    success: false,
-                    error: 'Required: resolution (approved, corrected, or rejected)',
-                } as ApiResponse);
-                return;
-            }
-
-            if (resolution === 'corrected' && !corrected_text) {
-                res.status(400).json({
-                    success: false,
-                    error: 'corrected_text required when resolution is "corrected"',
-                } as ApiResponse);
-                return;
-            }
+            const { resolution, corrected_text } = resolveConflictSchema.parse(req.body);
 
             const result = await translation.reviewTranslation(
                 String(req.params.reviewId),
@@ -356,6 +313,10 @@ router.patch(
             };
             res.json(response);
         } catch (error) {
+            if (error instanceof ZodError) {
+                res.status(400).json({ success: false, error: 'Validation failed', details: error.issues } as ApiResponse);
+                return;
+            }
             safeRouteError(res, error, 'Translation');
         }
     }

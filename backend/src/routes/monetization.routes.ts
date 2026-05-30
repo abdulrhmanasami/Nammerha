@@ -6,6 +6,8 @@
 import { Router } from 'express';
 import { authMiddleware } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role-guard.middleware';
+import { ZodError } from 'zod';
+import { commissionRateSchema, createTipSchema } from '../validation/schemas';
 import {
   getCommissionConfig,
   updateCommissionRate,
@@ -125,19 +127,22 @@ router.get('/admin/config', authMiddleware, requireRole('admin'), async (_req, r
 router.put('/admin/config/:tierId', authMiddleware, requireRole('admin'), async (req, res) => {
   try {
     const tierId = req.params['tierId'] as string;
-    const { commission_rate_bps } = req.body as { commission_rate_bps: number };
-
-    if (typeof commission_rate_bps !== 'number' || !tierId) {
+    if (!tierId) {
       res.status(400).json({
         success: false,
-        error: 'commission_rate_bps (number) and tierId are required',
+        error: 'tierId is required',
       });
       return;
     }
+    const { commission_rate_bps } = commissionRateSchema.parse(req.body);
 
     const updated = await updateCommissionRate(tierId, commission_rate_bps);
     res.json({ success: true, data: updated });
   } catch (err) {
+    if (err instanceof ZodError) {
+      res.status(400).json({ success: false, error: 'Validation failed', details: err.issues });
+      return;
+    }
     res.status(400).json({
       success: false,
       error: err instanceof Error ? err.message : 'Failed to update tier',
@@ -203,21 +208,7 @@ router.post('/donor/tip', authMiddleware, async (req, res) => {
       tip_percentage,
       payment_gateway,
       payment_gateway_ref,
-    } = req.body as {
-      payment_reference: string;
-      tip_amount_cents: number;
-      tip_percentage?: number;
-      payment_gateway?: string;
-      payment_gateway_ref?: string;
-    };
-
-    if (!payment_reference || typeof tip_amount_cents !== 'number' || tip_amount_cents <= 0) {
-      res.status(400).json({
-        success: false,
-        error: 'payment_reference (string) and tip_amount_cents (number > 0) are required',
-      });
-      return;
-    }
+    } = createTipSchema.parse(req.body);
 
     const tip = await recordTip(
       donorId,
@@ -230,6 +221,10 @@ router.post('/donor/tip', authMiddleware, async (req, res) => {
 
     res.status(201).json({ success: true, data: tip });
   } catch (err) {
+    if (err instanceof ZodError) {
+      res.status(400).json({ success: false, error: 'Validation failed', details: err.issues });
+      return;
+    }
     res.status(400).json({
       success: false,
       error: err instanceof Error ? err.message : 'Failed to record tip',

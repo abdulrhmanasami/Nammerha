@@ -16,6 +16,8 @@ import { checkQuota } from '../services/quota.service';
 import { getUsageHistory } from '../services/quota.service';
 import type { ApiResponse } from '../types';
 import { safeRouteError } from '../utils/safe-error';
+import { ZodError } from 'zod';
+import { createApiKeySchema } from '../validation/schemas';
 
 const router = Router();
 
@@ -37,26 +39,14 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
             return;
         }
         const userId = req.authUser.user_id;
-        const { key_name, scopes, expires_in_days } = req.body as {
-            key_name: string;
-            scopes: string[];
-            expires_in_days?: number;
-        };
-
-        if (!key_name) {
-            res.status(400).json({
-                success: false,
-                error: 'key_name is required',
-            } as ApiResponse);
-            return;
-        }
+        const { key_name, scopes, expires_in_days } = createApiKeySchema.parse(req.body);
 
         const clientIp = getClientIp(req);
 
         const result = await createApiKey(
             userId,
             key_name,
-            scopes ?? [],
+            scopes,
             expires_in_days,
             clientIp
         );
@@ -67,6 +57,10 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
             message: 'API key created. Store the raw_key securely — it will not be shown again.',
         } as ApiResponse);
     } catch (error) {
+        if (error instanceof ZodError) {
+            res.status(400).json({ success: false, error: 'Validation failed', details: error.issues } as ApiResponse);
+            return;
+        }
         safeRouteError(res, error, 'ApiKeys.Create');
     }
 });

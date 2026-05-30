@@ -1,12 +1,21 @@
 // ============================================================================
 // Nammerha — PM2 Ecosystem Configuration (GAP-AR2 PLATINUM)
 // ============================================================================
+//
+// ⚠️  DEPRECATED FOR PRODUCTION — Docker Compose is the production deployment
+//    method. See docker-compose.prod.yml for the canonical production stack.
+//    This file is retained for LOCAL DEVELOPMENT cluster testing only.
+//
+//    Production: docker compose -f docker-compose.prod.yml --env-file .env up -d
+//    Local dev:  pm2 start ecosystem.config.cjs
+//
+// ============================================================================
 // Horizontal scaling via cluster mode. PM2 forks N worker processes (one per
 // CPU core) and load-balances incoming requests across them using round-robin.
 //
 // If any worker crashes, PM2 automatically restarts it — zero downtime.
 //
-// Usage:
+// Usage (LOCAL DEVELOPMENT ONLY):
 //   pm2 start ecosystem.config.cjs              # Start all apps
 //   pm2 reload ecosystem.config.cjs             # Zero-downtime reload
 //   pm2 monit                                    # Real-time dashboard
@@ -47,7 +56,7 @@ module.exports = {
             // Environment variables
             env_production: {
                 NODE_ENV: 'production',
-                PORT: 5000,
+                PORT: 3001,
             },
 
             // Log configuration
@@ -55,6 +64,8 @@ module.exports = {
             out_file: './logs/backend-out.log',
             log_date_format: 'YYYY-MM-DD HH:mm:ss.SSS',
             merge_logs: true,
+            max_size: '50M',
+            max_restarts: 15,
 
             // Graceful shutdown: SIGINT first, then SIGKILL after 8s timeout.
             kill_timeout: 8000,

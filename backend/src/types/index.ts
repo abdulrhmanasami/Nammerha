@@ -7,7 +7,6 @@
 // ─── ENUM Types ─────────────────────────────────────────────────────────────
 
 export type UserRole =
-  | 'donor'
   | 'homeowner'
   | 'engineer'
   | 'contractor'
@@ -138,8 +137,8 @@ export interface Project {
   damage_severity: DamageSeverity | null;
   status: ProjectStatus;
   is_public: boolean;
-  total_estimated_cost: number; // BIGINT cents
-  total_funded_amount: number; // BIGINT cents
+  total_estimated_cost: string; // BIGINT cents — pg returns as string (MEMO 53)
+  total_funded_amount: string; // BIGINT cents — pg returns as string (MEMO 53)
   ocds_release_id: string | null;
   published_at: Date | null;
   completed_at: Date | null;
@@ -155,9 +154,9 @@ export interface ItemizedBOQ {
   description: string | null;
   image_url: string | null;
   unit: string;
-  unit_price: number; // BIGINT cents
+  unit_price: string; // BIGINT cents — pg returns as string (MEMO 53)
   required_quantity: number;
-  funded_amount: number; // BIGINT cents
+  funded_amount: string; // BIGINT cents — pg returns as string (MEMO 53)
   oracle_reference_price: number | null;
   oracle_price_date: Date | null;
   preferred_supplier_id: string | null; // Pre-assigned verified supplier
@@ -212,14 +211,14 @@ export interface PurchaseOrder {
   item_id: string;
   project_id: string;
   supplier_id: string;
-  amount: number; // BIGINT cents
+  amount: string; // BIGINT cents — pg returns as string (MEMO 53)
   currency: string;
   status: PoStatus;
   material_name: string;
   material_category: string | null;
   quantity: number;
   unit: string;
-  unit_price: number; // BIGINT cents
+  unit_price: string; // BIGINT cents — pg returns as string (MEMO 53)
   supplier_name: string;
   supplier_commercial_reg: string | null;
   generated_at: Date;
@@ -354,7 +353,7 @@ export interface SupplierCatalogItem {
   description: string | null;
   image_url: string | null;
   unit: string;
-  unit_price_guide: number; // BIGINT cents — guide price only
+  unit_price_guide: string; // BIGINT cents — pg returns as string (MEMO 53)
   min_order_qty: number;
   lead_time_days: number;
   is_active: boolean;
@@ -769,7 +768,6 @@ export interface PrivacySettings {
 // ─── Impact Communications (Migration 032) ──────────────────────────────────
 
 export type ImpactEventType =
-  | 'donation_received'
   | 'contractor_assigned'
   | 'construction_started'
   | 'milestone_completed'

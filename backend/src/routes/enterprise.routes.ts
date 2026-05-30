@@ -8,6 +8,8 @@ import { Router, Request, Response } from 'express';
 import { authMiddleware } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role-guard.middleware';
 import { safeRouteError } from '../utils/safe-error';
+import { ZodError } from 'zod';
+import { feeRateSchema, createOrgSchema } from '../validation/schemas';
 import {
     validateApiKey,
     getOrgDashboard,
@@ -179,21 +181,16 @@ router.put(
     async (req: Request, res: Response): Promise<void> => {
         try {
             const configId = req.params['configId'] as string;
-            const { fee_rate_bps } = req.body as { fee_rate_bps?: number };
-
-            // P2-FEE-001 FIX: Upper bound prevents accidental 100% fee.
-            // 2000 bps = 20% — sane maximum for platform fees.
-            if (typeof fee_rate_bps !== 'number' || fee_rate_bps < 0 || fee_rate_bps > 2000) {
-                res.status(400).json({
-                    success: false,
-                    error: 'fee_rate_bps must be between 0 and 2000 (max 20%)',
-                });
-                return;
-            }
+            // P2-FEE-001 FIX: Zod enforces 0..2000 bps range (max 20%).
+            const { fee_rate_bps } = feeRateSchema.parse(req.body);
 
             const updated = await updateFeeRate(configId, fee_rate_bps);
             res.json({ success: true, data: updated });
         } catch (err) {
+            if (err instanceof ZodError) {
+                res.status(400).json({ success: false, error: 'Validation failed', details: err.issues });
+                return;
+            }
             safeRouteError(res, err, 'Enterprise.UpdateFee');
         }
     },
@@ -231,21 +228,7 @@ router.post(
     async (req: Request, res: Response): Promise<void> => {
         try {
             const { org_name, org_type, contact_email, tier, annual_fee_cents } =
-                req.body as {
-                    org_name?: string;
-                    org_type?: string;
-                    contact_email?: string;
-                    tier?: string;
-                    annual_fee_cents?: number;
-                };
-
-            if (!org_name || !org_type || !contact_email) {
-                res.status(400).json({
-                    success: false,
-                    error: 'org_name, org_type, and contact_email are required',
-                });
-                return;
-            }
+                createOrgSchema.parse(req.body);
 
             const org = await createOrganization({
                 org_name,
@@ -261,6 +244,10 @@ router.post(
                 warning: 'The API key is shown only once. Store it securely.',
             });
         } catch (err) {
+            if (err instanceof ZodError) {
+                res.status(400).json({ success: false, error: 'Validation failed', details: err.issues });
+                return;
+            }
             safeRouteError(res, err, 'Enterprise.CreateOrg');
         }
     },

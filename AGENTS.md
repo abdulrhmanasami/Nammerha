@@ -12,11 +12,66 @@
 
 # Standard: AGENTS.md (Cross-IDE Agent Governance Standard)
 
-# Last Updated: 2026-05-30
+# Last Updated: 2026-05-31
 
 # ═══════════════════════════════════════════════════════════════════════════
 
 ## 🛑 ZERO-REGRESSION MEMOS (CRITICAL AI MEMORY)
+
+**MEMO 62: Deployment Pipeline — 8 Fatal Blockers Preventing All Fixes From Reaching Production (May 31, 2026)**
+
+- **Root Cause Destroyed:**
+  1. `.github/workflows/ci.yml` triggered on branches `[main, develop]` and gated deploy on `refs/heads/main`, but the repository's default branch is `master` (`origin/HEAD -> origin/master`). **CI never triggered on any push.** All lint, typecheck, test, and deploy jobs were dead code.
+  2. CI deploy step SSHed into `/opt/nammerha-backend` on the server, but the manual rsync deploy (the actual working method) deployed to `/opt/nammerha/`. CI was pulling code into a wrong/nonexistent directory.
+  3. CI deploy ran `docker compose -f docker-compose.prod.yml build` and `up -d` without `--env-file .env`. The compose file requires 15+ mandatory environment variables with `${VAR:?msg}` syntax (`POSTGRES_PASSWORD`, `JWT_SECRET`, `REDIS_PASSWORD`, etc.). Docker Compose immediately crashed with `required variable ... is missing`.
+  4. **77 files modified across MEMOs 49-61 were never committed.** Last commit was `c27b6a95 MEMO 58`. Three days of security fixes, Zod validation, backup consolidation, and infrastructure changes existed only on the local filesystem.
+  5. **46 `?v=N` query params remained** in HTML source files (26 files with `sidebar.js?v=1`, 2 with `theme-toggle.js?v=3`, 9 image refs in `about.html`). MEMO 58 stated these were all removed, but only `SHELL_ASSETS` and `nav.js` were cleaned — source HTML files were missed. These create Service Worker cache key mismatches (`/sidebar.js` vs `/sidebar.js?v=1`).
+  6. `backend/Dockerfile` (lines 5-8) states `Build MUST use --network=host`, but `docker-compose.prod.yml` did NOT set `network: host` in either build section. Fresh Docker builds could fail because the bridge network cannot resolve `registry.npmjs.org`.
+  7. `ecosystem.config.cjs` configured PM2 cluster-mode deployment, but production uses Docker Compose. Two mutually exclusive deployment methods with no documentation on which is canonical.
+- **New Logic Built:**
+  1. **CI Branch Fix:** Changed `ci.yml` triggers from `[main, develop]` to `[master, develop]`, PR target from `[main]` to `[master]`, deploy gate from `refs/heads/main` to `refs/heads/master`, and `git pull origin main` to `git pull origin master`.
+  2. **CI Deploy Path Fix:** Changed `cd /opt/nammerha-backend` to `cd /opt/nammerha` (line 135).
+  3. **CI Env-File Fix:** Added `--env-file .env` to both `docker compose build` and `docker compose up` commands (lines 137-138).
+  4. **HTML ?v= Eradication:** Removed ALL 46 `?v=N` occurrences from source AND dist HTML files using `sed`. Zero remaining across entire frontend.
+  5. **Docker Build Network:** Added `network: host` to both frontend and backend `build:` sections in `docker-compose.prod.yml`.
+  6. **PM2 Deprecation:** Added explicit deprecation notice to `ecosystem.config.cjs` — Docker Compose is the canonical production deployment method.
+- **Verification:** 12/12 checks pass: Backend TSC=0 errors, Frontend TSC=0 errors, Frontend build=EXIT:0, Backend build=EXIT:0, `req.body as`=0, HTML `?v=`=0 (source+dist), CI branches=`master`, CI path=`/opt/nammerha`, CI env-file=2 occurrences, Docker network=2 occurrences, old backup scripts=deleted, unified backup.sh=valid syntax.
+
+**MEMO 61: Unified Backup Script Consolidation (May 31, 2026)**
+
+- **Root Cause Destroyed:**
+  1. Two contradictory backup scripts existed: `scripts/backup-db.sh` (GPG encryption + webhook alerts, but used wrong SQL text + gzip dump format) and `scripts/db-backup.sh` (S3 upload + SHA-256 checksums + tiered retention, but stored in `/tmp` with NO encryption).
+  2. `backup-db.sh` restore header documented `gpg --decrypt | gunzip | pg_restore -Fc`, but `-Fc` expects custom format, not SQL text — the documented restore command was wrong.
+  3. `db-backup.sh` stored backups in `/tmp` — any local user could read production database dumps (security violation).
+  4. Neither script had ALL required features — operators didn't know which to run.
+- **New Logic Built:**
+  1. **Single Unified Script:** `scripts/backup.sh` merges ALL features: `pg_dump -Fc` (parallel restore via `pg_restore --jobs=4`), GPG AES-256 encryption (optional via `BACKUP_GPG_PASSPHRASE`), SHA-256 checksum sidecar, S3/MinIO upload via `mc` or `aws` CLI, tiered retention (7 daily / 4 weekly / 3 monthly), Docker exec + direct pg_dump fallback, webhook failure alerts, UTC ISO-8601 logging, `--dry-run` / `--local-only` / `--no-encrypt` / `--help` CLI flags.
+  2. **Old Scripts Deleted:** Both `backup-db.sh` and `db-backup.sh` permanently removed.
+  3. **Secure Storage:** Backup directory changed from `/tmp/nammerha-backups` to `/opt/nammerha/backups` with `chmod 700`.
+- **Verification:** `bash -n scripts/backup.sh` = no syntax errors. `./scripts/backup.sh --help` = shows usage. `./scripts/backup.sh --dry-run` = pre-flight passes.
+
+**MEMO 60: Zod Runtime Validation — 53 `req.body as` Type Assertions Eliminated (May 30, 2026)**
+
+- **Root Cause Destroyed:**
+  1. **53 unsafe `req.body as` type assertions** across **24 backend route files** allowed ANY JSON payload to bypass all server-side validation. Malformed, missing, or malicious fields passed directly into service layer functions and database queries. This violated: Input Validation (OWASP A03:2021), Type Safety (TypeScript strict mode subversion), Defense in Depth (single point of failure at the client).
+  2. No centralized validation schema file existed — each route handler independently cast `req.body` to arbitrary TypeScript interfaces with zero runtime checks.
+- **New Logic Built:**
+  1. **~40 new Zod schemas** added to `backend/src/validation/schemas.ts` covering all 24 route domains (contact, privacy, role, review, impact, enterprise, admin, contractor, engineer, homeowner, tradesperson, supplier, marketplace, matchmaking, epa-oracle, spatial, routing, reality-capture, monetization, subscription, api-keys, compliance, translation, mfa, csp-report, storage, payment).
+  2. **All 53 `req.body as` replaced** with `schema.parse(req.body)` + `ZodError` catch blocks returning structured 400 responses with `error.issues` details.
+  3. **Zod 4 API compliance:** Fixed 7 files that used `.errors` (Zod 3) instead of `.issues` (Zod 4).
+  4. **Type narrowing:** Fixed `string` → narrow union type mismatches (e.g., `PaymentGateway`, `SupportedLocale`, `PrivacySettingsMap`) with proper Zod enum schemas.
+- **Verification:** `grep -rn "req.body as" src/routes/` = **0 results**. `npx tsc --noEmit` = **0 errors**. `npm run build` = **EXIT:0**.
+
+**MEMO 59: Crowdfunding Service Decomposition — Marketplace Extraction (May 30, 2026)**
+
+- **Root Cause Destroyed:**
+  1. `crowdfunding.service.ts` contained 3 legitimate marketplace functions (browse projects, view BOQ, list suppliers) entangled with abolished donation/crowdfunding logic from MEMO 1.
+  2. `marketplace.routes.ts` imported from `crowdfunding.service.ts`, creating a dependency on a file that was supposed to be deleted per MEMO 1's Donor Annihilation mandate.
+- **New Logic Built:**
+  1. **Service Extraction:** Created `marketplace.service.ts` with the 3 READ-ONLY public marketplace functions (no financial mutations). Zero donation/crowdfunding logic.
+  2. **Crowdfunding Deletion:** `crowdfunding.service.ts` permanently deleted along with its test file `crowdfunding.service.test.ts` and route test `crowdfunding.test.ts`.
+  3. **Route Continuity:** `marketplace.routes.ts` import updated from `crowdfunding.service` to `marketplace.service`. Route registration in `routes/index.ts` line 92 unchanged (`/api/marketplace`).
+- **Verification:** `npx tsc --noEmit` = 0 errors. `npm run build` = EXIT:0. Zero references to `crowdfunding` remain in active source code.
 
 **MEMO 58: Invisible Fix Pipeline — Caching Architecture Redesign (May 30, 2026)**
 
@@ -78,7 +133,7 @@
   17. **Scroll Performance:** `requestAnimationFrame` debounce pattern with `ticking` boolean guard.
 - **Verification:** `npx tsc --noEmit` = zero errors (backend + frontend). `npm run build` = EXIT:0. All 20 fixes verified by independent audit subagents quoting exact line numbers.
 
-
+**MEMO 56: Donor Annihilation Completion, parseFloat Mathematical Defense & Focus Trap DOM Binding (May 30, 2026)**
 
 - **Root Cause Destroyed:**
   1. `welcome-chooser.ts` was still conditionally injecting the "User" (Donor) portal if `PAYMENTS_ENABLED` was true, violating the absolute deletion of the donation system.

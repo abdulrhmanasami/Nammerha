@@ -155,6 +155,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      network: host
     container_name: nammerha-frontend
     restart: unless-stopped
     ports:
@@ -170,9 +171,9 @@ services:
           memory: 128M
           cpus: '0.25'
     read_only: true
-    # FIX-008: Added healthcheck — curl handles HTTP/2 (h2c) correctly.
+    # FIX-008: Added healthcheck — wget for Alpine (curl unavailable).
     healthcheck:
-      test: ['CMD', 'curl', '-f', '--http1.1', 'http://localhost:8080/']
+      test: ['CMD', 'wget', '-q', '--spider', 'http://127.0.0.1:8080/']
       interval: 30s
       timeout: 5s
       retries: 3
@@ -189,6 +190,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      network: host
     container_name: nammerha-backend
     restart: unless-stopped
     ports:

@@ -10,6 +10,8 @@ import { requireAttributes } from '../middleware/abac.middleware';
 import * as contractorService from '../services/contractor.service';
 import * as matchmakingService from '../services/matchmaking.service';
 import { safeRouteError } from '../utils/safe-error';
+import { ZodError } from 'zod';
+import { contractorBidSchema } from '../validation/schemas';
 import type { ApiResponse } from '../types';
 
 const router = Router();
@@ -135,60 +137,7 @@ router.get('/payments', async (req: Request, res: Response) => {
 // Proxy to matchmaking.submitBid() with contractor context
 router.post('/bids', requireAttributes('contractor:bid'), async (req: Request, res: Response) => {
     try {
-        const { project_id, proposed_cost, estimated_days, cover_letter, methodology } = req.body as {
-            project_id: string;
-            proposed_cost: number;
-            estimated_days: number;
-            cover_letter?: string;
-            methodology?: string;
-        };
-
-        if (!project_id || !proposed_cost || !estimated_days) {
-            res.status(400).json({
-                success: false,
-                error: 'Missing required fields: project_id, proposed_cost, estimated_days',
-            } as ApiResponse);
-            return;
-        }
-
-        if (proposed_cost <= 0 || estimated_days <= 0) {
-            res.status(400).json({
-                success: false,
-                error: 'proposed_cost and estimated_days must be positive',
-            } as ApiResponse);
-            return;
-        }
-
-        // DT-BL-001 FIX: FINOPS-004 integer validation — prevent floating-point precision attacks.
-        // Amounts in cents must be whole numbers. A bid of 100.5 cents would cause
-        // rounding issues in downstream arithmetic (escrow, PO generation).
-        if (!Number.isInteger(proposed_cost) || !Number.isInteger(estimated_days)) {
-            res.status(400).json({
-                success: false,
-                error: 'proposed_cost (cents) and estimated_days must be integers',
-            } as ApiResponse);
-            return;
-        }
-
-        // DT-BL-001 FIX: FINOPS-004 max cap — prevent integer overflow and absurd bids.
-        // $100M (10_000_000_000 cents) is a generous upper bound for construction.
-        // 3650 days (10 years) is the maximum realistic project timeline.
-        const MAX_BID_CENTS = 10_000_000_000;
-        const MAX_DAYS = 3650;
-        if (proposed_cost > MAX_BID_CENTS) {
-            res.status(400).json({
-                success: false,
-                error: `proposed_cost exceeds maximum (${MAX_BID_CENTS} cents / $100M)`,
-            } as ApiResponse);
-            return;
-        }
-        if (estimated_days > MAX_DAYS) {
-            res.status(400).json({
-                success: false,
-                error: `estimated_days exceeds maximum (${MAX_DAYS} days / 10 years)`,
-            } as ApiResponse);
-            return;
-        }
+        const { project_id, proposed_cost, estimated_days, cover_letter, methodology } = contractorBidSchema.parse(req.body);
 
         const bid = await matchmakingService.submitBid(
             getAuthUser(req).user_id,
@@ -207,6 +156,10 @@ router.post('/bids', requireAttributes('contractor:bid'), async (req: Request, r
             message: 'Bid submitted successfully',
         } as ApiResponse);
     } catch (error) {
+        if (error instanceof ZodError) {
+            res.status(400).json({ success: false, error: 'Validation failed', details: error.issues } as ApiResponse);
+            return;
+        }
         safeRouteError(res, error, 'Contractor.SubmitBid');
     }
 });

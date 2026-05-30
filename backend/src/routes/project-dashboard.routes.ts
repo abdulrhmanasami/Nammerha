@@ -4,11 +4,17 @@ import { getAuthUser } from '../utils/auth-guard';
 // Client-facing bird's eye view with daily logs + digital approvals
 // ============================================================================
 import { Router, Request, Response } from 'express';
+import { ZodError } from 'zod';
 import { authMiddleware, requireActive } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role-guard.middleware';
 import * as dashboard from '../services/project-dashboard.service';
 import type { ApiResponse } from '../types';
 import { safeRouteError } from '../utils/safe-error';
+import {
+    createDailyLogSchema,
+    createApprovalSchema,
+    approvalDecisionSchema,
+} from '../validation/schemas';
 
 const router = Router();
 
@@ -18,7 +24,7 @@ router.use(requireActive);
 // ─── GET /api/dashboard/:projectId — Full Project Overview ──────────────────
 router.get(
     '/:projectId',
-    requireRole('homeowner', 'donor', 'engineer', 'admin'),
+    requireRole('homeowner', 'engineer', 'admin'),
     async (req: Request, res: Response) => {
         try {
             const overview = await dashboard.getDashboardOverview(String(req.params.projectId));
@@ -37,7 +43,7 @@ router.get(
 // ─── GET /api/dashboard/:projectId/logs — Daily Construction Logs ───────────
 router.get(
     '/:projectId/logs',
-    requireRole('homeowner', 'donor', 'engineer', 'admin'),
+    requireRole('homeowner', 'engineer', 'admin'),
     async (req: Request, res: Response) => {
         try {
             const p_limit = parseInt(req.query.limit as string, 10);
@@ -65,20 +71,12 @@ router.post(
     // UNIFIED CITIZEN: open to all authenticated users
     async (req: Request, res: Response) => {
         try {
-            const dto = req.body as dashboard.CreateDailyLogDTO;
-
-            if (!dto.description) {
-                res.status(400).json({
-                    success: false,
-                    error: 'Required: description',
-                } as ApiResponse);
-                return;
-            }
+            const dto = createDailyLogSchema.parse(req.body);
 
             const log = await dashboard.createDailyLog(
                 getAuthUser(req).user_id,
                 String(req.params.projectId),
-                dto
+                dto as unknown as dashboard.CreateDailyLogDTO
             );
 
             const response: ApiResponse = {
@@ -88,6 +86,10 @@ router.post(
             };
             res.status(201).json(response);
         } catch (error) {
+            if (error instanceof ZodError) {
+                res.status(400).json({ success: false, error: 'Validation failed', details: error.issues } as ApiResponse);
+                return;
+            }
             safeRouteError(res, error, 'ProjectDashboard');
         }
     }
@@ -99,20 +101,12 @@ router.post(
     // UNIFIED CITIZEN: open to all authenticated users
     async (req: Request, res: Response) => {
         try {
-            const dto = req.body as dashboard.CreateApprovalDTO;
-
-            if (!dto.title) {
-                res.status(400).json({
-                    success: false,
-                    error: 'Required: title',
-                } as ApiResponse);
-                return;
-            }
+            const dto = createApprovalSchema.parse(req.body);
 
             const approval = await dashboard.requestApproval(
                 getAuthUser(req).user_id,
                 String(req.params.projectId),
-                dto
+                dto as unknown as dashboard.CreateApprovalDTO
             );
 
             const response: ApiResponse = {
@@ -122,6 +116,10 @@ router.post(
             };
             res.status(201).json(response);
         } catch (error) {
+            if (error instanceof ZodError) {
+                res.status(400).json({ success: false, error: 'Validation failed', details: error.issues } as ApiResponse);
+                return;
+            }
             safeRouteError(res, error, 'ProjectDashboard');
         }
     }
@@ -133,18 +131,7 @@ router.patch(
     requireRole('homeowner', 'admin'),
     async (req: Request, res: Response) => {
         try {
-            const { decision, note } = req.body as {
-                decision: 'approved' | 'rejected';
-                note?: string;
-            };
-
-            if (!decision || !['approved', 'rejected'].includes(decision)) {
-                res.status(400).json({
-                    success: false,
-                    error: "Required: decision ('approved' | 'rejected')",
-                } as ApiResponse);
-                return;
-            }
+            const { decision, note } = approvalDecisionSchema.parse(req.body);
 
             const approval = await dashboard.respondToApproval(
                 String(req.params.approvalId),
@@ -160,6 +147,10 @@ router.patch(
             };
             res.json(response);
         } catch (error) {
+            if (error instanceof ZodError) {
+                res.status(400).json({ success: false, error: 'Validation failed', details: error.issues } as ApiResponse);
+                return;
+            }
             safeRouteError(res, error, 'ProjectDashboard');
         }
     }
@@ -168,7 +159,7 @@ router.patch(
 // ─── GET /api/dashboard/:projectId/approvals — List Approvals ───────────────
 router.get(
     '/:projectId/approvals',
-    requireRole('homeowner', 'donor', 'engineer', 'admin'),
+    requireRole('homeowner', 'engineer', 'admin'),
     async (req: Request, res: Response) => {
         try {
             const status = req.query.status as string | undefined;
@@ -195,7 +186,7 @@ import { query as dbQuery } from '../config/database';
 
 router.get(
     '/:projectId/activity',
-    requireRole('homeowner', 'donor', 'engineer', 'admin'),
+    requireRole('homeowner', 'engineer', 'admin'),
     async (req: Request, res: Response) => {
         try {
             const projectId = String(req.params['projectId']);

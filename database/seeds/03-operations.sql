@@ -1,4 +1,18 @@
 -- Nammerha Demo Seed Part 3: Operations (FIXED schema)
+
+-- PRODUCTION SAFETY GUARD: Prevent accidental execution in production
+DO $$
+BEGIN
+  IF current_setting('server_version_num')::int > 0 THEN
+    IF EXISTS (SELECT 1 FROM pg_database WHERE datname = current_database() AND datname LIKE '%prod%') THEN
+      RAISE EXCEPTION '[SAFETY] 03-operations.sql must NEVER run in production. Aborting.';
+    END IF;
+  END IF;
+  IF current_setting('app.environment', true) = 'production' THEN
+    RAISE EXCEPTION '[SAFETY] 03-operations.sql must NEVER run in production. Aborting.';
+  END IF;
+END $$;
+
 BEGIN;
 
 -- ═══ MILESTONES ═══

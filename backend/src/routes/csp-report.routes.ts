@@ -16,6 +16,8 @@ import { Router } from 'express';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import { logger } from '../utils/logger';
+import { ZodError } from 'zod';
+import { cspReportSchema } from '../validation/schemas';
 
 const router = Router();
 
@@ -33,7 +35,7 @@ router.use(express.json({ type: 'application/csp-report', limit: '4kb' }));
 // ─── POST /api/csp-report — Receive CSP violation reports ───────────────────
 router.post('/', cspReportLimiter, (req, res) => {
     try {
-        const report = req.body as Record<string, unknown>;
+        const report = cspReportSchema.parse(req.body);
         const violationReport = report['csp-report'] as Record<string, unknown> | undefined;
 
         if (!violationReport) {
@@ -68,6 +70,12 @@ router.post('/', cspReportLimiter, (req, res) => {
 
         res.status(204).end();
     } catch (err) {
+        if (err instanceof ZodError) {
+            // Malformed CSP report — log but never fail
+            logger.warn('CSP report validation failed', { details: err.issues });
+            res.status(204).end();
+            return;
+        }
         logger.error('CSP report handler failed', {
             error: err instanceof Error ? err.message : String(err),
         });

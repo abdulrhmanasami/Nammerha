@@ -4,11 +4,17 @@ import { getAuthUser } from '../utils/auth-guard';
 // PlanRadar 360 + Houzz Pro LIDAR patterns
 // ============================================================================
 import { Router, Request, Response } from 'express';
+import { ZodError } from 'zod';
 import { authMiddleware, requireActive } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role-guard.middleware';
 import * as capture from '../services/reality-capture.service';
 import type { ApiResponse } from '../types';
 import { safeRouteError } from '../utils/safe-error';
+import {
+    submitCaptureSchema,
+    addAnnotationSchema,
+    uploadFloorPlanSchema,
+} from '../validation/schemas';
 
 const router = Router();
 
@@ -21,20 +27,12 @@ router.post(
     // UNIFIED CITIZEN: open to all authenticated users
     async (req: Request, res: Response) => {
         try {
-            const dto = req.body as capture.SubmitCaptureDTO;
-
-            if (!dto.file_url || !dto.construction_phase) {
-                res.status(400).json({
-                    success: false,
-                    error: 'Required: file_url, construction_phase',
-                } as ApiResponse);
-                return;
-            }
+            const dto = submitCaptureSchema.parse(req.body);
 
             const result = await capture.submitCapture(
                 getAuthUser(req).user_id,
                 String(req.params.projectId),
-                dto
+                dto as unknown as capture.SubmitCaptureDTO
             );
 
             const response: ApiResponse = {
@@ -44,6 +42,10 @@ router.post(
             };
             res.status(201).json(response);
         } catch (error) {
+            if (error instanceof ZodError) {
+                res.status(400).json({ success: false, error: 'Validation failed', details: error.issues } as ApiResponse);
+                return;
+            }
             safeRouteError(res, error, 'RealityCapture');
         }
     }
@@ -128,20 +130,12 @@ router.post(
     // UNIFIED CITIZEN: admin + auditor only for verification
     async (req: Request, res: Response) => {
         try {
-            const dto = req.body as capture.AddAnnotationDTO;
-
-            if (!dto.note) {
-                res.status(400).json({
-                    success: false,
-                    error: 'Required: note',
-                } as ApiResponse);
-                return;
-            }
+            const dto = addAnnotationSchema.parse(req.body);
 
             const annotation = await capture.addAnnotation(
                 String(req.params.captureId),
                 getAuthUser(req).user_id,
-                dto
+                dto as unknown as capture.AddAnnotationDTO
             );
 
             const response: ApiResponse = {
@@ -151,6 +145,10 @@ router.post(
             };
             res.status(201).json(response);
         } catch (error) {
+            if (error instanceof ZodError) {
+                res.status(400).json({ success: false, error: 'Validation failed', details: error.issues } as ApiResponse);
+                return;
+            }
             safeRouteError(res, error, 'RealityCapture');
         }
     }
@@ -184,20 +182,12 @@ router.post(
     // UNIFIED CITIZEN: open to all authenticated users
     async (req: Request, res: Response) => {
         try {
-            const dto = req.body as capture.UploadFloorPlanDTO;
-
-            if (!dto.title || !dto.file_url) {
-                res.status(400).json({
-                    success: false,
-                    error: 'Required: title, file_url',
-                } as ApiResponse);
-                return;
-            }
+            const dto = uploadFloorPlanSchema.parse(req.body);
 
             const plan = await capture.uploadFloorPlan(
                 getAuthUser(req).user_id,
                 String(req.params.projectId),
-                dto
+                dto as unknown as capture.UploadFloorPlanDTO
             );
 
             const response: ApiResponse = {
@@ -207,6 +197,10 @@ router.post(
             };
             res.status(201).json(response);
         } catch (error) {
+            if (error instanceof ZodError) {
+                res.status(400).json({ success: false, error: 'Validation failed', details: error.issues } as ApiResponse);
+                return;
+            }
             safeRouteError(res, error, 'RealityCapture');
         }
     }

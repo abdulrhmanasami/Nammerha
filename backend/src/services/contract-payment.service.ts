@@ -18,6 +18,71 @@ import type { PoolClient } from 'pg';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
+interface ContractRow {
+    contract_id: string;
+    project_id: string;
+    homeowner_id: string;
+    provider_id: string;
+    provider_type: string;
+    total_agreed_amount: string; // BIGINT cents — pg returns as string (MEMO 53)
+    bid_id: string | null;
+    notes: string | null;
+    status: string;
+    currency: string;
+    created_at: Date;
+    updated_at: Date;
+    project_title?: string;
+    homeowner_name?: string;
+    provider_name?: string;
+    total_paid?: string;
+    milestone_count?: number;
+    completed_milestones?: number;
+}
+
+interface MilestoneRow {
+    milestone_id: string;
+    contract_id: string;
+    title: string;
+    description: string | null;
+    milestone_order: number;
+    amount: string; // BIGINT cents — pg returns as string (MEMO 53)
+    percentage: number;
+    status: string;
+    completed_at: Date | null;
+    created_at: Date;
+    updated_at: Date;
+}
+
+interface PaymentRow {
+    payment_id: string;
+    contract_id: string;
+    payer_id: string;
+    payee_id: string;
+    milestone_id: string | null;
+    amount: string; // BIGINT cents — pg returns as string (MEMO 53)
+    currency: string;
+    payment_method: string;
+    status: string;
+    idempotency_key: string;
+    confirmation_note: string | null;
+    transfer_receipt_url: string | null;
+    confirmed_by_payer: boolean;
+    confirmed_by_payee: boolean;
+    gateway_ref: string | null;
+    payer_confirmed_at: Date | null;
+    payee_confirmed_at: Date | null;
+    completed_at: Date | null;
+    created_at: Date;
+    updated_at: Date;
+    payer_name?: string;
+    payee_name?: string;
+}
+
+interface ContractWithDetails extends ContractRow {
+    milestones: MilestoneRow[];
+    payments: PaymentRow[];
+}
+
 interface CreateContractInput {
     project_id: string;
     provider_id: string;
@@ -42,6 +107,8 @@ interface CreatePaymentInput {
     transfer_receipt_url?: string;
 }
 
+const MAX_CONTRACTS_LIMIT = 100;
+
 // ─── Contracts ──────────────────────────────────────────────────────────────
 
 /**
@@ -52,10 +119,15 @@ export async function getMyContracts(
     status?: string,
     limit = 20,
     offset = 0,
-): Promise<unknown[]> {
+): Promise<ContractRow[]> {
+    const clampedLimit = Math.min(limit, MAX_CONTRACTS_LIMIT);
+    const clampedOffset = Math.max(offset, 0);
+
     let sql = `
         SELECT
-            sc.*,
+            sc.contract_id, sc.project_id, sc.homeowner_id, sc.provider_id,
+            sc.provider_type, sc.total_agreed_amount, sc.bid_id, sc.notes,
+            sc.status, sc.created_at, sc.updated_at,
             p.title AS project_title,
             ho.full_name AS homeowner_name,
             pv.full_name AS provider_name,
@@ -84,13 +156,13 @@ export async function getMyContracts(
     }
 
     sql += ` ORDER BY sc.updated_at DESC LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`;
-    params.push(limit, offset);
+    params.push(clampedLimit, clampedOffset);
 
-    const result = await query(sql, params);
-    return result.rows.map((row: any) => ({
+    const result = await query<ContractRow>(sql, params);
+    return result.rows.map((row) => ({
         ...row,
-        total_paid: Number(row.total_paid),
-        total_agreed_amount: Number(row.total_agreed_amount)
+        total_paid: String(Number(row.total_paid ?? '0')),
+        total_agreed_amount: String(Number(row.total_agreed_amount))
     }));
 }
 
@@ -100,11 +172,13 @@ export async function getMyContracts(
 export async function getContractDetails(
     contractId: string,
     userId: string,
-): Promise<unknown> {
+): Promise<ContractWithDetails> {
     // Verify user has access (is homeowner or provider)
-    const contractResult = await query(
+    const contractResult = await query<ContractRow>(
         `SELECT
-            sc.*,
+            sc.contract_id, sc.project_id, sc.homeowner_id, sc.provider_id,
+            sc.provider_type, sc.total_agreed_amount, sc.bid_id, sc.notes,
+            sc.status, sc.created_at, sc.updated_at,
             p.title AS project_title,
             ho.full_name AS homeowner_name,
             pv.full_name AS provider_name
@@ -122,19 +196,29 @@ export async function getContractDetails(
     }
 
     const contract = contractResult.rows[0];
+    if (!contract) {
+        throw new Error('Contract not found or access denied');
+    }
 
     // Load milestones
-    const milestonesResult = await query(
-        `SELECT * FROM contract_milestones
+    const milestonesResult = await query<MilestoneRow>(
+        `SELECT milestone_id, contract_id, title, description, milestone_order,
+                amount, percentage, status, completed_at, created_at, updated_at
+         FROM contract_milestones
          WHERE contract_id = $1
          ORDER BY milestone_order ASC`,
         [contractId],
     );
 
     // Load payments
-    const paymentsResult = await query(
+    const paymentsResult = await query<PaymentRow>(
         `SELECT
-            cp.*,
+            cp.payment_id, cp.contract_id, cp.payer_id, cp.payee_id,
+            cp.milestone_id, cp.amount, cp.currency, cp.payment_method,
+            cp.status, cp.idempotency_key, cp.confirmation_note,
+            cp.transfer_receipt_url, cp.confirmed_by_payer, cp.confirmed_by_payee,
+            cp.gateway_ref, cp.payer_confirmed_at, cp.payee_confirmed_at,
+            cp.completed_at, cp.created_at, cp.updated_at,
             payer.full_name AS payer_name,
             payee.full_name AS payee_name
         FROM contract_payments cp
@@ -149,7 +233,7 @@ export async function getContractDetails(
         ...contract,
         milestones: milestonesResult.rows,
         payments: paymentsResult.rows,
-    };
+    } as ContractWithDetails;
 }
 
 /**
@@ -159,7 +243,7 @@ export async function getContractDetails(
 export async function createContract(
     homeownerId: string,
     input: CreateContractInput,
-): Promise<unknown> {
+): Promise<ContractWithDetails> {
     // Anti-self-dealing: homeowner cannot be their own provider
     if (homeownerId === input.provider_id) {
         throw new Error('Cannot create a contract with yourself as provider');
@@ -167,12 +251,13 @@ export async function createContract(
 
     return financialTransaction(async (client: PoolClient) => {
         // Create contract
-        const contractResult = await client.query(
+        const contractResult = await client.query<ContractRow>(
             `INSERT INTO service_contracts
                 (project_id, homeowner_id, provider_id, provider_type,
                  total_agreed_amount, bid_id, notes, status)
             VALUES ($1, $2, $3, $4, $5, $6, $7, 'active')
-            RETURNING *`,
+            RETURNING contract_id, project_id, homeowner_id, provider_id, provider_type,
+                      total_agreed_amount, bid_id, notes, status, created_at, updated_at`,
             [
                 input.project_id,
                 homeownerId,
@@ -185,6 +270,9 @@ export async function createContract(
         );
 
         const contract = contractResult.rows[0];
+        if (!contract) {
+            throw new Error('Failed to create contract');
+        }
 
         // Create milestones if provided
         if (input.milestones && input.milestones.length > 0) {
@@ -224,8 +312,10 @@ export async function createContract(
         });
 
         // Return full contract with milestones
-        const milestonesResult = await client.query(
-            `SELECT * FROM contract_milestones
+        const milestonesResult = await client.query<MilestoneRow>(
+            `SELECT milestone_id, contract_id, title, description, milestone_order,
+                    amount, percentage, status, completed_at, created_at, updated_at
+             FROM contract_milestones
              WHERE contract_id = $1 ORDER BY milestone_order ASC`,
             [contract.contract_id],
         );
@@ -234,7 +324,7 @@ export async function createContract(
             ...contract,
             milestones: milestonesResult.rows,
             payments: [],
-        };
+        } as ContractWithDetails;
     });
 }
 
@@ -246,7 +336,7 @@ export async function createContract(
 export async function getMilestones(
     contractId: string,
     userId: string,
-): Promise<unknown[]> {
+): Promise<MilestoneRow[]> {
     // Verify access
     const accessCheck = await query(
         `SELECT 1 FROM service_contracts
@@ -257,8 +347,10 @@ export async function getMilestones(
         throw new Error('Contract not found or access denied');
     }
 
-    const result = await query(
-        `SELECT * FROM contract_milestones
+    const result = await query<MilestoneRow>(
+        `SELECT milestone_id, contract_id, title, description, milestone_order,
+                amount, percentage, status, completed_at, created_at, updated_at
+         FROM contract_milestones
          WHERE contract_id = $1 ORDER BY milestone_order ASC`,
         [contractId],
     );
@@ -273,7 +365,7 @@ export async function getMilestones(
 export async function getContractPayments(
     contractId: string,
     userId: string,
-): Promise<unknown[]> {
+): Promise<PaymentRow[]> {
     // Verify access
     const accessCheck = await query(
         `SELECT 1 FROM service_contracts
@@ -284,9 +376,14 @@ export async function getContractPayments(
         throw new Error('Contract not found or access denied');
     }
 
-    const result = await query(
+    const result = await query<PaymentRow>(
         `SELECT
-            cp.*,
+            cp.payment_id, cp.contract_id, cp.payer_id, cp.payee_id,
+            cp.milestone_id, cp.amount, cp.currency, cp.payment_method,
+            cp.status, cp.idempotency_key, cp.confirmation_note,
+            cp.transfer_receipt_url, cp.confirmed_by_payer, cp.confirmed_by_payee,
+            cp.gateway_ref, cp.payer_confirmed_at, cp.payee_confirmed_at,
+            cp.completed_at, cp.created_at, cp.updated_at,
             payer.full_name AS payer_name,
             payee.full_name AS payee_name
         FROM contract_payments cp
@@ -311,11 +408,13 @@ export async function createPayment(
     userId: string,
     input: CreatePaymentInput,
     idempotencyKey: string,
-): Promise<unknown> {
+): Promise<PaymentRow> {
     return financialTransaction(async (client: PoolClient) => {
         // 1. Load contract and verify access
-        const contractResult = await client.query(
-            `SELECT * FROM service_contracts
+        const contractResult = await client.query<ContractRow>(
+            `SELECT contract_id, project_id, homeowner_id, provider_id, provider_type,
+                    total_agreed_amount, bid_id, notes, status, created_at, updated_at
+             FROM service_contracts
              WHERE contract_id = $1
              AND (homeowner_id = $2 OR provider_id = $2)
              AND status = 'active'
@@ -328,14 +427,22 @@ export async function createPayment(
         }
 
         const contract = contractResult.rows[0];
+        if (!contract) {
+            throw new Error('Contract not found, not active, or access denied');
+        }
 
         // 2. Idempotency check (mandatory — Domain Law §1)
-        const existing = await client.query(
-            `SELECT * FROM contract_payments WHERE idempotency_key = $1`,
+        const existing = await client.query<PaymentRow>(
+            `SELECT payment_id, contract_id, payer_id, payee_id, milestone_id,
+                    amount, currency, payment_method, status, idempotency_key,
+                    confirmation_note, transfer_receipt_url, confirmed_by_payer,
+                    confirmed_by_payee, gateway_ref, payer_confirmed_at,
+                    payee_confirmed_at, completed_at, created_at, updated_at
+             FROM contract_payments WHERE idempotency_key = $1`,
             [idempotencyKey],
         );
         if (existing.rows.length > 0) {
-            return existing.rows[0]; // Return existing payment (idempotent)
+            return existing.rows[0]!; // Return existing payment (idempotent)
         }
 
         // 3. Determine payer/payee based on who initiated
@@ -374,13 +481,17 @@ export async function createPayment(
         }
 
         // 6. Create the payment record
-        const paymentResult = await client.query(
+        const paymentResult = await client.query<PaymentRow>(
             `INSERT INTO contract_payments
                 (contract_id, milestone_id, payer_id, payee_id, amount, currency,
                  payment_method, status, confirmation_note, transfer_receipt_url,
                  idempotency_key)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-            RETURNING *`,
+            RETURNING payment_id, contract_id, payer_id, payee_id, milestone_id,
+                      amount, currency, payment_method, status, idempotency_key,
+                      confirmation_note, transfer_receipt_url, confirmed_by_payer,
+                      confirmed_by_payee, gateway_ref, payer_confirmed_at,
+                      payee_confirmed_at, completed_at, created_at, updated_at`,
             [
                 contractId,
                 input.milestone_id ?? null,
@@ -397,6 +508,9 @@ export async function createPayment(
         );
 
         const payment = paymentResult.rows[0];
+        if (!payment) {
+            throw new Error('Failed to create payment record');
+        }
 
         logger.info('Contract payment created', {
             paymentId: payment.payment_id,
@@ -425,11 +539,17 @@ export async function confirmPayment(
     paymentId: string,
     userId: string,
     note?: string,
-): Promise<unknown> {
+): Promise<PaymentRow> {
     return financialTransaction(async (client: PoolClient) => {
         // Load payment with lock
-        const paymentResult = await client.query(
-            `SELECT cp.*, sc.homeowner_id, sc.provider_id
+        const paymentResult = await client.query<PaymentRow & { homeowner_id: string; provider_id: string }>(
+            `SELECT cp.payment_id, cp.contract_id, cp.payer_id, cp.payee_id,
+                    cp.milestone_id, cp.amount, cp.currency, cp.payment_method,
+                    cp.status, cp.idempotency_key, cp.confirmation_note,
+                    cp.transfer_receipt_url, cp.confirmed_by_payer, cp.confirmed_by_payee,
+                    cp.gateway_ref, cp.payer_confirmed_at, cp.payee_confirmed_at,
+                    cp.completed_at, cp.created_at, cp.updated_at,
+                    sc.homeowner_id, sc.provider_id
              FROM contract_payments cp
              JOIN service_contracts sc ON sc.contract_id = cp.contract_id
              WHERE cp.payment_id = $1
@@ -442,6 +562,9 @@ export async function confirmPayment(
         }
 
         const payment = paymentResult.rows[0];
+        if (!payment) {
+            throw new Error('Payment not found');
+        }
 
         // Verify user is payer or payee
         const isPayer = userId === payment.payer_id;
@@ -473,14 +596,18 @@ export async function confirmPayment(
         // Update payment
         const confirmCol = isPayer ? 'payer_confirmed_at' : 'payee_confirmed_at';
 
-        const updateResult = await client.query(
+        const updateResult = await client.query<PaymentRow>(
             `UPDATE contract_payments
              SET status = $1,
                  ${confirmCol} = NOW(),
                  ${completedAt ? 'completed_at = NOW(),' : ''}
                  confirmation_note = COALESCE($3, confirmation_note)
              WHERE payment_id = $2
-             RETURNING *`,
+             RETURNING payment_id, contract_id, payer_id, payee_id, milestone_id,
+                       amount, currency, payment_method, status, idempotency_key,
+                       confirmation_note, transfer_receipt_url, confirmed_by_payer,
+                       confirmed_by_payee, gateway_ref, payer_confirmed_at,
+                       payee_confirmed_at, completed_at, created_at, updated_at`,
             [newStatus, paymentId, note ?? null],
         );
 
@@ -491,6 +618,11 @@ export async function confirmPayment(
             newStatus,
         });
 
-        return updateResult.rows[0];
+        const updatedPayment = updateResult.rows[0];
+        if (!updatedPayment) {
+            throw new Error('Failed to update payment record');
+        }
+
+        return updatedPayment;
     });
 }

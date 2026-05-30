@@ -1,6 +1,5 @@
 import { requireAuth, requireRole, type GQLContext } from '../../context/auth.context';
 import { query as dbQuery } from '../../../config/database';
-import * as crowdfundingService from '../../../services/crowdfunding.service';
 import * as executionService from '../../../services/execution.service';
 import * as escrowService from '../../../services/escrow.service';
 import * as storageService from '../../../services/storage.service';
@@ -208,16 +207,10 @@ export const spatialProofMutationResolvers = {
 };
 
 export const escrowMutationResolvers = {
-  createPaymentIntent: async (
-    _: unknown,
-    args: { input: import('../../../types/index').CreateTransactionDTO },
-    context: GQLContext,
-  ) => {
-    // UNIFIED CITIZEN: Any authenticated user can create a payment intent.
-    const user = requireAuth(context);
-    const entries = await crowdfundingService.createPaymentIntent(user.user_id, args.input);
-    return entries.map((row) => mapEscrowEntry(row as unknown as Record<string, unknown>));
-  },
+  // MEMO 59: createPaymentIntent resolver eradicated.
+  // The crowdfunding (User → Escrow direct payment) path has been permanently
+  // removed from the platform. Payment intents are now created exclusively
+  // through the contract-payment pipeline (Path 1: Service Contracts).
 
   // M-5 FIX: Replaced hollow inline SQL with full escrowService.releaseEscrow().
   // The service layer includes Redis distributed locks, Serializable isolation,

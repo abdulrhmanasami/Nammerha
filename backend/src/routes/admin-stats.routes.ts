@@ -33,14 +33,14 @@ interface MonthlyDataPoint {
 
 interface MonthlyAmountPoint {
   month: string;
-  total_amount: number; // cents
+  total_amount: string; // BIGINT cents — pg returns as string (MEMO 53)
 }
 
 interface FundingProgressPoint {
   project_id: string;
   title: string;
-  total_estimated_cost: number;
-  total_funded_amount: number;
+  total_estimated_cost: string; // BIGINT cents — pg returns as string (MEMO 53)
+  total_funded_amount: string; // BIGINT cents — pg returns as string (MEMO 53)
   funded_percentage: number;
   published_at: string | null;
 }
@@ -49,8 +49,8 @@ interface PlatformOverview {
   total_users: number;
   total_projects: number;
   total_payments: number;
-  total_funded_amount: number; // cents
-  total_escrow_released: number; // cents
+  total_funded_amount: string; // BIGINT cents — pg returns as string (MEMO 53)
+  total_escrow_released: string; // BIGINT cents — pg returns as string (MEMO 53)
   active_engineers: number;
   active_contractors: number;
   verified_proofs: number;

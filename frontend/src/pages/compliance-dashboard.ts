@@ -12,6 +12,7 @@ import { showToast } from '../utils/toast';
 // TICK-033: Import shared type-safe i18n apply utility.
 import { tryApplyI18n } from '../utils/i18n-apply';
 import { requireAuth } from '../utils/auth-guard';
+import { addTrackedTimer } from '../utils/tracked-timers';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Compliance Dashboard — OCDS Audit & Financial Transparency Engine
@@ -58,8 +59,8 @@ function initTimestamp(): void {
   update();
   // W9-001 FIX: Store interval ID and clear on page unload to prevent
   // ghost intervals from accumulating during SPA-like navigation.
-  const intervalId = setInterval(update, 1000);
-  window.addEventListener('beforeunload', () => clearInterval(intervalId));
+  const intervalId = addTrackedTimer(setInterval(update, 1000));
+  window.addEventListener('pagehide', () => clearInterval(intervalId));
 }
 
 /* ─── Load KPIs ─── */

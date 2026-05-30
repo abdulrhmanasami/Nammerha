@@ -129,7 +129,7 @@ describe('Admin / Escrow Routes (HTTP Integration)', () => {
     });
 
     it('should reject donor role from all admin endpoints', async () => {
-      mockAuthUser = { user_id: 'donor-001', role: 'donor', roles: ['donor'], is_active: true };
+      mockAuthUser = { user_id: 'homeowner-001', role: 'homeowner', roles: ['homeowner'], is_active: true };
 
       const res = await request(app).get('/api/admin/verifications/pending').expect(403);
 

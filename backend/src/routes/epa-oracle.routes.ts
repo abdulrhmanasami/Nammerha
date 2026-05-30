@@ -9,7 +9,7 @@ import { requireRole } from '../middleware/role-guard.middleware';
 import * as oracle from '../services/epa-oracle.service';
 import type { ApiResponse } from '../types';
 import { safeRouteError } from '../utils/safe-error';
-import { calculateEPASchema, upsertPriceSchema } from '../validation/schemas';
+import { calculateEPASchema, upsertPriceSchema, epaApprovalSchema } from '../validation/schemas';
 import { formatZodErrors } from '../validation/spatial-proof.schema';
 import { ZodError } from 'zod';
 
@@ -123,15 +123,7 @@ router.post(
     requireRole('admin', 'auditor'),
     async (req: Request, res: Response) => {
         try {
-            const { decision } = req.body as { decision: 'approved' | 'rejected' };
-
-            if (!decision || !['approved', 'rejected'].includes(decision)) {
-                res.status(400).json({
-                    success: false,
-                    error: "Required: decision ('approved' | 'rejected')",
-                } as ApiResponse);
-                return;
-            }
+            const { decision } = epaApprovalSchema.parse(req.body);
 
             const result = await oracle.respondToEPA(
                 String(req.params.adjustmentId),
@@ -146,6 +138,10 @@ router.post(
             };
             res.json(response);
         } catch (error) {
+            if (error instanceof ZodError) {
+                res.status(400).json({ success: false, error: 'Validation failed', details: error.issues } as ApiResponse);
+                return;
+            }
             safeRouteError(res, error, 'EPAOracle');
         }
     }

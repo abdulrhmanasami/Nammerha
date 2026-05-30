@@ -3,12 +3,18 @@
 // STAC imagery catalog + spatial compliance endpoints
 // ============================================================================
 import { Router, Request, Response } from 'express';
+import { ZodError } from 'zod';
 import { authMiddleware, requireActive } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role-guard.middleware';
 import * as satellite from '../services/satellite.service';
 import * as geofencing from '../services/geofencing.service';
 import type { ApiResponse } from '../types';
 import { safeRouteError } from '../utils/safe-error';
+import {
+    registerImagerySchema,
+    nearbySearchSchema,
+    createGeofenceZoneSchema,
+} from '../validation/schemas';
 
 const router = Router();
 
@@ -108,21 +114,15 @@ router.post(
                 return;
             }
 
-            const body = req.body as satellite.RegisterImageryDTO;
+            const body = registerImagerySchema.parse(req.body);
 
-            // Validate required fields
-            if (!body.project_id || !body.bbox_wkt || !body.captured_at ||
-                !body.provider || !body.resolution_cm || !body.image_url) {
-                res.status(400).json({
-                    success: false,
-                    error: 'Missing required fields: project_id, bbox_wkt, captured_at, provider, resolution_cm, image_url',
-                } as ApiResponse);
-                return;
-            }
-
-            const result = await satellite.registerImagery(body, userId);
+            const result = await satellite.registerImagery(body as satellite.RegisterImageryDTO, userId);
             res.status(201).json({ success: true, data: result } as ApiResponse);
         } catch (error) {
+            if (error instanceof ZodError) {
+                res.status(400).json({ success: false, error: 'Validation failed', details: error.issues } as ApiResponse);
+                return;
+            }
             safeRouteError(res, error, 'Spatial');
         }
     },
@@ -167,35 +167,15 @@ router.delete(
  */
 router.post('/geofencing/check', async (req: Request, res: Response) => {
     try {
-        const { lat, lng } = req.body as { lat?: number; lng?: number };
-
-        if (lat === undefined || lng === undefined) {
-            res.status(400).json({
-                success: false,
-                error: 'Missing required fields: lat, lng',
-            } as ApiResponse);
-            return;
-        }
-
-        if (typeof lat !== 'number' || !Number.isFinite(lat) || lat < -90 || lat > 90) {
-            res.status(400).json({
-                success: false,
-                error: 'lat must be a finite number between -90 and 90',
-            } as ApiResponse);
-            return;
-        }
-
-        if (typeof lng !== 'number' || !Number.isFinite(lng) || lng < -180 || lng > 180) {
-            res.status(400).json({
-                success: false,
-                error: 'lng must be a finite number between -180 and 180',
-            } as ApiResponse);
-            return;
-        }
+        const { lat, lng } = nearbySearchSchema.parse(req.body);
 
         const result = await geofencing.checkProjectCompliance(lat, lng);
         res.json({ success: true, data: result } as ApiResponse);
     } catch (error) {
+        if (error instanceof ZodError) {
+            res.status(400).json({ success: false, error: 'Validation failed', details: error.issues } as ApiResponse);
+            return;
+        }
         safeRouteError(res, error, 'Spatial');
     }
 });
@@ -256,19 +236,15 @@ router.post(
                 return;
             }
 
-            const body = req.body as geofencing.CreateZoneDTO;
+            const body = createGeofenceZoneSchema.parse(req.body);
 
-            if (!body.zone_name || !body.zone_polygon_wkt || !body.restriction_type) {
-                res.status(400).json({
-                    success: false,
-                    error: 'Missing required fields: zone_name, zone_polygon_wkt, restriction_type',
-                } as ApiResponse);
-                return;
-            }
-
-            const zone = await geofencing.createZone(body, userId);
+            const zone = await geofencing.createZone(body as unknown as geofencing.CreateZoneDTO, userId);
             res.status(201).json({ success: true, data: zone } as ApiResponse);
         } catch (error) {
+            if (error instanceof ZodError) {
+                res.status(400).json({ success: false, error: 'Validation failed', details: error.issues } as ApiResponse);
+                return;
+            }
             safeRouteError(res, error, 'Spatial');
         }
     },

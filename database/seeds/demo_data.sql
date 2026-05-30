@@ -1,3 +1,18 @@
+-- PRODUCTION SAFETY GUARD: Prevent accidental execution in production
+DO $$
+BEGIN
+  IF current_setting('server_version_num')::int > 0 THEN
+    -- Check if this is a production database by looking for real user data
+    IF EXISTS (SELECT 1 FROM pg_database WHERE datname = current_database() AND datname LIKE '%prod%') THEN
+      RAISE EXCEPTION '[SAFETY] demo_data.sql must NEVER run in production. Aborting.';
+    END IF;
+  END IF;
+  -- Also check environment variable if available
+  IF current_setting('app.environment', true) = 'production' THEN
+    RAISE EXCEPTION '[SAFETY] demo_data.sql must NEVER run in production. Aborting.';
+  END IF;
+END $$;
+
 -- ============================================================================
 -- NAMMERHA PLATFORM — Complete Demo Seed Data (Platinum Edition)
 -- ============================================================================
@@ -13,8 +28,7 @@
 --   Service Requests: 2 | Oracle Entries: 6 | EPA: 1
 --   Profiles (028): All 14 users | Milestones: 5
 --
--- Password for ALL demo users: nammerha2026
--- Hash: $2b$12$aa0vT.eCkNytuMGNXZBxQ.Qidx8ygXyw0cT6DUxVc.SmCCBSYrzoa
+-- All demo users use a shared bcrypt hash (see seed documentation for credentials).
 -- ============================================================================
 BEGIN;
 

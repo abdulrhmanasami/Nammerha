@@ -6,7 +6,7 @@
 set -e
 
 SEED_DIR="$(cd "$(dirname "$0")" && pwd)"
-SERVER="root@46.224.113.10"
+SERVER="${DEPLOY_USER:-root}@${DEPLOY_HOST:?DEPLOY_HOST must be set}"
 DB_CONTAINER="nammerha-db"
 
 echo "🌱 Nammerha Demo Seed — Starting..."

@@ -8,6 +8,8 @@ import { Router, Request, Response } from 'express';
 import { authMiddleware } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role-guard.middleware';
 import { safeRouteError } from '../utils/safe-error';
+import { ZodError } from 'zod';
+import { subscribeSchema, updatePlanPriceSchema } from '../validation/schemas';
 import {
     getPlans,
     getUserSubscription,
@@ -77,18 +79,15 @@ router.post('/subscribe', authMiddleware, async (req: Request, res: Response): P
             return;
         }
 
-        const { plan_slug } = req.body as { plan_slug?: string };
-        if (!plan_slug || typeof plan_slug !== 'string') {
-            res.status(400).json({
-                success: false,
-                error: 'plan_slug is required and must be a string',
-            });
-            return;
-        }
+        const { plan_slug } = subscribeSchema.parse(req.body);
 
         const subscription = await subscribe(req.authUser.user_id, plan_slug);
         res.status(201).json({ success: true, data: subscription });
     } catch (err) {
+        if (err instanceof ZodError) {
+            res.status(400).json({ success: false, error: 'Validation failed', details: err.issues });
+            return;
+        }
         safeRouteError(res, err, 'Subscription.Subscribe');
     }
 });
@@ -155,15 +154,7 @@ router.put(
     async (req: Request, res: Response): Promise<void> => {
         try {
             const planId = req.params['planId'] as string;
-            const { price_cents } = req.body as { price_cents?: number };
-
-            if (typeof price_cents !== 'number' || price_cents < 0) {
-                res.status(400).json({
-                    success: false,
-                    error: 'price_cents must be a non-negative number',
-                });
-                return;
-            }
+            const { price_cents } = updatePlanPriceSchema.parse(req.body);
 
             if (!planId) {
                 res.status(400).json({ success: false, error: 'planId is required' });
@@ -173,6 +164,10 @@ router.put(
             const updated = await updatePlanPricing(planId, price_cents);
             res.json({ success: true, data: updated });
         } catch (err) {
+            if (err instanceof ZodError) {
+                res.status(400).json({ success: false, error: 'Validation failed', details: err.issues });
+                return;
+            }
             safeRouteError(res, err, 'Subscription.UpdatePlan');
         }
     },

@@ -1,4 +1,18 @@
 -- Nammerha Demo Seed: Projects with real GPS coordinates across Syria
+
+-- PRODUCTION SAFETY GUARD: Prevent accidental execution in production
+DO $$
+BEGIN
+  IF current_setting('server_version_num')::int > 0 THEN
+    IF EXISTS (SELECT 1 FROM pg_database WHERE datname = current_database() AND datname LIKE '%prod%') THEN
+      RAISE EXCEPTION '[SAFETY] 02-projects.sql must NEVER run in production. Aborting.';
+    END IF;
+  END IF;
+  IF current_setting('app.environment', true) = 'production' THEN
+    RAISE EXCEPTION '[SAFETY] 02-projects.sql must NEVER run in production. Aborting.';
+  END IF;
+END $$;
+
 BEGIN;
 
 INSERT INTO projects (project_id, homeowner_id, assigned_engineer_id, title, description, cover_image_url, gps_location, address_text, damage_type, damage_severity, status, is_public, total_estimated_cost, total_funded_amount, ocds_release_id, published_at, completed_at, created_at, updated_at, project_type) VALUES

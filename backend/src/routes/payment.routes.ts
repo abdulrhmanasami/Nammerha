@@ -5,13 +5,15 @@ import { getAuthUser } from '../utils/auth-guard';
 // ============================================================================
 
 import { Router, Request, Response } from 'express';
-import { paymentService, PaymentGateway } from '../services/payment.service';
+import { paymentService, type PaymentGateway } from '../services/payment.service';
 import { authMiddleware, requireActive } from '../middleware/auth.middleware';
 import { requireIdempotencyKey } from '../middleware/require-idempotency-key.middleware';
 import { idempotencyMiddleware } from '../middleware/idempotency.middleware';
 import { query } from '../config/database';
 import { safeRouteError } from '../utils/safe-error';
 import { logger } from '../utils/logger';
+import { ZodError } from 'zod';
+import { initiatePaymentSchema, webhookCallbackSchema } from '../validation/schemas';
 
 const router = Router();
 
@@ -34,49 +36,11 @@ router.post(
   idempotencyMiddleware,
   async (req: Request, res: Response): Promise<void> => {
     try {
-      const { item_id, project_id, amount, gateway, currency, return_url } = req.body as {
-        item_id: string;
-        project_id: string;
-        amount: number;
-        gateway: PaymentGateway;
-        currency?: string;
-        return_url?: string;
-      };
+      const dto = initiatePaymentSchema.parse(req.body);
+      const { item_id, project_id, amount, gateway, currency, return_url } = dto;
 
-      if (!item_id || !project_id || !amount || !gateway) {
-        res.status(400).json({
-          success: false,
-          error: 'Missing required fields: item_id, project_id, amount, gateway',
-        });
-        return;
-      }
-
-      if (!['visa', 'fatora'].includes(gateway)) {
-        res.status(400).json({
-          success: false,
-          error: 'Invalid gateway. Supported: visa, fatora',
-        });
-        return;
-      }
-
-      // NMR-AUD-010 FIX: Comprehensive amount validation
-      // 1. Type check + positive
-      if (typeof amount !== 'number' || amount <= 0) {
-        res.status(400).json({
-          success: false,
-          error: 'Amount must be a positive number',
-        });
-        return;
-      }
-      // 2. Integer check (cents — no floating point corruption)
-      if (!Number.isInteger(amount)) {
-        res.status(400).json({
-          success: false,
-          error: 'Amount must be an integer representing cents (e.g., 50000 for $500.00)',
-        });
-        return;
-      }
-      // 3. Maximum cap (defense-in-depth against overflow/abuse)
+      // NMR-AUD-010 FIX: Maximum cap (defense-in-depth against overflow/abuse)
+      // Zod guarantees positive integer, but env-configurable cap is kept.
       if (amount > MAX_PAYMENT_CENTS) {
         res.status(400).json({
           success: false,
@@ -116,6 +80,10 @@ router.post(
         },
       });
     } catch (error) {
+      if (error instanceof ZodError) {
+        res.status(400).json({ success: false, error: 'Validation failed', details: error.issues });
+        return;
+      }
       safeRouteError(res, error, 'Payment.Initiate');
     }
   },
@@ -125,21 +93,8 @@ router.post(
 // Public endpoint for gateway callbacks (no auth — verified by HMAC signature)
 router.post('/webhook', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { reference, gateway, status, gateway_tx_id, signature } = req.body as {
-      reference: string;
-      gateway: PaymentGateway;
-      status: 'success' | 'failure';
-      gateway_tx_id: string;
-      signature?: string;
-    };
-
-    if (!reference || !gateway || !status || !gateway_tx_id) {
-      res.status(400).json({
-        success: false,
-        error: 'Missing required webhook fields',
-      });
-      return;
-    }
+    const dto = webhookCallbackSchema.parse(req.body);
+    const { reference, gateway, status, gateway_tx_id, signature } = dto;
 
     // NMR-AUD-005 FIX: Use RAW request body for HMAC verification.
     // Previously reconstructed JSON from destructured vars — fragile due
@@ -160,9 +115,9 @@ router.post('/webhook', async (req: Request, res: Response): Promise<void> => {
 
     const result = await paymentService.handleWebhook({
       reference,
-      gateway,
-      status,
-      gateway_tx_id,
+      gateway: gateway as PaymentGateway,
+      status: status as 'success' | 'failure',
+      gateway_tx_id: gateway_tx_id ?? '',
     });
 
     // Always respond 200 to webhooks to prevent retries
@@ -171,6 +126,12 @@ router.post('/webhook', async (req: Request, res: Response): Promise<void> => {
       processed: result.processed,
     });
   } catch (err) {
+    if (err instanceof ZodError) {
+      // Log but respond 200 to prevent gateway retries on malformed payloads
+      logger.error('Payment: Webhook validation failed', { details: err.issues });
+      res.status(200).json({ success: false, processed: false });
+      return;
+    }
     // Log but still respond 200 to prevent gateway retries
     logger.error('Payment: Webhook processing error', {
       error: err instanceof Error ? err.message : String(err),

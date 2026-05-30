@@ -214,7 +214,7 @@ describe('Storage Routes (HTTP Integration)', () => {
         mockSend.mockReset();
         mockSend.mockResolvedValue({});
         app = createApp();
-        mockAuthUser = { user_id: 'user-uuid-001', role: 'donor', roles: ['donor'], is_active: true };
+        mockAuthUser = { user_id: 'user-uuid-001', role: 'homeowner', roles: ['homeowner'], is_active: true };
     });
 
     // ─── Authentication ────────────────────────────────────────────────

@@ -2,7 +2,7 @@
 // Nammerha Backend — Marketplace Routes (Path 2 — Public)
 // ============================================================================
 import { Router, Request, Response } from 'express';
-import * as crowdfundingService from '../services/crowdfunding.service';
+import * as marketplaceService from '../services/marketplace.service';
 import * as supplierService from '../services/supplier.service';
 import { safeRouteError } from '../utils/safe-error';
 import { cacheResponse } from '../middleware/cache.middleware';
@@ -20,7 +20,7 @@ router.get('/projects', cacheResponse(30), async (req: Request, res: Response) =
         const limit = (p_limit === undefined || Number.isNaN(p_limit)) ? undefined : p_limit;
         const p_offset = req.query['offset'] ? parseInt(String(req.query['offset']), 10) : undefined;
         const offset = (p_offset === undefined || Number.isNaN(p_offset)) ? undefined : p_offset;
-        const projects = await crowdfundingService.getMarketplaceProjects({
+        const projects = await marketplaceService.getMarketplaceProjects({
             damage_type: req.query['damage_type'] as string | undefined,
             sort_by: req.query['sort_by'] as 'funded_percentage' | 'published_at' | undefined,
             limit: Number.isFinite(limit) ? limit : undefined,
@@ -36,7 +36,7 @@ router.get('/projects', cacheResponse(30), async (req: Request, res: Response) =
 // ─── GET /api/marketplace/projects/:id/boq — Get BOQ for Project ────────────
 router.get('/projects/:id/boq', async (req: Request, res: Response) => {
     try {
-        const boq = await crowdfundingService.getProjectBOQ(String(req.params['id']));
+        const boq = await marketplaceService.getProjectBOQ(String(req.params['id']));
         const response: ApiResponse = { success: true, data: boq };
         res.json(response);
     } catch (error) {
@@ -46,10 +46,10 @@ router.get('/projects/:id/boq', async (req: Request, res: Response) => {
 
 // ─── GET /api/marketplace/suppliers — List Verified Suppliers ────────────────
 // Per strategic study §7.1: engineers select pre-assigned suppliers for BOQ items.
-// Donors also see supplier names in the basket UI for transparency.
+// Users see supplier names in the project details UI for transparency.
 router.get('/suppliers', async (_req: Request, res: Response) => {
     try {
-        const suppliers = await crowdfundingService.getVerifiedSuppliers();
+        const suppliers = await marketplaceService.getVerifiedSuppliers();
         const response: ApiResponse = { success: true, data: suppliers };
         res.json(response);
     } catch (error) {

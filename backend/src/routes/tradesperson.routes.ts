@@ -9,6 +9,8 @@ import { authMiddleware, requireActive } from '../middleware/auth.middleware';
 import { requireAttributes } from '../middleware/abac.middleware';
 import * as tradespersonService from '../services/tradesperson.service';
 import { safeRouteError } from '../utils/safe-error';
+import { ZodError } from 'zod';
+import { acceptTaskSchema, availabilityStatusSchema } from '../validation/schemas';
 import type { ApiResponse, AvailabilityStatus } from '../types';
 
 const router = Router();
@@ -84,14 +86,7 @@ router.get('/assignments', async (req: Request, res: Response) => {
 // ─── POST /api/tradesperson/assignments/:id/respond — Accept/Decline ────────
 router.post('/assignments/:id/respond', requireAttributes('tradesperson:respond_assignment'), async (req: Request, res: Response) => {
     try {
-        const { accept } = req.body as { accept: boolean };
-        if (typeof accept !== 'boolean') {
-            res.status(400).json({
-                success: false,
-                error: 'Missing required field: accept (boolean)',
-            } as ApiResponse);
-            return;
-        }
+        const { accept } = acceptTaskSchema.parse(req.body);
 
         const result = await tradespersonService.respondToAssignment(
             getAuthUser(req).user_id,
@@ -104,6 +99,10 @@ router.post('/assignments/:id/respond', requireAttributes('tradesperson:respond_
             message: accept ? 'Assignment accepted' : 'Assignment declined',
         } as ApiResponse);
     } catch (error) {
+        if (error instanceof ZodError) {
+            res.status(400).json({ success: false, error: 'Validation failed', details: error.issues } as ApiResponse);
+            return;
+        }
         safeRouteError(res, error, 'Tradesperson.RespondAssignment');
     }
 });
@@ -121,26 +120,7 @@ router.get('/earnings', async (req: Request, res: Response) => {
 // ─── PATCH /api/tradesperson/availability — Toggle Status ───────────────────
 router.patch('/availability', async (req: Request, res: Response) => {
     try {
-        const { status: newStatus } = req.body as { status: string };
-        if (!newStatus) {
-            res.status(400).json({
-                success: false,
-                error: 'Missing required field: status (available | busy | offline)',
-            } as ApiResponse);
-            return;
-        }
-
-        // DT-ENUM-001 FIX: Validate availability status against allowed enum values.
-        // Without this, any arbitrary string is blindly cast to AvailabilityStatus,
-        // which would cause a PostgreSQL enum type error at best, or data corruption at worst.
-        const VALID_AVAILABILITY: readonly string[] = ['available', 'busy', 'offline'];
-        if (!VALID_AVAILABILITY.includes(newStatus)) {
-            res.status(400).json({
-                success: false,
-                error: `Invalid status. Allowed values: ${VALID_AVAILABILITY.join(', ')}`,
-            } as ApiResponse);
-            return;
-        }
+        const { status: newStatus } = availabilityStatusSchema.parse(req.body);
 
         const result = await tradespersonService.updateAvailability(
             getAuthUser(req).user_id,
@@ -152,6 +132,10 @@ router.patch('/availability', async (req: Request, res: Response) => {
             message: `Availability updated to: ${result.availability}`,
         } as ApiResponse);
     } catch (error) {
+        if (error instanceof ZodError) {
+            res.status(400).json({ success: false, error: 'Validation failed', details: error.issues } as ApiResponse);
+            return;
+        }
         safeRouteError(res, error, 'Tradesperson');
     }
 });

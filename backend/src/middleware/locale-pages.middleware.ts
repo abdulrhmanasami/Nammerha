@@ -74,8 +74,8 @@ const PAGE_REGISTRY: Record<string, PageMeta> = {
         stitchDir: 'donor_construction_basket',
         meta: {
             ar: { title: 'نَمِّرها — سلة مواد البناء', description: 'موّل مواد بناء محددة عبر تمويل جماعي شفاف مع حماية الأمانات.' },
-            en: { title: 'Nammerha — Construction Materials Basket', description: 'Fund specific reconstruction materials through transparent itemized crowdfunding with escrow protection.' },
-            de: { title: 'Nammerha — Baumaterial-Warenkorb', description: 'Finanzieren Sie spezifische Baumaterialien durch transparentes Crowdfunding mit Treuhandschutz.' },
+            en: { title: 'Nammerha — Construction Materials Basket', description: 'Fund specific reconstruction materials through transparent itemized marketplace funding with escrow protection.' },
+            de: { title: 'Nammerha — Baumaterial-Warenkorb', description: 'Finanzieren Sie spezifische Baumaterialien durch transparente Marktplatz-Finanzierung mit Treuhandschutz.' },
             fr: { title: 'Nammerha — Panier de matériaux', description: 'Financez des matériaux de reconstruction via un financement participatif transparent avec protection d\'entiercement.' },
             tr: { title: 'Nammerha — İnşaat Malzeme Sepeti', description: 'Emanet koruması ile şeffaf kitle fonlama yoluyla inşaat malzemelerini finanse edin.' },
         },

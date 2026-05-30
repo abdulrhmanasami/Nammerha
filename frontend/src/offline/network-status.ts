@@ -89,7 +89,7 @@ function showStatus(type: StatusType, autoHideMs?: number, worker?: ServiceWorke
       swUpdate: '<i class="ph ph-arrows-clockwise" aria-hidden="true"></i>',
     };
     bar.innerHTML = `
-            <span class="network-status__icon">${esc(icons[type])}</span>
+            <span class="network-status__icon">${icons[type]}</span>
             <span class="network-status__text">${esc(t(STATUS_KEYS[type].key, STATUS_KEYS[type].fb))}</span>
         `;
   }

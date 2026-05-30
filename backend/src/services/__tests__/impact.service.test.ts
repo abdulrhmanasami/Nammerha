@@ -36,9 +36,9 @@ const MOCK_IMPACT_MESSAGE = {
   message_id: 'msg-001',
   user_id: MOCK_DONOR_ID,
   project_id: MOCK_PROJECT_ID,
-  event_type: 'donation_received',
-  title_en: 'Thank You for Your Donation! 💰',
-  title_ar: 'شكراً لتبرعك! 💰',
+  event_type: 'contractor_assigned',
+  title_en: 'Contractor Assigned to Your Project 👷',
+  title_ar: 'تم تعيين مقاول لمشروعك 👷',
   body_en: 'Your generous contribution...',
   body_ar: 'تم تسجيل تبرعك...',
   metadata: '{}',
@@ -57,10 +57,10 @@ describe('Impact Service', () => {
       mockQuery.mockResolvedValueOnce({ rows: [MOCK_IMPACT_MESSAGE] });
 
       const result = await generateImpactMessage(
-        'donation_received',
+        'contractor_assigned',
         MOCK_DONOR_ID,
         MOCK_PROJECT_ID,
-        { project_title: 'Test Project', amount: 50000 },
+        { project_title: 'Test Project' },
       );
 
       expect(result).toBeDefined();
@@ -75,7 +75,7 @@ describe('Impact Service', () => {
     it('should format amount from cents to dollars in template', async () => {
       mockQuery.mockResolvedValueOnce({ rows: [MOCK_IMPACT_MESSAGE] });
 
-      await generateImpactMessage('donation_received', MOCK_DONOR_ID, MOCK_PROJECT_ID, {
+      await generateImpactMessage('contractor_assigned', MOCK_DONOR_ID, MOCK_PROJECT_ID, {
         project_title: 'مشروع تجريبي',
         amount: 150000,
       });

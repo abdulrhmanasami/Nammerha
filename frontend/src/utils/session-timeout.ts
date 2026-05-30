@@ -98,10 +98,10 @@ export function initSessionTimeoutWarning(): void {
   }
 
   // Start the low-frequency check
-  checkTimer = setInterval(checkSessionFreshness, CHECK_INTERVAL_MS);
+  checkTimer = addTrackedTimer(setInterval(checkSessionFreshness, CHECK_INTERVAL_MS));
 
   // Clean up on page unload
-  window.addEventListener('beforeunload', cleanup);
+  window.addEventListener('pagehide', cleanup);
 
   // PLATINUM FIX: Removed 'markOnInteraction' (Phantom Freshness Paradox).
   // Local DOM interactions DO NOT extend the backend's HttpOnly JWT.
@@ -180,7 +180,7 @@ function showWarningDialog(remainingMs: number): void {
   // ── Countdown Timer ──
   const countdownEl = dialog.querySelector('#nm-timeout-countdown');
   let remainingSec = Math.ceil(remainingMs / 1000);
-  const countdownTimer = setInterval(() => {
+  const countdownTimer = addTrackedTimer(setInterval(() => {
     remainingSec--;
     if (countdownEl) {
       const mins = Math.floor(remainingSec / 60);
@@ -190,7 +190,7 @@ function showWarningDialog(remainingMs: number): void {
     if (remainingSec <= 0) {
       clearInterval(countdownTimer);
     }
-  }, 1000);
+  }, 1000));
 
   // ── Extend Session ──
   const extendBtn = dialog.querySelector<HTMLButtonElement>('#nm-timeout-extend');

@@ -15,6 +15,8 @@ import { authMiddleware, requireActive } from '../middleware/auth.middleware';
 import * as privacyService from '../services/privacy.service';
 import { safeRouteError } from '../utils/safe-error';
 import type { ApiResponse, PrivacySettingsMap } from '../types';
+import { ZodError } from 'zod';
+import { privacySettingsSchema } from '../validation/schemas';
 
 const router = Router();
 
@@ -38,20 +40,11 @@ router.get('/', async (req: Request, res: Response) => {
 // ─── PUT /api/privacy — Update My Privacy Settings ──────────────────────────
 router.put('/', async (req: Request, res: Response) => {
     try {
-        const body = req.body as { settings?: PrivacySettingsMap };
-
-        if (!body.settings || typeof body.settings !== 'object') {
-            res.status(400).json({
-                success: false,
-                error: 'Missing required field: settings (object)',
-                error_ar: 'حقل مطلوب مفقود: الإعدادات (كائن)',
-            } as ApiResponse);
-            return;
-        }
+        const body = privacySettingsSchema.parse(req.body);
 
         const updated = await privacyService.updatePrivacySettings(
             getAuthUser(req).user_id,
-            body.settings,
+            body.settings as PrivacySettingsMap ?? {},
         );
 
         res.json({
@@ -60,6 +53,10 @@ router.put('/', async (req: Request, res: Response) => {
             message: 'Privacy settings updated successfully',
         } as ApiResponse);
     } catch (error) {
+        if (error instanceof ZodError) {
+            res.status(400).json({ success: false, error: 'Validation failed', details: error.issues } as ApiResponse);
+            return;
+        }
         safeRouteError(res, error, 'Privacy.UpdateSettings');
     }
 });

@@ -11,6 +11,8 @@ import * as matchmaking from '../services/matchmaking.service';
 import { query } from '../config/database';
 import type { AbacPolicyKey, ApiResponse } from '../types';
 import { safeRouteError } from '../utils/safe-error';
+import { ZodError } from 'zod';
+import { submitBidSchema } from '../validation/schemas';
 
 const router = Router();
 
@@ -84,51 +86,15 @@ router.post(
   },
   async (req: Request, res: Response) => {
     try {
-      const dto = req.body as matchmaking.SubmitBidDTO;
-
-      if (!dto.proposed_cost || !dto.estimated_days) {
-        res.status(400).json({
-          success: false,
-          error: 'Missing required fields: proposed_cost (cents), estimated_days',
-        } as ApiResponse);
-        return;
-      }
-
-      if (dto.proposed_cost <= 0 || dto.estimated_days <= 0) {
-        res.status(400).json({
-          success: false,
-          error: 'proposed_cost and estimated_days must be positive',
-        } as ApiResponse);
-        return;
-      }
-
-      // FINOPS-004 FIX: Integer validation — prevent floating-point precision attacks.
-      // Amounts in cents must be whole numbers. A bid of 100.5 cents would cause
-      // rounding issues in downstream arithmetic (escrow, PO generation).
-      if (!Number.isInteger(dto.proposed_cost) || !Number.isInteger(dto.estimated_days)) {
-        res.status(400).json({
-          success: false,
-          error: 'proposed_cost (cents) and estimated_days must be integers',
-        } as ApiResponse);
-        return;
-      }
+      const dto = submitBidSchema.parse(req.body);
 
       // FINOPS-004 FIX: Max cap — prevent integer overflow and absurd bids.
       // $100M (10_000_000_000 cents) is a generous upper bound for construction.
-      // 3650 days (10 years) is the maximum realistic project timeline.
       const MAX_BID_CENTS = 10_000_000_000;
-      const MAX_DAYS = 3650;
       if (dto.proposed_cost > MAX_BID_CENTS) {
         res.status(400).json({
           success: false,
           error: `proposed_cost exceeds maximum (${MAX_BID_CENTS} cents / $100M)`,
-        } as ApiResponse);
-        return;
-      }
-      if (dto.estimated_days > MAX_DAYS) {
-        res.status(400).json({
-          success: false,
-          error: `estimated_days exceeds maximum (${MAX_DAYS} days / 10 years)`,
         } as ApiResponse);
         return;
       }
@@ -142,6 +108,10 @@ router.post(
       };
       res.status(201).json(response);
     } catch (error) {
+      if (error instanceof ZodError) {
+        res.status(400).json({ success: false, error: 'Validation failed', details: error.issues } as ApiResponse);
+        return;
+      }
       safeRouteError(res, error, 'Matchmaking');
     }
   },

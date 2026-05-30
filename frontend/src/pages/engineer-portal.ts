@@ -24,6 +24,7 @@ import { initBackToTop } from '../components/back-to-top';
 // CRIT-UX-003 FIX: Tour Replay FAB — help button to restart onboarding
 import { mountTourReplayFAB } from '../components/tour-replay-fab';
 import { requireAuth } from '../utils/auth-guard';
+import { addTrackedTimer } from '../utils/tracked-timers';
 // P0-JRN-001 FIX: Confirmation dialog before logout — parity with homeowner portal.
 import { confirmAction } from '../utils/confirm-action';
 import { initBreadcrumb } from '../utils/breadcrumb';
@@ -113,8 +114,8 @@ function initLiveTimestamp(): void {
     el.textContent = new Date().toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
   };
   update();
-  const intervalId = setInterval(update, 1000);
-  window.addEventListener('beforeunload', () => clearInterval(intervalId));
+  const intervalId = addTrackedTimer(setInterval(update, 1000));
+  window.addEventListener('pagehide', () => clearInterval(intervalId));
 }
 
 // ─── Tab Routing ────────────────────────────────────────────────────────────

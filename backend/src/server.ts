@@ -4,7 +4,7 @@
 // OCDS-Compliant Platform Backend for Syria Reconstruction
 // Implements 4 Secure Data Flow Paths:
 //   Path 1: Homeowner → Engineer (damage report, BOQ)
-//   Path 2: Donor → Escrow (itemized crowdfunding)
+//   Path 2: User → Marketplace (project browsing & BOQ viewer)
 //   Path 3: Execution → Spatial Proof (GPS-verified delivery)
 //   Path 4: Release → Notify (escrow release, donor notification)
 //

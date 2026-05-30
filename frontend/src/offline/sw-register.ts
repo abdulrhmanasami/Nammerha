@@ -6,6 +6,7 @@
 // ============================================================================
 
 import { reportWarning } from '../error-reporter';
+import { addTrackedTimer } from '../utils/tracked-timers';
 
 /**
  * Registers the Service Worker and sets up update detection.
@@ -49,13 +50,13 @@ export async function registerServiceWorker(): Promise<void> {
 
         // W9-001 FIX: Store interval ID and clear on page unload to prevent
         // ghost intervals from accumulating during SPA-like navigation.
-        const swUpdateCheckId = setInterval(() => {
+        const swUpdateCheckId = addTrackedTimer(setInterval(() => {
             registration.update().catch(() => {
                 /* Intentional silent catch: update() fails when network is unavailable.
                    This is expected offline behavior — retry happens on next interval tick. */
             });
-        }, 60 * 60 * 1000);
-        window.addEventListener('beforeunload', () => clearInterval(swUpdateCheckId));
+        }, 60 * 60 * 1000));
+        window.addEventListener('pagehide', () => clearInterval(swUpdateCheckId));
 
         // MED-002 FIX: Demoted from console.log to dev-only debug.
         // eslint-disable-next-line no-console

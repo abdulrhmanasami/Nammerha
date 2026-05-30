@@ -8,7 +8,6 @@
 
 import { t } from '../utils/i18n';
 import { escapeHtml } from '../utils/xss';
-const esc = escapeHtml;
 import { addTrackedTimer } from '../utils/tracked-timers';
 
 
@@ -75,7 +74,7 @@ export class SmartScanner {
         <video id="nm-scanner-video" class="absolute inset-0 w-full h-full object-cover" autoplay playsinline muted></video>
         
         <!-- Smart Reticle / Frame Overlay -->
-        <div class="relative z-10 w-[85%] max-w-md ${esc(frameAspect)} rounded-xl border-2 border-white/40 shadow-[0_0_0_9999px_rgba(0,0,0,0.6)] flex items-center justify-center transition-all duration-300" id="nm-scanner-frame">
+        <div class="relative z-10 w-[85%] max-w-md ${frameAspect} rounded-xl border-2 border-white/40 shadow-[0_0_0_9999px_rgba(0,0,0,0.6)] flex items-center justify-center transition-all duration-300" id="nm-scanner-frame">
           <!-- Animated scanning laser -->
           <div class="absolute inset-x-0 top-0 h-0.5 bg-trust-blue shadow-[0_0_8px_rgba(21,88,214,0.8)] nm-scanner-laser"></div>
           
@@ -125,7 +124,7 @@ export class SmartScanner {
     const msgEl = this.overlay?.querySelector('#nm-scanner-msg');
     const corners = [1, 2, 3, 4].map(i => this.overlay?.querySelector(`#nm-corner-${i}`));
     
-    const interval = setInterval(() => {
+    const interval = addTrackedTimer(setInterval(() => {
       if (!this.overlay) {
         clearInterval(interval);
         return;
@@ -144,7 +143,7 @@ export class SmartScanner {
         if ('vibrate' in navigator) {navigator.vibrate(50);}
         clearInterval(interval);
       }
-    }, 1500);
+    }, 1500));
   }
 
   private capture(): void {

@@ -20,6 +20,7 @@ import { autoTriggerTour } from '../components/tour-engine';
 import { initBackToTop } from '../components/back-to-top';
 // W6-001 FIX: Auth guard — was missing on this contractor page.
 import { requireAuth } from '../utils/auth-guard';
+import { addTrackedTimer } from '../utils/tracked-timers';
 initPullToRefresh();
 initBackToTop();
 autoTriggerTour();
@@ -67,8 +68,8 @@ function initTimestamp(): void {
   update();
   // M-002 FIX: Store interval ID and clear on page unload to prevent
   // ghost intervals from accumulating during SPA-like navigation.
-  const intervalId = setInterval(update, 1000);
-  window.addEventListener('beforeunload', () => clearInterval(intervalId));
+  const intervalId = addTrackedTimer(setInterval(update, 1000));
+  window.addEventListener('pagehide', () => clearInterval(intervalId));
 }
 
 // P1-003 FIX: Hash-based tab routing

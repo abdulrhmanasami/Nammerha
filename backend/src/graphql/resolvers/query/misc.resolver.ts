@@ -1,7 +1,7 @@
 import { requireAuth, type GQLContext } from '../../context/auth.context';
 import { query as dbQuery } from '../../../config/database';
 import * as notificationService from '../../../services/notification.service';
-import * as crowdfundingService from '../../../services/crowdfunding.service';
+import * as escrowService from '../../../services/escrow.service';
 import * as impactService from '../../../services/impact.service';
 import {
   mapNotification,
@@ -31,7 +31,7 @@ export const miscQueryResolvers = {
   userEscrowHistory: async (_: unknown, __: unknown, context: GQLContext) => {
     // UNIFIED CITIZEN: Any authenticated user can view escrow history.
     const user = requireAuth(context);
-    const payments = await crowdfundingService.getUserPayments(user.user_id);
+    const payments = await escrowService.getUserPayments(user.user_id);
     return payments.map((d) => mapEscrowEntry(d as unknown as Record<string, unknown>));
   },
 
@@ -44,7 +44,7 @@ export const miscQueryResolvers = {
     const user = requireAuth(context);
     const limit = Math.min(50, Math.max(1, args.limit ?? 20));
     const offset = Math.max(0, args.offset ?? 0);
-    const payments = await crowdfundingService.getUserPayments(user.user_id, limit, offset);
+    const payments = await escrowService.getUserPayments(user.user_id, limit, offset);
     return payments.map((d) => mapEscrowEntry(d as unknown as Record<string, unknown>));
   },
 

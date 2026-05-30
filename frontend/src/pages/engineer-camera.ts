@@ -211,11 +211,11 @@ async function initCamera(): Promise<void> {
         viewfinder.innerHTML = `
           <div class="flex flex-col items-center justify-center h-full bg-slate-900 text-white p-6 text-center z-50 rounded-2xl">
             <i class="ph ph-camera-slash text-error nm-icon-64 mb-4" aria-hidden="true"></i>
-            <h3 class="text-lg font-bold mb-2">\${esc(t('cam_permission_denied', 'تم رفض صلاحية الكاميرا'))}</h3>
-            <p class="text-slate-400 text-sm mb-6 max-w-xs">\${esc(t('cam_permission_instruction', 'يتطلب التطبيق صلاحية الكاميرا لالتقاط الإثباتات المكانية. يرجى تفعيلها من إعدادات المتصفح ثم إعادة المحاولة.'))}</p>
+            <h3 class="text-lg font-bold mb-2">${esc(t('cam_permission_denied', 'تم رفض صلاحية الكاميرا'))}</h3>
+            <p class="text-slate-400 text-sm mb-6 max-w-xs">${esc(t('cam_permission_instruction', 'يتطلب التطبيق صلاحية الكاميرا لالتقاط الإثباتات المكانية. يرجى تفعيلها من إعدادات المتصفح ثم إعادة المحاولة.'))}</p>
             <button id="nm-retry-camera" class="btn-primary w-full max-w-[200px]">
               <i class="ph ph-arrows-clockwise nm-icon-gap-end" aria-hidden="true"></i>
-              \${esc(t('cam_retry', 'إعادة المحاولة'))}
+              ${esc(t('cam_retry', 'إعادة المحاولة'))}
             </button>
           </div>
         `;

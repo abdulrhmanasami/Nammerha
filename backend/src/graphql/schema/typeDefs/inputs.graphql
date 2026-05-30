@@ -20,16 +20,8 @@
         preferredSupplierId: ID!
     }
 
-    input PaymentItemInput {
-        itemId: ID!
-        amount: BigIntCents!
-    }
-
-    input CreatePaymentIntentInput {
-        items: [PaymentItemInput!]!
-        paymentMethod: PaymentMethod!
-        returnUrl: String
-    }
+    # MEMO 59: PaymentItemInput and CreatePaymentIntentInput eradicated.
+    # The crowdfunding (User → Escrow) path has been permanently removed.
 
     input SubmitSpatialProofInput {
         itemId: ID!

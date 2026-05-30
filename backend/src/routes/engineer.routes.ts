@@ -11,6 +11,7 @@ import * as engineerService from '../services/engineer.service';
 import * as executionService from '../services/execution.service';
 import * as realityCapture from '../services/reality-capture.service';
 import { parseSpatialProof, formatZodErrors } from '../validation/spatial-proof.schema';
+import { engineerCaptureSchema } from '../validation/schemas';
 import type { ApiResponse } from '../types';
 import { ZodError } from 'zod';
 
@@ -110,15 +111,7 @@ router.get('/captures', async (req: Request, res: Response) => {
 // Proxy to reality-capture service for convenience from engineer dashboard.
 router.post('/camera/capture', async (req: Request, res: Response) => {
     try {
-        const { project_id, ...dto } = req.body as { project_id: string } & realityCapture.SubmitCaptureDTO;
-
-        if (!project_id || !dto.file_url || !dto.construction_phase) {
-            res.status(400).json({
-                success: false,
-                error: 'Missing required fields: project_id, file_url, construction_phase',
-            } as ApiResponse);
-            return;
-        }
+        const { project_id, ...dto } = engineerCaptureSchema.parse(req.body);
 
         const capture = await realityCapture.submitCapture(
             getAuthUser(req).user_id,
@@ -131,6 +124,10 @@ router.post('/camera/capture', async (req: Request, res: Response) => {
             message: 'Reality capture submitted',
         } as ApiResponse);
     } catch (error) {
+        if (error instanceof ZodError) {
+            res.status(400).json({ success: false, error: 'Validation failed', details: error.issues } as ApiResponse);
+            return;
+        }
         safeRouteError(res, error, 'Engineer');
     }
 });

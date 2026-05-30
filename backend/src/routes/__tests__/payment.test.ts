@@ -135,7 +135,7 @@ describe('Payment Routes (HTTP Integration)', () => {
     vi.clearAllMocks();
     app = createApp();
     // Default: authenticated donor
-    mockAuthUser = { user_id: 'donor-uuid-001', role: 'donor', roles: ['donor'], is_active: true };
+    mockAuthUser = { user_id: 'homeowner-uuid-001', role: 'homeowner', roles: ['homeowner'], is_active: true };
   });
 
   // ═══════════════════════════════════════════════════════════════════════

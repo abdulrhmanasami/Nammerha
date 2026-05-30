@@ -65,7 +65,10 @@ const mfaVerifyLimiter = rateLimit({
     // Now includes the mfa_token itself (truncated hash for efficiency) so the
     // rate limit follows the challenge session, not just the client IP.
     const ip = req.ip ?? req.socket.remoteAddress ?? 'unknown';
-    const mfaToken = (req.body as Record<string, unknown>)?.mfa_token;
+    const body: unknown = req.body;
+    const mfaToken = (typeof body === 'object' && body !== null && 'mfa_token' in body)
+      ? (body as { mfa_token: unknown }).mfa_token
+      : undefined;
     const tokenSuffix = typeof mfaToken === 'string' ? mfaToken.slice(-16) : 'none';
     return `mfa:${ip}:${tokenSuffix}`;
   },

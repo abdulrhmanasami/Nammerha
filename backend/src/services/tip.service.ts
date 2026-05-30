@@ -5,7 +5,7 @@
 // for platform operations.
 // All monetary values in cents (BIGINT convention).
 // ============================================================================
-import { query } from '../config/database';
+import { query, financialTransaction } from '../config/database';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -49,37 +49,39 @@ export async function recordTip(
     throw new Error('Tip amount must be > 0');
   }
 
-  const result = await query<PlatformTip>(
-    `INSERT INTO platform_tips
-            (user_id, donation_reference, tip_amount_cents, tip_percentage,
-             currency, payment_gateway, payment_gateway_ref, status)
-         VALUES ($1, $2, $3, $4, 'USD', $5, $6, 'completed')
-         RETURNING tip_id, user_id, donation_reference, tip_amount_cents,
-                   tip_percentage, currency, payment_gateway, payment_gateway_ref,
-                   status, created_at`,
-    [userId, donationReference, tipAmountCents, tipPercentage, gateway || null, gatewayRef || null],
-  );
+  return financialTransaction(async (client) => {
+    const result = await client.query<PlatformTip>(
+      `INSERT INTO platform_tips
+              (user_id, donation_reference, tip_amount_cents, tip_percentage,
+               currency, payment_gateway, payment_gateway_ref, status)
+           VALUES ($1, $2, $3, $4, 'USD', $5, $6, 'completed')
+           RETURNING tip_id, user_id, donation_reference, tip_amount_cents,
+                     tip_percentage, currency, payment_gateway, payment_gateway_ref,
+                     status, created_at`,
+      [userId, donationReference, tipAmountCents, tipPercentage, gateway || null, gatewayRef || null],
+    );
 
-  if (!result.rows[0]) {
-    throw new Error('Failed to record tip');
-  }
+    if (!result.rows[0]) {
+      throw new Error('Failed to record tip');
+    }
 
-  // Audit trail
-  await query(
-    `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
-         VALUES ('tip_recorded', 'platform_tips', $1, $2, $3)`,
-    [
-      result.rows[0].tip_id,
-      userId,
-      JSON.stringify({
-        amount: tipAmountCents,
-        percentage: tipPercentage,
-        donation_ref: donationReference,
-      }),
-    ],
-  );
+    // Audit trail
+    await client.query(
+      `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
+           VALUES ('tip_recorded', 'platform_tips', $1, $2, $3)`,
+      [
+        result.rows[0].tip_id,
+        userId,
+        JSON.stringify({
+          amount: tipAmountCents,
+          percentage: tipPercentage,
+          donation_ref: donationReference,
+        }),
+      ],
+    );
 
-  return result.rows[0];
+    return result.rows[0];
+  });
 }
 
 /**

@@ -15,7 +15,7 @@
 import crypto from 'node:crypto';
 import * as OTPAuth from 'otpauth';
 import QRCode from 'qrcode';
-import { query } from '../config/database';
+import { query, transaction } from '../config/database';
 import { logger } from '../utils/logger';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
@@ -236,44 +236,37 @@ export async function confirmMfaSetup(
 
   const recoveryCodes = generateRecoveryCodes();
 
-  await query('BEGIN');
-
-  try {
+  await transaction(async (client) => {
     // Mark secret verified
-    await query(
+    await client.query(
       'UPDATE user_mfa_secrets SET verified_at = NOW() WHERE user_id = $1',
       [userId],
     );
 
     // Enable MFA on user
-    await query(
+    await client.query(
       'UPDATE users SET mfa_enabled = TRUE, mfa_enforced_at = NOW(), updated_at = NOW() WHERE user_id = $1',
       [userId],
     );
 
     // Delete any old recovery codes
-    await query('DELETE FROM user_recovery_codes WHERE user_id = $1', [userId]);
+    await client.query('DELETE FROM user_recovery_codes WHERE user_id = $1', [userId]);
 
     // Insert new recovery codes (hashed)
     for (const code of recoveryCodes) {
-      await query(
+      await client.query(
         'INSERT INTO user_recovery_codes (user_id, code_hash) VALUES ($1, $2)',
         [userId, hashCode(code)],
       );
     }
 
     // Audit log
-    await query(
+    await client.query(
       `INSERT INTO audit_trail (entity_type, entity_id, action, actor_id, details)
        VALUES ('mfa_enabled', $1, 'mfa_totp_enabled', $1, $2)`,
       [userId, JSON.stringify({ method: 'totp', recovery_codes_generated: RECOVERY_CODE_COUNT })],
     );
-
-    await query('COMMIT');
-  } catch (err) {
-    await query('ROLLBACK');
-    throw err;
-  }
+  });
 
   logger.info('MFA: Successfully enabled', { userId });
 
@@ -407,28 +400,21 @@ export async function verifyRecoveryCode(userId: string, code: string): Promise<
  * Removes TOTP secret and all recovery codes.
  */
 export async function disableMfa(userId: string): Promise<void> {
-  await query('BEGIN');
-
-  try {
-    await query('DELETE FROM user_mfa_secrets WHERE user_id = $1', [userId]);
-    await query('DELETE FROM user_recovery_codes WHERE user_id = $1', [userId]);
-    await query(
+  await transaction(async (client) => {
+    await client.query('DELETE FROM user_mfa_secrets WHERE user_id = $1', [userId]);
+    await client.query('DELETE FROM user_recovery_codes WHERE user_id = $1', [userId]);
+    await client.query(
       'UPDATE users SET mfa_enabled = FALSE, mfa_enforced_at = NULL, updated_at = NOW() WHERE user_id = $1',
       [userId],
     );
 
     // Audit log
-    await query(
+    await client.query(
       `INSERT INTO audit_trail (entity_type, entity_id, action, actor_id, details)
        VALUES ('mfa_disabled', $1, 'mfa_totp_disabled', $1, '{"method":"totp"}')`,
       [userId],
     );
-
-    await query('COMMIT');
-  } catch (err) {
-    await query('ROLLBACK');
-    throw err;
-  }
+  });
 
   logger.info('MFA: Disabled', { userId });
 }
@@ -486,31 +472,25 @@ export async function regenerateRecoveryCodes(userId: string): Promise<string[]>
 
   const newCodes = generateRecoveryCodes();
 
-  await query('BEGIN');
-  try {
+  await transaction(async (client) => {
     // Delete old codes
-    await query('DELETE FROM user_recovery_codes WHERE user_id = $1', [userId]);
+    await client.query('DELETE FROM user_recovery_codes WHERE user_id = $1', [userId]);
 
     // Insert new codes
     for (const code of newCodes) {
-      await query(
+      await client.query(
         'INSERT INTO user_recovery_codes (user_id, code_hash) VALUES ($1, $2)',
         [userId, hashCode(code)],
       );
     }
 
     // Audit
-    await query(
+    await client.query(
       `INSERT INTO audit_trail (entity_type, entity_id, action, actor_id, details)
        VALUES ('mfa_enabled', $1, 'mfa_recovery_regenerated', $1, $2)`,
       [userId, JSON.stringify({ new_codes_count: RECOVERY_CODE_COUNT })],
     );
-
-    await query('COMMIT');
-  } catch (err) {
-    await query('ROLLBACK');
-    throw err;
-  }
+  });
 
   logger.info('MFA: Recovery codes regenerated', { userId });
 

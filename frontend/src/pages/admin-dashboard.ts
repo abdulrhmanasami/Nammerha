@@ -9,6 +9,7 @@ import { relativeTimeAgo } from '../utils/format';
 import { renderErrorWithRetry } from '../utils/error-retry';
 import { renderProgressive } from '../utils/progressive-render';
 import { requireAuth } from '../utils/auth-guard';
+import { addTrackedTimer } from '../utils/tracked-timers';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Admin Dashboard — Platform Command Center
@@ -44,8 +45,8 @@ function initTimestamp(): void {
     update();
     // M-002 FIX: Store interval ID and clear on page unload to prevent
     // ghost intervals from accumulating during SPA-like navigation.
-    const intervalId = setInterval(update, 1000);
-    window.addEventListener('beforeunload', () => clearInterval(intervalId));
+    const intervalId = addTrackedTimer(setInterval(update, 1000));
+    window.addEventListener('pagehide', () => clearInterval(intervalId));
 }
 
 // ─── Load KPIs from APIs ────────────────────────────────────────────────────

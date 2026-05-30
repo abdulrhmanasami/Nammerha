@@ -1,5 +1,6 @@
 import { escapeHtml as esc } from '../utils/xss';
 import { t } from '../utils/i18n';
+import { addTrackedTimer } from '../utils/tracked-timers';
 
 /**
  * Live Oracle Ticker Component
@@ -57,8 +58,15 @@ export class LiveOracleTicker {
           </div>
         </div>
       </div>
-      
-      <style>
+    `;
+
+    container.innerHTML = template;
+
+    // CSP FIX: Inject marquee styles via document.head.appendChild, never innerHTML.
+    if (!document.getElementById('nm-oracle-ticker-styles')) {
+      const styleEl = document.createElement('style');
+      styleEl.id = 'nm-oracle-ticker-styles';
+      styleEl.textContent = `
         @keyframes marquee {
           0% { transform: translateX(0); }
           100% { transform: translateX(100%); } /* RTL orientation */
@@ -74,10 +82,10 @@ export class LiveOracleTicker {
           animation: marquee 30s linear infinite;
           will-change: transform;
         }
-      </style>
-    `;
+      `;
+      document.head.appendChild(styleEl);
+    }
 
-    container.innerHTML = template;
     this.populateTicker();
   }
 
@@ -112,7 +120,7 @@ export class LiveOracleTicker {
 
   public startUpdates(): void {
     if (this.autoUpdateInterval) {return;}
-    this.autoUpdateInterval = window.setInterval(() => {
+    this.autoUpdateInterval = addTrackedTimer(window.setInterval(() => {
       if (!this.isConnected) {return;}
       // Simulate real-time price fluctuation
       mockOracleData.forEach(item => {
@@ -125,7 +133,7 @@ export class LiveOracleTicker {
         }
       });
       this.populateTicker();
-    }, 15000); // 15s refresh
+    }, 15000)); // 15s refresh
   }
 
   public stopUpdates(): void {

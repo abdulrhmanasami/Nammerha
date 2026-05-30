@@ -7,13 +7,17 @@ import { query, transaction } from '../config/database';
 import { authMiddleware, requireActive } from '../middleware/auth.middleware';
 import { safeRouteError } from '../utils/safe-error';
 import { logger } from '../utils/logger';
+import { ZodError } from 'zod';
+import {
+  createReviewFullSchema,
+  updateReviewSchema,
+  createResponseSchema,
+  flagReviewSchema,
+  reviewHelpfulSchema,
+} from '../validation/schemas';
 import type {
   ReviewableType,
   ReviewStatus,
-  CreateReviewDTO,
-  UpdateReviewDTO,
-  CreateResponseDTO,
-  FlagReviewDTO,
   ApiResponse,
 } from '../types';
 
@@ -336,59 +340,7 @@ router.post(
         return;
       }
 
-      const dto = req.body as CreateReviewDTO;
-
-      // ── Validate reviewable type
-      if (!dto.reviewable_type || !isValidReviewableType(dto.reviewable_type)) {
-        res.status(400).json({ success: false, error: 'Invalid reviewable_type' } as ApiResponse);
-        return;
-      }
-
-      // ── Validate required fields
-      if (!dto.reviewable_id || !dto.body || !dto.overall_rating) {
-        res
-          .status(400)
-          .json({
-            success: false,
-            error: 'Missing required fields: reviewable_id, body, overall_rating',
-          } as ApiResponse);
-        return;
-      }
-
-      if (
-        dto.overall_rating < 1 ||
-        dto.overall_rating > 5 ||
-        !Number.isInteger(dto.overall_rating)
-      ) {
-        res
-          .status(400)
-          .json({
-            success: false,
-            error: 'overall_rating must be an integer between 1 and 5',
-          } as ApiResponse);
-        return;
-      }
-
-      if (dto.body.length < 10 || dto.body.length > 5000) {
-        res
-          .status(400)
-          .json({
-            success: false,
-            error: 'Review body must be between 10 and 5000 characters',
-          } as ApiResponse);
-        return;
-      }
-
-      // P3-REV-001 FIX: Title length check (prevent storage bloat)
-      if (dto.title && dto.title.length > 200) {
-        res
-          .status(400)
-          .json({
-            success: false,
-            error: 'Review title must be 200 characters or less',
-          } as ApiResponse);
-        return;
-      }
+      const dto = createReviewFullSchema.parse(req.body);
 
       // ── Prevent self-review
       if (dto.reviewable_type !== 'project') {
@@ -512,6 +464,10 @@ router.post(
         message: 'Review submitted successfully',
       } as ApiResponse);
     } catch (error) {
+      if (error instanceof ZodError) {
+        res.status(400).json({ success: false, error: 'Validation failed', details: error.issues } as ApiResponse);
+        return;
+      }
       // Unique constraint violation = duplicate review
       if (error instanceof Error && error.message.includes('unique constraint')) {
         res.status(409).json({
@@ -539,7 +495,7 @@ router.put(
       }
 
       const { reviewId } = req.params;
-      const dto = req.body as UpdateReviewDTO;
+      const dto = updateReviewSchema.parse(req.body);
 
       // Fetch existing review
       const existing = await query<{
@@ -585,29 +541,7 @@ router.put(
         return;
       }
 
-      // Validate updated fields
-      if (dto.overall_rating !== undefined) {
-        if (
-          dto.overall_rating < 1 ||
-          dto.overall_rating > 5 ||
-          !Number.isInteger(dto.overall_rating)
-        ) {
-          res
-            .status(400)
-            .json({ success: false, error: 'overall_rating must be integer 1-5' } as ApiResponse);
-          return;
-        }
-      }
-
-      if (dto.body !== undefined && dto.body.length < 10) {
-        res
-          .status(400)
-          .json({
-            success: false,
-            error: 'Review body must be at least 10 characters',
-          } as ApiResponse);
-        return;
-      }
+      // Field-level validation handled by Zod schema (updateReviewSchema)
 
       await transaction(async (client) => {
         // Update review fields
@@ -655,6 +589,10 @@ router.put(
         message: 'Review updated successfully',
       } as ApiResponse);
     } catch (error) {
+      if (error instanceof ZodError) {
+        res.status(400).json({ success: false, error: 'Validation failed', details: error.issues } as ApiResponse);
+        return;
+      }
       safeRouteError(res, error, 'Review.Update');
     }
   },
@@ -712,17 +650,7 @@ router.post(
       }
 
       const { reviewId } = req.params;
-      const dto = req.body as CreateResponseDTO;
-
-      if (!dto.body || dto.body.length < 5 || dto.body.length > 2000) {
-        res
-          .status(400)
-          .json({
-            success: false,
-            error: 'Response body must be between 5 and 2000 characters',
-          } as ApiResponse);
-        return;
-      }
+      const dto = createResponseSchema.parse(req.body);
 
       // Verify the user is the reviewed party
       const reviewResult = await query<{
@@ -778,6 +706,10 @@ router.post(
         message: 'Response published',
       } as ApiResponse);
     } catch (error) {
+      if (error instanceof ZodError) {
+        res.status(400).json({ success: false, error: 'Validation failed', details: error.issues } as ApiResponse);
+        return;
+      }
       if (error instanceof Error && error.message.includes('unique constraint')) {
         res
           .status(409)
@@ -806,22 +738,7 @@ router.post(
       }
 
       const { reviewId } = req.params;
-      const dto = req.body as FlagReviewDTO;
-
-      const validReasons: ReadonlySet<string> = new Set([
-        'spam',
-        'inappropriate',
-        'fake',
-        'conflict_of_interest',
-        'other',
-      ]);
-      if (!dto.reason || !validReasons.has(dto.reason)) {
-        res.status(400).json({
-          success: false,
-          error: `Invalid reason. Allowed: ${[...validReasons].join(', ')}`,
-        } as ApiResponse);
-        return;
-      }
+      const dto = flagReviewSchema.parse(req.body);
 
       // Verify review exists
       const reviewCheck = await query<{ review_id: string }>(
@@ -859,6 +776,10 @@ router.post(
 
       res.status(201).json({ success: true, message: 'Report submitted' } as ApiResponse);
     } catch (error) {
+      if (error instanceof ZodError) {
+        res.status(400).json({ success: false, error: 'Validation failed', details: error.issues } as ApiResponse);
+        return;
+      }
       if (error instanceof Error && error.message.includes('unique constraint')) {
         res
           .status(409)
@@ -883,14 +804,7 @@ router.post(
       }
 
       const { reviewId } = req.params;
-      const { is_helpful } = req.body as { is_helpful: boolean };
-
-      if (typeof is_helpful !== 'boolean') {
-        res
-          .status(400)
-          .json({ success: false, error: 'is_helpful must be a boolean' } as ApiResponse);
-        return;
-      }
+      const { is_helpful } = reviewHelpfulSchema.parse(req.body);
 
       await transaction(async (client) => {
         // Upsert vote
@@ -913,6 +827,10 @@ router.post(
 
       res.json({ success: true, message: 'Vote recorded' } as ApiResponse);
     } catch (error) {
+      if (error instanceof ZodError) {
+        res.status(400).json({ success: false, error: 'Validation failed', details: error.issues } as ApiResponse);
+        return;
+      }
       safeRouteError(res, error, 'Review.Helpful');
     }
   },

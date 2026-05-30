@@ -8,6 +8,8 @@ import { query } from '../config/database';
 import { authMiddleware } from '../middleware/auth.middleware';
 import { logger } from '../utils/logger';
 import type { UserRole } from '../types';
+import { ZodError } from 'zod';
+import { assignRoleSchema } from '../validation/schemas';
 
 const router = Router();
 
@@ -124,11 +126,7 @@ router.post('/activate', async (req: Request, res: Response) => {
       return;
     }
 
-    const { role } = req.body as { role?: string };
-    if (!role) {
-      res.status(400).json({ success: false, error: 'Role is required' });
-      return;
-    }
+    const { role } = assignRoleSchema.parse(req.body);
 
     // Check role exists and is self-assignable
     const roleInfo = await query<{
@@ -208,6 +206,10 @@ router.post('/activate', async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
+    if (error instanceof ZodError) {
+      res.status(400).json({ success: false, error: 'Validation failed', details: error.issues });
+      return;
+    }
     logger.error('Failed to activate role', {
       error: error instanceof Error ? error.message : String(error),
     });

@@ -58,7 +58,8 @@ export function csrfProtection(req: Request, res: Response, next: NextFunction):
   }
 
   // Skip for webhook callbacks (gateway-to-server, not browser-initiated)
-  if (req.path.includes('/webhook')) {
+  // SECURITY FIX: Exact prefix match prevents path traversal bypass (e.g., /evil/webhook)
+  if (req.path === '/webhook' || req.path.startsWith('/webhook/')) {
     return next();
   }
 

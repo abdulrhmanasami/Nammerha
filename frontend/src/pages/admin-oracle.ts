@@ -187,7 +187,7 @@ function initTickerAnimation(): void {
     return;
   }
 
-  const tickerId = setInterval(() => {
+  const tickerId = addTrackedTimer(setInterval(() => {
     priceElements.forEach((el) => {
       el.classList.add('transition-transform', 'duration-300');
       el.classList.add('scale-105');
@@ -195,6 +195,6 @@ function initTickerAnimation(): void {
         el.classList.remove('scale-105');
       }, 300));
     });
-  }, 8000);
-  window.addEventListener('beforeunload', () => clearInterval(tickerId));
+  }, 8000));
+  window.addEventListener('pagehide', () => clearInterval(tickerId));
 }

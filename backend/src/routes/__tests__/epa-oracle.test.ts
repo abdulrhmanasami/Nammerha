@@ -188,7 +188,7 @@ describe('EPA Oracle Routes (HTTP Integration)', () => {
         });
 
         it('should reject donor role from accessing oracle prices', async () => {
-            mockAuthUser = { user_id: 'donor-001', role: 'donor', roles: ['donor'], is_active: true };
+            mockAuthUser = { user_id: 'homeowner-001', role: 'homeowner', roles: ['homeowner'], is_active: true };
             const res = await request(app)
                 .get('/api/oracle/prices')
                 .expect(403);
@@ -225,7 +225,7 @@ describe('EPA Oracle Routes (HTTP Integration)', () => {
         });
 
         it('should reject donor from EPA alerts', async () => {
-            mockAuthUser = { user_id: 'donor-001', role: 'donor', roles: ['donor'], is_active: true };
+            mockAuthUser = { user_id: 'homeowner-001', role: 'homeowner', roles: ['homeowner'], is_active: true };
             await request(app).get('/api/oracle/epa/alerts').expect(403);
         });
     });

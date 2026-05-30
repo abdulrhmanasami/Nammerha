@@ -21,6 +21,7 @@ import type {
   SpatialProof,
   ReleaseEscrowDTO,
   FlagDiscrepancyDTO,
+  EscrowLedger,
 } from '../types';
 
 // ─── Path 4.1: Get Pending Verifications ────────────────────────────────────
@@ -58,7 +59,7 @@ export async function getPendingVerifications(
     project_address_text: string | null;
     boq_material_name: string;
     boq_material_category: string | null;
-    boq_unit_price: number;
+    boq_unit_price: string; // BIGINT cents — pg returns as string (MEMO 53)
     boq_required_quantity: number;
     engineer_name: string;
     po_data: unknown;
@@ -698,7 +699,10 @@ export async function processRefund(
 /**
  * Get all pending refund requests (admin view).
  */
-export async function getPendingRefunds(): Promise<
+export async function getPendingRefunds(
+  limit = 50,
+  offset = 0,
+): Promise<
   Array<
     RefundRequest & {
       project_title: string;
@@ -707,6 +711,9 @@ export async function getPendingRefunds(): Promise<
     }
   >
 > {
+  const clampedLimit = Math.min(limit, 200);
+  const clampedOffset = Math.max(offset, 0);
+
   const result = await pool.query(
     `SELECT rr.refund_id, rr.escrow_id, rr.user_id, rr.reason,
                 rr.refund_amount, rr.status, rr.created_at,
@@ -719,7 +726,66 @@ export async function getPendingRefunds(): Promise<
          JOIN itemized_boq b ON b.item_id = el.item_id
          JOIN users u ON u.user_id = rr.user_id
          WHERE rr.status = 'pending'
-         ORDER BY rr.created_at ASC`,
+         ORDER BY rr.created_at ASC
+         LIMIT $1 OFFSET $2`,
+    [clampedLimit, clampedOffset],
+  );
+  return result.rows;
+}
+
+// ─── User Escrow Queries ────────────────────────────────────────────────────
+// Migrated from crowdfunding.service.ts during Platinum Audit MEMO 59.
+// These are user-facing escrow read queries — their architectural home
+// is the escrow service, not the (now-deleted) crowdfunding monolith.
+
+/**
+ * Get a user's escrow summary (totals for locked, released, refunded).
+ */
+export async function getUserEscrowSummary(userId: string) {
+  // PLAT-AUD-001 FIX: Explicit column list — no SELECT * (prevents schema drift).
+  const result = await query<{
+    user_id: string;
+    total_locked: number;
+    total_released: number;
+    total_refunded: number;
+    active_escrows: number;
+  }>(
+    `SELECT user_id, total_locked, total_released, total_refunded, active_escrows
+         FROM vw_user_escrow_summary
+         WHERE user_id = $1`,
+    [userId],
+  );
+  return result.rows[0] ?? null;
+}
+
+/**
+ * Get a user's payment history.
+ * NMR-AUD-203 FIX: Added pagination to prevent unbounded result sets at scale.
+ */
+export async function getUserPayments(
+  userId: string,
+  limit = 50,
+  offset = 0,
+): Promise<EscrowLedger[]> {
+  // PLT-2026-AUD-003 FIX: Enforce max limit to prevent DoS via unbounded result sets.
+  // Matches the defensive Math.min() pattern used in searchEngineers and other queries.
+  const safeLim = Math.min(Math.max(1, limit), 50);
+  const safeOff = Math.max(0, offset);
+  // PLAT-AUD-001 FIX: Explicit column list — no e.* (prevents schema drift).
+  const result = await query<EscrowLedger>(
+    `SELECT e.transaction_id, e.user_id, e.item_id, e.project_id,
+                e.amount_locked, e.currency, e.payment_status, e.payment_method,
+                e.payment_gateway_ref, e.locked_at, e.released_at, e.released_by,
+                e.release_proof_id, e.refunded_at, e.blockchain_tx_hash,
+                e.created_at, e.updated_at,
+                b.material_name, p.title AS project_title
+         FROM escrow_ledger e
+         JOIN itemized_boq b ON b.item_id = e.item_id
+         JOIN projects p ON p.project_id = e.project_id
+         WHERE e.user_id = $1
+         ORDER BY e.locked_at DESC
+         LIMIT $2 OFFSET $3`,
+    [userId, safeLim, safeOff],
   );
   return result.rows;
 }

@@ -45,6 +45,7 @@ import { autoTriggerTour } from '../components/tour-engine';
 import { initBackToTop } from '../components/back-to-top';
 // CRIT-UX-003 FIX: Tour Replay FAB — help button to restart onboarding
 import { mountTourReplayFAB } from '../components/tour-replay-fab';
+import { addTrackedTimer } from '../utils/tracked-timers';
 initPullToRefresh();
 initBackToTop();
 autoTriggerTour();
@@ -148,8 +149,8 @@ function initTimestamp(): void {
   };
   update();
   // PLT-AUD-G004 FIX: Store interval ID and clear on unload (was leaking ghost intervals)
-  const intervalId = setInterval(update, 1000);
-  window.addEventListener('beforeunload', () => clearInterval(intervalId));
+  const intervalId = addTrackedTimer(setInterval(update, 1000));
+  window.addEventListener('pagehide', () => clearInterval(intervalId));
 }
 // P1-003 FIX: Hash-based tab routing
 const SUPPLIER_TABS = ['orders', 'catalog'] as const;

@@ -5,10 +5,12 @@ import { getAuthUser } from '../utils/auth-guard';
 // All endpoints require: JWT + KYC verified + role='homeowner'
 // ============================================================================
 import { Router, Request, Response } from 'express';
+import { ZodError } from 'zod';
 import { authMiddleware, requireActive } from '../middleware/auth.middleware';
 import * as homeownerService from '../services/homeowner.service';
 import { safeRouteError } from '../utils/safe-error';
 import type { ApiResponse } from '../types';
+import { createServiceRequestSchema } from '../validation/schemas';
 
 const router = Router();
 
@@ -53,62 +55,11 @@ router.get('/projects/:id/bids', async (req: Request, res: Response) => {
 // ─── POST /api/homeowner/service-requests — Create Thumbtack Request ───────
 router.post('/service-requests', async (req: Request, res: Response) => {
     try {
-        const dto = req.body as homeownerService.CreateServiceRequestDTO;
-
-        // H4 FIX: Comprehensive input validation
-        // Validates: required fields, enum whitelist, max lengths, numeric bounds
-        if (!dto.trade_needed || !dto.title) {
-            res.status(400).json({
-                success: false,
-                error: 'Missing required fields: trade_needed, title',
-            } as ApiResponse);
-            return;
-        }
-
-        // H4-SEC-001: Title max-length (prevent DB bloat / DoS)
-        if (dto.title.length > 200) {
-            res.status(400).json({
-                success: false,
-                error: 'Title must not exceed 200 characters',
-            } as ApiResponse);
-            return;
-        }
-
-        // H4-SEC-002: Description max-length
-        if (dto.description && dto.description.length > 2000) {
-            res.status(400).json({
-                success: false,
-                error: 'Description must not exceed 2000 characters',
-            } as ApiResponse);
-            return;
-        }
-
-        // H4-SEC-003: Urgency enum whitelist
-        // PLT-HO-001 FIX: Aligned with DB request_urgency enum (routine/urgent/emergency).
-        // Previous: ['low', 'medium', 'high', 'emergency'] — 3 of 4 values rejected by PostgreSQL.
-        const validUrgencies = ['routine', 'urgent', 'emergency'] as const;
-        if (dto.urgency && !validUrgencies.includes(dto.urgency as typeof validUrgencies[number])) {
-            res.status(400).json({
-                success: false,
-                error: `Invalid urgency. Must be one of: ${validUrgencies.join(', ')}`,
-            } as ApiResponse);
-            return;
-        }
-
-        // H4-SEC-004: Budget non-negative and reasonable max (10 billion cents = 100M USD)
-        if (dto.budget_max !== undefined) {
-            if (typeof dto.budget_max !== 'number' || !Number.isInteger(dto.budget_max) || dto.budget_max < 0 || dto.budget_max > 10_000_000_000) {
-                res.status(400).json({
-                    success: false,
-                    error: 'Budget must be a non-negative integer within reasonable range',
-                } as ApiResponse);
-                return;
-            }
-        }
+        const dto = createServiceRequestSchema.parse(req.body);
 
         const result = await homeownerService.createServiceRequest(
             getAuthUser(req).user_id,
-            dto,
+            dto as unknown as homeownerService.CreateServiceRequestDTO,
         );
         res.status(201).json({
             success: true,
@@ -116,6 +67,10 @@ router.post('/service-requests', async (req: Request, res: Response) => {
             message: 'Service request created — matching tradespeople nearby',
         } as ApiResponse);
     } catch (error) {
+        if (error instanceof ZodError) {
+            res.status(400).json({ success: false, error: 'Validation failed', details: error.issues } as ApiResponse);
+            return;
+        }
         safeRouteError(res, error, 'Homeowner');
     }
 });

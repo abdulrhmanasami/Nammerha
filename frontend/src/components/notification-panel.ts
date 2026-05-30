@@ -269,7 +269,7 @@ export function initNotificationPanel(): void {
 
     // Start polling (only one interval globally)
     if (!pollTimer) {
-      pollTimer = setInterval(updateBadge, POLL_INTERVAL_MS);
+      pollTimer = addTrackedTimer(setInterval(updateBadge, POLL_INTERVAL_MS));
     }
 
     // Stop polling when page is hidden (battery optimization for field devices)
@@ -279,7 +279,7 @@ export function initNotificationPanel(): void {
         pollTimer = null;
       } else if (!document.hidden && !pollTimer) {
         updateBadge();
-        pollTimer = setInterval(updateBadge, POLL_INTERVAL_MS);
+        pollTimer = addTrackedTimer(setInterval(updateBadge, POLL_INTERVAL_MS));
       }
     });
 

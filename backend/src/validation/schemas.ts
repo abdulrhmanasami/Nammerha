@@ -368,3 +368,434 @@ export const contractListQuerySchema = z.object({
   status: z.enum(['draft', 'active', 'completed', 'disputed', 'cancelled']).optional(),
   ...paginationSchema.shape,
 });
+
+// ─── Compliance Schemas (SDN / Export Controls) ─────────────────────────────
+
+export const sdnReviewSchema = z.object({
+  decision: z.enum(['false_positive', 'confirmed_match']),
+  notes: z.string().max(2000).optional(),
+});
+
+export const importSDNSchema = z.object({
+  entries: z
+    .array(
+      z.object({
+        sdn_name: z.string().min(1).max(300),
+        sdn_type: z.string().max(50).optional(),
+        aliases: z.array(z.string().max(300)).optional(),
+        country: z.string().max(100).optional(),
+        id_numbers: z.array(z.string().max(300)).optional(),
+        source: z.string().max(200).optional(),
+        program: z.string().max(200).optional(),
+        remarks: z.string().max(5000).optional(),
+      }),
+    )
+    .min(1, 'At least one SDN entry is required')
+    .max(10000, 'Maximum 10,000 entries per import'),
+});
+
+export const addControlledMaterialSchema = z.object({
+  material_name: z.string().min(1).max(200).trim(),
+  material_category: z.string().min(1).max(100).trim(),
+  hs_code: z.string().max(50).optional(),
+  regulation: z.string().max(200).optional(),
+  description: z.string().max(2000).optional(),
+  risk_level: z.enum(['low', 'medium', 'high', 'critical']).optional(),
+});
+
+// ─── Payment Webhook Schema ─────────────────────────────────────────────────
+
+export const webhookCallbackSchema = z.object({
+  reference: z.string().min(1).max(255),
+  gateway: z.string().min(1).max(50),
+  status: z.string().min(1).max(50),
+  gateway_tx_id: z.string().max(255).optional(),
+  signature: z.string().max(1024).optional(),
+});
+
+// ─── Project Dashboard Schemas ──────────────────────────────────────────────
+
+export const createDailyLogSchema = z.object({
+  summary: z.string().min(5).max(5000).trim(),
+  weather: z.string().max(100).optional(),
+  temperature_c: z.number().min(-60).max(60).optional(),
+  workers_count: z.number().int().min(0).max(10000).optional(),
+  hours_worked: z.number().min(0).max(24).optional(),
+  materials_used: z.string().max(5000).optional(),
+  issues: z.string().max(5000).optional(),
+  images: z.array(z.string().url()).max(20).optional(),
+});
+
+export const createApprovalSchema = z.object({
+  approval_type: z.string().min(1).max(100),
+  description: z.string().min(5).max(5000).trim(),
+  priority: z.enum(['low', 'medium', 'high', 'critical']).optional(),
+  documents: z.array(z.string().url()).max(10).optional(),
+});
+
+export const approvalDecisionSchema = z.object({
+  decision: z.enum(['approved', 'rejected']),
+  note: z.string().max(2000).optional(),
+});
+
+// ─── Routing Schemas (Georavity) ────────────────────────────────────────────
+
+const latLngSchema = z.object({
+  lat: gpsLatSchema,
+  lng: gpsLngSchema,
+});
+
+const costingModelSchema = z.enum([
+  'auto', 'pedestrian', 'bicycle', 'truck', 'motor_scooter',
+]).optional();
+
+export const routeRequestSchema = z.object({
+  origin: latLngSchema,
+  destination: latLngSchema,
+  costing: costingModelSchema,
+});
+
+export const matrixRequestSchema = z.object({
+  source: latLngSchema,
+  targets: z.array(latLngSchema).min(1).max(50),
+  costing: costingModelSchema,
+});
+
+export const isochroneRequestSchema = z.object({
+  center: latLngSchema,
+  contours_minutes: z.array(z.number().int().min(1).max(120)).min(1).max(10),
+  costing: costingModelSchema,
+});
+
+// ─── Enterprise Schemas ─────────────────────────────────────────────────────
+
+export const feeRateSchema = z.object({
+  fee_rate_bps: z.number().int().min(0).max(2000),
+});
+
+export const createOrgSchema = z.object({
+  org_name: z.string().min(2).max(200).trim(),
+  org_type: z.string().min(2).max(100).trim(),
+  contact_email: emailSchema,
+  tier: z.string().max(50).optional(),
+  annual_fee_cents: z.number().int().min(0).optional(),
+});
+
+// ─── Admin Schemas (continued) ──────────────────────────────────────────────
+
+export const refundDecisionSchema = z.object({
+  refund_id: uuidSchema,
+  decision: z.enum(['approved', 'rejected']),
+  notes: z.string().max(2000).optional(),
+});
+
+// ─── Supplier Catalog Schemas ───────────────────────────────────────────────
+
+/** Max unit price in cents ($1M) — prevents integer overflow and unrealistic pricing. */
+const MAX_UNIT_PRICE_CENTS = 100_000_000;
+
+export const addCatalogItemSchema = z.object({
+  material_name: z.string().min(1).max(200).trim(),
+  material_category: z.string().min(1).max(100).trim(),
+  description: z.string().max(2000).optional(),
+  image_url: z.string().url().optional(),
+  unit: z.string().min(1).max(50),
+  unit_price_guide: z.number().int().positive().max(MAX_UNIT_PRICE_CENTS),
+  min_order_qty: z.number().int().min(1).optional(),
+  lead_time_days: z.number().int().min(1).optional(),
+});
+
+export const updateCatalogItemSchema = z.object({
+  material_name: z.string().min(1).max(200).trim().optional(),
+  material_category: z.string().min(1).max(100).trim().optional(),
+  description: z.string().max(2000).optional(),
+  image_url: z.string().url().optional(),
+  unit: z.string().min(1).max(50).optional(),
+  unit_price_guide: z.number().int().positive().max(MAX_UNIT_PRICE_CENTS).optional(),
+  min_order_qty: z.number().int().min(1).optional(),
+  lead_time_days: z.number().int().min(1).optional(),
+});
+
+export const poStatusSchema = z.object({
+  status: z.enum(['acknowledged', 'shipped', 'delivered']),
+});
+
+// ─── Review Schemas (full set) ──────────────────────────────────────────────
+
+const reviewableTypeSchema = z.enum([
+  'contractor_profiles', 'supplier_profiles', 'engineer_profiles',
+  'tradesperson_profiles', 'homeowner_profiles', 'project',
+]);
+
+const dimensionRatingSchema = z.object({
+  dimension_key: z.string().min(1).max(100),
+  score: z.number().int().min(1).max(5),
+});
+
+export const createReviewFullSchema = z.object({
+  reviewable_type: reviewableTypeSchema,
+  reviewable_id: uuidSchema,
+  project_id: uuidSchema.optional(),
+  overall_rating: z.number().int().min(1).max(5),
+  title: z.string().max(200).optional(),
+  body: z.string().min(10).max(5000),
+  ratings: z.array(dimensionRatingSchema).max(20).optional(),
+});
+
+export const updateReviewSchema = z.object({
+  overall_rating: z.number().int().min(1).max(5).optional(),
+  title: z.string().max(200).optional(),
+  body: z.string().min(10).max(5000).optional(),
+  ratings: z.array(dimensionRatingSchema).max(20).optional(),
+});
+
+export const createResponseSchema = z.object({
+  body: z.string().min(5).max(2000),
+});
+
+export const flagReviewSchema = z.object({
+  reason: z.enum(['spam', 'inappropriate', 'fake', 'conflict_of_interest', 'other']),
+  description: z.string().max(1000).optional(),
+});
+
+export const reviewHelpfulSchema = z.object({
+  is_helpful: z.boolean(),
+});
+
+// ─── Monetization Schemas ───────────────────────────────────────────────────
+
+export const commissionRateSchema = z.object({
+  commission_rate_bps: z.number().int().min(0).max(5000),
+});
+
+export const createTipSchema = z.object({
+  payment_reference: z.string().min(1).max(255),
+  tip_amount_cents: z.number().int().positive(),
+  tip_percentage: z.number().min(0).max(100).optional(),
+  payment_gateway: z.string().max(50).optional(),
+  payment_gateway_ref: z.string().max(255).optional(),
+});
+
+// ─── Reality Capture Schemas ────────────────────────────────────────────────
+
+export const submitCaptureSchema = z.object({
+  project_id: uuidSchema,
+  capture_type: z.enum(['photo', 'video', 'panorama', '3d_scan']),
+  media_url: z.string().url(),
+  gps_lat: gpsLatSchema,
+  gps_lng: gpsLngSchema,
+  gps_accuracy_meters: z.number().min(0).max(1000).optional(),
+  description: z.string().max(2000).optional(),
+  device_info: z.record(z.string(), z.unknown()).optional(),
+});
+
+export const addAnnotationSchema = z.object({
+  capture_id: uuidSchema,
+  annotation_type: z.string().min(1).max(100),
+  content: z.string().min(1).max(5000),
+  position_x: z.number().optional(),
+  position_y: z.number().optional(),
+});
+
+/** Engineer camera capture — matches SubmitCaptureDTO + project_id at engineer.routes.ts L113 */
+export const engineerCaptureSchema = z.object({
+  project_id: uuidSchema,
+  construction_phase: z.enum([
+    'demolition', 'foundation', 'structural',
+    'plumbing_pre_concrete', 'electrical_pre_concrete', 'concrete_pour',
+    'masonry', 'plastering', 'finishing', 'final_inspection',
+  ]),
+  file_url: z.string().url(),
+  capture_type: z.enum(['photo_360', 'video_360', 'point_cloud', 'photo_standard']).optional(),
+  title: z.string().max(200).optional(),
+  description: z.string().max(2000).optional(),
+  thumbnail_url: z.string().url().optional(),
+  file_size_bytes: z.number().int().positive().max(524_288_000).optional(), // 500MB
+  camera_model: z.string().max(100).optional(),
+  horizontal_fov: z.number().min(0).max(360).optional(),
+  heading: z.number().min(0).max(360).optional(),
+  pitch: z.number().min(-90).max(90).optional(),
+  gps_lat: gpsLatSchema.optional(),
+  gps_lng: gpsLngSchema.optional(),
+  gps_accuracy_meters: z.number().min(0).max(1000).optional(),
+  altitude_meters: z.number().optional(),
+  floor_plan_id: uuidSchema.optional(),
+});
+
+export const uploadFloorPlanSchema = z.object({
+  project_id: uuidSchema,
+  floor_label: z.string().min(1).max(100),
+  media_url: z.string().url(),
+  scale_meters_per_pixel: z.number().positive().optional(),
+});
+
+// ─── Tradesperson Schemas ───────────────────────────────────────────────────
+
+export const acceptTaskSchema = z.object({
+  accept: z.boolean(),
+});
+
+export const taskStatusSchema = z.object({
+  status: z.enum(['in_progress', 'completed', 'blocked']),
+});
+
+export const availabilityStatusSchema = z.object({
+  status: z.enum(['available', 'busy', 'offline']),
+});
+
+// ─── Subscription Schemas ───────────────────────────────────────────────────
+
+export const subscribeSchema = z.object({
+  plan_slug: z.string().min(1).max(100),
+});
+
+export const updatePlanPriceSchema = z.object({
+  price_cents: z.number().int().min(0).max(100_000_000),
+});
+
+// ─── Storage Upload Request Schema ──────────────────────────────────────────
+
+export const presignedUploadRequestSchema = z.object({
+  project_id: uuidSchema,
+  category: z.string().min(1).max(100),
+  filename: z
+    .string()
+    .min(1)
+    .max(255)
+    .regex(/^[a-zA-Z0-9._-]+$/, 'Filename contains invalid characters'),
+  content_type: z
+    .string()
+    .regex(
+      /^(image|video|application)\/(jpeg|jpg|png|gif|webp|mp4|pdf|octet-stream)$/i,
+      'Unsupported file type',
+    ),
+  file_size_bytes: z.number().int().positive().max(52_428_800), // 50MB
+});
+
+// ─── MFA Login Token Schema ─────────────────────────────────────────────────
+
+export const mfaLoginTokenSchema = z.object({
+  mfa_token: z.string().min(1, 'MFA token is required'),
+});
+
+// ─── Homeowner Service Request Schema ───────────────────────────────────────
+
+export const createServiceRequestSchema = z.object({
+  damage_type: z.enum(['structural', 'plumbing', 'electrical', 'mixed', 'general']),
+  damage_severity: z.enum(['minor', 'moderate', 'severe', 'total_destruction']).optional(),
+  description: z.string().min(10).max(5000).trim(),
+  gps_lat: gpsLatSchema,
+  gps_lng: gpsLngSchema,
+  address_text: z.string().max(500).optional(),
+  images: z.array(z.string().url()).max(10).optional(),
+  budget_max: z.number().int().positive().optional(),
+});
+
+// ─── Spatial / Satellite / Geofencing Schemas ───────────────────────────────
+
+export const registerImagerySchema = z.object({
+  project_id: uuidSchema,
+  provider: z.string().min(1).max(100),
+  image_url: z.string().url(),
+  capture_date: z.string().regex(/^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2})?/).optional(),
+  resolution_cm: z.number().positive().optional(),
+  gps_bounds: z.object({
+    north: gpsLatSchema,
+    south: gpsLatSchema,
+    east: gpsLngSchema,
+    west: gpsLngSchema,
+  }).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+});
+
+export const nearbySearchSchema = z.object({
+  lat: gpsLatSchema,
+  lng: gpsLngSchema,
+});
+
+export const createGeofenceZoneSchema = z.object({
+  project_id: uuidSchema,
+  zone_name: z.string().min(1).max(200).trim(),
+  zone_type: z.enum(['work_area', 'exclusion', 'safety', 'staging']).optional(),
+  geometry: z.record(z.string(), z.unknown()), // GeoJSON geometry
+  radius_meters: z.number().positive().optional(),
+  alert_on_entry: z.boolean().optional(),
+  alert_on_exit: z.boolean().optional(),
+});
+
+// ─── Privacy Settings Schema ────────────────────────────────────────────────
+
+export const privacySettingsSchema = z.object({
+  settings: z.record(
+    z.string(),
+    z.record(z.string(), z.enum(['public', 'project_members', 'private'])),
+  ).optional(),
+});
+
+// ─── Role Assignment Schema ─────────────────────────────────────────────────
+
+export const assignRoleSchema = z.object({
+  role: z.enum(['homeowner', 'engineer', 'donor', 'supplier', 'contractor', 'tradesperson', 'admin', 'auditor']),
+});
+
+// ─── API Keys Schema ────────────────────────────────────────────────────────
+
+export const createApiKeySchema = z.object({
+  key_name: z.string().min(1).max(100).trim(),
+  scopes: z.array(z.string().max(100)).min(1).max(20),
+  expires_in_days: z.number().int().min(1).max(365).optional(),
+});
+
+// ─── EPA Oracle Approval Schema ─────────────────────────────────────────────
+
+export const epaApprovalSchema = z.object({
+  decision: z.enum(['approved', 'rejected']),
+});
+
+// ─── Contractor Bid Schema ──────────────────────────────────────────────────
+
+export const contractorBidSchema = z.object({
+  project_id: uuidSchema,
+  proposed_cost: centsSchema,
+  estimated_days: z.number().int().positive().max(3650),
+  cover_letter: z.string().max(5000).optional(),
+  methodology: z.string().max(5000).optional(),
+});
+
+// ─── Translation Schemas (continued) ────────────────────────────────────────
+
+export const addGlossaryTermSchema = z.object({
+  source_term: z.string().min(1).max(500).trim(),
+  approved_translation: z.string().min(1).max(500).trim(),
+  source_lang: z.string().min(2).max(5).optional(),
+  target_lang: z.string().min(2).max(5),
+  context: z.string().max(2000).optional(),
+});
+
+export const resolveConflictSchema = z.object({
+  resolution: z.enum(['approved', 'corrected', 'rejected']),
+  corrected_text: z.string().max(10000).optional(),
+});
+
+export const batchTranslateRequestSchema = z.object({
+  items: z.array(z.string().min(1).max(10000)).min(1).max(50),
+  source_lang: z.string().min(2).max(5),
+  target_lang: z.string().min(2).max(5),
+  content_type: z.string().max(50).optional(),
+  context: z.string().max(2000).optional(),
+});
+
+// ─── CSP Report Schema ──────────────────────────────────────────────────────
+
+export const cspReportSchema = z.record(z.string(), z.unknown());
+
+// ─── Storage Upload URL Schema ──────────────────────────────────────────────
+
+export const storageUploadUrlSchema = z.object({
+  project_id: z.string().min(1).max(100),
+  category: z.string().min(1).max(50),
+  filename: z.string().min(1).max(255),
+  content_type: z.string().min(1).max(100),
+  file_size_bytes: z.number().int().positive().max(52_428_800).optional(),
+});
+
