@@ -298,18 +298,18 @@ router.get('/aggregates/:type/:id', async (req: Request, res: Response): Promise
       label_en: d.label_en,
       label_ar: d.label_ar,
       average: (agg.dimension_averages as Record<string, number>)[d.dimension_key] ?? 0,
-      weight: parseFloat(d.weight),
+      weight: (function() { const p = parseFloat(d.weight); return Number.isNaN(p) ? 0 : p; })(),
     }));
 
     res.json({
       success: true,
       data: {
         total_reviews: agg.total_reviews,
-        average_rating: parseFloat(String(agg.average_rating)),
+        average_rating: (function() { const p = parseFloat(String(agg.average_rating)); return Number.isNaN(p) ? 0 : p; })(),
         verified_reviews: agg.verified_reviews,
         dimension_averages: agg.dimension_averages,
         rating_distribution: agg.rating_distribution,
-        trust_score: parseFloat(String(agg.trust_score)),
+        trust_score: (function() { const p = parseFloat(String(agg.trust_score)); return Number.isNaN(p) ? 0 : p; })(),
         last_review_at: agg.last_review_at,
         dimensions,
       },

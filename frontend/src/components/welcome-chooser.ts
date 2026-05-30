@@ -27,8 +27,7 @@ import { t, isRTL } from '../utils/i18n';
 import { escapeHtml as esc } from '../utils/xss';
 // P1-001 REFACTOR: Import from shared workspace map (SSoT).
 import { WS_STORAGE_KEY } from '../utils/workspace-map';
-// P0-JRN-002 FIX: user role gated behind payment feature flag.
-import { PAYMENTS_ENABLED } from '../utils/feature-flags';
+// P1-W14 FIX: Zombie listeners and timeout tracking.
 // P1-W14 FIX: Zombie listeners and timeout tracking.
 import { addTrackedTimer } from '../utils/tracked-timers';
 
@@ -122,26 +121,8 @@ const WORKSPACE_OPTIONS: WorkspaceOption[] = [
   },
 ];
 
-// P0-JRN-002 FIX: user workspace option — conditionally added when payments are enabled.
-// PREVIOUS: 6 registration roles (homeowner, contractor, engineer, tradesperson, supplier, user)
-// but only 5 welcome chooser cards. users registered → saw no matching task → picked
-// "explore projects" → couldn't find payment flow.
-// NOW: user card appears when PAYMENTS_ENABLED is true. Vite tree-shakes when false.
-// Standard: Feature Flag Governance, Nielsen #2 (Match System ↔ Real World).
-if (PAYMENTS_ENABLED) {
-  // Insert user card before "explore" (last position) for logical ordering
-  WORKSPACE_OPTIONS.splice(WORKSPACE_OPTIONS.length - 1, 0, {
-    id: 'user',
-    icon: 'hand-heart',
-    titleKey: 'wc_task_user',
-    titleFallback: 'I want to support reconstruction',
-    descKey: 'wc_desc_user',
-    descFallback: 'Fund verified projects, track your impact, and help rebuild Syria',
-    href: '/user-portal.html',
-    colorClass: 'text-rose-600 dark:text-rose-400',
-    bgClass: 'bg-rose-600/10 dark:bg-rose-400/20',
-  });
-}
+// P0-JRN-002 FIX: user workspace option// HIGH-001: The Donor/User system has been globally eradicated from the platform.
+// No user portal card will be injected.
 
 // ─── State ──────────────────────────────────────────────────────────────────
 let chooserEl: HTMLElement | null = null;
@@ -230,14 +211,14 @@ function showChooser(): void {
                 data-wc-href="${esc(opt.href)}"
                 style="animation-delay: ${150 + i * 80}ms"
                 aria-label="${esc(t(opt.titleKey, opt.titleFallback))}">
-            <div class="nm-wc-card-icon ${opt.bgClass}">
-                <i class="ph ph-${esc(opt.icon)} nm-icon-28 ${opt.colorClass}" aria-hidden="true"></i>
+            <div class="nm-wc-card-icon ${esc(opt.bgClass)}">
+                <i class="ph ph-${esc(opt.icon)} nm-icon-28 ${esc(opt.colorClass)}" aria-hidden="true"></i>
             </div>
             <div class="nm-wc-card-body">
                 <h3 class="nm-wc-card-title" data-i18n="${esc(opt.titleKey)}">${esc(t(opt.titleKey, opt.titleFallback))}</h3>
                 <p class="nm-wc-card-desc" data-i18n="${esc(opt.descKey)}">${esc(t(opt.descKey, opt.descFallback))}</p>
             </div>
-            <i class="ph ph-caret-right nm-wc-card-arrow nm-dir-shift ${opt.colorClass}" aria-hidden="true"></i>
+            <i class="ph ph-caret-right nm-wc-card-arrow nm-dir-shift ${esc(opt.colorClass)}" aria-hidden="true"></i>
         </button>
     `,
   ).join('');
@@ -374,7 +355,7 @@ function wireChooserEvents(modal: HTMLElement): void {
       return;
     }
 
-    if (!arr.includes(document.activeElement as HTMLElement) && document.activeElement !== modal) {
+    if (!modal.contains(document.activeElement)) {
       e.preventDefault();
       modal.focus();
       return;

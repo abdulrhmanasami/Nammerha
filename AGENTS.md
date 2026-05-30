@@ -18,6 +18,19 @@
 
 ## 🛑 ZERO-REGRESSION MEMOS (CRITICAL AI MEMORY)
 
+**MEMO 56: Donor Eradication Completion, NaN Database Poisoning, & Focus Trap Escape (May 30, 2026)**
+
+- **Root Cause Destroyed:**
+  1. `welcome-chooser.ts` was still conditionally injecting the "User" (Donor) portal if `PAYMENTS_ENABLED` was true, violating the absolute deletion of the donation system.
+  2. `review.routes.ts` blindly extracted mathematical aggregates using `parseFloat` without checking for `NaN`, creating a PostgreSQL arithmetic DoS vector.
+  3. The `ui-lock` focus trap in `welcome-chooser.ts` checked against a static array (`!arr.includes(document.activeElement)`), failing to handle dynamic modal content properly and locking keyboard users out of the UI.
+  4. Template interpolations in `welcome-chooser.ts` and `main.ts` injected variables directly into `class` attributes without `esc()`, risking DOM XSS.
+- **New Logic Built:**
+  1. **Strict Donor Annihilation:** The conditional block for `PAYMENTS_ENABLED` injecting the donor card in `welcome-chooser.ts` was completely eradicated. The platform operates permanently with zero donor logic.
+  2. **Mathematical Defense:** `parseFloat` usages in backend routes are now strictly wrapped in IIFE guards `(function() { const p = parseFloat(val); return Number.isNaN(p) ? 0 : p; })()`.
+  3. **Absolute Focus Trap Binding:** Focus traps MUST use the DOM-native `modal.contains(document.activeElement)` to determine focus escape.
+  4. **Strict Interpolation:** Dynamic CSS class injection and icon names inside HTML templates must be wrapped in `esc()`.
+
 **MEMO 55: The parseFloat NaN Injection & Over-Escaping UI Crash (May 30, 2026)**
 
 - **Root Cause Destroyed:**

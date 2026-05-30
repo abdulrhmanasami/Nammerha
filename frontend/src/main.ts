@@ -185,7 +185,7 @@ function buildProjectCard(project: ProjectCard, index: number): string {
         ${
           project.cover_image_url
             ? `<img src="${escapeHtml(project.cover_image_url)}" class="absolute inset-0 w-full h-full object-cover" alt="${escapeHtml(project.title)}" fetchpriority="high" decoding="async" style="aspect-ratio: 16/9; background-color: #f1f5f9;" />`
-            : `<div class="absolute inset-0 flex items-center justify-center"><i class="ph ph-${icon} text-warm-earth/60 nm-icon-48" aria-hidden="true"></i></div>`
+            : `<div class="absolute inset-0 flex items-center justify-center"><i class="ph ph-${esc(icon)} text-warm-earth/60 nm-icon-48" aria-hidden="true"></i></div>`
         }
         <div class="absolute top-3 bg-white/90 backdrop-blur rounded-full px-2 py-1 flex items-center gap-1 shadow-sm nm-badge-pos-end dark:bg-[#1e1e1e]/90">
           <i class="ph ph-seal-check text-smoky-jade text-sm dark:text-emerald-400" aria-hidden="true"></i>
