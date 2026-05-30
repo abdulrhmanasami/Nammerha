@@ -18,6 +18,26 @@
 
 ## 🛑 ZERO-REGRESSION MEMOS (CRITICAL AI MEMORY)
 
+**MEMO 58: Invisible Fix Pipeline — Caching Architecture Redesign (May 30, 2026)**
+
+- **Root Cause Destroyed:**
+  1. `sw.js` used **Cache-First strategy for ALL assets** (HTML, JS, CSS, fonts). Users always saw the previous version of every page. After deployment, the first visit served stale cached HTML. Only the second visit (after background fetch updated the cache) showed new content — but by then, the SW may have already re-cached stale content.
+  2. `sw.js` `SHELL_ASSETS` pre-cached `/nav.js?v=8`, `/i18n.js?v=8`, `/i18n.css?v=8`, but ALL 31 HTML files referenced `?v=7`. These are **different cache keys** — the SW never matched HTML requests, causing permanent desync.
+  3. `nginx.conf` applied `expires 1y; Cache-Control: public, immutable` to ALL `.js` and `.css` files via a single catch-all regex. This included 11 unhashed public files (`nav.js`, `i18n.js`, `i18n.css`, `sidebar.js`, `haptic.js`, `back-to-top.js`, `offline-indicator.js`, `theme-boot.js`, `theme-toggle.js`, `load-guard.js`, `nm-timers.js`) that have NO content hash in their filenames. Once downloaded, browsers never revalidated for 365 days.
+  4. `sw.js` `install` handler called `self.skipWaiting()` BEFORE `event.waitUntil()` completed. The new SW took control while the new cache was still being populated, and the `activate` handler deleted old caches, causing blank/broken pages during deployment transitions.
+  5. `nav.js` dynamically injected 3 scripts with hardcoded `?v=1` (`offline-indicator.js`, `haptic.js`, `back-to-top.js`), permanently locking these scripts to their first-ever cached version.
+  6. `package.json` build script used an inline `if(fs.existsSync(file))` guard that silently swallowed failures if `dist/sw.js` was missing, leaving users on stale SW cache versions.
+- **New Logic Built:**
+  1. **HTML/Documents → Network-First:** SW fetch handler now routes all HTML requests (`request.destination === 'document'`, `.html`, `/`) through `networkFirstWithCache()`. Users always see the latest HTML on network-available visits. Cache serves only as offline fallback.
+  2. **Vite Hashed Assets → Cache-First (safe):** New `isHashedAsset()` discriminator identifies Vite output files by their filename pattern (`/assets/{name}-{7+charHash}.{ext}`). These are correctly immutable — filename changes when content changes.
+  3. **Unhashed Public Files → Network-First:** All non-hashed public JS/CSS (nav.js, i18n.js, etc.) now use `networkFirstWithCache()` to ensure users always get the latest version.
+  4. **Version Param Elimination:** Removed ALL `?v=N` query params from `SHELL_ASSETS` and all 31 HTML files. Cache keys now match by bare path. Nginx ETag handles freshness for unhashed files.
+  5. **skipWaiting() Race Fix:** Moved `self.skipWaiting()` inside `.then()` chain after `cache.addAll(SHELL_ASSETS)` completes, ensuring the new SW only takes control after the new cache is fully populated.
+  6. **Nginx Cache Discrimination:** Split single catch-all into 3 location blocks: (a) unhashed public JS/CSS → `no-cache, must-revalidate` with ETag, (b) Vite hashed `/assets/*` → `1y immutable`, (c) fonts/images → `1y immutable`.
+  7. **nav.js Dynamic Scripts:** Removed `?v=1` from `offline-indicator.js`, `haptic.js`, `back-to-top.js` injections.
+  8. **Build Script Hardening:** New `scripts/bump-sw-version.cjs` replaces fragile inline one-liner. Fails loudly if `dist/sw.js` is missing. Each build gets a unique timestamp version.
+- **Verification:** `npx tsc --noEmit` = 0 errors. `npm run build` = EXIT:0 with `✅ SW Cache Version bumped to v1780146211454`. All 36 files verified: 31 HTML + sw.js + nav.js + nginx.conf + package.json + bump-sw-version.cjs.
+
 **MEMO 57: Platinum Security & Financial Integrity Audit — TOTP Replay, CSRF Hardening, Transaction Atomicity & WCAG Compliance (May 30, 2026)**
 
 - **Root Cause Destroyed:**
