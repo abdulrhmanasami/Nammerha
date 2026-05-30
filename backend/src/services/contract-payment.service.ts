@@ -189,8 +189,9 @@ export async function createContract(
         // Create milestones if provided
         if (input.milestones && input.milestones.length > 0) {
             // Validate: milestone amounts must sum to total_agreed_amount
-            const milestoneSum = input.milestones.reduce((s, m) => s + m.amount, 0);
-            if (milestoneSum !== input.total_agreed_amount) {
+            // MEMO 53 FIX: Explicit Number() cast to prevent String Concatenation Trap
+            const milestoneSum = input.milestones.reduce((s, m) => s + Number(m.amount), 0);
+            if (milestoneSum !== Number(input.total_agreed_amount)) {
                 throw new Error(
                     `Milestone amounts (${milestoneSum}) must equal total contract amount (${input.total_agreed_amount})`,
                 );

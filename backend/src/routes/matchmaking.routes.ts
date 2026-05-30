@@ -23,16 +23,16 @@ router.use(requireActive);
 router.get('/search', async (req: Request, res: Response) => {
   try {
     const dto: matchmaking.SearchEngineersDTO = {
-      lat: req.query.lat ? parseFloat(req.query.lat as string) : undefined,
-      lng: req.query.lng ? parseFloat(req.query.lng as string) : undefined,
+      lat: req.query.lat ? (function() { const p = parseFloat(req.query.lat as string); return Number.isNaN(p) ? undefined : p; })() : undefined,
+      lng: req.query.lng ? (function() { const p = parseFloat(req.query.lng as string); return Number.isNaN(p) ? undefined : p; })() : undefined,
       max_distance_km: req.query.max_distance_km
         ? parseInt(req.query.max_distance_km as string, 10)
         : undefined,
       specialty: req.query.specialty as string | undefined,
       query: req.query.q as string | undefined,
-      min_score: req.query.min_score ? parseFloat(req.query.min_score as string) : undefined,
-      limit: req.query.limit ? parseInt(req.query.limit as string, 10) : 20,
-      offset: req.query.offset ? parseInt(req.query.offset as string, 10) : 0,
+      min_score: req.query.min_score ? (function() { const p = parseFloat(req.query.min_score as string); return Number.isNaN(p) ? undefined : p; })() : undefined,
+      limit: (function() { const p = parseInt(req.query.limit as string, 10); return Number.isNaN(p) ? 20 : p; })(),
+      offset: (function() { const p = parseInt(req.query.offset as string, 10); return Number.isNaN(p) ? 0 : p; })(),
     };
 
     const engineers = await matchmaking.searchEngineers(dto);

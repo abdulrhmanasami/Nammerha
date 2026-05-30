@@ -16,8 +16,10 @@ const router = Router();
 router.get('/projects', cacheResponse(30), async (req: Request, res: Response) => {
     try {
         // PLT-AUDIT-001 FIX: Forward pagination params to prevent unbounded result sets.
-        const limit = req.query['limit'] ? parseInt(String(req.query['limit']), 10) : undefined;
-        const offset = req.query['offset'] ? parseInt(String(req.query['offset']), 10) : undefined;
+        const p_limit = req.query['limit'] ? parseInt(String(req.query['limit']), 10) : undefined;
+        const limit = (p_limit === undefined || Number.isNaN(p_limit)) ? undefined : p_limit;
+        const p_offset = req.query['offset'] ? parseInt(String(req.query['offset']), 10) : undefined;
+        const offset = (p_offset === undefined || Number.isNaN(p_offset)) ? undefined : p_offset;
         const projects = await crowdfundingService.getMarketplaceProjects({
             damage_type: req.query['damage_type'] as string | undefined,
             sort_by: req.query['sort_by'] as 'funded_percentage' | 'published_at' | undefined,

@@ -21,8 +21,10 @@ const router = Router();
 router.get('/projects', cacheResponse(30), async (req: Request, res: Response) => {
     try {
         // P2-PAG-002 FIX: Clamp public pagination to prevent DoS via massive DB queries.
-        const limit = Math.min(req.query.limit ? parseInt(req.query.limit as string, 10) : 20, 100);
-        const offset = Math.max(req.query.offset ? parseInt(req.query.offset as string, 10) : 0, 0);
+        const p_limit = parseInt(req.query.limit as string, 10);
+            const limit = Math.min(Number.isNaN(p_limit) ? 20 : p_limit, 100);
+        const p_offset = parseInt(req.query.offset as string, 10);
+            const offset = Math.max(Number.isNaN(p_offset) ? 0 : p_offset, 0);
         const status = req.query.status as string | undefined;
 
         const result = await openData.listPublicProjects(limit, offset, status);

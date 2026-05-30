@@ -18,6 +18,17 @@
 
 ## 🛑 ZERO-REGRESSION MEMOS (CRITICAL AI MEMORY)
 
+**MEMO 55: The parseFloat NaN Injection & Over-Escaping UI Crash (May 30, 2026)**
+
+- **Root Cause Destroyed:**
+  1. `matchmaking.routes.ts` extracted coordinates (`lat`, `lng`) and scores via `parseFloat` without `Number.isNaN()` guards. Submitting an alphabetical string resulted in `NaN` propagating deep into the Matchmaking Engine, causing PostgreSQL `earthdistance` queries to crash with a `500 Internal Server Error`, opening a Denial of Service (DoS) vulnerability.
+  2. The `contract-payment.service.ts` accumulated milestone amounts dynamically via `.reduce((s, m) => s + m.amount, 0)`. Because `m.amount` was not explicitly cast via `Number()`, the generic JSON body parser allowed string inputs (e.g. `"500"`) to trigger a massive String Concatenation Trap (`500` + `200` = `500200`), devastating contract totals.
+  3. `welcome-chooser.ts` attempted to inject raw HTML buttons (`cardsHtml`) into the UI but incorrectly wrapped the entire block in the `esc()` (XSS mitigation) function. This resulted in the browser physically rendering the raw text `<button...>` on the screen, totally paralyzing the onboarding flow (The Over-Escaping Catastrophe).
+- **New Logic Built:**
+  1. **Strict NaN Guards:** All `parseFloat` usages in API routes (e.g., Matchmaking) MUST be wrapped in IIFE guards `(function() { const p = parseFloat(val); return Number.isNaN(p) ? undefined : p; })()` to shield PostgreSQL engines from arithmetic crashes.
+  2. **Financial Number Casting:** Any numeric reduction (`.reduce`) on financial inputs MUST explicitly cast `Number(m.amount)` to mathematically prevent String Concatenation Traps.
+  3. **Strict HTML XSS Injection Boundaries:** `esc()` must NEVER wrap dynamically generated HTML markup (`cardsHtml`). Variables must be escaped *before* insertion into the template string (`${esc(opt.id)}`), and the final HTML block must be injected natively (`${cardsHtml}`).
+
 **MEMO 54: The Over-Escaping Catastrophe & parseInt Radix Annihilation (May 30, 2026)**
 
 - **Root Cause Destroyed:**

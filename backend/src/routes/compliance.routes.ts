@@ -275,8 +275,10 @@ router.get(
                 to_date: req.query.to as string | undefined,
             };
             // P2-PAG-001 FIX: Clamp pagination to prevent massive DB queries.
-            const limit = Math.min(req.query.limit ? parseInt(req.query.limit as string, 10) : 100, 500);
-            const offset = Math.max(req.query.offset ? parseInt(req.query.offset as string, 10) : 0, 0);
+            const p_limit = parseInt(req.query.limit as string, 10);
+            const limit = Math.min(Number.isNaN(p_limit) ? 100 : p_limit, 500);
+            const p_offset = parseInt(req.query.offset as string, 10);
+            const offset = Math.max(Number.isNaN(p_offset) ? 0 : p_offset, 0);
 
             const result = await securityEvents.getSecurityEvents(filters, limit, offset);
 
@@ -306,7 +308,8 @@ router.get(
             const from_date = req.query.from as string | undefined;
             const to_date = req.query.to as string | undefined;
             // P2-PAG-001 FIX: Clamp export limit.
-            const limit = Math.min(req.query.limit ? parseInt(req.query.limit as string, 10) : 1000, 5000);
+            const p_limit = parseInt(req.query.limit as string, 10);
+            const limit = Math.min(Number.isNaN(p_limit) ? 1000 : p_limit, 5000);
 
             const cef = await securityEvents.exportCEF(from_date, to_date, limit);
 
@@ -328,7 +331,8 @@ router.get(
             const from_date = req.query.from as string | undefined;
             const to_date = req.query.to as string | undefined;
             // P2-PAG-001 FIX: Clamp export limit.
-            const limit = Math.min(req.query.limit ? parseInt(req.query.limit as string, 10) : 1000, 5000);
+            const p_limit = parseInt(req.query.limit as string, 10);
+            const limit = Math.min(Number.isNaN(p_limit) ? 1000 : p_limit, 5000);
 
             const events = await securityEvents.exportJSON(from_date, to_date, limit);
 

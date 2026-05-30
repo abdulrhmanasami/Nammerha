@@ -24,8 +24,10 @@ router.use(requireActive);
 // ─── GET /api/engineer/projects — My Assigned Projects ──────────────────────
 router.get('/projects', async (req: Request, res: Response) => {
     // AUDIT FIX: Was calling getMyProjects without pagination params
-    const limit = req.query['limit'] ? parseInt(req.query['limit'] as string, 10) : 50;
-    const offset = req.query['offset'] ? parseInt(req.query['offset'] as string, 10) : 0;
+    const p_limit = parseInt(req.query['limit'] as string, 10);
+            const limit = Number.isNaN(p_limit) ? 50 : p_limit;
+    const p_offset = parseInt(req.query['offset'] as string, 10);
+            const offset = Number.isNaN(p_offset) ? 0 : p_offset;
     const safeLim = Number.isNaN(limit) ? 50 : Math.min(Math.max(limit, 1), 100);
     const safeOff = Number.isNaN(offset) ? 0 : Math.max(offset, 0);
 
@@ -56,8 +58,10 @@ router.get('/stats', async (req: Request, res: Response) => {
 // ─── GET /api/engineer/bids — My Bid History ────────────────────────────────
 router.get('/bids', async (req: Request, res: Response) => {
     // AUDIT FIX: Was calling getMyBids without pagination params
-    const limit = req.query['limit'] ? parseInt(req.query['limit'] as string, 10) : 50;
-    const offset = req.query['offset'] ? parseInt(req.query['offset'] as string, 10) : 0;
+    const p_limit = parseInt(req.query['limit'] as string, 10);
+            const limit = Number.isNaN(p_limit) ? 50 : p_limit;
+    const p_offset = parseInt(req.query['offset'] as string, 10);
+            const offset = Number.isNaN(p_offset) ? 0 : p_offset;
     const safeLim = Number.isNaN(limit) ? 50 : Math.min(Math.max(limit, 1), 100);
     const safeOff = Number.isNaN(offset) ? 0 : Math.max(offset, 0);
 
@@ -89,7 +93,8 @@ router.get('/profile', async (req: Request, res: Response) => {
 router.get('/captures', async (req: Request, res: Response) => {
     try {
         // P3-CAP-001 FIX: NaN-safe + max clamp — prevents 500 on ?limit=abc and DoS on ?limit=999999999
-        const rawLimit = req.query['limit'] ? parseInt(req.query['limit'] as string, 10) : 20;
+        const p_rawLimit = parseInt(req.query['limit'] as string, 10);
+            const rawLimit = Number.isNaN(p_rawLimit) ? 20 : p_rawLimit;
         const limit = Number.isNaN(rawLimit) ? 20 : Math.min(Math.max(rawLimit, 1), 100);
         const captures = await engineerService.getMyCaptures(
             getAuthUser(req).user_id,

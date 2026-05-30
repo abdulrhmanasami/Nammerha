@@ -40,8 +40,10 @@ router.get(
     requireRole('homeowner', 'donor', 'engineer', 'admin'),
     async (req: Request, res: Response) => {
         try {
-            const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 30;
-            const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : 0;
+            const p_limit = parseInt(req.query.limit as string, 10);
+            const limit = Number.isNaN(p_limit) ? 30 : p_limit;
+            const p_offset = parseInt(req.query.offset as string, 10);
+            const offset = Number.isNaN(p_offset) ? 0 : p_offset;
 
             const logs = await dashboard.getDailyLogs(String(req.params.projectId), limit, offset);
 

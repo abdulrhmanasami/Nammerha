@@ -57,8 +57,10 @@ router.get(
         try {
             const phase = req.query.phase as capture.ConstructionPhase | undefined;
             const type = req.query.type as capture.CaptureType | undefined;
-            const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 50;
-            const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : 0;
+            const p_limit = parseInt(req.query.limit as string, 10);
+            const limit = Number.isNaN(p_limit) ? 50 : p_limit;
+            const p_offset = parseInt(req.query.offset as string, 10);
+            const offset = Number.isNaN(p_offset) ? 0 : p_offset;
 
             const captures = await capture.getProjectCaptures(
                 String(req.params.projectId), phase, type, limit, offset

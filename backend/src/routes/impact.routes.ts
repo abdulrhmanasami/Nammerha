@@ -28,8 +28,10 @@ router.use(requireActive);
 router.get('/messages', async (req: Request, res: Response) => {
     try {
         const donorId = getAuthUser(req).user_id;
-        const limit = Math.min(parseInt(String(req.query['limit'] ?? '50'), 10), 100);
-        const offset = Math.max(parseInt(String(req.query['offset'] ?? '0'), 10), 0);
+        const p_limit = parseInt(String(req.query['limit'] ?? '50'), 10);
+        const limit = Math.min(Number.isNaN(p_limit) ? 50 : p_limit, 100);
+        const p_offset = parseInt(String(req.query['offset'] ?? '0'), 10);
+        const offset = Math.max(Number.isNaN(p_offset) ? 0 : p_offset, 0);
         const unreadOnly = req.query['unread_only'] === 'true';
 
         const messages = await impactService.getDonorMessages(donorId, {

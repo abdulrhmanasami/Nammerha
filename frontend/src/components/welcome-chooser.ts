@@ -261,7 +261,7 @@ function showChooser(): void {
                 </div>
             </div>
             <div class="nm-wc-cards">
-                ${esc(cardsHtml)}
+                ${cardsHtml}
             </div>
             <div class="nm-wc-footer">
                 <button type="button" class="nm-wc-dismiss" data-action="dismiss">
