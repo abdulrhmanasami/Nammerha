@@ -131,7 +131,7 @@ for filepath in "${MIGRATION_FILES[@]}"; do
     checksum=$(shasum -a 256 "$filepath" | cut -d' ' -f1)
 
     # Check if already applied
-    existing=$(run_sql "SELECT checksum_sha256 FROM _migrations WHERE filename = '$filename';" 2>/dev/null || echo "")
+    existing=$(run_sql "SELECT checksum_sha256 FROM _migrations WHERE filename = \$\$${filename}\$\$;" 2>/dev/null || echo "")
 
     if [[ -n "$existing" ]]; then
         # Verify checksum integrity
@@ -168,7 +168,7 @@ for filepath in "${MIGRATION_FILES[@]}"; do
     DURATION=$((END_MS - START_MS))
 
     # Record in tracking table
-    run_sql "INSERT INTO _migrations (filename, checksum_sha256, execution_ms) VALUES ('$filename', '$checksum', $DURATION);"
+    run_sql "INSERT INTO _migrations (filename, checksum_sha256, execution_ms) VALUES (\$\$${filename}\$\$, \$\$${checksum}\$\$, ${DURATION});"
 
     log_ok "$filename (${DURATION}ms)"
     APPLIED=$((APPLIED + 1))

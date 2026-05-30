@@ -97,10 +97,10 @@ router.post('/service-requests', async (req: Request, res: Response) => {
 
         // H4-SEC-004: Budget non-negative and reasonable max (10 billion cents = 100M USD)
         if (dto.budget_max !== undefined) {
-            if (typeof dto.budget_max !== 'number' || dto.budget_max < 0 || dto.budget_max > 10_000_000_000) {
+            if (typeof dto.budget_max !== 'number' || !Number.isInteger(dto.budget_max) || dto.budget_max < 0 || dto.budget_max > 10_000_000_000) {
                 res.status(400).json({
                     success: false,
-                    error: 'Budget must be a non-negative number within reasonable range',
+                    error: 'Budget must be a non-negative integer within reasonable range',
                 } as ApiResponse);
                 return;
             }

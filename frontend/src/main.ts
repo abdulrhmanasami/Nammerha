@@ -482,34 +482,9 @@ function initDashboard(): void {
   // PLATINUM UX FIX: Dynamic Glass Nav Blur
   initGlassNavScroll();
 
-  // PLATINUM UX FIX: Pinch-to-zoom Demonic Blocker
-  // Prevents iOS Safari from zooming and breaking the layout, forcing a Native App feel.
-  initPinchToZoomBlocker();
-}
-
-function initPinchToZoomBlocker(): void {
-  document.addEventListener(
-    'touchmove',
-    function (event: TouchEvent) {
-      if (('scale' in event && typeof event.scale === 'number' && event.scale !== 1) || event.touches.length > 1) {
-        event.preventDefault();
-      }
-    },
-    { passive: false },
-  );
-
-  let lastTouchEnd = 0;
-  document.addEventListener(
-    'touchend',
-    function (event) {
-      const now = new Date().getTime();
-      if (now - lastTouchEnd <= 300) {
-        event.preventDefault();
-      }
-      lastTouchEnd = now;
-    },
-    false,
-  );
+  // WCAG 1.4.4 / 2.5.1: Pinch-to-zoom blocker REMOVED.
+  // Blocking zoom violates accessibility requirements for visually impaired users.
+  // If layout zoom causes issues, use viewport meta maximum-scale=5 instead.
 }
 
 function initGlassNavScroll(): void {
@@ -517,13 +492,20 @@ function initGlassNavScroll(): void {
   if (!nav) {
     return;
   }
+  let ticking = false;
   window.addEventListener(
     'scroll',
     () => {
-      if (window.scrollY > 10) {
-        nav.classList.add('scrolled');
-      } else {
-        nav.classList.remove('scrolled');
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          if (window.scrollY > 10) {
+            nav.classList.add('scrolled');
+          } else {
+            nav.classList.remove('scrolled');
+          }
+          ticking = false;
+        });
+        ticking = true;
       }
     },
     { passive: true },

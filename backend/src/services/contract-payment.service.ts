@@ -310,7 +310,7 @@ export async function createPayment(
     contractId: string,
     userId: string,
     input: CreatePaymentInput,
-    idempotencyKey?: string,
+    idempotencyKey: string,
 ): Promise<unknown> {
     return financialTransaction(async (client: PoolClient) => {
         // 1. Load contract and verify access
@@ -329,15 +329,13 @@ export async function createPayment(
 
         const contract = contractResult.rows[0];
 
-        // 2. Idempotency check
-        if (idempotencyKey) {
-            const existing = await client.query(
-                `SELECT * FROM contract_payments WHERE idempotency_key = $1`,
-                [idempotencyKey],
-            );
-            if (existing.rows.length > 0) {
-                return existing.rows[0]; // Return existing payment (idempotent)
-            }
+        // 2. Idempotency check (mandatory — Domain Law §1)
+        const existing = await client.query(
+            `SELECT * FROM contract_payments WHERE idempotency_key = $1`,
+            [idempotencyKey],
+        );
+        if (existing.rows.length > 0) {
+            return existing.rows[0]; // Return existing payment (idempotent)
         }
 
         // 3. Determine payer/payee based on who initiated
@@ -394,7 +392,7 @@ export async function createPayment(
                 'pending',
                 input.confirmation_note ?? null,
                 input.transfer_receipt_url ?? null,
-                idempotencyKey ?? null,
+                idempotencyKey,
             ],
         );
 

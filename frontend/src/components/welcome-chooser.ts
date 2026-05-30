@@ -366,6 +366,7 @@ function wireChooserEvents(modal: HTMLElement): void {
       last?.focus();
     } else if (!e.shiftKey && document.activeElement === last) {
       e.preventDefault();
+      first?.focus();
     }
   });
 

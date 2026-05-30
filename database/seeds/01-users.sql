@@ -1,7 +1,13 @@
--- Nammerha Demo Seed: Users (bcrypt hash of Demo@2026 with 12 rounds)
+-- SAFETY: Prevent seed execution in production
+DO $$ BEGIN 
+    IF current_setting('app.environment', true) = 'production' THEN 
+        RAISE EXCEPTION 'FATAL: Seeds cannot run in production environment'; 
+    END IF; 
+END $$;
+
+-- Nammerha Demo Seed: Users
 BEGIN;
 
--- Demo password: Demo@2026
 -- bcrypt(12): $2b$12$KZ2Zg3p9f0ppH77cW6ElJu3Mc6OjKQkUmiIW2gfTAmRe.KgXD.Lua
 
 -- ═══ HOMEOWNERS ═══

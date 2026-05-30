@@ -177,6 +177,22 @@ router.post('/geofencing/check', async (req: Request, res: Response) => {
             return;
         }
 
+        if (typeof lat !== 'number' || !Number.isFinite(lat) || lat < -90 || lat > 90) {
+            res.status(400).json({
+                success: false,
+                error: 'lat must be a finite number between -90 and 90',
+            } as ApiResponse);
+            return;
+        }
+
+        if (typeof lng !== 'number' || !Number.isFinite(lng) || lng < -180 || lng > 180) {
+            res.status(400).json({
+                success: false,
+                error: 'lng must be a finite number between -180 and 180',
+            } as ApiResponse);
+            return;
+        }
+
         const result = await geofencing.checkProjectCompliance(lat, lng);
         res.json({ success: true, data: result } as ApiResponse);
     } catch (error) {

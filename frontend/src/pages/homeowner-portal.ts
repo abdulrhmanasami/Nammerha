@@ -1187,7 +1187,7 @@ async function loadEscrow(): Promise<void> {
   // Standard: Nielsen #1 (System Status Visibility), Skeleton Loading Pattern.
   container.innerHTML = `
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4" aria-hidden="true">
-            ${esc(Array.from(
+            ${Array.from(
               { length: 4 },
               (_, i) => `
                 <div class="rounded-xl p-4 bg-slate-100 dark:bg-dark-elevated nm-skeleton">
@@ -1195,7 +1195,7 @@ async function loadEscrow(): Promise<void> {
                     <div class="h-6 bg-slate-200 dark:bg-slate-700 rounded w-2/3 mt-2 nm-skeleton-pulse" style="animation-delay:${i * 0.1 + 0.1}s"></div>
                 </div>
             `,
-            ).join(''))}
+            ).join('')}
         </div>
     `;
 
@@ -1223,7 +1223,7 @@ async function loadEscrow(): Promise<void> {
                 </div>
             </div>
             <p class="text-3xs text-slate-400 dark:text-slate-500 mt-2 text-end" data-i18n="ho_currency_note">${esc(t('ho_currency_note', 'جميع المبالغ بالدولار الأمريكي'))}</p>
-            ${esc((e.held_in_escrow ?? 0) > 0
+            ${(e.held_in_escrow ?? 0) > 0
                 ? `
                 <!-- [Platinum UX]: Tripartite Arbitration UI (Ghost State) -->
                 <div class="mt-4 p-5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden">
@@ -1274,7 +1274,7 @@ async function loadEscrow(): Promise<void> {
                     </p>
                 </div>
             `
-                : '')}
+                : ''}
             <a href="/wallet.html" class="mt-4 flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-trust-blue/15 text-trust-blue text-sm font-bold hover:bg-trust-blue/5 transition-colors">
                 <i class="ph ph-arrow-square-out text-base" aria-hidden="true"></i>
                 ${esc(t('ho_view_all_transactions', 'عرض جميع المعاملات'))}

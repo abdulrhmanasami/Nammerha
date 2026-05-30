@@ -9,6 +9,9 @@ import { requireRole } from '../middleware/role-guard.middleware';
 import * as oracle from '../services/epa-oracle.service';
 import type { ApiResponse } from '../types';
 import { safeRouteError } from '../utils/safe-error';
+import { calculateEPASchema, upsertPriceSchema } from '../validation/schemas';
+import { formatZodErrors } from '../validation/spatial-proof.schema';
+import { ZodError } from 'zod';
 
 const router = Router();
 
@@ -42,26 +45,7 @@ router.post(
     requireRole('admin'),
     async (req: Request, res: Response) => {
         try {
-            const dto = req.body as oracle.UpsertOracleDTO;
-
-            // P2-NEW-004 FIX: Validate ALL required fields including prices
-            if (!dto.material_code || !dto.material_name || !dto.unit || dto.base_price === null || dto.base_price === undefined || dto.current_price === null || dto.current_price === undefined) {
-                res.status(400).json({
-                    success: false,
-                    error: 'Required: material_code, material_name, unit, base_price, current_price',
-                } as ApiResponse);
-                return;
-            }
-
-            // Validate prices are positive numbers
-            if (typeof dto.base_price !== 'number' || dto.base_price <= 0 ||
-                typeof dto.current_price !== 'number' || dto.current_price <= 0) {
-                res.status(400).json({
-                    success: false,
-                    error: 'base_price and current_price must be positive numbers',
-                } as ApiResponse);
-                return;
-            }
+            const dto = upsertPriceSchema.parse(req.body);
 
             const entry = await oracle.upsertOracleEntry(dto, getAuthUser(req).user_id);
 
@@ -72,6 +56,13 @@ router.post(
             };
             res.status(201).json(response);
         } catch (error) {
+            if (error instanceof ZodError) {
+                res.status(400).json({
+                    success: false,
+                    error: formatZodErrors(error),
+                } as ApiResponse);
+                return;
+            }
             safeRouteError(res, error, 'EPAOracle');
         }
     }
@@ -83,15 +74,7 @@ router.post(
     requireRole('admin', 'auditor', 'engineer'),
     async (req: Request, res: Response) => {
         try {
-            const dto = req.body as oracle.CalculateEPADTO;
-
-            if (!dto.project_id || !dto.fidic_params || !dto.original_amount) {
-                res.status(400).json({
-                    success: false,
-                    error: 'Required: project_id, fidic_params {a, b, c, d, Ln, Lo, En, Eo, Mn, Mo}, original_amount',
-                } as ApiResponse);
-                return;
-            }
+            const dto = calculateEPASchema.parse(req.body);
 
             const adjustment = await oracle.calculateAndStoreEPA(dto, getAuthUser(req).user_id);
 
@@ -102,6 +85,13 @@ router.post(
             };
             res.status(201).json(response);
         } catch (error) {
+            if (error instanceof ZodError) {
+                res.status(400).json({
+                    success: false,
+                    error: formatZodErrors(error),
+                } as ApiResponse);
+                return;
+            }
             safeRouteError(res, error, 'EPAOracle');
         }
     }

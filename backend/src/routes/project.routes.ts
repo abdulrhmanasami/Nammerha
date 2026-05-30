@@ -8,6 +8,9 @@ import * as projectService from '../services/project.service';
 import { query } from '../config/database';
 import type { CreateProjectDTO, AddBOQItemDTO, ApiResponse } from '../types';
 import { safeRouteError } from '../utils/safe-error';
+import { createProjectSchema, addBOQItemSchema } from '../validation/schemas';
+import { formatZodErrors } from '../validation/spatial-proof.schema';
+import { ZodError } from 'zod';
 
 const router = Router();
 
@@ -36,21 +39,19 @@ router.use(requireActive);
 // UNIFIED CITIZEN: Any authenticated user can create a damage report / project.
 router.post('/', async (req: Request, res: Response) => {
     try {
-        const dto = req.body as CreateProjectDTO;
-
-        if (!dto.title || !dto.damage_type || dto.gps_lat === null || dto.gps_lat === undefined || dto.gps_lng === null || dto.gps_lng === undefined) {
-            const response: ApiResponse = {
-                success: false,
-                error: 'Missing required fields: title, damage_type, gps_lat, gps_lng',
-            };
-            res.status(400).json(response);
-            return;
-        }
+        const dto = createProjectSchema.parse(req.body) as CreateProjectDTO;
 
         const project = await projectService.createProject(getAuthUser(req).user_id, dto);
         const response: ApiResponse = { success: true, data: project, message: 'Project created successfully' };
         res.status(201).json(response);
     } catch (error) {
+        if (error instanceof ZodError) {
+            res.status(400).json({
+                success: false,
+                error: formatZodErrors(error),
+            } as ApiResponse);
+            return;
+        }
         safeRouteError(res, error, 'Project.Create');
     }
 });
@@ -86,16 +87,7 @@ router.post('/:id/assign-engineer', async (req: Request, res: Response) => {
 // UNIFIED CITIZEN: Any authenticated user can add BOQ items.
 router.post('/:id/boq', async (req: Request, res: Response) => {
     try {
-        const dto = req.body as AddBOQItemDTO;
-
-        if (!dto.material_name || !dto.unit || dto.unit_price === null || dto.unit_price === undefined || dto.required_quantity === null || dto.required_quantity === undefined || !dto.preferred_supplier_id) {
-            const response: ApiResponse = {
-                success: false,
-                error: 'Missing required fields: material_name, unit, unit_price, required_quantity, preferred_supplier_id',
-            };
-            res.status(400).json(response);
-            return;
-        }
+        const dto = addBOQItemSchema.parse(req.body) as AddBOQItemDTO;
 
         const item = await projectService.addBOQItem(
             String(req.params['id']),
@@ -105,6 +97,13 @@ router.post('/:id/boq', async (req: Request, res: Response) => {
         const response: ApiResponse = { success: true, data: item, message: 'BOQ item added' };
         res.status(201).json(response);
     } catch (error) {
+        if (error instanceof ZodError) {
+            res.status(400).json({
+                success: false,
+                error: formatZodErrors(error),
+            } as ApiResponse);
+            return;
+        }
         safeRouteError(res, error, 'Project.AddBOQ');
     }
 });

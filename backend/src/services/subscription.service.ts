@@ -4,8 +4,9 @@
 // Handles plan lookup, user subscriptions, and feature access gating.
 // All monetary values in cents (BIGINT convention).
 // ============================================================================
-import { query } from '../config/database';
+import { query, financialTransaction } from '../config/database';
 import { logger } from '../utils/logger';
+import type { PoolClient } from 'pg';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -151,6 +152,7 @@ export async function getUserPlanSlug(userId: string): Promise<string> {
 /**
  * Subscribe a user to a plan (or upgrade/downgrade).
  * Cancels any existing active subscription first.
+ * Uses financialTransaction for atomicity — Domain Law §1.
  */
 export async function subscribe(
     userId: string,
@@ -161,51 +163,53 @@ export async function subscribe(
         throw new Error(`Plan not found: ${planSlug}`);
     }
 
-    // Cancel existing active subscription (if any)
-    await query(
-        `UPDATE user_subscriptions
-         SET status = 'cancelled', cancelled_at = NOW(), updated_at = NOW()
-         WHERE user_id = $1 AND status IN ('active', 'trialing')`,
-        [userId],
-    );
+    return financialTransaction(async (client: PoolClient) => {
+        // Cancel existing active subscription (if any)
+        await client.query(
+            `UPDATE user_subscriptions
+             SET status = 'cancelled', cancelled_at = NOW(), updated_at = NOW()
+             WHERE user_id = $1 AND status IN ('active', 'trialing')`,
+            [userId],
+        );
 
-    // Create new subscription
-    const billingDays = plan.billing_interval === 'yearly' ? 365 : 30;
-    const result = await query<UserSubscription>(
-        `INSERT INTO user_subscriptions
-            (user_id, plan_id, status, current_period_start, current_period_end)
-         VALUES ($1, $2, 'active', NOW(), NOW() + ($3 || ' days')::INTERVAL)
-         RETURNING
-            subscription_id, user_id, plan_id,
-            $4::text AS plan_slug, $5::text AS plan_name,
-            status, current_period_start, current_period_end,
-            cancel_at_period_end, cancelled_at, created_at`,
-        [userId, plan.plan_id, String(billingDays), plan.slug, plan.display_name],
-    );
+        // Create new subscription
+        const billingDays = plan.billing_interval === 'yearly' ? 365 : 30;
+        const result = await client.query<UserSubscription>(
+            `INSERT INTO user_subscriptions
+                (user_id, plan_id, status, current_period_start, current_period_end)
+             VALUES ($1, $2, 'active', NOW(), NOW() + ($3 || ' days')::INTERVAL)
+             RETURNING
+                subscription_id, user_id, plan_id,
+                $4::text AS plan_slug, $5::text AS plan_name,
+                status, current_period_start, current_period_end,
+                cancel_at_period_end, cancelled_at, created_at`,
+            [userId, plan.plan_id, String(billingDays), plan.slug, plan.display_name],
+        );
 
-    if (!result.rows[0]) {
-        throw new Error('Failed to create subscription');
-    }
+        if (!result.rows[0]) {
+            throw new Error('Failed to create subscription');
+        }
 
-    logger.info('Subscription created', {
-        userId,
-        planSlug,
-        planId: plan.plan_id,
-        subscriptionId: result.rows[0].subscription_id,
-    });
-
-    // Audit trail
-    await query(
-        `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
-         VALUES ('subscription_created', 'user_subscriptions', $1, $2, $3)`,
-        [
-            result.rows[0].subscription_id,
+        logger.info('Subscription created', {
             userId,
-            JSON.stringify({ plan_slug: planSlug, price_cents: plan.price_cents }),
-        ],
-    );
+            planSlug,
+            planId: plan.plan_id,
+            subscriptionId: result.rows[0].subscription_id,
+        });
 
-    return result.rows[0];
+        // Audit trail (inside transaction — all or nothing)
+        await client.query(
+            `INSERT INTO audit_trail (action, entity_type, entity_id, actor_id, new_values)
+             VALUES ('subscription_created', 'user_subscriptions', $1, $2, $3)`,
+            [
+                result.rows[0].subscription_id,
+                userId,
+                JSON.stringify({ plan_slug: planSlug, price_cents: plan.price_cents }),
+            ],
+        );
+
+        return result.rows[0];
+    });
 }
 
 /**

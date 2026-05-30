@@ -130,8 +130,12 @@ router.post('/:id/payments', async (req: Request, res: Response) => {
 
         const input = createContractPaymentSchema.parse(req.body);
 
-        // Extract idempotency key from header (Nammerha Domain Law §1)
+        // Extract idempotency key from header (Nammerha Domain Law §1 — mandatory)
         const idempotencyKey = req.headers['idempotency-key'] as string | undefined;
+        if (!idempotencyKey) {
+            res.status(400).json({ success: false, error: 'Idempotency-Key header is required' } as ApiResponse);
+            return;
+        }
 
         const payment = await contractPaymentService.createPayment(
             contractId,

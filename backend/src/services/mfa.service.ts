@@ -288,7 +288,8 @@ export async function verifyTotpCode(userId: string, token: string): Promise<boo
   const result = await query<{
     encrypted_secret: string;
     verified_at: Date | null;
-  }>('SELECT encrypted_secret, verified_at FROM user_mfa_secrets WHERE user_id = $1', [userId]);
+    last_totp_counter: number | null;
+  }>('SELECT encrypted_secret, verified_at, last_totp_counter FROM user_mfa_secrets WHERE user_id = $1', [userId]);
 
   const row = result.rows[0];
   if (!row || !row.verified_at) {
@@ -312,6 +313,36 @@ export async function verifyTotpCode(userId: string, token: string): Promise<boo
 
     return false;
   }
+
+  // ── CRIT-001 FIX: TOTP Replay Prevention ──
+  // Compute the absolute counter for the accepted code.
+  // The current TOTP period counter = Math.floor(now / period).
+  // delta tells us how many periods offset from current: actual_counter = current + delta.
+  // Reject if this counter was already used (replay attack).
+  const currentCounter = Math.floor(Date.now() / 1000 / TOTP_PERIOD);
+  const acceptedCounter = currentCounter + delta;
+
+  if (row.last_totp_counter !== null && acceptedCounter <= row.last_totp_counter) {
+    logger.warn('MFA: TOTP replay detected — code already used', {
+      userId,
+      acceptedCounter,
+      lastCounter: row.last_totp_counter,
+    });
+
+    await query(
+      `INSERT INTO audit_trail (entity_type, entity_id, action, actor_id, details)
+       VALUES ('mfa_failed', $1, 'mfa_totp_replay_blocked', $1, $2)`,
+      [userId, JSON.stringify({ method: 'totp', replay_counter: acceptedCounter })],
+    ).catch(() => { /* Non-blocking */ });
+
+    return false;
+  }
+
+  // Store the accepted counter to prevent replay
+  await query(
+    'UPDATE user_mfa_secrets SET last_totp_counter = $1 WHERE user_id = $2',
+    [acceptedCounter, userId],
+  );
 
   // Log successful MFA login
   await query(

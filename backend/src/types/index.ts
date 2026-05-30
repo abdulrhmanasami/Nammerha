@@ -173,7 +173,7 @@ export interface EscrowLedger {
   user_id: string;
   item_id: string;
   project_id: string;
-  amount_locked: number; // BIGINT cents
+  amount_locked: string; // BIGINT cents — pg returns BIGINT as string (MEMO 53)
   currency: string;
   payment_status: PaymentStatus;
   payment_method: string | null;

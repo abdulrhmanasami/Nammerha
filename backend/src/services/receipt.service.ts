@@ -25,7 +25,7 @@ interface ReceiptData {
   project_title: string;
   project_id: string;
   material_name: string;
-  amount_locked: number; // cents
+  amount_locked: string; // cents — pg returns BIGINT as string (MEMO 53)
   currency: string;
   payment_method: string | null;
   locked_at: Date;
@@ -197,7 +197,7 @@ function buildPdfBuffer(data: ReceiptData): Promise<Buffer> {
     doc.on('end', () => resolve(Buffer.concat(chunks)));
     doc.on('error', (err: Error) => reject(err));
 
-    const amountFormatted = `$${(data.amount_locked / 100).toFixed(2)} ${data.currency}`;
+    const amountFormatted = `$${(Number(data.amount_locked) / 100).toFixed(2)} ${data.currency}`;
     const dateFormatted = new Date(data.locked_at).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',

@@ -12,13 +12,53 @@
 
 # Standard: AGENTS.md (Cross-IDE Agent Governance Standard)
 
-# Last Updated: 2026-05-19
+# Last Updated: 2026-05-30
 
 # ═══════════════════════════════════════════════════════════════════════════
 
 ## 🛑 ZERO-REGRESSION MEMOS (CRITICAL AI MEMORY)
 
-**MEMO 56: Donor Eradication Completion, NaN Database Poisoning, & Focus Trap Escape (May 30, 2026)**
+**MEMO 57: Platinum Security & Financial Integrity Audit — TOTP Replay, CSRF Hardening, Transaction Atomicity & WCAG Compliance (May 30, 2026)**
+
+- **Root Cause Destroyed:**
+  1. `mfa.service.ts` `verifyTotpCode()` accepted a valid TOTP code multiple times within the 90-second window (±1 period). The `totp.validate()` `delta` was discarded without tracking, enabling **TOTP Replay Attacks** where a shoulder-surfed code could be reused from a different device/IP.
+  2. `csrf.middleware.ts` bypassed ALL CSRF validation when `X-Platform: mobile` was set, without verifying Bearer auth. A same-origin XSS could set this header and bypass CSRF for cookie-based sessions.
+  3. `subscription.service.ts` `subscribe()` performed cancel UPDATE + create INSERT + audit INSERT as 3 independent queries. If the INSERT failed, the user permanently lost their subscription (Financial Atomicity Breach).
+  4. `contract-payment.service.ts` accepted `idempotencyKey` as optional (`?`), violating Domain Law §1 and enabling duplicate payment submissions.
+  5. `project.routes.ts` and `epa-oracle.routes.ts` used dangerous `req.body as TypeDTO` type assertions instead of Zod schema validation, allowing malformed data to bypass all backend validation.
+  6. `spatial.routes.ts` accepted lat/lng without `Number.isFinite()` or range checks, enabling NaN injection that crashed PostgreSQL `earthdistance` queries.
+  7. `homeowner.routes.ts` accepted floating-point `budget_max` values (e.g., `1.5`), poisoning the FinTech pipeline.
+  8. `monetization.routes.ts` lacked pagination clamping, allowing DoS via unbounded `LIMIT` and negative `OFFSET`.
+  9. Migration `029_unified_citizen_model.sql` collided with `029_reviews_system.sql`, causing migration runner conflicts.
+  10. `types/index.ts` typed `amount_locked` as `number` but `pg` returns BIGINT as `string`, causing String Concatenation Traps (MEMO 53 regression).
+  11. `seeds/01-users.sql` lacked a production guard and exposed plaintext passwords in comments.
+  12. `run-migrations.sh` used single-quote interpolation (`'$filename'`), vulnerable to SQL injection via crafted filenames.
+  13. `run-seeds.sh` suppressed errors with `2>/dev/null` and lacked `ON_ERROR_STOP`, silently ignoring catastrophic seed failures.
+  14. `homeowner-portal.ts` wrapped skeleton loaders and arbitration stepper HTML blocks in `esc()`, rendering raw escaped text instead of live UI (MEMO 54/55 regression).
+  15. `main.ts` `initPinchToZoomBlocker()` intercepted all multi-touch events with `passive: false`, violating WCAG 1.4.4 (Resize Text) and WCAG 2.5.1 (Pointer Gestures), blocking accessibility zoom for visually impaired users.
+  16. `welcome-chooser.ts` focus trap called `e.preventDefault()` on Tab-forward but never called `first?.focus()`, permanently trapping keyboard users on the last element.
+  17. `main.ts` `initGlassNavScroll()` fired on every scroll event without `requestAnimationFrame` throttling, causing jank.
+- **New Logic Built:**
+  1. **TOTP Replay Prevention:** `last_totp_counter` column added to `user_mfa_secrets` (migration `050_mfa_totp_replay_prevention.sql`). After successful TOTP validation, the absolute counter (`Math.floor(Date.now() / 1000 / TOTP_PERIOD) + delta`) is stored and subsequent validations with `acceptedCounter <= last_totp_counter` are rejected. Replay attempts are audit-logged as `mfa_totp_replay_blocked`.
+  2. **CSRF Defense-in-Depth:** X-Platform CSRF exemption now requires **BOTH** `X-Platform` header **AND** `Authorization: Bearer` token (`&&` gate). Cookie-based requests with spoofed X-Platform headers are no longer exempt.
+  3. **Financial Transaction Atomicity:** `subscribe()` wrapped in `financialTransaction()` with SERIALIZABLE isolation. Cancel, create, and audit trail are atomic.
+  4. **Mandatory Idempotency:** `idempotencyKey` changed from optional to mandatory. Route-level 400 guard added at `contract-payment.routes.ts`.
+  5. **Zod Schema Enforcement:** `project.routes.ts` and `epa-oracle.routes.ts` replaced `as TypeDTO` assertions with `schema.parse(req.body)` + `ZodError` catch blocks.
+  6. **Spatial Coordinate Defense:** `Number.isFinite()` + range validation (-90/90 lat, -180/180 lng) enforced in `spatial.routes.ts`.
+  7. **Financial Integer Enforcement:** `Number.isInteger(budget_max)` guard added.
+  8. **Pagination Clamping:** `Math.min(limit, 200)` + `Math.max(offset, 0)` at all 3 monetization endpoints.
+  9. **Migration Deconfliction:** Renamed to `029b_unified_citizen_model.sql`.
+  10. **BIGINT Type Parity:** `amount_locked: string` in `types/index.ts` and `receipt.service.ts` with `Number()` cast.
+  11. **Seed Production Guard:** `RAISE EXCEPTION` block + plaintext password removal.
+  12. **Shell SQL Injection Fix:** Dollar-quoting (`$$${filename}$$`) in `run-migrations.sh`.
+  13. **Error Visibility:** `-v ON_ERROR_STOP=1` in `run-seeds.sh`, `2>/dev/null` removed.
+  14. **Over-Escaping Fix:** Removed outer `esc()` from HTML template blocks (MEMO 54 governance).
+  15. **WCAG Zoom Compliance:** `initPinchToZoomBlocker()` completely eradicated.
+  16. **Focus Trap Forward Wrap:** Added `first?.focus()` after `e.preventDefault()` for Tab-forward on last element.
+  17. **Scroll Performance:** `requestAnimationFrame` debounce pattern with `ticking` boolean guard.
+- **Verification:** `npx tsc --noEmit` = zero errors (backend + frontend). `npm run build` = EXIT:0. All 20 fixes verified by independent audit subagents quoting exact line numbers.
+
+
 
 - **Root Cause Destroyed:**
   1. `welcome-chooser.ts` was still conditionally injecting the "User" (Donor) portal if `PAYMENTS_ENABLED` was true, violating the absolute deletion of the donation system.

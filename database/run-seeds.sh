@@ -70,7 +70,7 @@ for seed_file in $SEED_FILES; do
     filename=$(basename "$seed_file")
     echo -n "   → $filename ... "
     
-    if psql "$DB_URL" -f "$seed_file" --quiet --no-psqlrc 2>/dev/null; then
+    if psql "$DB_URL" -v ON_ERROR_STOP=1 -f "$seed_file" --quiet --no-psqlrc; then
         echo "✅"
         ((APPLIED++))
     else

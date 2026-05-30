@@ -79,16 +79,19 @@ export function csrfProtection(req: Request, res: Response, next: NextFunction):
     return next();
   }
 
-  // MOB-CSRF-001: Mobile clients send X-Platform: mobile header.
-  // Mobile apps don't use browser cookies for session management, so they are
-  // inherently immune to CSRF. The X-Platform header cannot be set by a CSRF
-  // attack (custom headers require CORS preflight which the attacker can't pass).
+  // MOB-CSRF-001 (CRIT-002 HARDENED): Mobile clients send X-Platform header.
+  // PREVIOUS: X-Platform alone skipped CSRF. If XSS was found on the same origin,
+  // an attacker could set X-Platform: mobile and bypass CSRF for cookie sessions.
+  // NOW: X-Platform bypass requires BOTH the header AND a Bearer token.
+  // Mobile apps always use Bearer auth (not cookies), so this is a safe gate.
+  // Cookie-based requests with a spoofed X-Platform header are no longer exempt.
   const platform = req.headers['x-platform'] as string | undefined;
   if (
-    platform === 'mobile' ||
-    platform === 'flutter' ||
-    platform === 'android' ||
-    platform === 'ios'
+    (platform === 'mobile' ||
+     platform === 'flutter' ||
+     platform === 'android' ||
+     platform === 'ios') &&
+    req.headers['authorization']?.startsWith('Bearer ')
   ) {
     return next();
   }
