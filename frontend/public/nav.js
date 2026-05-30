@@ -314,7 +314,7 @@
         // Uses navigator.onLine + online/offline events (no service worker needed).
         if (!window._nmOfflineIndicator) {
             var offlineScript = document.createElement('script');
-            offlineScript.src = '/offline-indicator.js?v=1';
+            offlineScript.src = '/offline-indicator.js';
             document.head.appendChild(offlineScript);
         }
 
@@ -323,7 +323,7 @@
         // Auto-wires [data-haptic] elements via event delegation.
         if (!window.NammerhaHaptic) {
             var hapticScript = document.createElement('script');
-            hapticScript.src = '/haptic.js?v=1';
+            hapticScript.src = '/haptic.js';
             document.head.appendChild(hapticScript);
         }
 
@@ -332,7 +332,7 @@
         // Standard: Mobile UX (Long Page Navigation), Apple HIG.
         if (!window._nmBackToTop) {
             var bttScript = document.createElement('script');
-            bttScript.src = '/back-to-top.js?v=1';
+            bttScript.src = '/back-to-top.js';
             document.head.appendChild(bttScript);
         }
 

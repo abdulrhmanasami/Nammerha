@@ -66,7 +66,7 @@
     <!-- P0-002 FIX: Replaced cdnjs.cloudflare.com CDN with self-hosted copies -->
     <script src="/vendor/gsap/gsap.min.js" defer></script>
     <script src="/vendor/gsap/ScrollTrigger.min.js" defer></script>
-    <link href="/i18n.css?v=7" rel="stylesheet" />
+    <link href="/i18n.css" rel="stylesheet" />
 
     <!-- DEFECT-01 FIX: All about-page CSS extracted to _about.css partial (loaded via main.css @import).
        Previous: 1130 lines of internal <style> — violated CSS Architecture (caching, governance).
@@ -761,13 +761,13 @@
        FIX-COS: Gradient orbs REMOVED — the About page has its own
        hero-orb-1/2/3 system; the global orbs are for portal pages.
        Standard: DRY, Nielsen #4 (Consistency), Zero Redundancy. -->
-    <script src="/i18n.js?v=7" defer></script>
+    <script src="/i18n.js" defer></script>
     <script src="/i18n/common.js" defer></script>
     <script src="/i18n/legal.js" defer></script>
     <!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
      Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->
     <script src="/nm-timers.js" defer></script>
     <script src="/load-guard.js" defer></script>
-    <script src="/nav.js?v=7" defer></script>
+    <script src="/nav.js" defer></script>
   </body>
 </html>

@@ -1,11 +1,17 @@
 // ============================================================================
 // Nammerha — Service Worker (Field-Grade Offline Capabilities)
 // ============================================================================
-// Strategies:
-//   1. App Shell (Cache-First)    — HTML, CSS, JS, fonts, images
-//   2. API Read (Network-First)   — GET /api/* → try network, fallback cache
-//   3. API Write (Queue)          — POST/PUT/DELETE → queue if offline
-//   4. Never Cache                — /api/auth/*, /api/csrf-token
+// MEMO 58 FIX: Strategies redesigned to prevent Invisible Fix Pipeline.
+// Previous: Cache-First for ALL assets trapped users on stale content forever.
+//
+// Strategies (current):
+//   1. HTML / Documents (Network-First) — always serve latest, cache as fallback
+//   2. Vite Hashed Assets (Cache-First) — immutable filenames, safe to cache
+//   3. Unhashed Public Files (Network-First) — nav.js, i18n.js etc.
+//   4. Images (Cache-First)             — rarely change
+//   5. API Read (Network-First)         — GET /api/*
+//   6. API Write (Queue)                — POST/PUT/DELETE → queue if offline
+//   7. Never Cache                      — /api/auth/*, /api/csrf-token
 // ============================================================================
 
 const CACHE_VERSION = 'v3';
@@ -20,6 +26,10 @@ const API_NETWORK_TIMEOUT_MS = 3000;
 // I-005 FIX: Only cache UNIVERSAL pages on install. Role-specific pages are cached
 // on-demand via cacheFirstWithNetwork when the user actually visits them.
 // Previous: cached all 28 pages upfront — wasting ~200KB+ of Syrian mobile data.
+// MEMO 58 FIX: Removed ?v=N query params from SHELL_ASSETS.
+// Previous: SW cached '/nav.js?v=8' but HTML requested '/nav.js?v=7' —
+// different cache keys caused permanent desync.
+// Now: Cache by bare path. Nginx + ETag handles freshness for unhashed files.
 const SHELL_ASSETS = [
     '/',
     '/index.html',
@@ -35,9 +45,9 @@ const SHELL_ASSETS = [
     '/privacy.html',
     '/terms.html',
     '/refund-policy.html',
-    '/nav.js?v=8',
-    '/i18n.js?v=8',
-    '/i18n.css?v=8',
+    '/nav.js',
+    '/i18n.js',
+    '/i18n.css',
     '/i18n/wallet.js',
     '/fonts/phosphor/phosphor.css',
     '/theme-boot.js',
@@ -76,14 +86,14 @@ const STORE_NAME = 'pending-requests';
 
 // ─── Install: Pre-cache App Shell ───────────────────────────────────────────
 self.addEventListener('install', (event) => {
-    // MEMO 45 FIX: Force the new Service Worker to take over immediately.
-    // Without this, the browser waits until ALL tabs are closed, trapping 
-    // the user in a "Mirage Loop" of stale cached UI (e.g., Ghost Dark Mode toggle).
-    self.skipWaiting();
-    
+    // MEMO 58 FIX: skipWaiting() moved INSIDE waitUntil() to fix race condition.
+    // Previous: skipWaiting() fired BEFORE cache was populated, causing the new
+    // SW to take over with an empty cache while activate() deleted the old cache.
+    // This created blank/broken pages during deployment transitions.
     event.waitUntil(
         caches.open(SHELL_CACHE)
             .then((cache) => cache.addAll(SHELL_ASSETS))
+            .then(() => self.skipWaiting())
     );
 });
 
@@ -106,6 +116,9 @@ self.addEventListener('activate', (event) => {
 });
 
 // ─── Fetch: Route to appropriate strategy ───────────────────────────────────
+// MEMO 58 FIX: Complete rewrite of fetch routing to fix Invisible Fix Pipeline.
+// Previous: ALL assets (HTML, JS, CSS) used Cache-First, trapping users on stale
+// content forever. Users had to visit TWICE to see any update.
 self.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url);
 
@@ -130,15 +143,45 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // ── Image / Media Assets ────────────────────────────────────────────
+    // ── HTML Documents: ALWAYS Network-First ─────────────────────────────
+    // Users MUST see the latest HTML on every visit. Cache only as offline fallback.
+    if (event.request.destination === 'document' ||
+        url.pathname.endsWith('.html') ||
+        url.pathname === '/') {
+        event.respondWith(networkFirstWithCache(event.request));
+        return;
+    }
+
+    // ── Image / Media Assets: Cache-First (rarely change) ───────────────
     if (isImageRequest(url.pathname)) {
         event.respondWith(cacheFirstWithNetwork(event.request, IMG_CACHE));
         return;
     }
 
-    // ── App Shell (HTML, CSS, JS, Fonts) ────────────────────────────────
-    event.respondWith(cacheFirstWithNetwork(event.request, SHELL_CACHE));
+    // ── Vite Hashed Assets: Cache-First (safe — filename changes on edit) ─
+    // Vite outputs: /assets/main-wWnZ_oe8.js, /assets/auth-CC5Yhh1v.js
+    // These have content hashes in filenames — Cache-First is correct and safe.
+    if (isHashedAsset(url.pathname)) {
+        event.respondWith(cacheFirstWithNetwork(event.request, SHELL_CACHE));
+        return;
+    }
+
+    // ── Unhashed Public Files: Network-First ────────────────────────────
+    // nav.js, i18n.js, i18n.css, theme-boot.js, etc. — no content hash,
+    // so Cache-First would trap users on stale versions permanently.
+    event.respondWith(networkFirstWithCache(event.request));
 });
+
+// ─── Helpers: Asset Classification ──────────────────────────────────────────
+
+/**
+ * Detects Vite-hashed assets by their filename pattern.
+ * Vite outputs: /assets/{name}-{8+charHash}.{ext}
+ * e.g., /assets/main-wWnZ_oe8.js, /assets/index-BAYU08n-.css
+ */
+function isHashedAsset(pathname) {
+    return /\/assets\/[^/]+-[A-Za-z0-9_-]{7,}\.(js|css)$/.test(pathname);
+}
 
 // ─── Strategy: Network-First (API reads) ────────────────────────────────────
 // Try network with a short timeout. If offline or slow, serve from cache.
