@@ -130,8 +130,10 @@ router.get(
     async (req: Request, res: Response): Promise<void> => {
         try {
             // P2-PAG-001 FIX: Clamp pagination to prevent massive DB queries.
-            const limit = Math.min(parseInt(req.query['limit'] as string, 10) || 50, 200);
-            const offset = Math.max(parseInt(req.query['offset'] as string, 10) || 0, 0);
+            const pLimit = parseInt(req.query['limit'] as string, 10);
+            const limit = Math.min(Number.isNaN(pLimit) ? 50 : pLimit, 200);
+            const pOffset = parseInt(req.query['offset'] as string, 10);
+            const offset = Math.max(Number.isNaN(pOffset) ? 0 : pOffset, 0);
 
             const result = await listSubscribers(limit, offset);
             res.json({ success: true, data: result });

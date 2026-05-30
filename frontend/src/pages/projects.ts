@@ -221,17 +221,17 @@ function createProjectCard(project: ProjectCard, index: number): HTMLElement {
   card.innerHTML = `
         <!-- Cover -->
         <div class="relative h-32 bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden">
-            ${esc(project.cover_image_url
+            ${project.cover_image_url
                 ? `<img src="${esc(project.cover_image_url)}" class="w-full h-full object-cover" alt="${esc(project.title)}" loading="lazy" />`
-                : `<div class="flex items-center justify-center h-full"><i class="ph ${esc(config.icon)} text-slate-300 nm-icon-48" aria-hidden="true"></i></div>`)}
+                : `<div class="flex items-center justify-center h-full"><i class="ph ${esc(config.icon)} text-slate-300 nm-icon-48" aria-hidden="true"></i></div>`}
             <!-- Damage type badge -->
             <span class="absolute top-2 start-2 text-3xs font-bold uppercase px-2 py-0.5 rounded-full ${esc(config.color)}">
                 ${esc(project.damage_type)}
             </span>
             <!-- Status badge -->
-            ${esc(project.status === 'published'
+            ${project.status === 'published'
                 ? `<span class="absolute top-2 end-2 text-3xs font-bold uppercase px-2 py-0.5 rounded-full bg-smoky-jade/10 text-smoky-jade dark:text-emerald-400">${esc(t('projects_active', 'نشط'))}</span>`
-                : '')}
+                : ''}
         </div>
         <!-- Content -->
         <div class="p-4">
@@ -248,7 +248,7 @@ function createProjectCard(project: ProjectCard, index: number): HTMLElement {
             <div class="nm-progress-track">
                 <div class="${esc(urgencyClass)} nm-progress-bar" style="--progress:${esc(pct)}%"></div>
             </div>
-            ${esc(pct < 30 ? `<span class="inline-block mt-2 text-3xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full dark:bg-red-500/10">${esc(t('projects_most_needed', 'الأكثر احتياجاً'))}</span>` : '')}
+            ${pct < 30 ? `<span class="inline-block mt-2 text-3xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full dark:bg-red-500/10">${esc(t('projects_most_needed', 'الأكثر احتياجاً'))}</span>` : ''}
         </div>
     `;
 

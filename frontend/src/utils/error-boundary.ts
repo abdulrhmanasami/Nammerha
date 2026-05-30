@@ -86,7 +86,7 @@ function renderErrorBoundary(error: unknown): void {
           <span data-i18n="go_home">${esc(t('go_home', 'الصفحة الرئيسية'))}</span>
         </a>
       </div>
-      ${esc(import.meta.env.DEV ? `<pre class="mt-4 text-xs text-start bg-slate-100 dark:bg-dark-elevated rounded-lg p-3 max-w-md overflow-auto text-red-600 dark:text-red-400">${errorMsg}</pre>` : '')}
+      ${import.meta.env.DEV ? `<pre class="mt-4 text-xs text-start bg-slate-100 dark:bg-dark-elevated rounded-lg p-3 max-w-md overflow-auto text-red-600 dark:text-red-400">${errorMsg}</pre>` : ''}
     </div>
   `;
 

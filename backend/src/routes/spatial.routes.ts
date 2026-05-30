@@ -33,8 +33,10 @@ router.get('/satellite/project/:id/timeline', async (req: Request, res: Response
         }
 
         const provider = typeof req.query['provider'] === 'string' ? req.query['provider'] : undefined;
-        const limit = parseInt(String(req.query['limit'] ?? '20')) || 20;
-        const offset = parseInt(String(req.query['offset'] ?? '0')) || 0;
+        const pLimit = parseInt(String(req.query['limit'] ?? '20'), 10);
+        const limit = Number.isNaN(pLimit) ? 20 : pLimit;
+        const pOffset = parseInt(String(req.query['offset'] ?? '0'), 10);
+        const offset = Number.isNaN(pOffset) ? 0 : pOffset;
 
         const result = await satellite.getTimelineForProject(String(projectId), {
             provider,
@@ -205,8 +207,10 @@ router.get(
     async (req: Request, res: Response) => {
         try {
             const includeInactive = String(req.query['include_inactive']) === 'true';
-            const limit = parseInt(String(req.query['limit'] ?? '50')) || 50;
-            const offset = parseInt(String(req.query['offset'] ?? '0')) || 0;
+            const pLimit = parseInt(String(req.query['limit'] ?? '50'), 10);
+            const limit = Number.isNaN(pLimit) ? 50 : pLimit;
+            const pOffset = parseInt(String(req.query['offset'] ?? '0'), 10);
+            const offset = Number.isNaN(pOffset) ? 0 : pOffset;
 
             const result = await geofencing.listAllZones({
                 include_inactive: includeInactive,

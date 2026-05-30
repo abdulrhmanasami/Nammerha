@@ -93,7 +93,8 @@ router.get('/overview', async (_req: Request, res: Response): Promise<void> => {
 // ─── GET /projects-by-month ─────────────────────────────────────────────────
 router.get('/projects-by-month', async (req: Request, res: Response): Promise<void> => {
   try {
-    const months = parseInt(req.query['months'] as string) || 12;
+    const parsedMonths = parseInt(req.query['months'] as string, 10);
+    const months = Number.isNaN(parsedMonths) ? 12 : parsedMonths;
     const clampedMonths = Math.min(Math.max(months, 1), 36);
 
     const cacheKey = `stats_projects_by_month_${clampedMonths}`;
@@ -136,7 +137,8 @@ router.get('/projects-by-month', async (req: Request, res: Response): Promise<vo
 // ─── GET /payments-by-month ────────────────────────────────────────────────
 router.get('/payments-by-month', async (req: Request, res: Response): Promise<void> => {
   try {
-    const months = parseInt(req.query['months'] as string) || 12;
+    const parsedMonths = parseInt(req.query['months'] as string, 10);
+    const months = Number.isNaN(parsedMonths) ? 12 : parsedMonths;
     const clampedMonths = Math.min(Math.max(months, 1), 36);
 
     const cacheKey = `stats_payments_by_month_${clampedMonths}`;
@@ -179,7 +181,8 @@ router.get('/payments-by-month', async (req: Request, res: Response): Promise<vo
 // ─── GET /users-by-month ────────────────────────────────────────────────────
 router.get('/users-by-month', async (req: Request, res: Response): Promise<void> => {
   try {
-    const months = parseInt(req.query['months'] as string) || 12;
+    const parsedMonths = parseInt(req.query['months'] as string, 10);
+    const months = Number.isNaN(parsedMonths) ? 12 : parsedMonths;
     const clampedMonths = Math.min(Math.max(months, 1), 36);
 
     const cacheKey = `stats_users_by_month_${clampedMonths}`;
@@ -222,7 +225,8 @@ router.get('/users-by-month', async (req: Request, res: Response): Promise<void>
 // ─── GET /funding-progress ──────────────────────────────────────────────────
 router.get('/funding-progress', async (req: Request, res: Response): Promise<void> => {
   try {
-    const limit = parseInt(req.query['limit'] as string) || 20;
+    const parsedLimit = parseInt(req.query['limit'] as string, 10);
+    const limit = Number.isNaN(parsedLimit) ? 20 : parsedLimit;
     const clampedLimit = Math.min(Math.max(limit, 1), 100);
 
     const cacheKey = `stats_funding_progress_${clampedLimit}`;

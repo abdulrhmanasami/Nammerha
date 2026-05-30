@@ -22,8 +22,10 @@ router.get(
     requireRole('admin', 'auditor'),
     async (req: Request, res: Response) => {
         try {
-            const limit = Math.min(parseInt(req.query['limit'] as string) || 25, 100);
-            const offset = Math.max(parseInt(req.query['offset'] as string) || 0, 0);
+            const pLimit = parseInt(req.query['limit'] as string, 10);
+            const limit = Math.min(Number.isNaN(pLimit) ? 25 : pLimit, 100);
+            const pOffset = parseInt(req.query['offset'] as string, 10);
+            const offset = Math.max(Number.isNaN(pOffset) ? 0 : pOffset, 0);
             const { cases, total } = await escrowService.getPendingVerifications(limit, offset);
             const response: ApiResponse = {
                 success: true,
@@ -170,8 +172,10 @@ router.get(
     async (req: Request, res: Response) => {
         try {
             const status = req.query['status'] as string | undefined;
-            const limit = Math.min(parseInt(req.query['limit'] as string) || 25, 100);
-            const offset = Math.max(parseInt(req.query['offset'] as string) || 0, 0);
+            const pLimit = parseInt(req.query['limit'] as string, 10);
+            const limit = Math.min(Number.isNaN(pLimit) ? 25 : pLimit, 100);
+            const pOffset = parseInt(req.query['offset'] as string, 10);
+            const offset = Math.max(Number.isNaN(pOffset) ? 0 : pOffset, 0);
 
             const validStatuses = ['pending', 'submitted', 'verified', 'rejected', 'suspended'];
             if (status && !validStatuses.includes(status)) {

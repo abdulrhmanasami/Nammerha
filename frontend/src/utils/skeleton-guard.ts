@@ -75,7 +75,7 @@ export function guardSkeleton(config: SkeletonGuardConfig): () => void {
             <div class="text-center py-8 animate-fade-in-up">
                 <i class="ph ph-hourglass-medium text-slate-300 nm-icon-40" aria-hidden="true"></i>
                 <p class="text-slate-500 text-sm font-medium mt-3 dark:text-slate-400">${esc(msg)}</p>
-                ${esc(onRetry ? `<button type="button" class="nm-skeleton-retry mt-3 px-4 py-2 bg-trust-blue text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-colors">${retryLabel}</button>` : '')}
+                ${onRetry ? `<button type="button" class="nm-skeleton-retry mt-3 px-4 py-2 bg-trust-blue text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-colors">${retryLabel}</button>` : ''}
             </div>
         `;
 

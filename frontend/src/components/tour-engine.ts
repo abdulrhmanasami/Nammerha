@@ -208,7 +208,7 @@ function showStep(index: number): void {
         <div class="nmr-tour-actions">
             <button type="button" class="nmr-tour-btn nmr-tour-btn--skip" data-action="skip">${esc(skipLabel)}</button>
             <div class="nmr-tour-nav">
-                ${esc(!isFirst ? `<button type="button" class="nmr-tour-btn nmr-tour-btn--prev" data-action="prev">${prevLabel}</button>` : '')}
+                ${!isFirst ? `<button type="button" class="nmr-tour-btn nmr-tour-btn--prev" data-action="prev">${prevLabel}</button>` : ''}
                 <button type="button" class="nmr-tour-btn nmr-tour-btn--next" data-action="${esc(isLast ? 'done' : 'next')}">
                     ${esc(isLast ? doneLabel : nextLabel)}
                 </button>

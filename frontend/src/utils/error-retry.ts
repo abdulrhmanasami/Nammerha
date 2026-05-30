@@ -168,12 +168,12 @@ export function renderErrorWithRetry(
             <i class="ph ${esc(iconClass)} text-red-400 text-3xl dark:text-red-300" aria-hidden="true"></i>
             <p class="mt-2 text-sm text-red-400 dark:text-red-300" data-i18n="${esc(displayI18nKey)}">${esc(displayFallback)}</p>
             ${esc(retryHint)}
-            ${esc(showRetry
+            ${showRetry
                 ? `
             <button type="button" class="retry-btn mt-3 px-4 py-2 text-xs font-semibold rounded-lg bg-trust-blue text-white hover:bg-trust-blue/90 transition-colors touch-safe dark:bg-trust-blue/90 dark:hover:bg-trust-blue" data-i18n="retry">
                 ${t('retry', 'إعادة المحاولة')}
             </button>`
-                : '')}
+                : ''}
         </div>
     `;
 

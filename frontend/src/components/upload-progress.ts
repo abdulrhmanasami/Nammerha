@@ -94,7 +94,7 @@ export function updateUploadProgress(containerId: string, state: UploadState): H
         <span class="nm-upload-name">${escapeHtml(state.fileName)}</span>
         <span class="nm-upload-meta">${esc(formatFileSize(state.fileSize))} · ${esc(statusLabel)}</span>
       </div>
-      ${esc(state.status === 'uploading'
+      ${state.status === 'uploading'
           ? `
         <button type="button" class="nm-upload-cancel" data-upload-id="${escapeHtml(state.id)}"
                 aria-label="${escapeHtml(t('upload_cancel', 'إلغاء الرفع'))}"
@@ -102,7 +102,7 @@ export function updateUploadProgress(containerId: string, state: UploadState): H
           <i class="ph ph-x" aria-hidden="true"></i>
         </button>
       `
-          : '')}
+          : ''}
     </div>
     <div class="nm-upload-track">
       <div class="nm-upload-fill ${esc(statusClass)}" style="width: ${esc(Math.min(state.progress, 100))}%"></div>

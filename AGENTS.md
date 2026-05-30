@@ -18,6 +18,15 @@
 
 ## 🛑 ZERO-REGRESSION MEMOS (CRITICAL AI MEMORY)
 
+**MEMO 54: The Over-Escaping Catastrophe & parseInt Radix Annihilation (May 30, 2026)**
+
+- **Root Cause Destroyed:**
+  1. `escapeHtml()` / `esc()` was wrapping entire conditional HTML template blocks across 8 frontend components (`upload-progress.ts`, `projects.ts`, `map-markers.ts`, `error-retry.ts`, `skeleton-guard.ts`, `error-boundary.ts`, `tour-engine.ts`, `profile.ts`), converting live DOM elements (`<button>`, `<span>`, `<div>`) into visible escaped text strings (`&lt;button&gt;`). This destroyed retry buttons, navigation controls, status badges, and MFA recovery codes across the entire platform UI.
+  2. Backend API route handlers across 7 files (`admin-stats.routes.ts`, `admin.routes.ts`, `api-keys.routes.ts`, `compliance.routes.ts`, `monetization.routes.ts`, `spatial.routes.ts`, `subscription.routes.ts`) used `parseInt()` without explicit radix `10`, and relied on the `||` operator for default assignment, which silently corrupted pagination when `offset=0` or `limit=0` was legitimately requested (Falsy Coercion Trap).
+- **New Logic Built:**
+  1. **Strict Escaping Governance:** `escapeHtml()` / `esc()` is now exclusively applied to **text content variables** (user names, labels, translated strings). Full HTML template blocks are **NEVER** wrapped in escape functions. Any future agent encountering `${esc(condition ? '<tag>...</tag>' : '')}` must immediately remove the outer `esc()`.
+  2. **Mathematical Radix Enforcement:** All 23 `parseInt()` calls across 7 backend route files now use explicit `, 10)` radix. The `||` falsy coercion pattern is permanently banned for numeric defaults. The canonical pattern is: `const parsed = parseInt(value, 10); const safe = Number.isNaN(parsed) ? defaultValue : parsed;`
+
 **MEMO 53: The Escrow Release BIGINT Type Coercion Catastrophe (May 30, 2026)**
 
 - **Root Cause Destroyed:**

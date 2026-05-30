@@ -48,8 +48,10 @@ router.get('/admin/summary', authMiddleware, requireRole('admin'), async (_req, 
  */
 router.get('/admin/commissions', authMiddleware, requireRole('admin'), async (req, res) => {
   try {
-    const limit = parseInt(req.query['limit'] as string, 10) || 50;
-    const offset = parseInt(req.query['offset'] as string, 10) || 0;
+    const pLimit = parseInt(req.query['limit'] as string, 10);
+    const limit = Number.isNaN(pLimit) ? 50 : pLimit;
+    const pOffset = parseInt(req.query['offset'] as string, 10);
+    const offset = Number.isNaN(pOffset) ? 0 : pOffset;
     const supplierId = req.query['supplier_id'] as string | undefined;
 
     const result = await getAllCommissions(limit, offset, supplierId);
@@ -159,8 +161,10 @@ router.get('/supplier/commissions', authMiddleware, async (req, res) => {
       return;
     }
 
-    const limit = parseInt(req.query['limit'] as string, 10) || 50;
-    const offset = parseInt(req.query['offset'] as string, 10) || 0;
+    const pLimit = parseInt(req.query['limit'] as string, 10);
+    const limit = Number.isNaN(pLimit) ? 50 : pLimit;
+    const pOffset = parseInt(req.query['offset'] as string, 10);
+    const offset = Number.isNaN(pOffset) ? 0 : pOffset;
 
     const result = await getSupplierCommissions(supplierId, limit, offset);
     res.json({ success: true, data: result });
@@ -249,8 +253,10 @@ router.get('/donor/tips', authMiddleware, async (req, res) => {
       return;
     }
 
-    const limit = parseInt(req.query['limit'] as string, 10) || 50;
-    const offset = parseInt(req.query['offset'] as string, 10) || 0;
+    const pLimit = parseInt(req.query['limit'] as string, 10);
+    const limit = Number.isNaN(pLimit) ? 50 : pLimit;
+    const pOffset = parseInt(req.query['offset'] as string, 10);
+    const offset = Number.isNaN(pOffset) ? 0 : pOffset;
 
     const result = await getUserTips(donorId, limit, offset);
     res.json({ success: true, data: result });

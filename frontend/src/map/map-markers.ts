@@ -236,7 +236,7 @@ function createProjectPopup(props: Record<string, unknown>): HTMLElement {
             <h4 class="font-bold text-sm text-slate-900 leading-tight dark:text-slate-100">
                 ${escapeHtml(String(props['title'] ?? 'Untitled Project'))}
             </h4>
-            ${esc(props['address_text'] ? `<p class="text-3xs text-slate-500 dark:text-slate-400">${escapeHtml(String(props['address_text']))}</p>` : '')}
+            ${props['address_text'] ? `<p class="text-3xs text-slate-500 dark:text-slate-400">${escapeHtml(String(props['address_text']))}</p>` : ''}
             <div class="flex items-center gap-2">
                 <span class="text-3xs font-bold px-1.5 py-0.5 rounded-full nm-role-badge-bg" 
                       style="--role-color: ${esc(statusColor)}">

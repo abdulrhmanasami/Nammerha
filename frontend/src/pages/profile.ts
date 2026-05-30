@@ -1419,7 +1419,7 @@ function init(): void {
           <p class="text-xs text-red-500 font-medium mt-1">${esc(t('mfa_codes_warning', '⚠️ احفظ هذه الرموز — لن تُعرض مرة أخرى!'))}</p>
         </div>
         <div class="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 mb-4 text-center" dir="ltr">
-          ${esc(codesHtml)}
+          ${codesHtml}
         </div>
         <p class="text-xs text-slate-400 mb-4 text-center">
           ${esc(t('mfa_codes_info', 'كل رمز يُستخدم مرة واحدة فقط. استخدمه إذا فقدت الوصول لتطبيق المصادقة.'))}

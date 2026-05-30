@@ -129,7 +129,8 @@ router.get('/usage', async (req: Request, res: Response): Promise<void> => {
         }
         const userId = req.authUser.user_id;
         const role = req.authUser.role;
-        const days = parseInt(req.query['days'] as string) || 30;
+        const parsedDays = parseInt(req.query['days'] as string, 10);
+        const days = Number.isNaN(parsedDays) ? 30 : parsedDays;
 
         const [history, quota] = await Promise.all([
             getUsageHistory(userId, days),
