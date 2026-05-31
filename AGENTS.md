@@ -18,6 +18,30 @@
 
 ## 🛑 ZERO-REGRESSION MEMOS (CRITICAL AI MEMORY)
 
+**MEMO 63: Database Schema — donor_id → user_id Column Rename (May 31, 2026)**
+
+- **Root Cause Destroyed:**
+  1. Migration `003_payment_transactions.sql` created `payment_transactions.donor_id`, but MEMO 1 (Unified Citizen Model) rewrote all backend code to use `user_id`. No migration ever renamed the actual database column.
+  2. **4 tables** had `donor_id` columns while all backend code referenced `user_id`: `payment_transactions`, `escrow_ledger`, `impact_messages`, `platform_tips`.
+  3. The `stale-payment-cleanup.ts` job crashed every 15 minutes with `column "user_id" does not exist`, producing recurring error logs.
+  4. All payment initiation (`INSERT INTO payment_transactions ... user_id`), escrow locking, tip recording, and impact message queries would fail on any actual execution.
+  5. **4 foreign key constraints** referenced `donor_id` (`payment_transactions_donor_id_fkey`, `escrow_ledger_donor_id_fkey`, `impact_messages_donor_id_fkey`, `platform_tips_donor_id_fkey`).
+  6. **5 indexes** used the old column name (`idx_payment_transactions_donor`, `idx_escrow_donor`, `idx_impact_donor_chrono`, `idx_impact_donor_unread`, `idx_tips_donor`).
+  7. View `vw_donor_escrow_summary` referenced `e.donor_id`.
+- **New Logic Built:**
+  1. **Migration `063_donor_id_to_user_id_rename.sql`** performs an 8-phase atomic rename:
+     - Phase 1: Drop dependent view `vw_donor_escrow_summary`
+     - Phase 2: Drop 4 FK constraints
+     - Phase 3: Drop 5 old indexes
+     - Phase 4: `RENAME COLUMN donor_id TO user_id` on all 4 tables
+     - Phase 5: Recreate 4 FK constraints with `_user_id_fkey` suffix
+     - Phase 6: Recreate 5 indexes with `_user` naming
+     - Phase 7: Recreate view as `vw_user_escrow_summary` with updated column refs
+     - Phase 8: Add documentation comments on all renamed columns
+  2. **Zero data loss:** `RENAME COLUMN` preserves all existing data, NOT NULL, CHECK constraints.
+  3. **Index fix:** `idx_impact_donor_unread` partial index used `WHERE read = false`, but `impact_messages` has `read_at` (timestamptz), not `read` (boolean). Fixed to `WHERE read_at IS NULL`.
+- **Verification:** Migration applied on production. Backend restarted. Stale payment cleanup job runs without error. Zero `column "user_id" does not exist` in logs.
+
 **MEMO 62: Deployment Pipeline — 8 Fatal Blockers Preventing All Fixes From Reaching Production (May 31, 2026)**
 
 - **Root Cause Destroyed:**

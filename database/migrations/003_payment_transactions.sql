@@ -6,7 +6,7 @@ BEGIN;
 CREATE TABLE IF NOT EXISTS payment_transactions (
     payment_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     reference VARCHAR(50) UNIQUE NOT NULL,
-    donor_id UUID NOT NULL REFERENCES users(user_id),
+    donor_id UUID NOT NULL REFERENCES users(user_id), -- Renamed to user_id by migration 063
     item_id UUID NOT NULL REFERENCES itemized_boq(item_id),
     project_id VARCHAR(20) NOT NULL REFERENCES projects(project_id),
     amount BIGINT NOT NULL CHECK (amount > 0),
