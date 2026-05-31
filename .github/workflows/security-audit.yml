@@ -13,9 +13,9 @@ name: Security Audit
 
 on:
   push:
-    branches: [main]
+    branches: [master]
   pull_request:
-    branches: [main]
+    branches: [master]
 
 concurrency:
   group: security-${{ github.ref }}

@@ -73,6 +73,14 @@ const TEMPLATES: Record<ImpactEventType, MessageTemplate> = {
     body_ar:
       'أخبار رائعة! اكتمل مشروع "{{project_title}}" رسمياً. ساعدت مساهمتك بقيمة ${{amount}} في إعادة بناء منزل واستعادة الكرامة لعائلة. شكراً لجعلك هذا ممكناً.',
   },
+  donation_received: {
+    title_en: 'Contribution Received — Thank You! 💚',
+    title_ar: 'تم استلام مساهمتك — شكراً لك! 💚',
+    body_en:
+      'Your contribution of ${{amount}} to "{{project_title}}" has been received and placed in escrow. Funds will be released to verified suppliers as construction milestones are verified by on-site engineers.',
+    body_ar:
+      'تم استلام مساهمتك بقيمة ${{amount}} لمشروع "{{project_title}}" وتم وضعها في الضمان. سيتم إفراج الأموال للموردين المعتمدين عند التحقق من مراحل البناء بواسطة المهندسين الميدانيين.',
+  },
 };
 
 /**

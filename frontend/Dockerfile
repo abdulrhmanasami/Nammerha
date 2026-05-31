@@ -9,9 +9,11 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --ignore-scripts
 
-# Copy source & build
+# Copy source & build (MEMO 65: Must use npm run build, NOT npx vite build,
+# to include the SW cache version bump script. Without this, every Docker
+# build produces CACHE_VERSION='v3' and browsers never see updates.)
 COPY . .
-RUN npx vite build
+RUN npm run build
 
 # ── Production stage: Nginx Alpine
 FROM nginx:1.27-alpine AS production

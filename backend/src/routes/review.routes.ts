@@ -15,11 +15,7 @@ import {
   flagReviewSchema,
   reviewHelpfulSchema,
 } from '../validation/schemas';
-import type {
-  ReviewableType,
-  ReviewStatus,
-  ApiResponse,
-} from '../types';
+import type { ReviewableType, ReviewStatus, ApiResponse } from '../types';
 
 const router = Router();
 
@@ -66,6 +62,70 @@ function sanitizePage(raw: unknown): number {
   const n = Number(raw) || 1;
   return Math.max(n, 1);
 }
+
+// ═════════════════════════════════════════════════════════════════════════════
+// AUTHENTICATED ENDPOINTS (placed before parametric routes to avoid shadowing)
+// ═════════════════════════════════════════════════════════════════════════════
+
+// ─── GET /api/reviews/my-reviews — User's submitted reviews ─────────────────
+// CAT-02 FIX: Moved BEFORE /:type/:id to prevent Express route shadowing.
+// Previously at line ~841, 'my-reviews' was matched as :type param value.
+
+router.get('/my-reviews', authMiddleware, async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (!req.authUser) {
+      res.status(401).json({ success: false, error: 'Authentication required' } as ApiResponse);
+      return;
+    }
+
+    const page = sanitizePage(req.query.page);
+    const limit = sanitizePageSize(req.query.limit);
+    const offset = (page - 1) * limit;
+
+    const result = await query<{
+      review_id: string;
+      reviewable_type: string;
+      reviewable_id: string;
+      project_id: string | null;
+      overall_rating: number;
+      title: string | null;
+      body: string;
+      status: ReviewStatus;
+      is_verified_interaction: boolean;
+      helpful_count: number;
+      edit_count: number;
+      created_at: Date;
+      edited_at: Date | null;
+    }>(
+      `SELECT review_id, reviewable_type, reviewable_id, project_id,
+                    overall_rating, title, body, status, is_verified_interaction,
+                    helpful_count, edit_count, created_at, edited_at
+             FROM reviews WHERE reviewer_id = $1
+             ORDER BY created_at DESC
+             LIMIT $2 OFFSET $3`,
+      [req.authUser.user_id, limit, offset],
+    );
+
+    const countResult = await query<{ total: string }>(
+      `SELECT COUNT(*)::text AS total FROM reviews WHERE reviewer_id = $1`,
+      [req.authUser.user_id],
+    );
+
+    res.json({
+      success: true,
+      data: {
+        reviews: result.rows,
+        pagination: {
+          page,
+          limit,
+          total: parseInt(countResult.rows[0]?.total ?? '0', 10),
+        },
+      },
+    } as ApiResponse);
+  } catch (error) {
+    safeRouteError(res, error, 'Review.MyReviews');
+  }
+});
 
 // ═════════════════════════════════════════════════════════════════════════════
 // PUBLIC ENDPOINTS (no auth required)
@@ -302,18 +362,27 @@ router.get('/aggregates/:type/:id', async (req: Request, res: Response): Promise
       label_en: d.label_en,
       label_ar: d.label_ar,
       average: (agg.dimension_averages as Record<string, number>)[d.dimension_key] ?? 0,
-      weight: (function() { const p = parseFloat(d.weight); return Number.isNaN(p) ? 0 : p; })(),
+      weight: (function () {
+        const p = parseFloat(d.weight);
+        return Number.isNaN(p) ? 0 : p;
+      })(),
     }));
 
     res.json({
       success: true,
       data: {
         total_reviews: agg.total_reviews,
-        average_rating: (function() { const p = parseFloat(String(agg.average_rating)); return Number.isNaN(p) ? 0 : p; })(),
+        average_rating: (function () {
+          const p = parseFloat(String(agg.average_rating));
+          return Number.isNaN(p) ? 0 : p;
+        })(),
         verified_reviews: agg.verified_reviews,
         dimension_averages: agg.dimension_averages,
         rating_distribution: agg.rating_distribution,
-        trust_score: (function() { const p = parseFloat(String(agg.trust_score)); return Number.isNaN(p) ? 0 : p; })(),
+        trust_score: (function () {
+          const p = parseFloat(String(agg.trust_score));
+          return Number.isNaN(p) ? 0 : p;
+        })(),
         last_review_at: agg.last_review_at,
         dimensions,
       },
@@ -465,7 +534,13 @@ router.post(
       } as ApiResponse);
     } catch (error) {
       if (error instanceof ZodError) {
-        res.status(400).json({ success: false, error: 'Validation failed', details: error.issues } as ApiResponse);
+        res
+          .status(400)
+          .json({
+            success: false,
+            error: 'Validation failed',
+            details: error.issues,
+          } as ApiResponse);
         return;
       }
       // Unique constraint violation = duplicate review
@@ -590,7 +665,13 @@ router.put(
       } as ApiResponse);
     } catch (error) {
       if (error instanceof ZodError) {
-        res.status(400).json({ success: false, error: 'Validation failed', details: error.issues } as ApiResponse);
+        res
+          .status(400)
+          .json({
+            success: false,
+            error: 'Validation failed',
+            details: error.issues,
+          } as ApiResponse);
         return;
       }
       safeRouteError(res, error, 'Review.Update');
@@ -707,16 +788,20 @@ router.post(
       } as ApiResponse);
     } catch (error) {
       if (error instanceof ZodError) {
-        res.status(400).json({ success: false, error: 'Validation failed', details: error.issues } as ApiResponse);
+        res
+          .status(400)
+          .json({
+            success: false,
+            error: 'Validation failed',
+            details: error.issues,
+          } as ApiResponse);
         return;
       }
       if (error instanceof Error && error.message.includes('unique constraint')) {
-        res
-          .status(409)
-          .json({
-            success: false,
-            error: 'Response already exists for this review',
-          } as ApiResponse);
+        res.status(409).json({
+          success: false,
+          error: 'Response already exists for this review',
+        } as ApiResponse);
         return;
       }
       safeRouteError(res, error, 'Review.Response');
@@ -777,7 +862,13 @@ router.post(
       res.status(201).json({ success: true, message: 'Report submitted' } as ApiResponse);
     } catch (error) {
       if (error instanceof ZodError) {
-        res.status(400).json({ success: false, error: 'Validation failed', details: error.issues } as ApiResponse);
+        res
+          .status(400)
+          .json({
+            success: false,
+            error: 'Validation failed',
+            details: error.issues,
+          } as ApiResponse);
         return;
       }
       if (error instanceof Error && error.message.includes('unique constraint')) {
@@ -828,70 +919,18 @@ router.post(
       res.json({ success: true, message: 'Vote recorded' } as ApiResponse);
     } catch (error) {
       if (error instanceof ZodError) {
-        res.status(400).json({ success: false, error: 'Validation failed', details: error.issues } as ApiResponse);
+        res
+          .status(400)
+          .json({
+            success: false,
+            error: 'Validation failed',
+            details: error.issues,
+          } as ApiResponse);
         return;
       }
       safeRouteError(res, error, 'Review.Helpful');
     }
   },
 );
-
-// ─── GET /api/reviews/my-reviews — User's submitted reviews ─────────────────
-
-router.get('/my-reviews', authMiddleware, async (req: Request, res: Response): Promise<void> => {
-  try {
-    if (!req.authUser) {
-      res.status(401).json({ success: false, error: 'Authentication required' } as ApiResponse);
-      return;
-    }
-
-    const page = sanitizePage(req.query.page);
-    const limit = sanitizePageSize(req.query.limit);
-    const offset = (page - 1) * limit;
-
-    const result = await query<{
-      review_id: string;
-      reviewable_type: string;
-      reviewable_id: string;
-      project_id: string | null;
-      overall_rating: number;
-      title: string | null;
-      body: string;
-      status: ReviewStatus;
-      is_verified_interaction: boolean;
-      helpful_count: number;
-      edit_count: number;
-      created_at: Date;
-      edited_at: Date | null;
-    }>(
-      `SELECT review_id, reviewable_type, reviewable_id, project_id,
-                    overall_rating, title, body, status, is_verified_interaction,
-                    helpful_count, edit_count, created_at, edited_at
-             FROM reviews WHERE reviewer_id = $1
-             ORDER BY created_at DESC
-             LIMIT $2 OFFSET $3`,
-      [req.authUser.user_id, limit, offset],
-    );
-
-    const countResult = await query<{ total: string }>(
-      `SELECT COUNT(*)::text AS total FROM reviews WHERE reviewer_id = $1`,
-      [req.authUser.user_id],
-    );
-
-    res.json({
-      success: true,
-      data: {
-        reviews: result.rows,
-        pagination: {
-          page,
-          limit,
-          total: parseInt(countResult.rows[0]?.total ?? '0', 10),
-        },
-      },
-    } as ApiResponse);
-  } catch (error) {
-    safeRouteError(res, error, 'Review.MyReviews');
-  }
-});
 
 export default router;

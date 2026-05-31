@@ -26,7 +26,6 @@ import { relativeTimeAgo } from '../utils/format';
 import { reportWarning } from '../error-reporter';
 import { addTrackedTimer } from '../utils/tracked-timers';
 
-
 // ─── Constants ──────────────────────────────────────────────────────────────
 
 const POLL_INTERVAL_MS = 60_000; // 1 minute
@@ -468,13 +467,15 @@ function closePanel(bell: HTMLElement): void {
   if (panel) {
     panel.classList.remove('nm-notif-panel-open');
     // Remove after animation — SYS-005: Track timer for cancellation on reopen
-    closeTimerId = addTrackedTimer(setTimeout(() => {
-      closeTimerId = null;
-      if (panel && !isOpen) {
-        panel.remove();
-        panel = null;
-      }
-    }, 200));
+    closeTimerId = addTrackedTimer(
+      setTimeout(() => {
+        closeTimerId = null;
+        if (panel && !isOpen) {
+          panel.remove();
+          panel = null;
+        }
+      }, 200),
+    );
   }
 
   // P2-015 FIX: Return focus to bell on ALL close paths.
@@ -591,8 +592,8 @@ function renderNotificationItem(n: Notification): string {
     ? ''
     : `
         <button type="button" data-mark-read="${escapeHtml(n.notification_id)}"
-                class="nm-notif-item-mark" aria-label="${t('mark_read', 'تعيين كمقروء')}"
-                title="${t('mark_read', 'تعيين كمقروء')}">
+                class="nm-notif-item-mark" aria-label="${escapeHtml(t('mark_read', 'تعيين كمقروء'))}"
+                title="${escapeHtml(t('mark_read', 'تعيين كمقروء'))}">
             <i class="ph ph-check" aria-hidden="true"></i>
         </button>
     `;

@@ -342,9 +342,11 @@ fi
 
 log "Applying retention policy: ${BACKUP_RETAIN_DAILY} daily, ${BACKUP_RETAIN_WEEKLY} weekly, ${BACKUP_RETAIN_MONTHLY} monthly"
 
-# Count local backups and prune excess (oldest first by filename = by date)
+# Total local retention = daily + weekly + monthly to ensure tiered S3 copies
+# are not prematurely pruned from local storage. Without this, a daily-only
+# MAX_LOCAL deletes backups that should be preserved for weekly/monthly tiers.
 BACKUP_COUNT=$(find "${BACKUP_DIR}" -maxdepth 1 -name 'nammerha_*.dump*' -type f ! -name '*.sha256' | wc -l | tr -d ' ')
-MAX_LOCAL="${BACKUP_RETAIN_DAILY}"
+MAX_LOCAL=$(( ${BACKUP_RETAIN_DAILY} + ${BACKUP_RETAIN_WEEKLY} + ${BACKUP_RETAIN_MONTHLY} ))
 
 if [[ "${BACKUP_COUNT}" -gt "${MAX_LOCAL}" ]]; then
     EXCESS=$((BACKUP_COUNT - MAX_LOCAL))

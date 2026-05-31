@@ -4,6 +4,7 @@
 // Per profitability study Phase 1: Market Liquidity & E-commerce Revenue
 // ============================================================================
 import { Router } from 'express';
+import { logger } from '../utils/logger';
 import { authMiddleware } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role-guard.middleware';
 import { ZodError } from 'zod';
@@ -37,9 +38,12 @@ router.get('/admin/summary', authMiddleware, requireRole('admin'), async (_req, 
     const summary = await getPlatformRevenueSummary();
     res.json({ success: true, data: summary });
   } catch (err) {
+    logger.error('Failed to fetch revenue summary', {
+      error: err instanceof Error ? err.message : String(err),
+    });
     res.status(500).json({
       success: false,
-      error: err instanceof Error ? err.message : 'Failed to fetch revenue summary',
+      error: 'Internal server error',
     });
   }
 });
@@ -59,9 +63,12 @@ router.get('/admin/commissions', authMiddleware, requireRole('admin'), async (re
     const result = await getAllCommissions(limit, offset, supplierId);
     res.json({ success: true, data: result });
   } catch (err) {
+    logger.error('Failed to fetch commissions', {
+      error: err instanceof Error ? err.message : String(err),
+    });
     res.status(500).json({
       success: false,
-      error: err instanceof Error ? err.message : 'Failed to fetch commissions',
+      error: 'Internal server error',
     });
   }
 });
@@ -78,9 +85,12 @@ router.get('/admin/commissions/summary', authMiddleware, requireRole('admin'), a
     const summary = await getCommissionSummary(startDate, endDate);
     res.json({ success: true, data: summary });
   } catch (err) {
+    logger.error('Failed to fetch commission summary', {
+      error: err instanceof Error ? err.message : String(err),
+    });
     res.status(500).json({
       success: false,
-      error: err instanceof Error ? err.message : 'Failed to fetch commission summary',
+      error: 'Internal server error',
     });
   }
 });
@@ -97,9 +107,12 @@ router.get('/admin/tips/summary', authMiddleware, requireRole('admin'), async (r
     const summary = await getTipSummary(startDate, endDate);
     res.json({ success: true, data: summary });
   } catch (err) {
+    logger.error('Failed to fetch tip summary', {
+      error: err instanceof Error ? err.message : String(err),
+    });
     res.status(500).json({
       success: false,
-      error: err instanceof Error ? err.message : 'Failed to fetch tip summary',
+      error: 'Internal server error',
     });
   }
 });
@@ -113,9 +126,12 @@ router.get('/admin/config', authMiddleware, requireRole('admin'), async (_req, r
     const config = await getCommissionConfig();
     res.json({ success: true, data: config });
   } catch (err) {
+    logger.error('Failed to fetch config', {
+      error: err instanceof Error ? err.message : String(err),
+    });
     res.status(500).json({
       success: false,
-      error: err instanceof Error ? err.message : 'Failed to fetch config',
+      error: 'Internal server error',
     });
   }
 });
@@ -143,9 +159,12 @@ router.put('/admin/config/:tierId', authMiddleware, requireRole('admin'), async 
       res.status(400).json({ success: false, error: 'Validation failed', details: err.issues });
       return;
     }
+    logger.error('Failed to update tier', {
+      error: err instanceof Error ? err.message : String(err),
+    });
     res.status(400).json({
       success: false,
-      error: err instanceof Error ? err.message : 'Failed to update tier',
+      error: 'Failed to update tier',
     });
   }
 });
@@ -174,9 +193,12 @@ router.get('/supplier/commissions', authMiddleware, async (req, res) => {
     const result = await getSupplierCommissions(supplierId, limit, offset);
     res.json({ success: true, data: result });
   } catch (err) {
+    logger.error('Failed to fetch supplier commissions', {
+      error: err instanceof Error ? err.message : String(err),
+    });
     res.status(500).json({
       success: false,
-      error: err instanceof Error ? err.message : 'Failed to fetch commissions',
+      error: 'Internal server error',
     });
   }
 });
@@ -225,9 +247,12 @@ router.post('/donor/tip', authMiddleware, async (req, res) => {
       res.status(400).json({ success: false, error: 'Validation failed', details: err.issues });
       return;
     }
+    logger.error('Failed to record tip', {
+      error: err instanceof Error ? err.message : String(err),
+    });
     res.status(400).json({
       success: false,
-      error: err instanceof Error ? err.message : 'Failed to record tip',
+      error: 'Failed to record tip',
     });
   }
 });
@@ -256,9 +281,12 @@ router.get('/donor/tips', authMiddleware, async (req, res) => {
     const result = await getUserTips(donorId, limit, offset);
     res.json({ success: true, data: result });
   } catch (err) {
+    logger.error('Failed to fetch tips', {
+      error: err instanceof Error ? err.message : String(err),
+    });
     res.status(500).json({
       success: false,
-      error: err instanceof Error ? err.message : 'Failed to fetch tips',
+      error: 'Internal server error',
     });
   }
 });

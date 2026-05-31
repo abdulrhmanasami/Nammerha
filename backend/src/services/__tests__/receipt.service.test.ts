@@ -1,11 +1,14 @@
 // ============================================================================
-// Nammerha — Receipt Service Unit Tests (IMP-001)
+// Nammerha — Receipt Service Unit Tests (IMP-001 / MEMO 64)
 // ============================================================================
-// Bilingual PDF donation receipt generator with 3-layer CPU protection.
+// Bilingual PDF escrow transaction receipt generator with 3-layer CPU protection.
 // Covers: generateReceipt, ETag caching, LRU eviction, ownership checks
 //
+// MEMO 64 (CRIT-08): Refactored from "donation receipt" terminology to
+// "escrow transaction receipt" per MEMO 1 (Unified Citizen Model).
+//
 // NOTE: The receipt service has a module-level LRU cache (pdfCache Map) that
-// persists across tests. Each test uses unique donor+escrow IDs to avoid
+// persists across tests. Each test uses unique user+escrow IDs to avoid
 // cross-test cache pollution.
 // ============================================================================
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -77,8 +80,8 @@ import { generateReceipt } from '../receipt.service';
 function makeReceiptData(escrowId: string) {
   return {
     escrow_id: escrowId,
-    donor_name: 'Ahmad Hammoud',
-    donor_email: 'ahmad@example.com',
+    contributor_name: 'Ahmad Hammoud',
+    contributor_email: 'ahmad@example.com',
     project_title: 'Aleppo School Rebuild',
     project_id: 'OCDS-SYR-00001',
     material_name: 'Cement',
@@ -88,7 +91,7 @@ function makeReceiptData(escrowId: string) {
     locked_at: new Date('2026-03-15T10:00:00Z'),
     payment_status: 'locked',
     gift_recipient_name: null,
-    donation_intent: 'general',
+    funding_intent: 'general',
   };
 }
 
@@ -106,10 +109,10 @@ describe('Receipt Service', () => {
   describe('generateReceipt', () => {
     it('should generate receipt with buffer, filename, and ETag', async () => {
       const escrowId = `esc-gen-${testCounter}-dead-beef-cafe-123456789abc`;
-      const donorId = `donor-gen-${testCounter}`;
+      const userId = `user-gen-${testCounter}`;
       mockQuery.mockResolvedValueOnce({ rows: [makeReceiptData(escrowId)] });
 
-      const result = await generateReceipt(donorId, escrowId);
+      const result = await generateReceipt(userId, escrowId);
 
       expect(result.buffer).toBeInstanceOf(Buffer);
       expect(result.buffer.length).toBeGreaterThan(0);
@@ -121,11 +124,11 @@ describe('Receipt Service', () => {
       mockQuery.mockResolvedValueOnce({ rows: [] });
 
       await expect(
-        generateReceipt(`donor-nf-${testCounter}`, `esc-nf-${testCounter}`),
+        generateReceipt(`user-nf-${testCounter}`, `esc-nf-${testCounter}`),
       ).rejects.toThrow('not found or does not belong to you');
     });
 
-    it('should throw when escrow belongs to different donor', async () => {
+    it('should throw when escrow belongs to different user', async () => {
       mockQuery.mockResolvedValueOnce({ rows: [] });
 
       await expect(
@@ -138,26 +141,26 @@ describe('Receipt Service', () => {
       const data = makeReceiptData(escrowId);
 
       mockQuery.mockResolvedValueOnce({ rows: [data] });
-      const result1 = await generateReceipt(`donor-etag1-${testCounter}`, escrowId);
+      const result1 = await generateReceipt(`user-etag1-${testCounter}`, escrowId);
 
       mockQuery.mockResolvedValueOnce({ rows: [data] });
-      const result2 = await generateReceipt(`donor-etag2-${testCounter}`, escrowId);
+      const result2 = await generateReceipt(`user-etag2-${testCounter}`, escrowId);
 
       expect(result1.etag).toBe(result2.etag); // Same data → same ETag
     });
 
-    it('should serve from LRU cache on second call (same donor+escrow)', async () => {
+    it('should serve from LRU cache on second call (same user+escrow)', async () => {
       const escrowId = `esc-lru-${testCounter}`;
-      const donorId = `donor-lru-${testCounter}`;
+      const userId = `user-lru-${testCounter}`;
 
       mockQuery.mockResolvedValueOnce({ rows: [makeReceiptData(escrowId)] });
 
       // First call: generates PDF (1 DB query)
-      const first = await generateReceipt(donorId, escrowId);
+      const first = await generateReceipt(userId, escrowId);
       expect(mockQuery).toHaveBeenCalledTimes(1);
 
       // Second call: served from cache (no additional DB query)
-      const cached = await generateReceipt(donorId, escrowId);
+      const cached = await generateReceipt(userId, escrowId);
       expect(mockQuery).toHaveBeenCalledTimes(1); // still 1!
 
       expect(cached.buffer).toBeInstanceOf(Buffer);
@@ -166,29 +169,32 @@ describe('Receipt Service', () => {
 
     it('should verify ownership via SQL WHERE clause', async () => {
       const escrowId = `esc-own-${testCounter}`;
-      const donorId = `donor-own-${testCounter}`;
+      const userId = `user-own-${testCounter}`;
       mockQuery.mockResolvedValueOnce({ rows: [makeReceiptData(escrowId)] });
 
-      await generateReceipt(donorId, escrowId);
+      await generateReceipt(userId, escrowId);
 
       const sql = mockQuery.mock.calls[0]?.[0] as string;
       expect(sql).toContain('el.user_id = $2');
       const params = mockQuery.mock.calls[0]?.[1] as unknown[];
       expect(params?.[0]).toBe(escrowId);
-      expect(params?.[1]).toBe(donorId);
+      expect(params?.[1]).toBe(userId);
     });
 
     it('should use explicit column list (no SELECT *)', async () => {
       const escrowId = `esc-col-${testCounter}`;
-      const donorId = `donor-col-${testCounter}`;
+      const userId = `user-col-${testCounter}`;
       mockQuery.mockResolvedValueOnce({ rows: [makeReceiptData(escrowId)] });
 
-      await generateReceipt(donorId, escrowId);
+      await generateReceipt(userId, escrowId);
 
       const sql = mockQuery.mock.calls[0]?.[0] as string;
       expect(sql).toContain('el.transaction_id AS escrow_id');
-      expect(sql).toContain('u.full_name AS donor_name');
+      expect(sql).toContain('u.full_name AS contributor_name');
       expect(sql).not.toContain('SELECT *');
+      // MEMO 64: Verify donor terminology is purged
+      expect(sql).not.toContain('donor_name');
+      expect(sql).not.toContain('donor_email');
     });
   });
 });

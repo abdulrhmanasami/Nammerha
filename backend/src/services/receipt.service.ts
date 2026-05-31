@@ -1,15 +1,23 @@
 // ============================================================================
-// Nammerha Backend — Donation Receipt PDF Generator (ENH-3 + D-9)
+// Nammerha Backend — Escrow Transaction Receipt PDF Generator
 // ============================================================================
-// Generates bilingual (Arabic + English) donation receipts using PDFKit.
+// MEMO 64 (CRIT-08): Refactored from "Donation Receipt" to "Escrow Transaction
+// Receipt" per MEMO 1 (Unified Citizen Model / Donor Annihilation).
 //
-// D-9 ENHANCEMENT: Three-layer CPU protection:
+// Generates bilingual (Arabic + English) escrow transaction receipts using PDFKit.
+//
+// Architecture — Three-layer CPU protection:
+//   Layer 1: Ownership check — SQL WHERE ensures only the transaction owner
+//            can generate a receipt.
 //   Layer 2: ETag caching — receipt data is immutable, so the ETag derived
 //            from (escrow_id + amount + locked_at) is stable. Clients that
 //            send If-None-Match get a 304 with zero CPU cost.
 //   Layer 3: LRU in-memory PDF buffer cache — once generated, the PDF buffer
 //            is cached for 1 hour (max 100 entries). Repeat downloads stream
 //            directly from memory without invoking PDFKit.
+//
+// Standard: OCDS Financial Transparency, ISO 27001 (Data Access Controls),
+//           MEMO 1 (Unified Citizen Model), MEMO 53 (BIGINT-as-string).
 // ============================================================================
 import PDFDocument from 'pdfkit';
 import { createHash } from 'crypto';
@@ -20,8 +28,8 @@ import { logger } from '../utils/logger';
 
 interface ReceiptData {
   escrow_id: string;
-  donor_name: string;
-  donor_email: string;
+  contributor_name: string;
+  contributor_email: string;
   project_title: string;
   project_id: string;
   material_name: string;
@@ -31,7 +39,7 @@ interface ReceiptData {
   locked_at: Date;
   payment_status: string;
   gift_recipient_name: string | null;
-  donation_intent: string | null;
+  funding_intent: string | null;
 }
 
 // ─── Layer 3: LRU PDF Buffer Cache ──────────────────────────────────────────
@@ -92,9 +100,9 @@ function generateETag(data: ReceiptData): string {
 // ─── Receipt Generator ──────────────────────────────────────────────────────
 
 /**
- * Generate a PDF donation receipt for a specific escrow entry.
+ * Generate a PDF escrow transaction receipt for a specific escrow entry.
  *
- * D-9 Enhancement: Returns a Buffer + ETag instead of a stream.
+ * Returns a Buffer + ETag instead of a stream.
  * The route handler uses the ETag for 304 responses and the buffer
  * for streaming. The buffer is cached in-memory for 1 hour.
  *
@@ -110,7 +118,7 @@ export async function generateReceipt(
   const cacheKey = `${userId}:${escrowId}`;
   const cached = pdfCache.get(cacheKey);
   if (cached && Date.now() - cached.cachedAt < PDF_CACHE_TTL_MS) {
-    logger.debug('D-9: Receipt served from cache', { escrow_id: escrowId });
+    logger.debug('Receipt served from LRU cache', { escrow_id: escrowId });
     // Move to end of Map for LRU freshness
     pdfCache.delete(cacheKey);
     pdfCache.set(cacheKey, cached);
@@ -121,8 +129,8 @@ export async function generateReceipt(
   const result = await query<ReceiptData>(
     `SELECT
             el.transaction_id AS escrow_id,
-            u.full_name AS donor_name,
-            u.email AS donor_email,
+            u.full_name AS contributor_name,
+            u.email AS contributor_email,
             p.title AS project_title,
             el.project_id,
             b.material_name,
@@ -132,7 +140,7 @@ export async function generateReceipt(
             el.locked_at,
             el.payment_status,
             el.gift_recipient_name,
-            el.donation_intent
+            el.donation_intent AS funding_intent
          FROM escrow_ledger el
          JOIN users u ON u.user_id = el.user_id
          JOIN projects p ON p.project_id = el.project_id
@@ -163,7 +171,7 @@ export async function generateReceipt(
     cachedAt: Date.now(),
   });
 
-  logger.info('ENH-3: Donation receipt generated', {
+  logger.info('Escrow transaction receipt generated', {
     escrow_id: escrowId,
     user_id: userId,
     amount: data.amount_locked,
@@ -179,6 +187,12 @@ export async function generateReceipt(
 /**
  * Builds the PDF document and collects all chunks into a single Buffer.
  * This allows the result to be cached and streamed multiple times.
+ *
+ * Layout:
+ *   - Header: Platform branding (bilingual)
+ *   - Title: "Escrow Transaction Receipt" / "إيصال معاملة الضمان"
+ *   - Body: Receipt details (bilingual labels)
+ *   - Footer: Escrow transparency disclaimer (bilingual)
  */
 function buildPdfBuffer(data: ReceiptData): Promise<Buffer> {
   return new Promise((resolve, reject) => {
@@ -186,9 +200,9 @@ function buildPdfBuffer(data: ReceiptData): Promise<Buffer> {
       size: 'A4',
       margin: 50,
       info: {
-        Title: `Donation Receipt — ${data.escrow_id}`,
+        Title: `Escrow Transaction Receipt — ${data.escrow_id}`,
         Author: 'Nammerha Platform',
-        Subject: 'Donation Receipt',
+        Subject: 'Escrow Transaction Receipt',
       },
     });
 
@@ -204,23 +218,23 @@ function buildPdfBuffer(data: ReceiptData): Promise<Buffer> {
       day: 'numeric',
     });
 
-    // Header
+    // ── Header ────────────────────────────────────────────────────────
     doc.fontSize(24).text('Nammerha', { align: 'center' });
     doc.fontSize(10).text('Syria Reconstruction Platform', { align: 'center' });
     doc.moveDown(0.5);
     doc.fontSize(10).text('منصة نمّرها لإعادة إعمار سوريا', { align: 'center' });
     doc.moveDown(1.5);
 
-    // Title
-    doc.fontSize(18).text('Donation Receipt', { align: 'center' });
-    doc.fontSize(14).text('إيصال تبرع', { align: 'center' });
+    // ── Title ──────────────────────────────────────────────────────────
+    doc.fontSize(18).text('Escrow Transaction Receipt', { align: 'center' });
+    doc.fontSize(14).text('إيصال معاملة الضمان', { align: 'center' });
     doc.moveDown(1.5);
 
-    // Divider
+    // ── Divider ────────────────────────────────────────────────────────
     doc.moveTo(50, doc.y).lineTo(545, doc.y).stroke('#cccccc');
     doc.moveDown(1);
 
-    // Receipt details
+    // ── Receipt Details ───────────────────────────────────────────────
     const leftCol = 50;
     const rightCol = 250;
     let y = doc.y;
@@ -233,8 +247,8 @@ function buildPdfBuffer(data: ReceiptData): Promise<Buffer> {
 
     addField('Receipt No. / رقم الإيصال', data.escrow_id.substring(0, 8).toUpperCase());
     addField('Date / التاريخ', dateFormatted);
-    addField('Donor / المتبرع', data.donor_name);
-    addField('Email / البريد', data.donor_email);
+    addField('Contributor / المساهم', data.contributor_name);
+    addField('Email / البريد', data.contributor_email);
     addField('Amount / المبلغ', amountFormatted);
     addField('Project / المشروع', data.project_title);
     addField('Project ID / رقم المشروع', data.project_id);
@@ -247,26 +261,26 @@ function buildPdfBuffer(data: ReceiptData): Promise<Buffer> {
     if (data.gift_recipient_name) {
       addField('Gift Recipient / المُهدى إليه', data.gift_recipient_name);
     }
-    if (data.donation_intent && data.donation_intent !== 'general') {
+    if (data.funding_intent && data.funding_intent !== 'general') {
       addField(
         'Intent / النية',
-        data.donation_intent === 'zakat' ? 'زكاة / Zakat' : 'صدقة / Sadaqah',
+        data.funding_intent === 'zakat' ? 'زكاة / Zakat' : 'صدقة / Sadaqah',
       );
     }
 
     doc.y = y + 20;
 
-    // Divider
+    // ── Divider ────────────────────────────────────────────────────────
     doc.moveTo(50, doc.y).lineTo(545, doc.y).stroke('#cccccc');
     doc.moveDown(1);
 
-    // Footer
+    // ── Footer ─────────────────────────────────────────────────────────
     doc
       .fontSize(9)
       .fillColor('#888888')
       .text(
         'This receipt is generated automatically by the Nammerha platform. ' +
-          'Donations are held in escrow and released only upon GPS-verified delivery proof.',
+          'Funds are held in escrow and released only upon GPS-verified delivery proof.',
         leftCol,
         doc.y,
         { width: 495, align: 'center' },
@@ -274,7 +288,7 @@ function buildPdfBuffer(data: ReceiptData): Promise<Buffer> {
     doc.moveDown(0.5);
     doc.text(
       'هذا الإيصال تم إنشاؤه تلقائياً من منصة نمّرها. ' +
-        'التبرعات محفوظة في الضمان ويتم تحريرها فقط بعد التحقق من الإثبات المكاني بالـ GPS.',
+        'الأموال محفوظة في الضمان ويتم تحريرها فقط بعد التحقق من الإثبات المكاني بالـ GPS.',
       leftCol,
       doc.y,
       { width: 495, align: 'center' },

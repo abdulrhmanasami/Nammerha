@@ -28,7 +28,7 @@
     <title>نعمّرها — تفاصيل المشروع | تفاصيل المشروع</title>
     <meta
       name="description"
-      content="Itemized project BOQ with funding progress and donation buttons."
+      content="Itemized project BOQ with funding progress and construction verification."
     />
     <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
     <link
@@ -43,11 +43,11 @@
     <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
     <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
     <script type="module" src="/src/pages/project-details.ts"></script>
-    <!-- GAP-010 FIX: OG/Twitter meta for project sharing — critical for crowdfunding reach -->
+    <!-- GAP-010 FIX: OG/Twitter meta for project sharing — critical for reconstruction reach -->
     <meta property="og:title" content="Project Details — Nammerha" />
     <meta
       property="og:description"
-      content="View itemized BOQ with funding progress and donate to rebuild Syria."
+      content="View itemized BOQ with funding progress and verified construction materials for Syria reconstruction."
     />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
@@ -144,12 +144,23 @@
             <i class="ph ph-hard-hat text-warm-earth/40 nm-icon-64" aria-hidden="true"></i>
           </div>
           <!-- UX PLATINUM FIX: Progressive 360 Loading -->
-          <div id="progressive-360-overlay" class="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm z-10">
-            <button type="button" id="load-360-btn" class="bg-trust-blue text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-2 hover:bg-trust-blue/90 transition-transform hover:scale-105">
+          <div
+            id="progressive-360-overlay"
+            class="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm z-10"
+          >
+            <button
+              type="button"
+              id="load-360-btn"
+              class="bg-trust-blue text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-2 hover:bg-trust-blue/90 transition-transform hover:scale-105"
+            >
               <i class="ph ph-video-camera text-xl" aria-hidden="true"></i>
               <div class="text-start">
-                <span class="block text-sm font-bold" data-i18n="load_360_view">عرض بانوراما 360°</span>
-                <span class="block text-3xs opacity-80" data-i18n="data_usage_warning">تستهلك حوالي 4MB من البيانات</span>
+                <span class="block text-sm font-bold" data-i18n="load_360_view"
+                  >عرض بانوراما 360°</span
+                >
+                <span class="block text-3xs opacity-80" data-i18n="data_usage_warning"
+                  >تستهلك حوالي 4MB من البيانات</span
+                >
               </div>
             </button>
           </div>
@@ -201,14 +212,25 @@
 
       <!-- UX PLATINUM FIX: Sustainability & Maintenance Indicator -->
       <section class="px-4 mb-6" aria-label="Sustainability and Maintenance">
-        <div class="glass-card rounded-xl p-4 border-s-4 border-s-smoky-jade flex items-start gap-3">
+        <div
+          class="glass-card rounded-xl p-4 border-s-4 border-s-smoky-jade flex items-start gap-3"
+        >
           <div class="bg-smoky-jade/10 text-smoky-jade p-2 rounded-lg shrink-0 mt-0.5">
             <i class="ph ph-leaf text-xl" aria-hidden="true"></i>
           </div>
           <div>
-            <h3 class="text-sm font-bold text-slate-800 dark:text-slate-200" data-i18n="sustainability_rating">تقييم الاستدامة والصيانة</h3>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1" data-i18n="sustainability_desc">
-              المواد المختارة تضمن صيانة منخفضة وعمر افتراضي يتجاوز ١٥ عاماً وفق معايير الجودة العالمية.
+            <h3
+              class="text-sm font-bold text-slate-800 dark:text-slate-200"
+              data-i18n="sustainability_rating"
+            >
+              تقييم الاستدامة والصيانة
+            </h3>
+            <p
+              class="text-xs text-slate-500 dark:text-slate-400 mt-1"
+              data-i18n="sustainability_desc"
+            >
+              المواد المختارة تضمن صيانة منخفضة وعمر افتراضي يتجاوز ١٥ عاماً وفق معايير الجودة
+              العالمية.
             </p>
           </div>
         </div>
@@ -284,7 +306,8 @@
         <div id="boq-skeleton" class="flex flex-col gap-4">
           <div
             class="glass-card rounded-xl overflow-hidden shadow-sm border border-slate-200/50 animate-pulse"
-           aria-hidden="true">
+            aria-hidden="true"
+          >
             <div class="h-24 w-full bg-gradient-to-br from-warm-earth/10 to-slate-200"></div>
             <div class="p-4 space-y-3">
               <div class="flex justify-between">
@@ -300,7 +323,8 @@
           </div>
           <div
             class="glass-card rounded-xl overflow-hidden shadow-sm border border-slate-200/50 animate-pulse"
-           aria-hidden="true">
+            aria-hidden="true"
+          >
             <div class="h-24 w-full bg-gradient-to-br from-trust-blue/10 to-slate-200"></div>
             <div class="p-4 space-y-3">
               <div class="flex justify-between">
@@ -316,7 +340,8 @@
           </div>
           <div
             class="glass-card rounded-xl overflow-hidden shadow-sm border border-slate-200/50 animate-pulse"
-           aria-hidden="true">
+            aria-hidden="true"
+          >
             <div class="h-24 w-full bg-gradient-to-br from-smoky-jade/10 to-slate-200"></div>
             <div class="p-4 space-y-3">
               <div class="flex justify-between">
@@ -434,15 +459,25 @@
         class="fixed bottom-24 start-4 end-4 max-w-[416px] mx-auto z-50 nm-hidden animate-fade-in-up"
       >
         <!-- PLATINUM UX FIX: Cart Lock Timer Banner -->
-        <div id="cart-lock-timer" class="mb-2 glass-card p-3 rounded-xl border border-warning-yellow shadow-md flex items-center justify-between bg-warning-yellow/10 nm-hidden relative overflow-hidden">
+        <div
+          id="cart-lock-timer"
+          class="mb-2 glass-card p-3 rounded-xl border border-warning-yellow shadow-md flex items-center justify-between bg-warning-yellow/10 nm-hidden relative overflow-hidden"
+        >
           <div class="absolute inset-0 bg-warning-yellow/5 animate-pulse" aria-hidden="true"></div>
           <div class="flex items-center gap-2 relative z-10">
             <i class="ph ph-timer text-warning-yellow text-lg" aria-hidden="true"></i>
-            <span class="text-xs font-bold text-slate-800 dark:text-slate-200" data-i18n="cart_lock_timer">
+            <span
+              class="text-xs font-bold text-slate-800 dark:text-slate-200"
+              data-i18n="cart_lock_timer"
+            >
               الكمية والأسعار محجوزة لمدة 15 دقيقة فقط
             </span>
           </div>
-          <span id="cart-timer-countdown" class="text-xs font-black text-warning-yellow tracking-widest font-mono relative z-10">15:00</span>
+          <span
+            id="cart-timer-countdown"
+            class="text-xs font-black text-warning-yellow tracking-widest font-mono relative z-10"
+            >15:00</span
+          >
         </div>
 
         <div

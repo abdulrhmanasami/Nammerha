@@ -13,7 +13,8 @@ export type UserRole =
   | 'tradesperson'
   | 'supplier'
   | 'admin'
-  | 'auditor';
+  | 'auditor'
+  | 'donor';
 
 export type SocialProvider = 'google' | 'apple' | 'facebook';
 
@@ -70,7 +71,8 @@ export type NotificationType =
   | 'kyc_rejected'
   | 'discrepancy_flagged'
   | 'refund_approved'
-  | 'refund_rejected';
+  | 'refund_rejected'
+  | 'donation_received';
 
 export type NotificationChannel = 'push' | 'email' | 'sms' | 'in_app';
 
@@ -768,6 +770,7 @@ export interface PrivacySettings {
 // ─── Impact Communications (Migration 032) ──────────────────────────────────
 
 export type ImpactEventType =
+  | 'donation_received'
   | 'contractor_assigned'
   | 'construction_started'
   | 'milestone_completed'

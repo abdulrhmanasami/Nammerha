@@ -23,7 +23,9 @@ export class EscrowVault {
 
   public render(): void {
     this.container = document.getElementById(this.containerId);
-    if (!this.container) {return;}
+    if (!this.container) {
+      return;
+    }
 
     const totalStr = this.formatCurrency(this.state.depositedAmountCents);
     const releasedStr = this.formatCurrency(this.state.releasedAmountCents);
@@ -77,12 +79,15 @@ export class EscrowVault {
   }
 
   private formatCurrency(cents: number): string {
-    return (cents / 100).toLocaleString('en-US', {
-      style: 'currency',
-      currency: this.state.currency,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    });
+    return (cents / 100).toLocaleString(
+      document.documentElement.lang || navigator.language || 'en-US',
+      {
+        style: 'currency',
+        currency: this.state.currency,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
+      },
+    );
   }
 
   public updateState(newState: Partial<EscrowState>): void {

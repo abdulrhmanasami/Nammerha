@@ -1,17 +1,17 @@
--- PRODUCTION SAFETY GUARD: Prevent accidental execution in production
+-- MEMO 64: Production safety guard — prevents accidental execution in production.
+-- Standard: Seed Security, MEMO 57 compliance.
 DO $$
 BEGIN
-  IF current_setting('server_version_num')::int > 0 THEN
-    -- Check if this is a production database by looking for real user data
-    IF EXISTS (SELECT 1 FROM pg_database WHERE datname = current_database() AND datname LIKE '%prod%') THEN
-      RAISE EXCEPTION '[SAFETY] demo_data.sql must NEVER run in production. Aborting.';
-    END IF;
-  END IF;
-  -- Also check environment variable if available
+  -- Check PostgreSQL config flag
   IF current_setting('app.environment', true) = 'production' THEN
-    RAISE EXCEPTION '[SAFETY] demo_data.sql must NEVER run in production. Aborting.';
+    RAISE EXCEPTION '[SEED BLOCKED] demo_data.sql cannot run in production environment.';
   END IF;
-END $$;
+  -- Check database name pattern
+  IF current_database() LIKE '%prod%' THEN
+    RAISE EXCEPTION '[SEED BLOCKED] demo_data.sql cannot run on a production database (name contains "prod").';
+  END IF;
+END
+$$;
 
 -- ============================================================================
 -- NAMMERHA PLATFORM — Complete Demo Seed Data (Platinum Edition)
@@ -398,22 +398,22 @@ VALUES
 -- ═══════════════════════════════════════════════════════════════════════════
 
 -- Donor 1: $250 cement (locked)
-INSERT INTO escrow_ledger (donor_id, item_id, project_id, amount_locked, currency, payment_status, payment_method, payment_gateway_ref, locked_at)
+INSERT INTO escrow_ledger (user_id, item_id, project_id, amount_locked, currency, payment_status, payment_method, payment_gateway_ref, locked_at)
 VALUES ('d0000000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000001', 'OCDS-SYR-00001',
         25000, 'USD', 'locked', 'visa', 'PAY-VISA-2026-0001', '2026-02-15 14:00:00+03');
 
 -- Donor 2: $150 cement (locked)
-INSERT INTO escrow_ledger (donor_id, item_id, project_id, amount_locked, currency, payment_status, payment_method, payment_gateway_ref, locked_at)
+INSERT INTO escrow_ledger (user_id, item_id, project_id, amount_locked, currency, payment_status, payment_method, payment_gateway_ref, locked_at)
 VALUES ('d0000000-0000-0000-0000-000000000002', 'b0000000-0000-0000-0000-000000000001', 'OCDS-SYR-00001',
         15000, 'USD', 'locked', 'fatora', 'PAY-FAT-2026-0001', '2026-02-18 10:30:00+03');
 
 -- Donor 1: $42 copper (locked)
-INSERT INTO escrow_ledger (donor_id, item_id, project_id, amount_locked, currency, payment_status, payment_method, payment_gateway_ref, locked_at)
+INSERT INTO escrow_ledger (user_id, item_id, project_id, amount_locked, currency, payment_status, payment_method, payment_gateway_ref, locked_at)
 VALUES ('d0000000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000002', 'OCDS-SYR-00001',
         4200, 'USD', 'locked', 'visa', 'PAY-VISA-2026-0002', '2026-02-20 09:00:00+03');
 
 -- Donor 1: $720 steel (RELEASED — proof verified)
-INSERT INTO escrow_ledger (donor_id, item_id, project_id, amount_locked, currency, payment_status, payment_method,
+INSERT INTO escrow_ledger (user_id, item_id, project_id, amount_locked, currency, payment_status, payment_method,
                            payment_gateway_ref, locked_at, released_at, released_by, blockchain_tx_hash)
 VALUES ('d0000000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000003', 'OCDS-SYR-00001',
         72000, 'USD', 'released', 'visa', 'PAY-VISA-2026-0003',
@@ -421,7 +421,7 @@ VALUES ('d0000000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-0000000
         'a0000000-0000-0000-0000-000000000002', '0x741ce9a2...f4d8');
 
 -- Donor 2: $720 steel (RELEASED)
-INSERT INTO escrow_ledger (donor_id, item_id, project_id, amount_locked, currency, payment_status, payment_method,
+INSERT INTO escrow_ledger (user_id, item_id, project_id, amount_locked, currency, payment_status, payment_method,
                            payment_gateway_ref, locked_at, released_at, released_by, blockchain_tx_hash)
 VALUES ('d0000000-0000-0000-0000-000000000002', 'b0000000-0000-0000-0000-000000000003', 'OCDS-SYR-00001',
         72000, 'USD', 'released', 'fatora', 'PAY-FAT-2026-0002',
@@ -429,17 +429,17 @@ VALUES ('d0000000-0000-0000-0000-000000000002', 'b0000000-0000-0000-0000-0000000
         'a0000000-0000-0000-0000-000000000002', '0x892bc1d3...e7a9');
 
 -- Donor 1: $510 tiles (locked)
-INSERT INTO escrow_ledger (donor_id, item_id, project_id, amount_locked, currency, payment_status, payment_method, payment_gateway_ref, locked_at)
+INSERT INTO escrow_ledger (user_id, item_id, project_id, amount_locked, currency, payment_status, payment_method, payment_gateway_ref, locked_at)
 VALUES ('d0000000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000005', 'OCDS-SYR-00001',
         51000, 'USD', 'locked', 'visa', 'PAY-VISA-2026-0004', '2026-03-10 11:00:00+03');
 
 -- Donor 2: $210 sand (locked — project 2)
-INSERT INTO escrow_ledger (donor_id, item_id, project_id, amount_locked, currency, payment_status, payment_method, payment_gateway_ref, locked_at)
+INSERT INTO escrow_ledger (user_id, item_id, project_id, amount_locked, currency, payment_status, payment_method, payment_gateway_ref, locked_at)
 VALUES ('d0000000-0000-0000-0000-000000000002', 'b0000000-0000-0000-0000-000000000006', 'OCDS-SYR-00002',
         21000, 'USD', 'locked', 'fatora', 'PAY-FAT-2026-0003', '2026-03-12 14:00:00+03');
 
 -- Donor 2: $275 waterproofing (locked — project 2)
-INSERT INTO escrow_ledger (donor_id, item_id, project_id, amount_locked, currency, payment_status, payment_method, payment_gateway_ref, locked_at)
+INSERT INTO escrow_ledger (user_id, item_id, project_id, amount_locked, currency, payment_status, payment_method, payment_gateway_ref, locked_at)
 VALUES ('d0000000-0000-0000-0000-000000000002', 'b0000000-0000-0000-0000-000000000008', 'OCDS-SYR-00002',
         27500, 'USD', 'locked', 'fatora', 'PAY-FAT-2026-0004', '2026-03-15 10:00:00+03');
 
@@ -688,7 +688,7 @@ VALUES
 -- 15. IMPACT MESSAGES — 8 messages (donor lifecycle)
 -- ═══════════════════════════════════════════════════════════════════════════
 
-INSERT INTO impact_messages (donor_id, project_id, event_type, title_en, title_ar, body_en, body_ar, metadata, read_at, created_at)
+INSERT INTO impact_messages (user_id, project_id, event_type, title_en, title_ar, body_en, body_ar, metadata, read_at, created_at)
 VALUES
     -- Maria's donation journey
     ('d0000000-0000-0000-0000-000000000001', 'OCDS-SYR-00001', 'donation_received',

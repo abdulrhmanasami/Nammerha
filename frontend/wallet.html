@@ -39,7 +39,7 @@
     <meta property="og:title" content="Wallet — Nammerha" />
     <meta
       property="og:description"
-      content="View your escrow balances, donation history, and payment transactions."
+      content="View your escrow balances, funding history, and payment transactions."
     />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
@@ -157,14 +157,14 @@
           <div class="flex items-center gap-3 mt-4">
             <div class="flex items-center gap-1 text-white/80 text-xs">
               <i class="ph ph-lock-simple text-sm" aria-hidden="true"></i>
-              <span id="locked-count" class="animate-pulse"
-                 aria-hidden="true"><span class="inline-block h-3 w-12 bg-white/20 rounded"></span
+              <span id="locked-count" class="animate-pulse" aria-hidden="true"
+                ><span class="inline-block h-3 w-12 bg-white/20 rounded"></span
               ></span>
             </div>
             <div class="flex items-center gap-1 text-white/80 text-xs">
               <i class="ph ph-check-circle text-sm" aria-hidden="true"></i>
-              <span id="released-count" class="animate-pulse"
-                 aria-hidden="true"><span class="inline-block h-3 w-12 bg-white/20 rounded"></span
+              <span id="released-count" class="animate-pulse" aria-hidden="true"
+                ><span class="inline-block h-3 w-12 bg-white/20 rounded"></span
               ></span>
             </div>
           </div>
@@ -249,8 +249,9 @@
               >قريباً</span
             >
           </button>
+          <!-- TODO: Receipts page (donor-proof.html) needs to be built. Self-linking as placeholder. -->
           <a
-            href="donor-proof.html"
+            href="wallet.html"
             class="glass-card flex flex-col items-center gap-2 p-3 rounded-xl text-center hover:shadow-md transition-shadow"
           >
             <div class="size-10 bg-smoky-jade/10 rounded-lg flex items-center justify-center">
@@ -382,7 +383,8 @@
           <!-- Skeleton loaders -->
           <div
             class="bg-white rounded-xl p-4 flex items-center gap-4 animate-pulse dark:bg-dark-surface"
-           aria-hidden="true">
+            aria-hidden="true"
+          >
             <div class="size-10 bg-slate-200 rounded-lg"></div>
             <div class="flex-1 space-y-2">
               <div class="h-3 bg-slate-200 rounded w-3/4"></div>
@@ -392,7 +394,8 @@
           </div>
           <div
             class="bg-white rounded-xl p-4 flex items-center gap-4 animate-pulse dark:bg-dark-surface"
-           aria-hidden="true">
+            aria-hidden="true"
+          >
             <div class="size-10 bg-slate-200 rounded-lg"></div>
             <div class="flex-1 space-y-2">
               <div class="h-3 bg-slate-200 rounded w-2/3"></div>

@@ -35,8 +35,6 @@ import { tryApplyI18n } from './i18n-apply';
 import { reportError } from '../error-reporter';
 import { addTrackedTimer } from './tracked-timers';
 
-
-
 /** Tracks if the error boundary has already rendered — prevents stacking. */
 let boundaryRendered = false;
 
@@ -86,7 +84,7 @@ function renderErrorBoundary(error: unknown): void {
           <span data-i18n="go_home">${esc(t('go_home', 'الصفحة الرئيسية'))}</span>
         </a>
       </div>
-      ${import.meta.env.DEV ? `<pre class="mt-4 text-xs text-start bg-slate-100 dark:bg-dark-elevated rounded-lg p-3 max-w-md overflow-auto text-red-600 dark:text-red-400">${errorMsg}</pre>` : ''}
+      ${import.meta.env.DEV ? `<pre class="mt-4 text-xs text-start bg-slate-100 dark:bg-dark-elevated rounded-lg p-3 max-w-md overflow-auto text-red-600 dark:text-red-400">${esc(errorMsg)}</pre>` : ''}
     </div>
   `;
 
@@ -141,30 +139,34 @@ export function initErrorBoundary(): void {
   // Use a short delay to detect if main-content still has skeleton loaders
   // after a reasonable initialization window (3 seconds)
   window.addEventListener('load', () => {
-    addTrackedTimer(setTimeout(() => {
-      // Check if page is stuck in skeleton state (no hydration signal)
-      const mainContent = document.getElementById('main-content');
-      if (!mainContent) {
-        return;
-      }
+    addTrackedTimer(
+      setTimeout(() => {
+        // Check if page is stuck in skeleton state (no hydration signal)
+        const mainContent = document.getElementById('main-content');
+        if (!mainContent) {
+          return;
+        }
 
-      // If hydration signal was sent, page initialized successfully
-      if (document.documentElement.dataset['hydrated'] === '1') {
-        return;
-      }
+        // If hydration signal was sent, page initialized successfully
+        if (document.documentElement.dataset['hydrated'] === '1') {
+          return;
+        }
 
-      // Check if there are still skeleton loaders visible
-      const skeletons = mainContent.querySelectorAll('.animate-pulse, .skeleton, [data-skeleton]');
-      if (skeletons.length > 0 && !boundaryRendered) {
-        // Page appears stuck — but don't render boundary yet.
-        // The skeleton-guard.ts handles this with its own retry UI.
-        // This listener is only for cases where NO guard is installed.
-        reportError(new Error('Page may be stuck in skeleton state'), {
-          component: 'error-boundary',
-          page: window.location.pathname,
-          skeletonCount: skeletons.length,
-        });
-      }
-    }, 8_000)); // 8 seconds — generous for Syria 2G
+        // Check if there are still skeleton loaders visible
+        const skeletons = mainContent.querySelectorAll(
+          '.animate-pulse, .skeleton, [data-skeleton]',
+        );
+        if (skeletons.length > 0 && !boundaryRendered) {
+          // Page appears stuck — but don't render boundary yet.
+          // The skeleton-guard.ts handles this with its own retry UI.
+          // This listener is only for cases where NO guard is installed.
+          reportError(new Error('Page may be stuck in skeleton state'), {
+            component: 'error-boundary',
+            page: window.location.pathname,
+            skeletonCount: skeletons.length,
+          });
+        }
+      }, 8_000),
+    ); // 8 seconds — generous for Syria 2G
   });
 }

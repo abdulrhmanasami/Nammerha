@@ -125,7 +125,7 @@ INSERT INTO notifications (user_id, type, title, body, channel, is_read, created
 ON CONFLICT DO NOTHING;
 
 -- ═══ IMPACT MESSAGES ═══
-INSERT INTO impact_messages (donor_id, project_id, event_type, title_en, title_ar, body_en, body_ar, created_at) VALUES
+INSERT INTO impact_messages (user_id, project_id, event_type, title_en, title_ar, body_en, body_ar, created_at) VALUES
 ('d0000002-0000-0000-0000-000000000001','DEMO-ALP-001','milestone_completed','Milestone Completed','اكتمال مرحلة','Phase 2 foundation work completed successfully','تم إنجاز المرحلة 2 — تعزيز الأساسات بنجاح',NOW()-INTERVAL '30 days'),
 ('d0000002-0000-0000-0000-000000000002','DEMO-HMS-001','construction_started','Construction Started','بدء البناء','Construction has started on Al-Waer housing project','بدأت أعمال البناء في مشروع حي الوعر',NOW()-INTERVAL '24 days'),
 ('d0000002-0000-0000-0000-000000000003','DEMO-DMS-001','project_completed','Project Completed!','اكتمل المشروع!','The Jobar residential building has been fully restored','تم ترميم بناء جوبر السكني بالكامل',NOW()-INTERVAL '10 days'),

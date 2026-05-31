@@ -25,8 +25,6 @@ import { escapeHtml as esc } from './xss';
 import { t } from './i18n';
 import { addTrackedTimer } from './tracked-timers';
 
-
-
 // ─── Retry Tracking ─────────────────────────────────────────────────────────
 // Track retry counts per container element to implement exponential backoff.
 const retryCountMap = new WeakMap<HTMLElement, number>();
@@ -160,20 +158,22 @@ export function renderErrorWithRetry(
   // P1-UXA-007: Retry hint for repeated failures
   const retryHint =
     retryCount >= 2
-      ? `<p class="mt-1 text-xs text-slate-400" data-i18n="error_retry_hint">${t('error_retry_hint', 'لا تزال تواجه مشكلة؟ جرّب تحديث الصفحة.')}</p>`
+      ? `<p class="mt-1 text-xs text-slate-400" data-i18n="error_retry_hint">${esc(t('error_retry_hint', 'لا تزال تواجه مشكلة؟ جرّب تحديث الصفحة.'))}</p>`
       : '';
 
   container.innerHTML = `
         <div class="p-8 text-center" role="alert" aria-live="polite">
             <i class="ph ${esc(iconClass)} text-red-400 text-3xl dark:text-red-300" aria-hidden="true"></i>
             <p class="mt-2 text-sm text-red-400 dark:text-red-300" data-i18n="${esc(displayI18nKey)}">${esc(displayFallback)}</p>
-            ${esc(retryHint)}
-            ${showRetry
+            ${retryHint}
+            ${
+              showRetry
                 ? `
             <button type="button" class="retry-btn mt-3 px-4 py-2 text-xs font-semibold rounded-lg bg-trust-blue text-white hover:bg-trust-blue/90 transition-colors touch-safe dark:bg-trust-blue/90 dark:hover:bg-trust-blue" data-i18n="retry">
-                ${t('retry', 'إعادة المحاولة')}
+                ${esc(t('retry', 'إعادة المحاولة'))}
             </button>`
-                : ''}
+                : ''
+            }
         </div>
     `;
 
