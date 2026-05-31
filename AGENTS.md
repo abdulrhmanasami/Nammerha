@@ -18,6 +18,33 @@
 
 ## 🛑 ZERO-REGRESSION MEMOS (CRITICAL AI MEMORY)
 
+**MEMO 65: Deployment Pipeline Unblocked — The 5 Fatal Severances (June 1, 2026)**
+
+- **Root Cause Destroyed:**
+  1. **34 uncommitted files:** All MEMO 64 fixes existed only on the local filesystem. CI never triggered.
+  2. **Service Worker Version Freeze:** `public/sw.js` (source) was permanently stuck at `CACHE_VERSION = 'v3'`. The `bump-sw-version.cjs` script only updated `dist/sw.js` (which is gitignored). The Docker build copied the stale source and built `v3` repeatedly, preventing browsers from ever seeing UI updates.
+  3. **Dockerfile Build Bypass:** `frontend/Dockerfile` ran `npx vite build` directly instead of `npm run build`, completely bypassing the SW version bump script.
+  4. **Nginx 404 Silent Redirect:** `deploy/nginx.conf` had `error_page 404 /index.html;`, which silently redirected broken/missing pages to the homepage instead of showing a proper 404, hiding dead links.
+- **New Logic Built:**
+  1. `git commit` and `git push` executed to sync local state with `origin/master`.
+  2. **SW Dual-Sync:** `bump-sw-version.cjs` rewritten to update BOTH `dist/sw.js` (for immediate serving) AND `public/sw.js` (to keep source synchronized and ensure fresh Docker builds).
+  3. **Dockerfile Pipeline Integrity:** Changed `npx vite build` to `npm run build` in the Dockerfile to execute the full pipeline (`tsc && vite build && node scripts/bump-sw-version.cjs`).
+  4. **Nginx 404 Integrity:** Changed to `error_page 404 /404.html;` to properly render the 404 page.
+- **Verification:** `npm run build` outputs a fresh timestamp for BOTH source and dist. Dockerfile now executes the bump script. Git working tree is clean.
+
+**MEMO 64: Platinum Systemic Audit & Donor Annihilation (CRIT-08) (May 31, 2026)**
+
+- **Root Cause Destroyed:**
+  1. The AI Agent ran a massive codebase scan and found **41 critical issues** across the stack, including financial data corruption vectors, shadowed routes, missing SELECT columns, duplicated CSS assets, and raw HTML escaping errors (`esc()` wrapping HTML nodes).
+  2. **CRIT-08 (The Donor Receipt Subsystem):** `receipt.service.ts` heavily used donor terminology (`donor_name`, `donor_email`, `Donation Receipt`), violating MEMO 1 (Unified Citizen Model).
+  3. **Database Terminology:** The `escrow_ledger` table still had a `donation_intent` column.
+- **New Logic Built:**
+  1. **41 Precision Fixes:** Fixed `currency` in contract payments, `imagery_id` in satellite service, removed `esc()` from 6 frontend HTML files, removed duplicate Phosphor CSS in `index.html`, and added `Number.isSafeInteger()` guards.
+  2. **Receipt Service Platinum Refactor:** Completely purged donor terminology. `donor_name` → `contributor_name`, `donor_email` → `contributor_email`. Renamed the PDF title from "Donation Receipt" to "Escrow Transaction Receipt" (Bilingual EN/AR).
+  3. **SQL Alias Bridge:** Instead of a risky database migration for `donation_intent`, used SQL aliasing (`el.donation_intent AS funding_intent`) to safely map the DB column to the clean TypeScript domain model.
+  4. **Data Sync:** Created Migration `064_refund_requests_donor_to_user.sql` to rename the column on the `refund_requests` table.
+- **Verification:** Backend `tsc` = 0 errors. Frontend `tsc` = 0 errors. All 7/7 Receipt Service tests pass, specifically asserting zero instances of "donor" or "donation".
+
 **MEMO 63: Database Schema — donor_id → user_id Column Rename (May 31, 2026)**
 
 - **Root Cause Destroyed:**
