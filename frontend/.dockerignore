@@ -5,6 +5,7 @@
 !src/
 !public/
 !deploy/
+!scripts/
 !.well-known/
 !*.html
 !package.json
