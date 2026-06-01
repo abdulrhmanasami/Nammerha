@@ -14,7 +14,7 @@ export type UserRole =
   | 'supplier'
   | 'admin'
   | 'auditor'
-  | 'donor';
+  | 'user';
 
 export type SocialProvider = 'google' | 'apple' | 'facebook';
 

@@ -2,7 +2,7 @@
 // Nammerha Backend — Escrow Transaction Receipt PDF Generator
 // ============================================================================
 // MEMO 64 (CRIT-08): Refactored from "Donation Receipt" to "Escrow Transaction
-// Receipt" per MEMO 1 (Unified Citizen Model / Donor Annihilation).
+// Receipt" per MEMO 1 (Unified Citizen Model / User Annihilation).
 //
 // Generates bilingual (Arabic + English) escrow transaction receipts using PDFKit.
 //

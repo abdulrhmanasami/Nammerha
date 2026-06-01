@@ -4,10 +4,10 @@
 // Handles the auditor verification and fund release flow:
 //   1. Admin/auditor reviews pending spatial proofs matched with POs
 //   2. Admin approves → escrow releases funds to supplier
-//   3. System notifies all donors who funded the released item
+//   3. System notifies all users who funded the released item
 //   4. OR: Admin flags discrepancy → spatial proof rejected
 // ============================================================================
-import pool, { query, transaction } from '../config/database';
+import pool, { query, financialTransaction } from '../config/database';
 import { createNotification } from './notification.service';
 import {
   calculateEscrowFee,
@@ -176,7 +176,7 @@ export async function getPendingVerifications(
  *   2. Release all locked escrow entries for this item
  *   3. Link each escrow entry to the proof
  *   4. Update BOQ item status to 'delivered'
- *   5. Notify every donor who funded this item
+ *   5. Notify every user who funded this item
  */
 export async function releaseEscrow(
   auditorId: string,
@@ -193,10 +193,7 @@ export async function releaseEscrow(
   }
 
   try {
-    return await transaction(async (client) => {
-      // Nammerha Escrow Domain Law 1 FIX: Strict Serializable isolation
-      await client.query('SET TRANSACTION ISOLATION LEVEL SERIALIZABLE');
-
+    return await financialTransaction(async (client) => {
       // 1. Verify the proof exists and is in 'submitted' status
       // M-001 FIX: Explicit column list — prevents schema drift.
       const proofResult = await client.query<SpatialProof>(
@@ -262,15 +259,15 @@ export async function releaseEscrow(
       );
       const materialName = boqResult.rows[0]?.material_name ?? 'Material';
 
-      // 7. Notify ALL donors who funded this item
+      // 7. Notify ALL users who funded this item
       const totalReleased = releaseResult.rows.reduce((sum, r) => sum + Number(r.amount_locked), 0);
-      const uniqueDonorIds = [...new Set(releaseResult.rows.map((r) => r.user_id))];
+      const uniqueUserIds = [...new Set(releaseResult.rows.map((r) => r.user_id))];
 
-      for (const donorId of uniqueDonorIds) {
+      for (const userId of uniqueUserIds) {
         // HGH-AUD-007 FIX: Use i18n template keys instead of hardcoded bilingual strings.
         // The notification rendering layer resolves these keys per user locale.
         await createNotification(client, {
-          user_id: donorId,
+          user_id: userId,
           type: 'delivery_confirmed',
           title: 'notification.delivery_confirmed.title',
           body: 'notification.delivery_confirmed.body',
@@ -288,24 +285,24 @@ export async function releaseEscrow(
 
       // ─── Phase 3: Escrow Transaction Fee (Commercial Projects Only) ──────
       // Per study §5: 1-3% fee on commercial (homeowner-funded) projects.
-      // Humanitarian projects (donor-funded) are ALWAYS exempt.
+      // Humanitarian projects (user-funded) are ALWAYS exempt.
       let feeCharged = 0;
       try {
-        // Determine if commercial: check if donors are the homeowner themselves
+        // Determine if commercial: check if users are the homeowner themselves
         const projectCheck = await client.query<{
           homeowner_id: string;
-          donor_count: string;
+          user_count: string;
         }>(
           `SELECT p.homeowner_id,
                         (SELECT COUNT(DISTINCT user_id)
                          FROM escrow_ledger
                          WHERE project_id = p.project_id
-                           AND user_id != p.homeowner_id) AS donor_count
+                           AND user_id != p.homeowner_id) AS user_count
                  FROM projects p WHERE p.project_id = $1`,
           [proof.project_id],
         );
         const projectData = projectCheck.rows[0];
-        const isCommercial = projectData && parseInt(projectData.donor_count, 10) === 0;
+        const isCommercial = projectData && parseInt(projectData.user_count, 10) === 0;
 
         if (isCommercial && totalReleased > 0) {
           const feeConfig = await getActiveFeeConfig();
@@ -360,7 +357,7 @@ export async function flagDiscrepancy(
   auditorId: string,
   dto: FlagDiscrepancyDTO,
 ): Promise<SpatialProof> {
-  return transaction(async (client) => {
+  return financialTransaction(async (client) => {
     // 1. Verify and update proof
     // PLAT-AUD-002 FIX: Explicit RETURNING column list — no RETURNING * (prevents schema drift).
     const result = await client.query<SpatialProof>(
@@ -418,16 +415,13 @@ export interface RefundRequest {
 }
 
 /**
- * Donor requests a refund for a locked escrow entry.
+ * User requests a refund for a locked escrow entry.
  * Creates a formal request record — does NOT immediately refund.
  * The admin must approve via processRefund().
  */
-export async function requestRefund(
-  donorId: string,
-  dto: RefundRequestDTO,
-): Promise<RefundRequest> {
-  return transaction(async (client) => {
-    // 1. Verify the escrow entry exists, belongs to this donor, and is still locked
+export async function requestRefund(userId: string, dto: RefundRequestDTO): Promise<RefundRequest> {
+  return financialTransaction(async (client) => {
+    // 1. Verify the escrow entry exists, belongs to this user, and is still locked
     const escrowResult = await client.query<{
       transaction_id: string;
       user_id: string;
@@ -445,7 +439,7 @@ export async function requestRefund(
     if (!escrow) {
       throw new Error('Escrow entry not found');
     }
-    if (escrow.user_id !== donorId) {
+    if (escrow.user_id !== userId) {
       throw new Error('You can only request refunds for your own donations');
     }
     if (escrow.payment_status !== 'locked') {
@@ -468,7 +462,7 @@ export async function requestRefund(
       `INSERT INTO refund_requests (escrow_id, user_id, reason, refund_amount)
              VALUES ($1, $2, $3, $4)
              RETURNING refund_id, escrow_id, user_id, reason, refund_amount, status, created_at`,
-      [dto.escrow_id, donorId, dto.reason, parseInt(escrow.amount_locked, 10)],
+      [dto.escrow_id, userId, dto.reason, parseInt(escrow.amount_locked, 10)],
     );
 
     const refund = refundResult.rows[0];
@@ -482,7 +476,7 @@ export async function requestRefund(
              VALUES ('refund_requested', 'refund_requests', $1, $2, $3)`,
       [
         refund.refund_id,
-        donorId,
+        userId,
         JSON.stringify({
           escrow_id: dto.escrow_id,
           amount: escrow.amount_locked,
@@ -517,10 +511,7 @@ export async function processRefund(
   }
 
   try {
-    return await transaction(async (client) => {
-      // Nammerha Escrow Domain Law 1 FIX: Strict Serializable isolation
-      await client.query('SET TRANSACTION ISOLATION LEVEL SERIALIZABLE');
-
+    return await financialTransaction(async (client) => {
       // 1. Lock and validate the refund request
       const reqResult = await client.query<{
         refund_id: string;
@@ -554,7 +545,7 @@ export async function processRefund(
           [adminId, notes ?? null, refundId],
         );
 
-        // Notify donor of rejection
+        // Notify user of rejection
         await createNotification(client, {
           user_id: req.user_id,
           type: 'refund_rejected',
@@ -581,7 +572,7 @@ export async function processRefund(
       }
 
       // D-10 FIX: Reverse any matching pledges tied to this donation.
-      // If a donor refunds a matched donation, the sponsor's escrow MUST also
+      // If a user refunds a matched donation, the sponsor's escrow MUST also
       // be refunded and the program's spent counter must be decremented.
       // Without this, the sponsor's funds would be orphaned forever.
       const matchResult = await client.query<{
@@ -628,7 +619,7 @@ export async function processRefund(
               match.pledge_id,
               adminId,
               JSON.stringify({
-                reason: 'donor_refund',
+                reason: 'user_refund',
                 original_escrow: req.escrow_id,
                 sponsor_escrow: match.matched_escrow_id,
                 match_amount: matchAmount,
@@ -676,7 +667,7 @@ export async function processRefund(
         ],
       );
 
-      // 5. Notify donor of approval
+      // 5. Notify user of approval
       await createNotification(client, {
         user_id: req.user_id,
         type: 'refund_approved',
@@ -707,7 +698,7 @@ export async function getPendingRefunds(
     RefundRequest & {
       project_title: string;
       material_name: string;
-      donor_name: string;
+      user_name: string;
     }
   >
 > {
@@ -719,7 +710,7 @@ export async function getPendingRefunds(
                 rr.refund_amount, rr.status, rr.created_at,
                 p.title AS project_title,
                 b.material_name,
-                u.full_name AS donor_name
+                u.full_name AS user_name
          FROM refund_requests rr
          JOIN escrow_ledger el ON el.transaction_id = rr.escrow_id
          JOIN projects p ON p.project_id = el.project_id

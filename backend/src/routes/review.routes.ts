@@ -433,7 +433,7 @@ router.post(
 
       if (dto.project_id && dto.reviewable_type !== 'project') {
         // Check if the reviewer has a real interaction with the target via a project
-        // e.g., donor funded the project, homeowner's project was worked on by contractor
+        // e.g., user funded the project, homeowner's project was worked on by contractor
         const interactionCheck = await query<{ found: boolean }>(
           `SELECT EXISTS(
                     SELECT 1 FROM escrow_ledger
@@ -534,13 +534,11 @@ router.post(
       } as ApiResponse);
     } catch (error) {
       if (error instanceof ZodError) {
-        res
-          .status(400)
-          .json({
-            success: false,
-            error: 'Validation failed',
-            details: error.issues,
-          } as ApiResponse);
+        res.status(400).json({
+          success: false,
+          error: 'Validation failed',
+          details: error.issues,
+        } as ApiResponse);
         return;
       }
       // Unique constraint violation = duplicate review
@@ -665,13 +663,11 @@ router.put(
       } as ApiResponse);
     } catch (error) {
       if (error instanceof ZodError) {
-        res
-          .status(400)
-          .json({
-            success: false,
-            error: 'Validation failed',
-            details: error.issues,
-          } as ApiResponse);
+        res.status(400).json({
+          success: false,
+          error: 'Validation failed',
+          details: error.issues,
+        } as ApiResponse);
         return;
       }
       safeRouteError(res, error, 'Review.Update');
@@ -788,13 +784,11 @@ router.post(
       } as ApiResponse);
     } catch (error) {
       if (error instanceof ZodError) {
-        res
-          .status(400)
-          .json({
-            success: false,
-            error: 'Validation failed',
-            details: error.issues,
-          } as ApiResponse);
+        res.status(400).json({
+          success: false,
+          error: 'Validation failed',
+          details: error.issues,
+        } as ApiResponse);
         return;
       }
       if (error instanceof Error && error.message.includes('unique constraint')) {
@@ -862,13 +856,11 @@ router.post(
       res.status(201).json({ success: true, message: 'Report submitted' } as ApiResponse);
     } catch (error) {
       if (error instanceof ZodError) {
-        res
-          .status(400)
-          .json({
-            success: false,
-            error: 'Validation failed',
-            details: error.issues,
-          } as ApiResponse);
+        res.status(400).json({
+          success: false,
+          error: 'Validation failed',
+          details: error.issues,
+        } as ApiResponse);
         return;
       }
       if (error instanceof Error && error.message.includes('unique constraint')) {
@@ -919,13 +911,11 @@ router.post(
       res.json({ success: true, message: 'Vote recorded' } as ApiResponse);
     } catch (error) {
       if (error instanceof ZodError) {
-        res
-          .status(400)
-          .json({
-            success: false,
-            error: 'Validation failed',
-            details: error.issues,
-          } as ApiResponse);
+        res.status(400).json({
+          success: false,
+          error: 'Validation failed',
+          details: error.issues,
+        } as ApiResponse);
         return;
       }
       safeRouteError(res, error, 'Review.Helpful');

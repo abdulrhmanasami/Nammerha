@@ -2,7 +2,7 @@
 // Nammerha — Escrow Service Unit Tests (PLT-AUDIT-006)
 // Tests the complete escrow verification and fund release flow:
 //   1. getPendingVerifications — paginated retrieval with enriched data
-//   2. releaseEscrow — atomic fund release + BOQ status + donor notifications
+//   2. releaseEscrow — atomic fund release + BOQ status + user notifications
 //   3. flagDiscrepancy — proof rejection + engineer notification
 // ============================================================================
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -82,7 +82,7 @@ describe('Escrow Service', () => {
           escrow_data: [
             {
               transaction_id: 'tx-001',
-              user_id: 'donor-001',
+              user_id: 'user-001',
               amount_locked: 500000,
               payment_status: 'locked',
             },
@@ -181,7 +181,7 @@ describe('Escrow Service', () => {
 
   // ─── releaseEscrow ──────────────────────────────────────────────────
   describe('releaseEscrow()', () => {
-    it('should atomically release escrow, update BOQ, and notify donors', async () => {
+    it('should atomically release escrow, update BOQ, and notify users', async () => {
       const mockClient = {
         query: vi
           .fn()
@@ -206,8 +206,8 @@ describe('Escrow Service', () => {
           // 3. Release escrow entries RETURNING
           .mockResolvedValueOnce({
             rows: [
-              { transaction_id: 'tx-001', user_id: 'donor-001', amount_locked: 300000 },
-              { transaction_id: 'tx-002', user_id: 'donor-002', amount_locked: 200000 },
+              { transaction_id: 'tx-001', user_id: 'user-001', amount_locked: 300000 },
+              { transaction_id: 'tx-002', user_id: 'user-002', amount_locked: 200000 },
             ],
             rowCount: 2,
           })
@@ -225,7 +225,7 @@ describe('Escrow Service', () => {
           }),
       };
 
-      // Mock notification creation (called for each unique donor)
+      // Mock notification creation (called for each unique user)
       mockCreateNotification
         .mockResolvedValueOnce({ notification_id: 'notif-001' })
         .mockResolvedValueOnce({ notification_id: 'notif-002' });
@@ -251,19 +251,19 @@ describe('Escrow Service', () => {
       const boqUpdateCall = mockClient.query.mock.calls[4] as unknown[];
       expect(boqUpdateCall[0] as string).toContain("status = 'delivered'");
 
-      // Verify notifications sent to both donors
+      // Verify notifications sent to both users
       expect(mockCreateNotification).toHaveBeenCalledTimes(2);
       expect(mockCreateNotification).toHaveBeenCalledWith(
         mockClient,
         expect.objectContaining({
-          user_id: 'donor-001',
+          user_id: 'user-001',
           type: 'delivery_confirmed',
         }),
       );
       expect(mockCreateNotification).toHaveBeenCalledWith(
         mockClient,
         expect.objectContaining({
-          user_id: 'donor-002',
+          user_id: 'user-002',
           type: 'delivery_confirmed',
         }),
       );
@@ -338,7 +338,7 @@ describe('Escrow Service', () => {
       ).rejects.toThrow('does not match');
     });
 
-    it('should deduplicate notifications for same donor with multiple escrow entries', async () => {
+    it('should deduplicate notifications for same user with multiple escrow entries', async () => {
       const mockClient = {
         query: vi
           .fn()
@@ -357,12 +357,12 @@ describe('Escrow Service', () => {
             rowCount: 1,
           })
           .mockResolvedValueOnce({ rows: [], rowCount: 1 })
-          // Same donor has 3 escrow entries for this item
+          // Same user has 3 escrow entries for this item
           .mockResolvedValueOnce({
             rows: [
-              { transaction_id: 'tx-001', user_id: 'donor-001', amount_locked: 100000 },
-              { transaction_id: 'tx-002', user_id: 'donor-001', amount_locked: 200000 },
-              { transaction_id: 'tx-003', user_id: 'donor-001', amount_locked: 300000 },
+              { transaction_id: 'tx-001', user_id: 'user-001', amount_locked: 100000 },
+              { transaction_id: 'tx-002', user_id: 'user-001', amount_locked: 200000 },
+              { transaction_id: 'tx-003', user_id: 'user-001', amount_locked: 300000 },
             ],
             rowCount: 3,
           })
@@ -383,7 +383,7 @@ describe('Escrow Service', () => {
 
       expect(result.released_count).toBe(3);
       expect(result.total_released).toBe(600000);
-      // Only 1 notification despite 3 escrow entries (same donor)
+      // Only 1 notification despite 3 escrow entries (same user)
       expect(mockCreateNotification).toHaveBeenCalledTimes(1);
     });
   });

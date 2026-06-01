@@ -209,17 +209,17 @@ router.get('/supplier/commissions', authMiddleware, async (req, res) => {
 const PAYMENTS_ENABLED = process.env['PAYMENTS_ENABLED'] === 'true';
 
 /**
- * POST /api/revenue/donor/tip
- * Record a voluntary platform tip from a donor.
+ * POST /api/revenue/user/tip
+ * Record a voluntary platform tip from a user.
  */
-router.post('/donor/tip', authMiddleware, async (req, res) => {
+router.post('/user/tip', authMiddleware, async (req, res) => {
   if (!PAYMENTS_ENABLED) {
     res.status(503).json({ success: false, error: 'Payments are temporarily disabled.' });
     return;
   }
   try {
-    const donorId = req.authUser?.user_id;
-    if (!donorId) {
+    const userId = req.authUser?.user_id;
+    if (!userId) {
       res.status(401).json({ success: false, error: 'Unauthorized' });
       return;
     }
@@ -233,7 +233,7 @@ router.post('/donor/tip', authMiddleware, async (req, res) => {
     } = createTipSchema.parse(req.body);
 
     const tip = await recordTip(
-      donorId,
+      userId,
       payment_reference,
       tip_amount_cents,
       tip_percentage ?? null,
@@ -258,17 +258,17 @@ router.post('/donor/tip', authMiddleware, async (req, res) => {
 });
 
 /**
- * GET /api/revenue/donor/tips
- * Get my tip history (donor view).
+ * GET /api/revenue/user/tips
+ * Get my tip history (user view).
  */
-router.get('/donor/tips', authMiddleware, async (req, res) => {
+router.get('/user/tips', authMiddleware, async (req, res) => {
   if (!PAYMENTS_ENABLED) {
     res.status(503).json({ success: false, error: 'Payments are temporarily disabled.' });
     return;
   }
   try {
-    const donorId = req.authUser?.user_id;
-    if (!donorId) {
+    const userId = req.authUser?.user_id;
+    if (!userId) {
       res.status(401).json({ success: false, error: 'Unauthorized' });
       return;
     }
@@ -278,7 +278,7 @@ router.get('/donor/tips', authMiddleware, async (req, res) => {
     const pOffset = parseInt(req.query['offset'] as string, 10);
     const offset = Math.max(Number.isNaN(pOffset) ? 0 : pOffset, 0);
 
-    const result = await getUserTips(donorId, limit, offset);
+    const result = await getUserTips(userId, limit, offset);
     res.json({ success: true, data: result });
   } catch (err) {
     logger.error('Failed to fetch tips', {

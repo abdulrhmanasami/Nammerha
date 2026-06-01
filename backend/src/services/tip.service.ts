@@ -1,6 +1,6 @@
 // ============================================================================
 // Nammerha Backend — Tip Service
-// Donor tipping model per profitability study §3.
+// User tipping model per profitability study §3.
 // 100% of donation goes to the project; tip is separate voluntary support
 // for platform operations.
 // All monetary values in cents (BIGINT convention).
@@ -34,7 +34,7 @@ export interface TipSummary {
 // ─── Core Functions ─────────────────────────────────────────────────────────
 
 /**
- * Record a donor tip for platform operational support.
+ * Record a user tip for platform operational support.
  * Called after donation payment is confirmed.
  */
 export async function recordTip(
@@ -58,7 +58,14 @@ export async function recordTip(
            RETURNING tip_id, user_id, donation_reference, tip_amount_cents,
                      tip_percentage, currency, payment_gateway, payment_gateway_ref,
                      status, created_at`,
-      [userId, donationReference, tipAmountCents, tipPercentage, gateway || null, gatewayRef || null],
+      [
+        userId,
+        donationReference,
+        tipAmountCents,
+        tipPercentage,
+        gateway || null,
+        gatewayRef || null,
+      ],
     );
 
     if (!result.rows[0]) {
@@ -130,7 +137,7 @@ export async function getTipSummary(startDate?: string, endDate?: string): Promi
 }
 
 /**
- * Get tip history for a specific donor.
+ * Get tip history for a specific user.
  */
 export async function getUserTips(
   userId: string,

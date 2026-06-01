@@ -214,7 +214,7 @@ export const escrowMutationResolvers = {
 
   // M-5 FIX: Replaced hollow inline SQL with full escrowService.releaseEscrow().
   // The service layer includes Redis distributed locks, Serializable isolation,
-  // escrow fee calculation, BOQ status update, and donor notifications.
+  // escrow fee calculation, BOQ status update, and user notifications.
   releaseEscrow: async (
     _: unknown,
     args: { input: { proofId: string; itemId: string } },

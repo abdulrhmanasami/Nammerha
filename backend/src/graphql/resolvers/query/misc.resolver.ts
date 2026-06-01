@@ -51,7 +51,7 @@ export const miscQueryResolvers = {
   userImpactMessages: async (_: unknown, __: unknown, context: GQLContext) => {
     // UNIFIED CITIZEN: Any authenticated user can view impact messages.
     const user = requireAuth(context);
-    const messages = await impactService.getDonorMessages(user.user_id);
+    const messages = await impactService.getUserMessages(user.user_id);
     return messages.map((m) => mapImpactMessage(m as unknown as Record<string, unknown>));
   },
 

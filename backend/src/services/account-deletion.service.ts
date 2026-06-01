@@ -65,7 +65,7 @@ export interface PurgeResult {
  * Check if a user has any blockers that prevent account deletion.
  *
  * Blockers:
- *   1. Active escrow (locked funds) — cannot abandon donor money
+ *   1. Active escrow (locked funds) — cannot abandon user money
  *   2. Active in-progress projects as homeowner — construction underway
  *   3. Admin/auditor role — requires super-admin approval
  */
@@ -575,7 +575,7 @@ export async function executePermanentDeletion(userId: string): Promise<PurgeRes
       'contractor_profiles',
       'supplier_profiles',
       'tradesperson_profiles',
-      'donor_profiles',
+      'user_profiles',
     ];
     for (const table of profileTables) {
       const delResult = await client

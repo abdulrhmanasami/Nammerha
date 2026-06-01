@@ -6,7 +6,7 @@
 //   Path 1: Homeowner → Engineer (damage report, BOQ)
 //   Path 2: User → Marketplace (project browsing & BOQ viewer)
 //   Path 3: Execution → Spatial Proof (GPS-verified delivery)
-//   Path 4: Release → Notify (escrow release, donor notification)
+//   Path 4: Release → Notify (escrow release, user notification)
 //
 // IMP-004 Refactor: Rate limiters → middleware/rate-limiters.ts
 //                   CSRF protection → middleware/csrf.middleware.ts
@@ -34,7 +34,11 @@ dotenv.config();
 import { auditMiddleware } from './middleware/audit.middleware';
 import { idempotencyMiddleware } from './middleware/idempotency.middleware';
 import { globalLimiter } from './middleware/rate-limiters';
-import { csrfProtection, csrfTokenRateLimiter, csrfTokenHandler } from './middleware/csrf.middleware';
+import {
+  csrfProtection,
+  csrfTokenRateLimiter,
+  csrfTokenHandler,
+} from './middleware/csrf.middleware';
 import { mobileGuardMiddleware } from './middleware/mobile-guard.middleware';
 import { i18nErrorMiddleware } from './middleware/i18n-error.middleware';
 // GAP-S2 PLATINUM FIX: Correlation ID for end-to-end request tracing
@@ -56,8 +60,11 @@ import { startAccountPurgeJob, stopAccountPurgeJob } from './jobs/account-purge-
 
 // P3-AUD-NEW-002 FIX: Dynamic version from package.json instead of hardcoded '1.0.0'
 const PKG_VERSION = (() => {
-    try { return JSON.parse(readFileSync(path.join(__dirname, '../package.json'), 'utf-8')).version; }
-    catch { return '0.0.0'; }
+  try {
+    return JSON.parse(readFileSync(path.join(__dirname, '../package.json'), 'utf-8')).version;
+  } catch {
+    return '0.0.0';
+  }
 })();
 
 // ─── Create Express App ─────────────────────────────────────────────────────
@@ -72,97 +79,128 @@ app.set('trust proxy', ['loopback', 'linklocal', 'uniquelocal']);
 // ─── Security Headers (Report §5: Cybersecurity Architecture) ───────────────
 // Helmet v8 sets HSTS, CSP, X-Frame-Options, X-Content-Type-Options by default.
 // We customize HSTS for preload eligibility and CSP for required external resources.
-app.use(helmet({
+app.use(
+  helmet({
     // HSTS: 2 years + includeSubDomains + preload (eligible for https://hstspreload.org)
     strictTransportSecurity: {
-        maxAge: 63072000,       // 2 years in seconds (preload requirement)
-        includeSubDomains: true,
-        preload: true,
+      maxAge: 63072000, // 2 years in seconds (preload requirement)
+      includeSubDomains: true,
+      preload: true,
     },
     // Content Security Policy: whitelist required CDN/external resources
     contentSecurityPolicy: {
-        directives: {
-            defaultSrc: ["'self'"],
-            // P1-AUD-CSP-001 FIX: Added cdnjs.cloudflare.com for GSAP (about.html scroll animations).
-            // SEC-005: 'unsafe-inline' remains removed — use nonce-based CSP for inline scripts.
-            scriptSrc: ["'self'", "https://cdnjs.cloudflare.com"],
-            // PLT-AUDIT-008: styleSrc 'unsafe-inline' is an ACCEPTED RISK.
-            // ───────────────────────────────────────────────────────────────
-            // Required by: MapLibre GL (map library) which injects inline styles
-            // for canvas overlays, popup positioning, and marker transforms.
-            // Compensating controls:
-            //   1. scriptSrc does NOT allow 'unsafe-inline' (critical XSS vector)
-            //   2. CSP violation reporting enabled via reportUri
-            //   3. Style injection is low-severity compared to script injection
-            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-            fontSrc: ["'self'", "https://fonts.gstatic.com"],
-            imgSrc: ["'self'", "data:", "blob:", "https://*.nammerha.com"],
-            connectSrc: [
-                "'self'",
-                "https://*.nammerha.com",
-                "https://*.auth0.com",
-                "https://*.visa.com",       // Visa Checkout/Direct API
-                "https://api.fatora.io",    // Fatora payment gateway
-                "https://checkout.fatora.io", // Fatora checkout iframe
-            ],
-            frameSrc: ["'self'", "https://checkout.fatora.io"],
-            objectSrc: ["'none'"],
-            baseUri: ["'self'"],
-            formAction: ["'self'"],
-            upgradeInsecureRequests: [],
-            // PLT-AUDIT-008: CSP violation reporting for security monitoring
-            reportUri: '/api/csp-report',
-        },
+      directives: {
+        defaultSrc: ["'self'"],
+        // P1-AUD-CSP-001 FIX: Added cdnjs.cloudflare.com for GSAP (about.html scroll animations).
+        // SEC-005: 'unsafe-inline' remains removed — use nonce-based CSP for inline scripts.
+        scriptSrc: ["'self'", 'https://cdnjs.cloudflare.com'],
+        // PLT-AUDIT-008: styleSrc 'unsafe-inline' is an ACCEPTED RISK.
+        // ───────────────────────────────────────────────────────────────
+        // Required by: MapLibre GL (map library) which injects inline styles
+        // for canvas overlays, popup positioning, and marker transforms.
+        // Compensating controls:
+        //   1. scriptSrc does NOT allow 'unsafe-inline' (critical XSS vector)
+        //   2. CSP violation reporting enabled via reportUri
+        //   3. Style injection is low-severity compared to script injection
+        styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+        fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+        imgSrc: ["'self'", 'data:', 'blob:', 'https://*.nammerha.com'],
+        connectSrc: [
+          "'self'",
+          'https://*.nammerha.com',
+          'https://*.auth0.com',
+          'https://*.visa.com', // Visa Checkout/Direct API
+          'https://api.fatora.io', // Fatora payment gateway
+          'https://checkout.fatora.io', // Fatora checkout iframe
+        ],
+        frameSrc: ["'self'", 'https://checkout.fatora.io'],
+        objectSrc: ["'none'"],
+        baseUri: ["'self'"],
+        formAction: ["'self'"],
+        upgradeInsecureRequests: [],
+        // PLT-AUDIT-008: CSP violation reporting for security monitoring
+        reportUri: '/api/csp-report',
+      },
     },
-}));
+  }),
+);
 
 // CRT-005: CORS with explicit origin whitelist (was wide-open)
-const ALLOWED_ORIGINS = (process.env['CORS_ORIGINS'] ?? 'http://localhost:3000,https://nammerha.com,https://www.nammerha.com').split(',');
-app.use(cors({
+const ALLOWED_ORIGINS = (
+  process.env['CORS_ORIGINS'] ??
+  'http://localhost:3000,https://nammerha.com,https://www.nammerha.com'
+).split(',');
+app.use(
+  cors({
     origin: (origin, callback) => {
-        // Allow requests with no origin (mobile apps, server-to-server, health checks)
-        if (!origin || ALLOWED_ORIGINS.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error(`CORS: Origin '${origin}' not allowed`));
-        }
+      // Allow requests with no origin (mobile apps, server-to-server, health checks)
+      if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS: Origin '${origin}' not allowed`));
+      }
     },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     // SEC-011: Only expose X-User-Id header in development mode.
     // In production, this dev-only header should not be in the CORS allowlist.
-    allowedHeaders: process.env['NODE_ENV'] === 'development'
-        ? ['Content-Type', 'Authorization', 'X-User-Id', 'Idempotency-Key', 'X-CSRF-Token', 'X-Platform', 'X-Device-Id', 'X-App-Version', 'X-Os-Version', 'X-Device-Model']
-        : ['Content-Type', 'Authorization', 'Idempotency-Key', 'X-CSRF-Token', 'X-Platform', 'X-Device-Id', 'X-App-Version', 'X-Os-Version', 'X-Device-Model'],
+    allowedHeaders:
+      process.env['NODE_ENV'] === 'development'
+        ? [
+            'Content-Type',
+            'Authorization',
+            'X-User-Id',
+            'Idempotency-Key',
+            'X-CSRF-Token',
+            'X-Platform',
+            'X-Device-Id',
+            'X-App-Version',
+            'X-Os-Version',
+            'X-Device-Model',
+          ]
+        : [
+            'Content-Type',
+            'Authorization',
+            'Idempotency-Key',
+            'X-CSRF-Token',
+            'X-Platform',
+            'X-Device-Id',
+            'X-App-Version',
+            'X-Os-Version',
+            'X-Device-Model',
+          ],
     credentials: true,
     maxAge: 86400, // 24h preflight cache
-}));
+  }),
+);
 
 // NMR-AUD-005 FIX: Capture raw request body for HMAC webhook verification.
 // The `verify` callback stores the raw bytes on `req.rawBody` BEFORE JSON
 // parsing, so the webhook handler can verify against the exact payload the
 // gateway signed — not a reconstructed/re-serialized version (which is
 // fragile due to JSON key ordering and extra-field stripping).
-app.use(express.json({
+app.use(
+  express.json({
     limit: '2mb',
     verify: (req: express.Request, _res, buf: Buffer) => {
-        // Only capture raw body for the webhook endpoint (performance: avoid
-        // unnecessary Buffer→string copies on every request)
-        if (req.url === '/webhook' || req.originalUrl?.includes('/payments/webhook')) {
-            (req as express.Request & { rawBody?: string }).rawBody = buf.toString('utf-8');
-        }
+      // Only capture raw body for the webhook endpoint (performance: avoid
+      // unnecessary Buffer→string copies on every request)
+      if (req.url === '/webhook' || req.originalUrl?.includes('/payments/webhook')) {
+        (req as express.Request & { rawBody?: string }).rawBody = buf.toString('utf-8');
+      }
     },
-}));
-app.use(express.urlencoded({ extended: true }));   // URL-encoded body parser
-app.use(cookieParser());                           // NMR-PLT-001 FIX: Parse cookies for CSRF double-submit
+  }),
+);
+app.use(express.urlencoded({ extended: true })); // URL-encoded body parser
+app.use(cookieParser()); // NMR-PLT-001 FIX: Parse cookies for CSRF double-submit
 // GAP-S2 PLATINUM FIX: Correlation ID MUST be first functional middleware.
 // All downstream middleware, services, and logs inherit the X-Request-Id for
 // end-to-end tracing across Frontend → Backend → PostgreSQL → Redis → MinIO.
 app.use(correlationId);
-app.use(i18nErrorMiddleware);                      // I18N-004: Translate error messages for Arabic clients
-app.use(mobileGuardMiddleware);                    // Enforce API versioning for mobile apps
-app.use(requestTimingMiddleware());                // APM request timing (>200ms alerts)
-app.use(auditMiddleware);                          // Auto audit trail
-app.use(idempotencyMiddleware);                    // Titan Architect FIX: Idempotency enforcement
+app.use(i18nErrorMiddleware); // I18N-004: Translate error messages for Arabic clients
+app.use(mobileGuardMiddleware); // Enforce API versioning for mobile apps
+app.use(requestTimingMiddleware()); // APM request timing (>200ms alerts)
+app.use(auditMiddleware); // Auto audit trail
+app.use(idempotencyMiddleware); // Titan Architect FIX: Idempotency enforcement
 
 // ─── Rate Limiting (MED-001) ────────────────────────────────────────────────
 app.use('/api', globalLimiter);
@@ -174,27 +212,27 @@ app.use('/api', csrfProtection);
 // ─── Health Check ───────────────────────────────────────────────────────────
 // MED-010: Verify actual DB connectivity instead of always returning 'healthy'
 app.get('/health', async (_req, res) => {
-    try {
-        const { query: dbQuery } = await import('./config/database');
-        await dbQuery('SELECT 1');
-        res.json({
-            status: 'healthy',
-            service: 'nammerha-backend',
-            version: PKG_VERSION,
-            timestamp: new Date().toISOString(),
-        });
-    } catch (err) {
-        logger.warn('Health check: DB connectivity failed', {
-            error: err instanceof Error ? err.message : String(err),
-        });
-        res.status(503).json({
-            status: 'unhealthy',
-            service: 'nammerha-backend',
-            version: PKG_VERSION,
-            timestamp: new Date().toISOString(),
-            error: 'Database connection failed',
-        });
-    }
+  try {
+    const { query: dbQuery } = await import('./config/database');
+    await dbQuery('SELECT 1');
+    res.json({
+      status: 'healthy',
+      service: 'nammerha-backend',
+      version: PKG_VERSION,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err) {
+    logger.warn('Health check: DB connectivity failed', {
+      error: err instanceof Error ? err.message : String(err),
+    });
+    res.status(503).json({
+      status: 'unhealthy',
+      service: 'nammerha-backend',
+      version: PKG_VERSION,
+      timestamp: new Date().toISOString(),
+      error: 'Database connection failed',
+    });
+  }
 });
 
 // ─── GAP-O4 PLATINUM FIX: Redis Circuit Breaker Health Endpoint ─────────────
@@ -203,24 +241,24 @@ app.get('/health', async (_req, res) => {
 // Returns: circuit state (CLOSED/OPEN/HALF_OPEN), consecutive failures,
 //          acquire/release counters for both Redis and PostgreSQL fallback.
 app.get('/health/redis', async (_req, res) => {
-    try {
-        const { redisLockManager } = await import('./config/redis.client');
-        const metrics = redisLockManager.getMetrics();
-        const isHealthy = metrics.state.state === 'CLOSED';
-        res.status(isHealthy ? 200 : 503).json({
-            status: isHealthy ? 'healthy' : 'degraded',
-            service: 'nammerha-redis-lock-manager',
-            circuit: metrics.state.state,
-            consecutiveFailures: metrics.state.consecutiveFailures,
-            counters: metrics.counters,
-            timestamp: new Date().toISOString(),
-        });
-    } catch (err) {
-        res.status(500).json({
-            status: 'error',
-            error: err instanceof Error ? err.message : 'Redis health check failed',
-        });
-    }
+  try {
+    const { redisLockManager } = await import('./config/redis.client');
+    const metrics = redisLockManager.getMetrics();
+    const isHealthy = metrics.state.state === 'CLOSED';
+    res.status(isHealthy ? 200 : 503).json({
+      status: isHealthy ? 'healthy' : 'degraded',
+      service: 'nammerha-redis-lock-manager',
+      circuit: metrics.state.state,
+      consecutiveFailures: metrics.state.consecutiveFailures,
+      counters: metrics.counters,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err) {
+    res.status(500).json({
+      status: 'error',
+      error: err instanceof Error ? err.message : 'Redis health check failed',
+    });
+  }
 });
 
 // ─── GAP-O5 PLATINUM FIX: Comprehensive System Health + Alert Thresholds ────
@@ -235,136 +273,143 @@ app.get('/health/redis', async (_req, res) => {
 //
 // Usage: GET /health/full (no auth required — public system status)
 app.get('/health/full', async (_req, res) => {
-    const startTime = process.hrtime.bigint();
+  const startTime = process.hrtime.bigint();
 
-    interface SubsystemCheck {
-        status: 'ok' | 'warn' | 'critical';
-        latencyMs?: number;
-        details?: Record<string, unknown>;
-    }
+  interface SubsystemCheck {
+    status: 'ok' | 'warn' | 'critical';
+    latencyMs?: number;
+    details?: Record<string, unknown>;
+  }
 
-    const checks: Record<string, SubsystemCheck> = {};
-    let overallStatus: 'healthy' | 'degraded' | 'unhealthy' = 'healthy';
+  const checks: Record<string, SubsystemCheck> = {};
+  let overallStatus: 'healthy' | 'degraded' | 'unhealthy' = 'healthy';
 
-    // ── 1. Database ────────────────────────────────────────────────────────
-    try {
-        const dbStart = Date.now();
-        const { query: dbQuery, getPoolStats } = await import('./config/database');
-        await dbQuery('SELECT 1');
-        const dbLatency = Date.now() - dbStart;
-        const poolStats = getPoolStats();
+  // ── 1. Database ────────────────────────────────────────────────────────
+  try {
+    const dbStart = Date.now();
+    const { query: dbQuery, getPoolStats } = await import('./config/database');
+    await dbQuery('SELECT 1');
+    const dbLatency = Date.now() - dbStart;
+    const poolStats = getPoolStats();
 
-        const dbAlert = poolStats.available < 2 ? 'critical'
-            : poolStats.available < 5 ? 'warn' : 'ok';
+    const dbAlert = poolStats.available < 2 ? 'critical' : poolStats.available < 5 ? 'warn' : 'ok';
 
-        checks.database = {
-            status: dbAlert,
-            latencyMs: dbLatency,
-            details: {
-                pool: poolStats,
-                ...(dbLatency > 200 && { alert: 'Slow DB response (>200ms)' }),
-            },
-        };
-    } catch (err) {
-        checks.database = {
-            status: 'critical',
-            details: { error: err instanceof Error ? err.message : 'Unknown' },
-        };
-    }
-
-    // ── 2. Redis ───────────────────────────────────────────────────────────
-    try {
-        const { redisLockManager } = await import('./config/redis.client');
-        const metrics = redisLockManager.getMetrics();
-        const redisAlert = metrics.state.state === 'OPEN' ? 'critical'
-            : metrics.state.state === 'HALF_OPEN' ? 'warn' : 'ok';
-
-        checks.redis = {
-            status: redisAlert,
-            details: {
-                circuit: metrics.state.state,
-                consecutiveFailures: metrics.state.consecutiveFailures,
-                counters: metrics.counters,
-            },
-        };
-    } catch (err) {
-        checks.redis = {
-            status: 'critical',
-            details: { error: err instanceof Error ? err.message : 'Unknown' },
-        };
-    }
-
-    // ── 3. Memory ──────────────────────────────────────────────────────────
-    const mem = process.memoryUsage();
-    const rssMB = Math.round(mem.rss / 1024 / 1024);
-    const heapMB = Math.round(mem.heapUsed / 1024 / 1024);
-    const memAlert = rssMB > 512 ? 'warn' : 'ok';
-
-    checks.memory = {
-        status: memAlert,
-        details: {
-            rssMB,
-            heapUsedMB: heapMB,
-            heapTotalMB: Math.round(mem.heapTotal / 1024 / 1024),
-            externalMB: Math.round(mem.external / 1024 / 1024),
-        },
+    checks.database = {
+      status: dbAlert,
+      latencyMs: dbLatency,
+      details: {
+        pool: poolStats,
+        ...(dbLatency > 200 && { alert: 'Slow DB response (>200ms)' }),
+      },
     };
-
-    // ── 4. Process ─────────────────────────────────────────────────────────
-    const uptimeSeconds = Math.round(process.uptime());
-    const processAlert = uptimeSeconds < 60 ? 'warn' : 'ok';
-
-    checks.process = {
-        status: processAlert,
-        details: {
-            uptimeSeconds,
-            uptimeHuman: `${Math.floor(uptimeSeconds / 3600)}h ${Math.floor((uptimeSeconds % 3600) / 60)}m`,
-            pid: process.pid,
-            nodeVersion: process.version,
-            ...(uptimeSeconds < 60 && { alert: 'Recent restart detected (<60s)' }),
-        },
+  } catch (err) {
+    checks.database = {
+      status: 'critical',
+      details: { error: err instanceof Error ? err.message : 'Unknown' },
     };
+  }
 
-    // ── Determine overall status ──────────────────────────────────────────
-    for (const check of Object.values(checks)) {
-        if (check.status === 'critical') { overallStatus = 'unhealthy'; break; }
-        if (check.status === 'warn') { overallStatus = 'degraded'; }
+  // ── 2. Redis ───────────────────────────────────────────────────────────
+  try {
+    const { redisLockManager } = await import('./config/redis.client');
+    const metrics = redisLockManager.getMetrics();
+    const redisAlert =
+      metrics.state.state === 'OPEN'
+        ? 'critical'
+        : metrics.state.state === 'HALF_OPEN'
+          ? 'warn'
+          : 'ok';
+
+    checks.redis = {
+      status: redisAlert,
+      details: {
+        circuit: metrics.state.state,
+        consecutiveFailures: metrics.state.consecutiveFailures,
+        counters: metrics.counters,
+      },
+    };
+  } catch (err) {
+    checks.redis = {
+      status: 'critical',
+      details: { error: err instanceof Error ? err.message : 'Unknown' },
+    };
+  }
+
+  // ── 3. Memory ──────────────────────────────────────────────────────────
+  const mem = process.memoryUsage();
+  const rssMB = Math.round(mem.rss / 1024 / 1024);
+  const heapMB = Math.round(mem.heapUsed / 1024 / 1024);
+  const memAlert = rssMB > 512 ? 'warn' : 'ok';
+
+  checks.memory = {
+    status: memAlert,
+    details: {
+      rssMB,
+      heapUsedMB: heapMB,
+      heapTotalMB: Math.round(mem.heapTotal / 1024 / 1024),
+      externalMB: Math.round(mem.external / 1024 / 1024),
+    },
+  };
+
+  // ── 4. Process ─────────────────────────────────────────────────────────
+  const uptimeSeconds = Math.round(process.uptime());
+  const processAlert = uptimeSeconds < 60 ? 'warn' : 'ok';
+
+  checks.process = {
+    status: processAlert,
+    details: {
+      uptimeSeconds,
+      uptimeHuman: `${Math.floor(uptimeSeconds / 3600)}h ${Math.floor((uptimeSeconds % 3600) / 60)}m`,
+      pid: process.pid,
+      nodeVersion: process.version,
+      ...(uptimeSeconds < 60 && { alert: 'Recent restart detected (<60s)' }),
+    },
+  };
+
+  // ── Determine overall status ──────────────────────────────────────────
+  for (const check of Object.values(checks)) {
+    if (check.status === 'critical') {
+      overallStatus = 'unhealthy';
+      break;
     }
+    if (check.status === 'warn') {
+      overallStatus = 'degraded';
+    }
+  }
 
-    const totalLatencyNs = process.hrtime.bigint() - startTime;
-    const totalLatencyMs = Number(totalLatencyNs) / 1_000_000;
+  const totalLatencyNs = process.hrtime.bigint() - startTime;
+  const totalLatencyMs = Number(totalLatencyNs) / 1_000_000;
 
-    res.status(overallStatus === 'unhealthy' ? 503 : 200).json({
-        status: overallStatus,
-        service: 'nammerha-backend',
-        version: PKG_VERSION,
-        timestamp: new Date().toISOString(),
-        checkLatencyMs: Math.round(totalLatencyMs * 100) / 100,
-        checks,
-    });
+  res.status(overallStatus === 'unhealthy' ? 503 : 200).json({
+    status: overallStatus,
+    service: 'nammerha-backend',
+    version: PKG_VERSION,
+    timestamp: new Date().toISOString(),
+    checkLatencyMs: Math.round(totalLatencyMs * 100) / 100,
+    checks,
+  });
 });
 
 // ─── P1-REM-003: Email Queue Health Endpoint ────────────────────────────────
 // Exposes email queue statistics for monitoring dashboards.
 app.get('/health/email-queue', async (_req, res) => {
-    try {
-        const { getQueueStats } = await import('./services/email-queue.service');
-        const stats = await getQueueStats();
-        const isHealthy = stats.exhausted === 0 && stats.failed < 10;
-        res.status(isHealthy ? 200 : 503).json({
-            status: isHealthy ? 'healthy' : 'degraded',
-            service: 'nammerha-email-queue',
-            stats,
-            timestamp: new Date().toISOString(),
-        });
-    } catch (err) {
-        res.status(500).json({
-            status: 'error',
-            error: err instanceof Error ? err.message : 'Email queue health check failed',
-        });
-    }
+  try {
+    const { getQueueStats } = await import('./services/email-queue.service');
+    const stats = await getQueueStats();
+    const isHealthy = stats.exhausted === 0 && stats.failed < 10;
+    res.status(isHealthy ? 200 : 503).json({
+      status: isHealthy ? 'healthy' : 'degraded',
+      service: 'nammerha-email-queue',
+      stats,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err) {
+    res.status(500).json({
+      status: 'error',
+      error: err instanceof Error ? err.message : 'Email queue health check failed',
+    });
+  }
 });
-
 
 registerRoutes(app);
 
@@ -380,14 +425,14 @@ import { authMiddleware } from './middleware/auth.middleware';
 // reject unauthenticated requests (that's handled by resolver-level guards).
 // We need a permissive wrapper that always calls next().
 app.use('/graphql', async (req, res, next) => {
-    const authHeader = req.headers['authorization'];
-    const hasCookie = req.cookies?.['nammerha_jwt'];
-    if (authHeader || hasCookie) {
-        // Only run auth middleware if credentials are present
-        return authMiddleware(req, res, next);
-    }
-    // No credentials → proceed as unauthenticated (public queries)
-    next();
+  const authHeader = req.headers['authorization'];
+  const hasCookie = req.cookies?.['nammerha_jwt'];
+  if (authHeader || hasCookie) {
+    // Only run auth middleware if credentials are present
+    return authMiddleware(req, res, next);
+  }
+  // No credentials → proceed as unauthenticated (public queries)
+  next();
 });
 
 // ─── Async Bootstrap ────────────────────────────────────────────────────────
@@ -396,60 +441,62 @@ app.use('/graphql', async (req, res, next) => {
 // routes in registration order and the 404 handler intercepts /graphql
 // requests before Apollo's middleware can process them.
 async function bootstrap(): Promise<void> {
-    const { createServer } = await import('http');
-    const httpServer = createServer(app);
+  const { createServer } = await import('http');
+  const httpServer = createServer(app);
 
-    // Mount Apollo Server as Express middleware at /graphql
-    await setupGraphQL(app, httpServer);
+  // Mount Apollo Server as Express middleware at /graphql
+  await setupGraphQL(app, httpServer);
 
-    // ── Locale Pages (§5.1 URL Subdirectories + §5.2 Hreflang + §5.3 Metadata) ──
-    // Serves stitch pages at /:locale/:page with server-side HTML injection
-    app.use('/', localeRouter);
+  // ── Locale Pages (§5.1 URL Subdirectories + §5.2 Hreflang + §5.3 Metadata) ──
+  // Serves stitch pages at /:locale/:page with server-side HTML injection
+  app.use('/', localeRouter);
 
-    // ── Stitch Static Assets ──────────────────────────────────────────────────
-    // Serve i18n module, phosphor icons, and page assets from stitch directory
-    const STITCH_ROOT = path.resolve(__dirname, '../stitch');
-    app.use('/i18n', express.static(path.join(STITCH_ROOT, 'i18n')));
-    app.use('/phosphor-icons', express.static(path.join(STITCH_ROOT, 'phosphor-icons')));
+  // ── Stitch Static Assets ──────────────────────────────────────────────────
+  // Serve i18n module, phosphor icons, and page assets from stitch directory
+  const STITCH_ROOT = path.resolve(__dirname, '../stitch');
+  app.use('/i18n', express.static(path.join(STITCH_ROOT, 'i18n')));
+  app.use('/phosphor-icons', express.static(path.join(STITCH_ROOT, 'phosphor-icons')));
 
-    // ── 404 Handler ────────────────────────────────────────────────────────────
-    app.use((_req, res) => {
-        res.status(404).json({
-            success: false,
-            error: 'Endpoint not found',
-        });
+  // ── 404 Handler ────────────────────────────────────────────────────────────
+  app.use((_req, res) => {
+    res.status(404).json({
+      success: false,
+      error: 'Endpoint not found',
+    });
+  });
+
+  // ── Global Error Handler ───────────────────────────────────────────────────
+  // SEC-008 FIX: NEVER expose internal error messages to the client,
+  // regardless of NODE_ENV. Internal details are logged server-side only.
+  app.use(
+    (err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+      logger.error('Unhandled error in request pipeline', { error: err.message, stack: err.stack });
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error',
+      });
+    },
+  );
+
+  // ── Start Server ────────────────────────────────────────────────────────
+  const server = httpServer.listen(PORT, () => {
+    logger.info('Nammerha backend started', {
+      port: PORT,
+      environment: process.env['NODE_ENV'] ?? 'development',
+      pid: process.pid,
     });
 
-    // ── Global Error Handler ───────────────────────────────────────────────────
-    // SEC-008 FIX: NEVER expose internal error messages to the client,
-    // regardless of NODE_ENV. Internal details are logged server-side only.
-    app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-        logger.error('Unhandled error in request pipeline', { error: err.message, stack: err.stack });
-        res.status(500).json({
-            success: false,
-            error: 'Internal server error',
-        });
-    });
+    // P1-PLT-001: Start background job to expire stale 'pending' payments
+    startStalePaymentCleanup();
 
-    // ── Start Server ────────────────────────────────────────────────────────
-    const server = httpServer.listen(PORT, () => {
-        logger.info('Nammerha backend started', {
-            port: PORT,
-            environment: process.env['NODE_ENV'] ?? 'development',
-            pid: process.pid,
-        });
+    // P1-REM-003: Start email retry queue processor
+    startEmailRetryJob();
 
-        // P1-PLT-001: Start background job to expire stale 'pending' payments
-        startStalePaymentCleanup();
+    // GDPR-047: Start account purge cron (runs every 24h)
+    startAccountPurgeJob();
+  });
 
-        // P1-REM-003: Start email retry queue processor
-        startEmailRetryJob();
-
-        // GDPR-047: Start account purge cron (runs every 24h)
-        startAccountPurgeJob();
-    });
-
-async function gracefulShutdown(signal: string): Promise<void> {
+  async function gracefulShutdown(signal: string): Promise<void> {
     logger.info('Graceful shutdown initiated', { signal });
 
     // P1-PLT-001: Stop stale payment cleanup before draining connections
@@ -464,59 +511,63 @@ async function gracefulShutdown(signal: string): Promise<void> {
     // LOW-AUD-002 FIX: Force-kill safety net — if draining hangs, forcibly exit
     // after 30 seconds to prevent zombie processes.
     const forceKillTimer = setTimeout(() => {
-        logger.error('Graceful shutdown timed out after 30s — forcing exit');
-        process.exit(1);
+      logger.error('Graceful shutdown timed out after 30s — forcing exit');
+      process.exit(1);
     }, 30_000);
     forceKillTimer.unref(); // Don't prevent exit if everything cleans up before 30s
 
     // 1. Stop accepting new connections
     await new Promise<void>((resolve) => {
-        server.close(() => {
-            logger.info('HTTP server closed — no new connections accepted');
-            resolve();
-        });
+      server.close(() => {
+        logger.info('HTTP server closed — no new connections accepted');
+        resolve();
+      });
     });
 
     // 2. Drain database connection pool (waits for in-flight queries to complete)
     try {
-        const { default: pool } = await import('./config/database');
-        await pool.end();
-        logger.info('Database pool drained — all connections released');
+      const { default: pool } = await import('./config/database');
+      await pool.end();
+      logger.info('Database pool drained — all connections released');
     } catch (err) {
-        logger.error('Error closing database pool', {
-            error: err instanceof Error ? err.message : String(err),
-        });
+      logger.error('Error closing database pool', {
+        error: err instanceof Error ? err.message : String(err),
+      });
     }
 
     // 3. Clean exit
     logger.info('Graceful shutdown complete');
     process.exit(0);
-}
+  }
 
-process.on('SIGTERM', () => { gracefulShutdown('SIGTERM'); });
-process.on('SIGINT', () => { gracefulShutdown('SIGINT'); });
+  process.on('SIGTERM', () => {
+    gracefulShutdown('SIGTERM');
+  });
+  process.on('SIGINT', () => {
+    gracefulShutdown('SIGINT');
+  });
 
-// PLATINUM STANDARD FIX: Prevent sudden exits from unhandled errors, ensuring APM logs them before clean termination.
-process.on('uncaughtException', (err: Error) => {
+  // PLATINUM STANDARD FIX: Prevent sudden exits from unhandled errors, ensuring APM logs them before clean termination.
+  process.on('uncaughtException', (err: Error) => {
     logger.error('CRITICAL: Uncaught Exception', { error: err.message, stack: err.stack });
     gracefulShutdown('uncaughtException').catch(() => process.exit(1));
-});
+  });
 
-process.on('unhandledRejection', (reason: unknown) => {
+  process.on('unhandledRejection', (reason: unknown) => {
     const message = reason instanceof Error ? reason.message : String(reason);
     const stack = reason instanceof Error ? reason.stack : undefined;
     logger.error('CRITICAL: Unhandled Promise Rejection', { error: message, stack });
     gracefulShutdown('unhandledRejection').catch(() => process.exit(1));
-});
+  });
 }
 
 // ─── Bootstrap Invocation ───────────────────────────────────────────────────
 bootstrap().catch((err) => {
-    logger.error('CRITICAL: Bootstrap failed — server cannot start', {
-        error: err instanceof Error ? err.message : String(err),
-        stack: err instanceof Error ? err.stack : undefined,
-    });
-    process.exit(1);
+  logger.error('CRITICAL: Bootstrap failed — server cannot start', {
+    error: err instanceof Error ? err.message : String(err),
+    stack: err instanceof Error ? err.stack : undefined,
+  });
+  process.exit(1);
 });
 
 export default app;

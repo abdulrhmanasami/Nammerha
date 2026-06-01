@@ -78,7 +78,7 @@ const { mockPaymentService } = vi.hoisted(() => ({
     verifySignature: vi.fn(),
     handleWebhook: vi.fn(),
     getStatus: vi.fn(),
-    getDonorPayments: vi.fn(),
+    getUserPayments: vi.fn(),
   },
 }));
 vi.mock('../../services/payment.service', () => ({
@@ -134,8 +134,13 @@ describe('Payment Routes (HTTP Integration)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     app = createApp();
-    // Default: authenticated donor
-    mockAuthUser = { user_id: 'homeowner-uuid-001', role: 'homeowner', roles: ['homeowner'], is_active: true };
+    // Default: authenticated user
+    mockAuthUser = {
+      user_id: 'homeowner-uuid-001',
+      role: 'homeowner',
+      roles: ['homeowner'],
+      is_active: true,
+    };
   });
 
   // ═══════════════════════════════════════════════════════════════════════
@@ -292,7 +297,7 @@ describe('Payment Routes (HTTP Integration)', () => {
       // Mock: getStatus returns payment owned by the authenticated user
       mockPaymentService.getStatus.mockResolvedValueOnce({
         reference: 'NM-PAY-OWNED',
-        user_id: 'donor-uuid-001', // Same as mockAuthUser.user_id
+        user_id: 'user-uuid-001', // Same as mockAuthUser.user_id
         status: 'completed',
         amount: 50000,
         currency: 'USD',
@@ -308,7 +313,7 @@ describe('Payment Routes (HTTP Integration)', () => {
     });
 
     it("should return 403 when non-owner queries someone else's payment", async () => {
-      // Authenticate as engineer (not donor and not admin)
+      // Authenticate as engineer (not user and not admin)
       mockAuthUser = {
         user_id: 'eng-uuid-001',
         role: 'engineer',
@@ -319,7 +324,7 @@ describe('Payment Routes (HTTP Integration)', () => {
       // Mock: getStatus returns payment owned by DIFFERENT user
       mockPaymentService.getStatus.mockResolvedValueOnce({
         reference: 'NM-PAY-NOTMINE',
-        user_id: 'donor-uuid-001', // Different from eng-uuid-001
+        user_id: 'user-uuid-001', // Different from eng-uuid-001
         status: 'completed',
         amount: 50000,
         currency: 'USD',
@@ -345,7 +350,7 @@ describe('Payment Routes (HTTP Integration)', () => {
       // Mock: payment owned by someone else
       mockPaymentService.getStatus.mockResolvedValueOnce({
         reference: 'NM-PAY-OTHERS',
-        user_id: 'donor-uuid-001',
+        user_id: 'user-uuid-001',
         status: 'completed',
         amount: 99900,
         currency: 'USD',
@@ -369,7 +374,7 @@ describe('Payment Routes (HTTP Integration)', () => {
 
       mockPaymentService.getStatus.mockResolvedValueOnce({
         reference: 'NM-PAY-ANY',
-        user_id: 'donor-uuid-001',
+        user_id: 'user-uuid-001',
         status: 'pending',
         amount: 10000,
         currency: 'USD',

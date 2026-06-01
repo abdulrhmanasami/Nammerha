@@ -1,9 +1,9 @@
 // ============================================================================
 // Nammerha Backend — Impact Communications Service
 // ============================================================================
-// Event-driven bilingual messaging system for donor impact tracking.
+// Event-driven bilingual messaging system for user impact tracking.
 // Generates messages when project lifecycle events occur, storing them
-// in the impact_messages table for donor retrieval.
+// in the impact_messages table for user retrieval.
 //
 // Templates use dynamic data injection from event metadata:
 //   {{project_title}}, {{amount}}, {{material_name}}, {{milestone}}, etc.
@@ -45,9 +45,9 @@ const TEMPLATES: Record<ImpactEventType, MessageTemplate> = {
     title_en: 'Milestone Reached: {{milestone}} 📊',
     title_ar: 'تم إنجاز مرحلة: {{milestone}} 📊',
     body_en:
-      '"{{project_title}}" has reached {{progress}}% completion! The {{milestone}} phase has been verified by the assigned engineer. Your donation is making a tangible difference.',
+      '"{{project_title}}" has reached {{progress}}% completion! The {{milestone}} phase has been verified by the assigned engineer. Your contribution is making a tangible difference.',
     body_ar:
-      'وصل مشروع "{{project_title}}" إلى {{progress}}% إتمام! تم التحقق من مرحلة {{milestone}} بواسطة المهندس المعيّن. تبرعك يُحدث فرقاً ملموساً.',
+      'وصل مشروع "{{project_title}}" إلى {{progress}}% إتمام! تم التحقق من مرحلة {{milestone}} بواسطة المهندس المعيّن. مساهمتك تُحدث فرقاً ملموساً.',
   },
   photo_proof_added: {
     title_en: 'New Photo from Your Project 📸',
@@ -61,9 +61,9 @@ const TEMPLATES: Record<ImpactEventType, MessageTemplate> = {
     title_en: 'Funds Released to Supplier 💸',
     title_ar: 'تم إفراج الأموال للمورّد 💸',
     body_en:
-      '${{amount}} from your donation has been released to the verified supplier for "{{material_name}}" on project "{{project_title}}". The material delivery was confirmed with GPS proof.',
+      '${{amount}} from your contribution has been released to the verified supplier for "{{material_name}}" on project "{{project_title}}". The material delivery was confirmed with GPS proof.',
     body_ar:
-      'تم إفراج ${{amount}} من تبرعك للمورّد المعتمد مقابل "{{material_name}}" في مشروع "{{project_title}}". تم تأكيد تسليم المواد بإثبات GPS.',
+      'تم إفراج ${{amount}} من مساهمتك للمورّد المعتمد مقابل "{{material_name}}" في مشروع "{{project_title}}". تم تأكيد تسليم المواد بإثبات GPS.',
   },
   project_completed: {
     title_en: '🎉 Project Completed! Your Impact is Real',
@@ -106,7 +106,7 @@ function formatAmount(cents: number): string {
 // ─── Message Generation ─────────────────────────────────────────────────────
 
 /**
- * Generate and persist an impact message for a donor.
+ * Generate and persist an impact message for a user.
  *
  * @param eventType  — One of the 7 lifecycle events
  * @param userId     — UUID of the user to notify
@@ -146,16 +146,16 @@ export async function generateImpactMessage(
 }
 
 /**
- * Generate impact messages for ALL donors who funded a project.
+ * Generate impact messages for ALL users who funded a project.
  * Used for project-wide events (contractor_assigned, construction_started, etc.)
  */
-export async function notifyAllProjectDonors(
+export async function notifyAllProjectUsers(
   eventType: ImpactEventType,
   projectId: string,
   data: TemplateData,
 ): Promise<number> {
-  // Find all unique donors for this project
-  const donors = await query<{ user_id: string; total_donated: string }>(
+  // Find all unique users for this project
+  const users = await query<{ user_id: string; total_donated: string }>(
     `SELECT user_id, SUM(amount_locked) AS total_donated
          FROM escrow_ledger
          WHERE project_id = $1 AND payment_status IN ('locked', 'released')
@@ -164,17 +164,17 @@ export async function notifyAllProjectDonors(
   );
 
   let count = 0;
-  for (const donor of donors.rows) {
+  for (const user of users.rows) {
     try {
-      await generateImpactMessage(eventType, donor.user_id, projectId, {
+      await generateImpactMessage(eventType, user.user_id, projectId, {
         ...data,
-        amount: parseInt(donor.total_donated, 10),
+        amount: parseInt(user.total_donated, 10),
       });
       count++;
     } catch (error) {
       logger.error('Failed to generate impact message for user', {
         eventType,
-        userId: donor.user_id,
+        userId: user.user_id,
         projectId,
         error,
       });
@@ -187,9 +187,9 @@ export async function notifyAllProjectDonors(
 // ─── Message Retrieval ──────────────────────────────────────────────────────
 
 /**
- * Get donor's impact messages (paginated).
+ * Get user's impact messages (paginated).
  */
-export async function getDonorMessages(
+export async function getUserMessages(
   userId: string,
   options: { limit?: number; offset?: number; unreadOnly?: boolean } = {},
 ): Promise<ImpactMessage[]> {
@@ -237,7 +237,7 @@ export async function markAsRead(messageId: string, userId: string): Promise<boo
 }
 
 /**
- * Mark all messages as read for a donor.
+ * Mark all messages as read for a user.
  */
 export async function markAllRead(userId: string): Promise<number> {
   const result = await query(

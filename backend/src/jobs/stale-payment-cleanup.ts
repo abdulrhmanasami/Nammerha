@@ -28,7 +28,7 @@ export const CLEANUP_INTERVAL_MS = 15 * 60 * 1000;
  *
  * Also cancels any orphaned escrow_ledger entries that reference these
  * stale payments — prevents 'pending' escrow entries from appearing in
- * donor wallets for payments that will never complete.
+ * user wallets for payments that will never complete.
  */
 export async function cleanupStalePayments(): Promise<{
   expired: number;

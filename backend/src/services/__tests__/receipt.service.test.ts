@@ -192,9 +192,9 @@ describe('Receipt Service', () => {
       expect(sql).toContain('el.transaction_id AS escrow_id');
       expect(sql).toContain('u.full_name AS contributor_name');
       expect(sql).not.toContain('SELECT *');
-      // MEMO 64: Verify donor terminology is purged
-      expect(sql).not.toContain('donor_name');
-      expect(sql).not.toContain('donor_email');
+      // MEMO 64: Verify user terminology is purged
+      expect(sql).not.toContain('user_name');
+      expect(sql).not.toContain('user_email');
     });
   });
 });

@@ -1,8 +1,8 @@
 // ============================================================================
-// Nammerha Backend — Donation Matching Service (ENH-7)
-// Corporate sponsors pledge to match individual donations at a configurable ratio.
+// Nammerha Backend — Contribution Matching Service (ENH-7)
+// Corporate sponsors pledge to match individual contributions at a configurable ratio.
 // ============================================================================
-import pool, { transaction } from '../config/database';
+import pool, { financialTransaction } from '../config/database';
 import { logger } from '../utils/logger';
 import type { PoolClient } from 'pg';
 
@@ -201,7 +201,7 @@ export async function findMatchingPrograms(projectId: string): Promise<MatchingP
 }
 
 /**
- * Apply matching to a donation. Called after a successful donation.
+ * Apply matching to a contribution. Called after a successful contribution.
  * Creates a matching pledge and corresponding sponsor escrow entry.
  *
  * F-6 FIX: Program selection + spent check moved INTO the transaction
@@ -211,7 +211,7 @@ export async function findMatchingPrograms(projectId: string): Promise<MatchingP
  */
 export async function applyMatch(
   escrowId: string,
-  donationAmount: number,
+  contributorAmount: number,
   itemId: string,
   projectId: string,
 ): Promise<MatchingPledge[]> {
@@ -224,7 +224,7 @@ export async function applyMatch(
 
   for (const program of programs) {
     try {
-      const pledge = await transaction(async (client: PoolClient) => {
+      const pledge = await financialTransaction(async (client: PoolClient) => {
         // F-6 FIX: Lock the program row and re-check spent inside transaction
         const lockedResult = await client.query<{
           program_id: string;
@@ -250,8 +250,10 @@ export async function applyMatch(
           return null;
         }
 
-        // Calculate match amount
-        const rawMatch = Math.round(donationAmount * locked.match_ratio);
+        // Calculate match amount using integer math
+        const rawMatch = Math.round(
+          (contributorAmount * Math.round(locked.match_ratio * 10000)) / 10000,
+        );
         const matchAmount = Math.min(rawMatch, remainingBudget);
         if (matchAmount <= 0) {
           return null;
@@ -279,7 +281,7 @@ export async function applyMatch(
                      VALUES ($1, $2, $3, $4, $5)
                      RETURNING pledge_id, program_id, escrow_id, matched_escrow_id,
                               original_amount, match_amount, created_at`,
-          [locked.program_id, escrowId, matchedEscrowId, donationAmount, matchAmount],
+          [locked.program_id, escrowId, matchedEscrowId, contributorAmount, matchAmount],
         );
 
         const p = pledgeResult.rows[0];
@@ -304,7 +306,7 @@ export async function applyMatch(
             locked.sponsor_id,
             JSON.stringify({
               program_name: program.name,
-              original_amount: donationAmount,
+              original_amount: contributorAmount,
               match_amount: matchAmount,
               ratio: locked.match_ratio,
             }),
@@ -326,7 +328,7 @@ export async function applyMatch(
         });
       }
     } catch (err) {
-      // Log but don't fail the main donation — matching is best-effort
+      // Log but don't fail the main contribution — matching is best-effort
       logger.error('ENH-7: Failed to apply match', {
         program_id: program.program_id,
         error: err instanceof Error ? err.message : String(err),

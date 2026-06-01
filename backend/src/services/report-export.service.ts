@@ -25,7 +25,7 @@ interface ProjectRow {
 
 interface DonationRow {
   reference: string;
-  donor_name: string;
+  user_name: string;
   project_title: string;
   material_name: string;
   amount: number;
@@ -49,7 +49,7 @@ async function fetchProjects(): Promise<ProjectRow[]> {
 async function fetchDonations(projectId?: string): Promise<DonationRow[]> {
   let sql = `
         SELECT e.payment_gateway_ref AS reference,
-               u.full_name AS donor_name,
+               u.full_name AS user_name,
                p.title AS project_title,
                b.material_name,
                e.amount_locked AS amount,
@@ -266,7 +266,7 @@ export async function exportProjectsExcel(res: Response, projectId?: string): Pr
 
   donationSheet.columns = [
     { header: 'Reference', key: 'reference', width: 30 },
-    { header: 'Donor', key: 'donor_name', width: 25 },
+    { header: 'User', key: 'user_name', width: 25 },
     { header: 'Project', key: 'project_title', width: 30 },
     { header: 'Material', key: 'material_name', width: 25 },
     { header: 'Amount ($)', key: 'amount', width: 14 },

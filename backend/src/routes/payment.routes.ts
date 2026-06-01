@@ -23,7 +23,7 @@ const router = Router();
 const MAX_PAYMENT_CENTS = parseInt(process.env['MAX_PAYMENT_CENTS'] ?? '10000000', 10); // Default: $100,000
 
 // ─── POST /api/payments/initiate ────────────────────────────────────────────
-// Authenticated donors initiate a payment for a specific BOQ item.
+// Authenticated users initiate a payment for a specific BOQ item.
 // F-001 FIX: requireIdempotencyKey enforces header presence + validation.
 // idempotencyMiddleware caches/replays responses for duplicate keys.
 // This double-layer prevents double charges in degraded Syrian network conditions.
@@ -49,25 +49,25 @@ router.post(
         return;
       }
 
-      const donorId = getAuthUser(req).user_id;
+      const userId = getAuthUser(req).user_id;
 
-      // NMR-AUD-007: Fetch donor details for gateway API (Fatora requires email)
-      const donorResult = await query<{ full_name: string; email: string }>(
+      // NMR-AUD-007: Fetch user details for gateway API (Fatora requires email)
+      const userResult = await query<{ full_name: string; email: string }>(
         'SELECT full_name, email FROM users WHERE user_id = $1',
-        [donorId],
+        [userId],
       );
-      const donor = donorResult.rows[0];
+      const user = userResult.rows[0];
 
       const result = await paymentService.initiate({
-        user_id: donorId,
+        user_id: userId,
         item_id,
         project_id,
         amount,
         currency: currency ?? 'USD',
         gateway,
         return_url,
-        donor_name: donor?.full_name,
-        donor_email: donor?.email,
+        user_name: user?.full_name,
+        user_email: user?.email,
       });
 
       res.status(201).json({
@@ -146,7 +146,7 @@ router.post('/webhook', async (req: Request, res: Response): Promise<void> => {
 // ─── GET /api/payments/status/:ref ──────────────────────────────────────────
 // Check payment status by reference
 // MED-AUD-003 FIX: Added ownership verification to prevent IDOR.
-// Only the payment's donor or admin/auditor roles may access payment details.
+// Only the payment's user or admin/auditor roles may access payment details.
 router.get(
   '/status/:ref',
   authMiddleware,
@@ -195,7 +195,7 @@ router.get(
 );
 
 // ─── GET /api/payments/history ──────────────────────────────────────────────
-// Get payment history for authenticated donor
+// Get payment history for authenticated user
 router.get(
   '/history',
   authMiddleware,
@@ -203,7 +203,7 @@ router.get(
   // UNIFIED CITIZEN: open to all authenticated users
   async (req: Request, res: Response): Promise<void> => {
     try {
-      const payments = await paymentService.getDonorPayments(getAuthUser(req).user_id);
+      const payments = await paymentService.getUserPayments(getAuthUser(req).user_id);
 
       res.json({
         success: true,

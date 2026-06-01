@@ -1,6 +1,6 @@
 // ============================================================================
 // Impact Service — Unit Tests
-// Validates the impact message generation and donor notification system.
+// Validates the impact message generation and user notification system.
 // ============================================================================
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
@@ -21,15 +21,15 @@ vi.mock('../../utils/logger', () => ({
 // Import AFTER mocks are set up
 import {
   generateImpactMessage,
-  notifyAllProjectDonors,
-  getDonorMessages,
+  notifyAllProjectUsers,
+  getUserMessages,
   getUnreadCount,
   markAsRead,
   markAllRead,
 } from '../impact.service';
 
 // ─── Test Data ──────────────────────────────────────────────────────────────
-const MOCK_DONOR_ID = 'donor-001';
+const MOCK_DONOR_ID = 'user-001';
 const MOCK_PROJECT_ID = 'OCDS-SYR-00001';
 
 const MOCK_IMPACT_MESSAGE = {
@@ -92,58 +92,58 @@ describe('Impact Service', () => {
     });
   });
 
-  // ─── notifyAllProjectDonors ─────────────────────────────────────────
+  // ─── notifyAllProjectUsers ─────────────────────────────────────────
   // P0-FIX REGRESSION TEST: This test ensures the escrow_ledger query
   // uses 'payment_status' (the actual column name), not 'status'.
-  describe('notifyAllProjectDonors()', () => {
+  describe('notifyAllProjectUsers()', () => {
     it('should query escrow_ledger using payment_status column (P0 bug fix)', async () => {
-      // First call: find donors
+      // First call: find users
       mockQuery.mockResolvedValueOnce({
         rows: [
-          { user_id: 'donor-001', total_donated: '50000' },
-          { user_id: 'donor-002', total_donated: '30000' },
+          { user_id: 'user-001', total_donated: '50000' },
+          { user_id: 'user-002', total_donated: '30000' },
         ],
       });
-      // Subsequent calls: generateImpactMessage for each donor
+      // Subsequent calls: generateImpactMessage for each user
       mockQuery.mockResolvedValue({ rows: [MOCK_IMPACT_MESSAGE] });
 
-      await notifyAllProjectDonors('construction_started', MOCK_PROJECT_ID, {
+      await notifyAllProjectUsers('construction_started', MOCK_PROJECT_ID, {
         project_title: 'Test Project',
       });
 
       // CRITICAL ASSERTION: The SQL must use 'payment_status', NOT 'status'
-      const donorQuerySql = mockQuery.mock.calls[0]?.[0] as string;
-      expect(donorQuerySql).toContain('payment_status');
-      expect(donorQuerySql).not.toContain('AND status IN');
+      const userQuerySql = mockQuery.mock.calls[0]?.[0] as string;
+      expect(userQuerySql).toContain('payment_status');
+      expect(userQuerySql).not.toContain('AND status IN');
     });
 
-    it('should generate messages for all unique donors', async () => {
+    it('should generate messages for all unique users', async () => {
       mockQuery
         .mockResolvedValueOnce({
           rows: [
-            { user_id: 'donor-A', total_donated: '10000' },
-            { user_id: 'donor-B', total_donated: '20000' },
-            { user_id: 'donor-C', total_donated: '30000' },
+            { user_id: 'user-A', total_donated: '10000' },
+            { user_id: 'user-B', total_donated: '20000' },
+            { user_id: 'user-C', total_donated: '30000' },
           ],
         })
         .mockResolvedValue({ rows: [MOCK_IMPACT_MESSAGE] });
 
-      const count = await notifyAllProjectDonors('milestone_completed', MOCK_PROJECT_ID, {
+      const count = await notifyAllProjectUsers('milestone_completed', MOCK_PROJECT_ID, {
         project_title: 'مشروع',
         milestone: 'أساسات',
         progress: '25',
       });
 
-      // 3 donors = 3 messages
+      // 3 users = 3 messages
       expect(count).toBe(3);
-      // 1 donor query + 3 insert calls
+      // 1 user query + 3 insert calls
       expect(mockQuery).toHaveBeenCalledTimes(4);
     });
 
-    it('should return 0 when no donors found', async () => {
+    it('should return 0 when no users found', async () => {
       mockQuery.mockResolvedValueOnce({ rows: [] });
 
-      const count = await notifyAllProjectDonors('project_completed', MOCK_PROJECT_ID, {
+      const count = await notifyAllProjectUsers('project_completed', MOCK_PROJECT_ID, {
         project_title: 'Test',
       });
 
@@ -151,20 +151,20 @@ describe('Impact Service', () => {
       expect(mockQuery).toHaveBeenCalledTimes(1);
     });
 
-    it('should continue processing remaining donors if one fails', async () => {
+    it('should continue processing remaining users if one fails', async () => {
       mockQuery
         .mockResolvedValueOnce({
           rows: [
-            { user_id: 'donor-A', total_donated: '10000' },
-            { user_id: 'donor-B', total_donated: '20000' },
+            { user_id: 'user-A', total_donated: '10000' },
+            { user_id: 'user-B', total_donated: '20000' },
           ],
         })
-        // First donor insert fails
+        // First user insert fails
         .mockRejectedValueOnce(new Error('DB connection lost'))
-        // Second donor insert succeeds
+        // Second user insert succeeds
         .mockResolvedValueOnce({ rows: [MOCK_IMPACT_MESSAGE] });
 
-      const count = await notifyAllProjectDonors('construction_started', MOCK_PROJECT_ID, {
+      const count = await notifyAllProjectUsers('construction_started', MOCK_PROJECT_ID, {
         project_title: 'Test',
       });
 
@@ -173,14 +173,14 @@ describe('Impact Service', () => {
     });
   });
 
-  // ─── getDonorMessages ───────────────────────────────────────────────
-  describe('getDonorMessages()', () => {
-    it('should return paginated messages for a donor', async () => {
+  // ─── getUserMessages ───────────────────────────────────────────────
+  describe('getUserMessages()', () => {
+    it('should return paginated messages for a user', async () => {
       mockQuery.mockResolvedValueOnce({
         rows: [MOCK_IMPACT_MESSAGE, { ...MOCK_IMPACT_MESSAGE, message_id: 'msg-002' }],
       });
 
-      const messages = await getDonorMessages(MOCK_DONOR_ID, { limit: 10, offset: 0 });
+      const messages = await getUserMessages(MOCK_DONOR_ID, { limit: 10, offset: 0 });
 
       expect(messages).toHaveLength(2);
       const sql = mockQuery.mock.calls[0]?.[0] as string;
@@ -191,7 +191,7 @@ describe('Impact Service', () => {
     it('should add unread filter when unreadOnly is true', async () => {
       mockQuery.mockResolvedValueOnce({ rows: [] });
 
-      await getDonorMessages(MOCK_DONOR_ID, { unreadOnly: true });
+      await getUserMessages(MOCK_DONOR_ID, { unreadOnly: true });
 
       const sql = mockQuery.mock.calls[0]?.[0] as string;
       expect(sql).toContain('AND read_at IS NULL');

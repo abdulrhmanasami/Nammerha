@@ -21,9 +21,9 @@ export interface PaymentInitiation {
   gateway: PaymentGateway;
   return_url?: string;
   metadata?: Record<string, string>;
-  // NMR-AUD-007: Real donor details for gateway APIs (Fatora requires email)
-  donor_name?: string;
-  donor_email?: string;
+  // NMR-AUD-007: Real user details for gateway APIs (Fatora requires email)
+  user_name?: string;
+  user_email?: string;
 }
 
 interface PaymentRecord {
@@ -54,7 +54,7 @@ const WEBHOOK_SECRET = process.env['PAYMENT_WEBHOOK_SECRET'] ?? '';
 // N-1 FIX: Fail-fast startup guard for production environments.
 // An empty WEBHOOK_SECRET in production would silently reject ALL webhooks —
 // payment completions from Visa/Fatora would never get processed, causing
-// donors to see payments stuck in 'pending' forever. This is a non-recoverable
+// users to see payments stuck in 'pending' forever. This is a non-recoverable
 // operational failure that must be caught at deploy time, not at runtime.
 if (!WEBHOOK_SECRET && process.env['NODE_ENV'] === 'production') {
   throw new Error(
@@ -342,8 +342,8 @@ async function initiateFatoraPayment(
   amount: number,
   currency: string,
   returnUrl?: string,
-  donorName?: string,
-  donorEmail?: string,
+  userName?: string,
+  userEmail?: string,
 ): Promise<GatewayResponse> {
   // Development fallback: simulate when credentials are absent
   if (!FATORA_CONFIG) {
@@ -380,20 +380,20 @@ async function initiateFatoraPayment(
         amount: (amount / 100).toFixed(2), // Convert cents → decimal for API
         currency,
         order_id: reference,
-        // NMR-AUD-007 + P2-NEW-003 FIX: Real donor details for gateway receipts.
-        // The initiate() method now resolves donor email from DB when not provided.
+        // NMR-AUD-007 + P2-NEW-003 FIX: Real user details for gateway receipts.
+        // The initiate() method now resolves user email from DB when not provided.
         // Fallback to generic name is acceptable; fallback to fake email is NOT.
         // P3-PLT-005 FIX: Simplified from eagerly-evaluated IIFE to clear
         // if/else. Previous IIFE was correct (JS ?? short-circuits) but
         // unnecessarily complex and confusing during code review.
         client: {
-          name: donorName ?? 'Nammerha Donor',
+          name: userName ?? 'Nammerha User',
           email: (() => {
-            if (donorEmail) {
-              return donorEmail;
+            if (userEmail) {
+              return userEmail;
             }
             logger.warn(
-              'P2-NEW-003: Fatora payment initiated without donor email — receipts will not be delivered',
+              'P2-NEW-003: Fatora payment initiated without user email — receipts will not be delivered',
               {
                 reference,
               },
@@ -463,7 +463,7 @@ export const paymentService = {
    * NMR-AUD-009 FIX: Decoupled architecture to prevent DB pool starvation.
    * Previous implementation held a DB connection open for the entire duration
    * of the external gateway HTTP call (up to 30s timeout). Under concurrent
-   * load (10 donors), this exhausted the pool (max 10 connections) and blocked
+   * load (10 users), this exhausted the pool (max 10 connections) and blocked
    * ALL database operations platform-wide.
    *
    * New flow:
@@ -477,7 +477,7 @@ export const paymentService = {
   async initiate(data: PaymentInitiation): Promise<PaymentRecord & { payment_url?: string }> {
     // ─── TITAN ARCHITECT FIX: N-3 SDN/Sanctions Screening Mock Eliminated ─
     // The mock stub has been completely eradicated. Before any transaction
-    // is recorded or a gateway hit is performed, the donor's identity is
+    // is recorded or a gateway hit is performed, the user's identity is
     // actively screened against the local OFAC SDN list database via the
     // compliance engine. If it hits a potential or confirmed match, the
     // system fails-secure and halts the payment process to ensure 100%
@@ -543,26 +543,26 @@ export const paymentService = {
 
     // ── Step 2: Call gateway OUTSIDE transaction (prevents pool starvation) ──
 
-    // P2-NEW-003 FIX: Resolve donor details for Fatora gateway.
-    // If caller didn't provide donor_name/donor_email, fetch from users table.
-    // This eliminates the hardcoded 'donor@nammerha.com' placeholder that was
+    // P2-NEW-003 FIX: Resolve user details for Fatora gateway.
+    // If caller didn't provide user_name/user_email, fetch from users table.
+    // This eliminates the hardcoded 'user@nammerha.com' placeholder that was
     // triggering Fatora fraud detection and sending receipts to a black hole.
-    let resolvedDonorName = data.donor_name;
-    let resolvedDonorEmail = data.donor_email;
-    if (data.gateway === 'fatora' && (!resolvedDonorName || !resolvedDonorEmail)) {
+    let resolvedUserName = data.user_name;
+    let resolvedUserEmail = data.user_email;
+    if (data.gateway === 'fatora' && (!resolvedUserName || !resolvedUserEmail)) {
       try {
-        const donorResult = await pool.query<{ full_name: string; email: string }>(
+        const userResult = await pool.query<{ full_name: string; email: string }>(
           'SELECT full_name, email FROM users WHERE user_id = $1',
           [data.user_id],
         );
-        const donor = donorResult.rows[0];
-        if (donor) {
-          resolvedDonorName = resolvedDonorName || donor.full_name;
-          resolvedDonorEmail = resolvedDonorEmail || donor.email;
+        const user = userResult.rows[0];
+        if (user) {
+          resolvedUserName = resolvedUserName || user.full_name;
+          resolvedUserEmail = resolvedUserEmail || user.email;
         }
       } catch (lookupErr) {
         logger.warn(
-          'P2-NEW-003: Failed to fetch donor details for Fatora — proceeding with available data',
+          'P2-NEW-003: Failed to fetch user details for Fatora — proceeding with available data',
           {
             user_id: data.user_id,
             error: lookupErr instanceof Error ? lookupErr.message : String(lookupErr),
@@ -585,8 +585,8 @@ export const paymentService = {
         data.amount,
         data.currency || 'USD',
         data.return_url,
-        resolvedDonorName,
-        resolvedDonorEmail,
+        resolvedUserName,
+        resolvedUserEmail,
       );
     }
 
@@ -944,9 +944,9 @@ export const paymentService = {
   },
 
   /**
-   * Get payment history for a donor.
+   * Get payment history for a user.
    */
-  async getDonorPayments(userId: string, limit = 50, offset = 0): Promise<PaymentRecord[]> {
+  async getUserPayments(userId: string, limit = 50, offset = 0): Promise<PaymentRecord[]> {
     // F-004 FIX: Explicit column list — no SELECT * (prevents schema drift).
     // F-007 FIX: Math.floor() ensures integer values for LIMIT/OFFSET.
     const result = await pool.query<PaymentRecord>(

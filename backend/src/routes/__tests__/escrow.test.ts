@@ -6,7 +6,7 @@
 //   1. GET /verifications/pending — list pending verifications
 //   2. POST /escrow/release — release escrow funds (admin/auditor only)
 //   3. POST /escrow/flag — flag discrepancy (admin/auditor only)
-//   4. RBAC verification (admin ✓, auditor ✓, donor ✗, engineer ✗)
+//   4. RBAC verification (admin ✓, auditor ✓, user ✗, engineer ✗)
 //   5. Input validation (missing fields → 400)
 //   6. Error handling (not found → 404)
 // ============================================================================
@@ -128,8 +128,13 @@ describe('Admin / Escrow Routes (HTTP Integration)', () => {
       expect(res.body.error).toContain('Authentication required');
     });
 
-    it('should reject donor role from all admin endpoints', async () => {
-      mockAuthUser = { user_id: 'homeowner-001', role: 'homeowner', roles: ['homeowner'], is_active: true };
+    it('should reject user role from all admin endpoints', async () => {
+      mockAuthUser = {
+        user_id: 'homeowner-001',
+        role: 'homeowner',
+        roles: ['homeowner'],
+        is_active: true,
+      };
 
       const res = await request(app).get('/api/admin/verifications/pending').expect(403);
 
@@ -262,8 +267,8 @@ describe('Admin / Escrow Routes (HTTP Integration)', () => {
           // 3. release escrow entries
           .mockResolvedValueOnce({
             rows: [
-              { transaction_id: 'tx-1', user_id: 'donor-001', amount_locked: 500000 },
-              { transaction_id: 'tx-2', user_id: 'donor-002', amount_locked: 1000000 },
+              { transaction_id: 'tx-1', user_id: 'user-001', amount_locked: 500000 },
+              { transaction_id: 'tx-2', user_id: 'user-002', amount_locked: 1000000 },
             ],
             rowCount: 2,
           })

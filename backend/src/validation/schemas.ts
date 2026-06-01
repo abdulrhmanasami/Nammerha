@@ -79,7 +79,7 @@ export const registerSchema = z.object({
     .regex(/^\+?[0-9]{7,20}$/, 'Invalid phone number format')
     .optional(),
   role: z
-    .enum(['homeowner', 'engineer', 'donor', 'supplier', 'contractor', 'tradesperson'])
+    .enum(['homeowner', 'engineer', 'user', 'supplier', 'contractor', 'tradesperson'])
     .optional(),
   intent: z.string().max(500).optional(),
 });
@@ -445,9 +445,9 @@ const latLngSchema = z.object({
   lng: gpsLngSchema,
 });
 
-const costingModelSchema = z.enum([
-  'auto', 'pedestrian', 'bicycle', 'truck', 'motor_scooter',
-]).optional();
+const costingModelSchema = z
+  .enum(['auto', 'pedestrian', 'bicycle', 'truck', 'motor_scooter'])
+  .optional();
 
 export const routeRequestSchema = z.object({
   origin: latLngSchema,
@@ -523,8 +523,12 @@ export const poStatusSchema = z.object({
 // ─── Review Schemas (full set) ──────────────────────────────────────────────
 
 const reviewableTypeSchema = z.enum([
-  'contractor_profiles', 'supplier_profiles', 'engineer_profiles',
-  'tradesperson_profiles', 'homeowner_profiles', 'project',
+  'contractor_profiles',
+  'supplier_profiles',
+  'engineer_profiles',
+  'tradesperson_profiles',
+  'homeowner_profiles',
+  'project',
 ]);
 
 const dimensionRatingSchema = z.object({
@@ -601,9 +605,16 @@ export const addAnnotationSchema = z.object({
 export const engineerCaptureSchema = z.object({
   project_id: uuidSchema,
   construction_phase: z.enum([
-    'demolition', 'foundation', 'structural',
-    'plumbing_pre_concrete', 'electrical_pre_concrete', 'concrete_pour',
-    'masonry', 'plastering', 'finishing', 'final_inspection',
+    'demolition',
+    'foundation',
+    'structural',
+    'plumbing_pre_concrete',
+    'electrical_pre_concrete',
+    'concrete_pour',
+    'masonry',
+    'plastering',
+    'finishing',
+    'final_inspection',
   ]),
   file_url: z.string().url(),
   capture_type: z.enum(['photo_360', 'video_360', 'point_cloud', 'photo_standard']).optional(),
@@ -697,14 +708,19 @@ export const registerImagerySchema = z.object({
   project_id: uuidSchema,
   provider: z.string().min(1).max(100),
   image_url: z.string().url(),
-  capture_date: z.string().regex(/^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2})?/).optional(),
+  capture_date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2})?/)
+    .optional(),
   resolution_cm: z.number().positive().optional(),
-  gps_bounds: z.object({
-    north: gpsLatSchema,
-    south: gpsLatSchema,
-    east: gpsLngSchema,
-    west: gpsLngSchema,
-  }).optional(),
+  gps_bounds: z
+    .object({
+      north: gpsLatSchema,
+      south: gpsLatSchema,
+      east: gpsLngSchema,
+      west: gpsLngSchema,
+    })
+    .optional(),
   metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
@@ -726,16 +742,24 @@ export const createGeofenceZoneSchema = z.object({
 // ─── Privacy Settings Schema ────────────────────────────────────────────────
 
 export const privacySettingsSchema = z.object({
-  settings: z.record(
-    z.string(),
-    z.record(z.string(), z.enum(['public', 'project_members', 'private'])),
-  ).optional(),
+  settings: z
+    .record(z.string(), z.record(z.string(), z.enum(['public', 'project_members', 'private'])))
+    .optional(),
 });
 
 // ─── Role Assignment Schema ─────────────────────────────────────────────────
 
 export const assignRoleSchema = z.object({
-  role: z.enum(['homeowner', 'engineer', 'donor', 'supplier', 'contractor', 'tradesperson', 'admin', 'auditor']),
+  role: z.enum([
+    'homeowner',
+    'engineer',
+    'user',
+    'supplier',
+    'contractor',
+    'tradesperson',
+    'admin',
+    'auditor',
+  ]),
 });
 
 // ─── API Keys Schema ────────────────────────────────────────────────────────
@@ -798,4 +822,3 @@ export const storageUploadUrlSchema = z.object({
   content_type: z.string().min(1).max(100),
   file_size_bytes: z.number().int().positive().max(52_428_800).optional(),
 });
-

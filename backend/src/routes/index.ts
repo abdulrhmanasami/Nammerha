@@ -167,7 +167,7 @@ export function registerRoutes(app: Express): void {
   app.use('/api/privacy', privacyRoutes);
   app.use('/api/impact', impactRoutes);
 
-  // ── Monetization: Commission + Donor tipping ──────────────────────────
+  // ── Monetization: Commission + User tipping ──────────────────────────
   app.use('/api/revenue', monetizationRoutes);
 
   // ── SaaS Subscriptions: Plan management + Feature gating ──────────────
