@@ -558,7 +558,7 @@ async function loadPayments(): Promise<void> {
                 
                 <!-- [Platinum UX]: Tripartite Arbitration Flow -->
                 <div class="mt-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-700/50">
-                    <div class="flex items-center justify-between relative z-10 px-1" dir="ltr">
+                    <div class="flex items-center justify-between relative z-10 px-1">
                         <!-- Step 1: Held -->
                         <div class="flex flex-col items-center z-10 w-16">
                             <div class="size-6 rounded-full \${p.transaction_type === 'held' ? 'bg-trust-blue shadow-md shadow-trust-blue/30' : 'bg-trust-blue/30'} text-white flex items-center justify-center mb-1 transition-colors">

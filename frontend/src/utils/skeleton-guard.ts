@@ -53,7 +53,7 @@ export function guardSkeleton(config: SkeletonGuardConfig): () => void {
       const hint = document.createElement('p');
       hint.className =
         'nm-skeleton-hint text-center text-xs text-slate-400 mt-2 animate-fade-in-up dark:text-slate-500';
-      hint.textContent = tryTranslate('skeleton_still_loading', 'Still loading…');
+      hint.textContent = tryTranslate('skeleton_still_loading', 'جاري التحميل...');
       // Only add if not already present
       if (!container.querySelector('.nm-skeleton-hint')) {
         container.appendChild(hint);
@@ -71,7 +71,7 @@ export function guardSkeleton(config: SkeletonGuardConfig): () => void {
 
       // PLT-AUD5-002 FIX: Replaced unsafe (window as unknown as Record<string, unknown>)
       // double-cast with shared type-safe utility.
-      const msg = tryTranslate(messageKey, 'Taking longer than usual…');
+      const msg = tryTranslate(messageKey, 'يستغرق وقتاً أطول من المعتاد...');
       const retryLabel = tryTranslate('retry', 'Retry');
 
       container.innerHTML = `

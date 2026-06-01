@@ -35,7 +35,7 @@ let container: HTMLElement | null = null;
 /* PLT-UX-AUD-HF: Map toast type → haptic intensity.
    success/info = light (subtle confirmation)
    error/warning = medium (attention-grabbing)
-   Standard: Apple HIG — "Use haptics to complement visual feedback." */
+   Standard: Apple HIG — "استخدم الاهتزاز لدعم الملاحظات المرئية." */
 type HapticKey = 'light' | 'medium' | 'heavy' | 'success';
 const TOAST_HAPTIC: Record<ToastType, HapticKey> = {
     success: 'success',

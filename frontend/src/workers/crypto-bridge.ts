@@ -78,7 +78,7 @@ function getWorker(): Worker | null {
             });
             // Reject all pending requests so they can retry on main thread
             for (const [id, handler] of _pending.entries()) {
-                handler.reject(new Error('Worker crashed'));
+                handler.reject(new Error('تعطل المعالج'));
                 _pending.delete(id);
             }
             _worker = null;
@@ -147,7 +147,7 @@ export async function hashBlob(blob: Blob): Promise<string> {
         addTrackedTimer(setTimeout(() => {
             if (_pending.has(id)) {
                 _pending.delete(id);
-                reject(new Error('Worker SHA-256 timeout (30s)'));
+                reject(new Error('انتهت مهلة تشفير SHA-256'));
             }
         }, 30_000));
     });
@@ -181,7 +181,7 @@ export async function hashDataUrl(dataUrl: string): Promise<string> {
         addTrackedTimer(setTimeout(() => {
             if (_pending.has(id)) {
                 _pending.delete(id);
-                reject(new Error('Worker dataurl-to-hash timeout (30s)'));
+                reject(new Error('انتهت مهلة التشفير للبيانات'));
             }
         }, 30_000));
     });

@@ -71,7 +71,7 @@ export class LiveOracleTicker {
           0% { transform: translateX(0); }
           100% { transform: translateX(100%); } /* RTL orientation */
         }
-        [dir="ltr"] .animate-marquee {
+        [dir="rtl"] .animate-marquee {
           animation: marquee-ltr 30s linear infinite;
         }
         @keyframes marquee-ltr {

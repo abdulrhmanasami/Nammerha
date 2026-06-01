@@ -1275,7 +1275,7 @@ function init(): void {
             <summary class="text-xs text-trust-blue cursor-pointer font-medium">
               ${esc(t('mfa_manual_entry', 'أو أدخل المفتاح يدوياً'))}
             </summary>
-            <code class="block mt-2 p-2 bg-slate-50 dark:bg-slate-700 rounded text-xs font-mono text-slate-600 dark:text-slate-300 break-all select-all" dir="ltr">
+            <code class="block mt-2 p-2 bg-slate-50 dark:bg-slate-700 rounded text-xs font-mono text-slate-600 dark:text-slate-300 break-all select-all">
               ${esc(secret)}
             </code>
           </details>
@@ -1284,7 +1284,7 @@ function init(): void {
               ${esc(t('mfa_enter_code', 'أدخل الرمز من التطبيق للتأكيد:'))}
             </label>
             <input type="text" id="mfa-setup-code" inputmode="numeric" maxlength="6"
-              class="nm-input text-center text-lg font-bold tracking-widest" dir="ltr"
+              class="nm-input text-center text-lg font-bold tracking-widest"
               placeholder="000000" autocomplete="one-time-code" />
           </div>
           <div class="flex gap-2">
@@ -1418,7 +1418,7 @@ function init(): void {
           <h3 class="text-lg font-bold text-slate-700 dark:text-slate-200">${esc(t('mfa_recovery_codes', 'رموز الاسترداد'))}</h3>
           <p class="text-xs text-red-500 font-medium mt-1">${esc(t('mfa_codes_warning', '⚠️ احفظ هذه الرموز — لن تُعرض مرة أخرى!'))}</p>
         </div>
-        <div class="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 mb-4 text-center" dir="ltr">
+        <div class="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-4 mb-4 text-center">
           ${codesHtml}
         </div>
         <p class="text-xs text-slate-400 mb-4 text-center">

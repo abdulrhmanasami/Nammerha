@@ -2072,7 +2072,7 @@ function showEmailSentConfirmation(emailAddress: string): void {
       <p class="text-sm text-slate-500 dark:text-slate-400 mb-1" data-i18n="auth_email_sent_desc">
         ${esc(t('auth_email_sent_desc', 'أرسلنا رابط التحقق إلى'))}
       </p>
-      <p class="text-sm font-bold text-trust-blue mb-4 break-all" dir="ltr">${esc(emailAddress)}</p>
+      <p class="text-sm font-bold text-trust-blue mb-4 break-all">${esc(emailAddress)}</p>
       <p class="text-xs text-slate-400 dark:text-slate-500 mb-6" data-i18n="auth_email_sent_hint">
         ${esc(t('auth_email_sent_hint', 'تحقق من مجلد الرسائل غير المرغوب فيها (Spam) إذا لم تجد الرسالة'))}
       </p>
@@ -2541,7 +2541,7 @@ function showMfaChallengePanel(mfaToken: string, _userEmail: string): void {
 
       <!-- TOTP Code Inputs -->
       <div id="mfa-totp-section">
-        <div id="mfa-code-inputs" class="flex gap-2 justify-center mb-4" dir="ltr">
+        <div id="mfa-code-inputs" class="flex gap-2 justify-center mb-4">
           <input type="text" inputmode="numeric" maxlength="1" class="nm-input nm-mfa-digit" data-mfa-digit="0" autocomplete="one-time-code" aria-label="${esc(t('mfa_digit_label', 'الرقم'))} 1 ${esc(t('mfa_of_6', 'من 6'))}" />
           <input type="text" inputmode="numeric" maxlength="1" class="nm-input nm-mfa-digit" data-mfa-digit="1" autocomplete="one-time-code" aria-label="${esc(t('mfa_digit_label', 'الرقم'))} 2 ${esc(t('mfa_of_6', 'من 6'))}" />
           <input type="text" inputmode="numeric" maxlength="1" class="nm-input nm-mfa-digit" data-mfa-digit="2" autocomplete="one-time-code" aria-label="${esc(t('mfa_digit_label', 'الرقم'))} 3 ${esc(t('mfa_of_6', 'من 6'))}" />

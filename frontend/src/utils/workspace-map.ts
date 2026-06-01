@@ -5,7 +5,7 @@
 //
 // CONSUMERS:
 //   - auth.ts:          resolveWorkspaceUrl() for post-login redirect (P1-001)
-//   - main.ts:          WORKSPACE_META for "Continue to [X]" banner (UX-F012)
+//   - main.ts:          WORKSPACE_META for "المتابعة إلى [X]" banner (UX-F012)
 //   - welcome-chooser:  WORKSPACE_OPTIONS for onboarding modal (P0-004)
 //
 // SECURITY:
@@ -29,7 +29,7 @@ export const WORKSPACE_ROUTES: Readonly<Record<string, string>> = {
     tradesperson: '/tradesperson-portal.html',
 };
 
-/** Display metadata for the "Continue to [X]" banner and workspace UI */
+/** Display metadata for the "المتابعة إلى [X]" banner and workspace UI */
 export interface WorkspaceDisplayMeta {
     href: string;
     icon: string;

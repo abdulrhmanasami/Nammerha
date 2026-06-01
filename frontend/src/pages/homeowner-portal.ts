@@ -1233,7 +1233,7 @@ async function loadEscrow(): Promise<void> {
                         <h4 class="text-sm font-bold">${esc(t('ho_arbitration_status', 'حالة الأموال والتحكيم'))}</h4>
                     </div>
                     
-                    <div class="flex items-center justify-between relative z-10 px-2" dir="ltr">
+                    <div class="flex items-center justify-between relative z-10 px-2">
                         <!-- Step 1: Held -->
                         <div class="flex flex-col items-center z-10" style="width: 70px;">
                             <div class="size-8 rounded-full bg-trust-blue text-white flex items-center justify-center shadow-md shadow-trust-blue/30 mb-2">
