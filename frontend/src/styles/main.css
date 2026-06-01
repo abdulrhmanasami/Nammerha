@@ -10,7 +10,6 @@
 @import './_dashboard.css'; /* FRIC-AUD-F02: Dashboard sidebar system */
 @import './_nav.css'; /* DEF-CSS-001: Bottom navigation */
 @import './_dialogs.css'; /* FRIC-AUD-04: Dialogs & state components */
-@import './_about.css'; /* DEFECT-01: About page styles */
 @import './_wizard.css'; /* FRIC-AUD-F02: Registration wizard */
 
 /* ─── Fonts — Self-Hosted (P0-F1 FIX: Zero-CDN) ───────────────────────────── */
@@ -507,7 +506,6 @@ html[data-theme='light'] main {
 }
 /* CONF-2026-002 FIX: Scoped to .page-header (was bare `header` — bled into all headers on all pages).
    Removed — specificity of html[data-theme] .class is sufficient. */
-html[data-theme='light'] .top-nav,
 html[data-theme='light'] .page-header {
   background: rgba(245, 247, 250, 0.9);
   border-color: rgba(0, 0, 0, 0.06);
@@ -535,7 +533,6 @@ html[data-theme='dark'] main {
   color: var(--text-primary);
 }
 /* CONF-2026-002 FIX: Scoped to .page-header (was bare `header` — bled into all headers) */
-html[data-theme='dark'] .top-nav,
 html[data-theme='dark'] .page-header {
   background: rgba(15, 17, 23, 0.9);
   border-color: rgba(255, 255, 255, 0.06);
