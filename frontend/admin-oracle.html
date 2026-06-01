@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="utf-8" />
-    
+
     <style>
       @keyframes _f {
         to {
@@ -18,8 +18,7 @@
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
     <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    
-    
+
     <link rel="manifest" href="/manifest.json" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -30,7 +29,7 @@
       name="description"
       content="Institutional pricing analytics with FIDIC 13.8 automated price adjustment protocols."
     />
-    
+
     <meta name="robots" content="noindex, nofollow" />
     <meta property="og:title" content="نعمّرها — محرك التسعير" />
     <meta
@@ -41,7 +40,7 @@
     <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="نعمّرها — محرك التسعير" />
-    
+
     <link
       rel="preload"
       href="/fonts/ibm-plex-sans-arabic.css"
@@ -61,11 +60,11 @@
       }
     </style>
     <link href="/i18n.css" rel="stylesheet" />
+    <script type="module" src="/src/main.ts"></script>
   </head>
   <body
     class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100"
   >
-    
     <noscript>
       <style>
         html:not([data-theme]) {
@@ -76,15 +75,12 @@
         <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل جافا سكريبت في إعدادات متصفحك.</p>
       </div>
     </noscript>
-    
+
     <a href="#main-content" class="skip-link" data-i18n="skip_to_content">تخطي إلى المحتوى</a>
     <div class="dashboard-layout">
-      
       <div class="sidebar-overlay" aria-hidden="true"></div>
 
-      
       <aside class="dashboard-sidebar">
-        
         <div class="p-4 border-b border-slate-200 flex items-center gap-3 dark:border-dark-border">
           <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-9 w-auto" />
           <span class="text-xl font-bold tracking-tight">Nammerha</span>
@@ -111,7 +107,7 @@
             <i class="ph ph-bank" aria-hidden="true"></i>
             <span class="font-medium" data-i18n="fintech_title">البنية المالية التقنية</span>
           </a>
-          
+
           <a
             class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg"
             href="admin-oracle.html"
@@ -152,7 +148,6 @@
           </a>
         </nav>
         <div class="p-4 border-t border-slate-200 dark:border-dark-border">
-          
           <span
             class="flex items-center gap-3 px-3 py-2 text-slate-400 rounded-lg cursor-not-allowed opacity-60 dark:text-slate-500"
             aria-disabled="true"
@@ -168,7 +163,6 @@
           </span>
           <div class="mt-4 flex items-center gap-3 px-3 py-2">
             <div class="size-8 rounded-full bg-trust-blue/20 flex items-center justify-center">
-              
               <i class="ph ph-user-circle text-trust-blue text-base" aria-hidden="true"></i>
             </div>
             <div>
@@ -192,9 +186,7 @@
         </div>
       </aside>
 
-      
       <main id="main-content" class="dashboard-main">
-        
         <header
           class="h-14 bg-white border-b border-slate-200 flex items-center justify-center shrink-0 sticky top-0 z-[var(--z-header)] dark:bg-dark-surface dark:border-dark-border"
         >
@@ -224,7 +216,6 @@
                 >
               </div>
               <div class="ticker-scroll overflow-hidden whitespace-nowrap">
-                
                 <div id="ticker-prices" class="flex items-center gap-4 text-sm">
                   <div class="flex items-center gap-4 animate-pulse" aria-hidden="true">
                     <span class="h-3 w-12 bg-slate-200 rounded"></span>
@@ -240,7 +231,6 @@
               </div>
             </div>
             <div class="flex items-center gap-4">
-              
               <span
                 class="text-slate-300 cursor-not-allowed opacity-60"
                 aria-disabled="true"
@@ -261,17 +251,15 @@
           </div>
         </header>
 
-        
         <div class="flex-1 overflow-y-auto p-6 space-y-6">
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3">
             <div>
-              
               <h1 class="text-xl md:text-2xl font-bold" data-i18n="pricing_oracle_epa">مؤشر EPA</h1>
               <p class="text-slate-500 text-sm dark:text-slate-400" data-i18n="pricing_oracle_desc">
                 أسعار مواد البناء المحدّثة
               </p>
             </div>
-            
+
             <div class="flex gap-2 shrink-0 flex-wrap">
               <span
                 class="bg-white border border-slate-200 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 text-slate-300 cursor-not-allowed opacity-60 dark:bg-dark-surface dark:border-dark-border"
@@ -300,7 +288,6 @@
           </div>
 
           <div class="grid grid-cols-12 gap-6">
-            
             <section class="col-span-12 xl:col-span-7 space-y-6">
               <div
                 class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 dark:bg-dark-surface dark:border-dark-border"
@@ -327,7 +314,7 @@
                     </button>
                   </div>
                 </div>
-                
+
                 <div class="h-64 w-full relative">
                   <svg class="w-full h-full" preserveAspectRatio="none" viewBox="0 0 600 200">
                     <defs>
@@ -377,7 +364,7 @@
                     <span>May 01</span><span>May 10</span><span>May 20</span><span>May 30</span>
                   </div>
                 </div>
-                
+
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
                   <div
                     class="p-4 rounded-lg bg-slate-50 border border-slate-100 dark:bg-dark-elevated dark:border-dark-border"
@@ -417,7 +404,6 @@
                 </div>
               </div>
 
-              
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div
                   class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm dark:bg-dark-surface dark:border-dark-border"
@@ -441,7 +427,6 @@
                       </div>
                     </div>
                     <div>
-                      
                       <div class="flex items-center justify-between">
                         <span class="text-sm text-slate-600 dark:text-slate-400"
                           >ميناء اللاذقية</span
@@ -498,7 +483,6 @@
               </div>
             </section>
 
-            
             <section class="col-span-12 xl:col-span-5">
               <div
                 class="bg-white rounded-xl border-2 border-trust-blue/20 shadow-xl overflow-hidden flex flex-col h-full dark:bg-dark-surface"
@@ -616,11 +600,10 @@
         </div>
       </main>
     </div>
-    
+
     <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
     <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 
-    
     <footer class="nm-legal-footer">
       <nav aria-label="Legal navigation">
         <a href="/terms.html" data-i18n="footer_terms">الشروط والأحكام</a>
@@ -645,7 +628,7 @@
     <script src="/i18n.js" defer></script>
     <script src="/i18n/common.js" defer></script>
     <script src="/i18n/admin.js" defer></script>
-    
+
     <script src="/nm-timers.js" defer></script>
     <script src="/load-guard.js" defer></script>
     <script src="/nav.js" defer></script>

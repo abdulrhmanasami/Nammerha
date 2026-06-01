@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="utf-8" />
-    
+
     <style>
       @keyframes _f {
         to {
@@ -18,8 +18,7 @@
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
     <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    
-    
+
     <link rel="manifest" href="/manifest.json" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -30,7 +29,7 @@
       name="description"
       content="Build a Bill of Quantities with material search, oracle pricing, and quantity controls."
     />
-    
+
     <meta name="robots" content="noindex, nofollow" />
     <meta property="og:title" content="Nammerha — BOQ Builder | بناء جدول الكميات" />
     <meta
@@ -41,7 +40,7 @@
     <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="Nammerha — BOQ Builder | بناء جدول الكميات" />
-    
+
     <link
       rel="preload"
       href="/fonts/ibm-plex-sans-arabic.css"
@@ -55,11 +54,11 @@
     <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
     <script type="module" src="/src/pages/engineer-boq.ts"></script>
     <link href="/i18n.css" rel="stylesheet" />
+    <script type="module" src="/src/main.ts"></script>
   </head>
   <body
     class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100"
   >
-    
     <noscript>
       <style>
         html:not([data-theme]) {
@@ -70,10 +69,9 @@
         <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل جافا سكريبت في إعدادات متصفحك.</p>
       </div>
     </noscript>
-    
+
     <a href="#main-content" class="skip-link" data-i18n="skip_to_content">تخطي إلى المحتوى</a>
     <main id="main-content" class="mobile-container min-h-screen flex flex-col">
-      
       <header class="page-header">
         <a
           href="index.html"
@@ -84,20 +82,17 @@
         >
           <i class="ph ph-arrow-left" aria-hidden="true"></i>
         </a>
-        
+
         <h1
           class="text-lg font-bold tracking-tight flex-1 text-center page-header-title"
           data-i18n="engineer_boq_builder"
         >
           منشئ جدول الكميات
         </h1>
-        
+
         <div class="w-11 h-11 shrink-0"></div>
       </header>
 
-      
-
-      
       <div class="px-4 py-4 bg-white dark:bg-dark-surface">
         <label class="flex flex-col w-full h-12">
           <div
@@ -115,12 +110,10 @@
               enterkeyhint="search"
               dir="auto"
             />
-            
           </div>
         </label>
       </div>
 
-      
       <div class="flex items-center justify-between px-4 pb-2 pt-6">
         <h2
           class="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-slate-100"
@@ -131,9 +124,7 @@
         <span class="badge-primary">—</span>
       </div>
 
-      
       <div class="flex flex-col gap-3 px-4 pb-32">
-        
         <div
           class="boq-skeleton animate-pulse flex gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-100 dark:bg-dark-surface dark:border-dark-border"
           aria-hidden="true"
@@ -164,7 +155,6 @@
         </div>
       </div>
 
-      
       <div class="fixed bottom-0 start-0 end-0 max-w-md mx-auto z-20">
         <div class="px-4 py-4 bg-gradient-to-t from-cloud-white via-cloud-white/95 to-transparent">
           <div class="flex flex-col gap-3">
@@ -176,23 +166,21 @@
               >
               <span class="text-xl font-extrabold tracking-tight">—</span>
             </div>
-            
+
             <button type="button" id="publish-btn" class="btn-primary w-full nm-btn-hero">
               <i class="ph ph-upload" aria-hidden="true"></i>
               <span data-i18n="eng_publish_to_marketplace">النشر في السوق</span>
             </button>
           </div>
         </div>
-        
-        
+
         <div class="nm-nav-safe-area"></div>
       </div>
     </main>
-    
+
     <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
     <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 
-    
     <footer class="nm-legal-footer">
       <nav aria-label="Legal navigation">
         <a href="/terms.html" data-i18n="footer_terms">الشروط والأحكام</a>
@@ -205,7 +193,7 @@
     <script src="/i18n.js" defer></script>
     <script src="/i18n/common.js" defer></script>
     <script src="/i18n/engineer.js" defer></script>
-    
+
     <script src="/nm-timers.js" defer></script>
     <script src="/load-guard.js" defer></script>
     <script src="/nav.js" defer></script>

@@ -50,6 +50,7 @@
     <meta name="twitter:title" content="Engineer Portal — Nammerha" />
     <script type="module" src="/src/pages/engineer-portal.ts"></script>
     <link href="/i18n.css" rel="stylesheet" />
+    <script type="module" src="/src/main.ts"></script>
   </head>
   <body
     class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100"
@@ -67,16 +68,14 @@
     </noscript>
     <a href="#main-content" class="skip-link" data-i18n="skip_to_content">تخطي إلى المحتوى</a>
     <div class="dashboard-layout">
-      
       <div class="sidebar-overlay" aria-hidden="true"></div>
 
-      
       <aside class="dashboard-sidebar">
         <div class="p-4 border-b border-slate-200 flex items-center gap-3 dark:border-dark-border">
           <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-9 w-auto" />
           <span class="font-bold text-sm" data-i18n="eng_portal">بوابة المهندس</span>
         </div>
-        
+
         <nav
           class="flex-1 px-4 space-y-1 pt-3"
           role="tablist"
@@ -116,7 +115,7 @@
             <span class="font-medium" data-i18n="eng_my_captures">التقاطاتي</span>
           </button>
         </nav>
-        
+
         <div
           class="p-4 border-t border-slate-200 space-y-1 dark:border-dark-border"
           data-section-label="Navigate"
@@ -219,7 +218,7 @@
                 إدارة مشاريعك المسندة والإثباتات المكانية وسجل العروض
               </p>
             </div>
-            
+
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div
                 class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border"
@@ -236,7 +235,10 @@
                   المشاريع المسندة
                 </p>
                 <p class="text-2xl font-black mt-1" id="kpi-assigned-projects">
-                  <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse" aria-hidden="true"></span>
+                  <span
+                    class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"
+                    aria-hidden="true"
+                  ></span>
                 </p>
               </div>
               <div
@@ -261,7 +263,10 @@
                   إثباتات معلقة
                 </p>
                 <p class="text-2xl font-black mt-1 text-warning-yellow" id="kpi-proofs-pending">
-                  <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse" aria-hidden="true"></span>
+                  <span
+                    class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"
+                    aria-hidden="true"
+                  ></span>
                 </p>
               </div>
               <div
@@ -282,7 +287,10 @@
                   إثباتات موثقة
                 </p>
                 <p class="text-2xl font-black mt-1" id="kpi-proofs-verified">
-                  <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse" aria-hidden="true"></span>
+                  <span
+                    class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"
+                    aria-hidden="true"
+                  ></span>
                 </p>
               </div>
               <div
@@ -303,13 +311,15 @@
                   ضمان محرر
                 </p>
                 <p class="text-2xl font-black mt-1" id="kpi-escrow-released">
-                  <span class="inline-block h-7 w-20 bg-slate-200 rounded animate-pulse" aria-hidden="true"></span>
+                  <span
+                    class="inline-block h-7 w-20 bg-slate-200 rounded animate-pulse"
+                    aria-hidden="true"
+                  ></span>
                 </p>
               </div>
             </div>
             <div class="sr-only" aria-live="polite" id="kpi-live-summary"></div>
 
-            
             <div
               id="section-projects"
               class="bg-white rounded-xl border border-slate-200 shadow-sm dark:bg-dark-surface dark:border-dark-border"
@@ -330,23 +340,23 @@
                 </div>
               </div>
               <div id="projects-body" class="p-4 flex flex-col gap-3">
-                
                 <div
                   class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm animate-pulse flex flex-col gap-3 dark:bg-dark-surface dark:border-dark-border"
-                 aria-hidden="true">
+                  aria-hidden="true"
+                >
                   <div class="h-3 bg-slate-200 rounded w-28"></div>
                   <div class="h-3 bg-slate-200 rounded w-20"></div>
                 </div>
                 <div
                   class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm animate-pulse flex flex-col gap-3 dark:bg-dark-surface dark:border-dark-border"
-                 aria-hidden="true">
+                  aria-hidden="true"
+                >
                   <div class="h-3 bg-slate-200 rounded w-24"></div>
                   <div class="h-3 bg-slate-200 rounded w-16"></div>
                 </div>
               </div>
             </div>
 
-            
             <div
               id="section-bids"
               class="nm-hidden bg-white rounded-xl border border-slate-200 shadow-sm dark:bg-dark-surface dark:border-dark-border"
@@ -365,14 +375,14 @@
               <div id="bids-body" class="p-4 flex flex-col gap-3">
                 <div
                   class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm animate-pulse flex flex-col gap-3 dark:bg-dark-surface dark:border-dark-border"
-                 aria-hidden="true">
+                  aria-hidden="true"
+                >
                   <div class="h-3 bg-slate-200 rounded w-28"></div>
                   <div class="h-3 bg-slate-200 rounded w-20"></div>
                 </div>
               </div>
             </div>
 
-            
             <div
               id="section-captures"
               class="nm-hidden bg-white rounded-xl border border-slate-200 shadow-sm dark:bg-dark-surface dark:border-dark-border"
@@ -391,7 +401,8 @@
               <div id="captures-body" class="p-4 flex flex-col gap-3">
                 <div
                   class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm animate-pulse flex flex-col gap-3 dark:bg-dark-surface dark:border-dark-border"
-                 aria-hidden="true">
+                  aria-hidden="true"
+                >
                   <div class="h-3 bg-slate-200 rounded w-28"></div>
                   <div class="h-3 bg-slate-200 rounded w-20"></div>
                 </div>

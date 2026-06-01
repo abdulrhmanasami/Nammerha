@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="utf-8" />
-    
+
     <style>
       @keyframes _f {
         to {
@@ -18,8 +18,7 @@
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
     <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    
-    
+
     <link rel="manifest" href="/manifest.json" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -30,7 +29,7 @@
       name="description"
       content="Command center for managing reconstruction projects, escrow verification, and pricing oracle."
     />
-    
+
     <meta name="robots" content="noindex, nofollow" />
     <meta property="og:title" content="نعمّرها — لوحة الإدارة | لوحة التحكم" />
     <meta
@@ -41,7 +40,7 @@
     <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="نعمّرها — لوحة الإدارة | لوحة التحكم" />
-    
+
     <link
       rel="preload"
       href="/fonts/ibm-plex-sans-arabic.css"
@@ -55,11 +54,11 @@
     <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
     <script type="module" src="/src/pages/admin-dashboard.ts"></script>
     <link href="/i18n.css" rel="stylesheet" />
+    <script type="module" src="/src/main.ts"></script>
   </head>
   <body
     class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100"
   >
-    
     <noscript>
       <style>
         html:not([data-theme]) {
@@ -70,23 +69,18 @@
         <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل جافا سكريبت في إعدادات متصفحك.</p>
       </div>
     </noscript>
-    
+
     <a href="#main-content" class="skip-link" data-i18n="skip_to_content">تخطي إلى المحتوى</a>
     <div class="dashboard-layout">
-      
       <div class="sidebar-overlay" aria-hidden="true"></div>
 
-      
       <aside class="dashboard-sidebar">
-        
         <div class="p-4 border-b border-slate-200 flex items-center gap-3 dark:border-dark-border">
           <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-9 w-auto" />
-          
+
           <span class="text-xl font-bold tracking-tight">Nammerha</span>
-          
         </div>
         <nav class="flex-1 px-4 space-y-1">
-          
           <a
             class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg"
             href="admin-dashboard.html"
@@ -148,7 +142,6 @@
           </a>
         </nav>
         <div class="p-4 border-t border-slate-200 dark:border-dark-border">
-          
           <span
             class="flex items-center gap-3 px-3 py-2 text-slate-400 rounded-lg cursor-not-allowed opacity-60 dark:text-slate-500"
             aria-disabled="true"
@@ -176,7 +169,7 @@
               </p>
             </div>
           </div>
-          
+
           <button
             type="button"
             id="portal-logout-btn"
@@ -188,9 +181,7 @@
         </div>
       </aside>
 
-      
       <main id="main-content" class="dashboard-main">
-        
         <header
           class="h-14 bg-white border-b border-slate-200 flex items-center justify-center shrink-0 sticky top-0 z-[var(--z-header)] dark:bg-dark-surface dark:border-dark-border"
         >
@@ -210,7 +201,6 @@
               <span class="text-xs text-slate-400 dark:text-slate-500" id="live-timestamp"></span>
             </div>
             <div class="flex items-center gap-4">
-              
               <button
                 type="button"
                 class="relative"
@@ -224,7 +214,7 @@
                   class="ph ph-bell text-slate-400 hover:text-slate-600 transition-colors text-xl dark:text-slate-500"
                   aria-hidden="true"
                 ></i>
-                
+
                 <span
                   class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-3xs font-bold rounded-full flex items-center justify-center nm-hidden"
                   id="notif-count"
@@ -235,7 +225,6 @@
         </header>
 
         <div class="flex-1 overflow-y-auto p-6 space-y-6">
-          
           <div>
             <h1 class="text-xl font-bold" data-i18n="admin_dashboard_heading">مركز القيادة</h1>
             <p
@@ -246,7 +235,6 @@
             </p>
           </div>
 
-          
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <div
               class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border"
@@ -268,14 +256,17 @@
               >
                 إجمالي التأثير المموّل
               </p>
-              
+
               <p
                 class="text-2xl font-black mt-1 kpi-skeleton"
                 id="kpi-total-funded"
                 data-kpi="0"
                 data-prefix="$"
               >
-                <span class="inline-block h-7 w-24 bg-slate-200 rounded animate-pulse" aria-hidden="true"></span>
+                <span
+                  class="inline-block h-7 w-24 bg-slate-200 rounded animate-pulse"
+                  aria-hidden="true"
+                ></span>
               </p>
             </div>
             <div
@@ -305,7 +296,10 @@
                 id="kpi-active-projects"
                 data-kpi="0"
               >
-                <span class="inline-block h-7 w-16 bg-slate-200 rounded animate-pulse" aria-hidden="true"></span>
+                <span
+                  class="inline-block h-7 w-16 bg-slate-200 rounded animate-pulse"
+                  aria-hidden="true"
+                ></span>
               </p>
             </div>
             <div
@@ -315,7 +309,7 @@
                 <div class="size-10 rounded-lg bg-warm-earth/10 flex items-center justify-center">
                   <i class="ph ph-hard-hat text-warm-earth text-xl" aria-hidden="true"></i>
                 </div>
-                
+
                 <span
                   class="text-xs font-bold text-warm-earth bg-warm-earth/10 px-2 py-0.5 rounded-full"
                   data-i18n="badge_verified"
@@ -329,7 +323,10 @@
                 المهندسون المسجلون
               </p>
               <p class="text-2xl font-black mt-1 kpi-skeleton" id="kpi-engineers" data-kpi="0">
-                <span class="inline-block h-7 w-16 bg-slate-200 rounded animate-pulse" aria-hidden="true"></span>
+                <span
+                  class="inline-block h-7 w-16 bg-slate-200 rounded animate-pulse"
+                  aria-hidden="true"
+                ></span>
               </p>
             </div>
             <div
@@ -356,18 +353,20 @@
               >
                 بانتظار التحقق
               </p>
-              
+
               <p
                 class="text-2xl font-black mt-1 kpi-skeleton text-warning-yellow"
                 id="kpi-pending"
                 data-kpi="0"
               >
-                <span class="inline-block h-7 w-16 bg-slate-200 rounded animate-pulse" aria-hidden="true"></span>
+                <span
+                  class="inline-block h-7 w-16 bg-slate-200 rounded animate-pulse"
+                  aria-hidden="true"
+                ></span>
               </p>
             </div>
           </div>
 
-          
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <a
               href="admin-escrow.html"
@@ -382,7 +381,6 @@
                 ></i>
               </div>
               <div class="flex-1">
-                
                 <h2 class="font-bold text-sm" data-i18n="admin_escrow_queue">قائمة الضمان</h2>
                 <p
                   class="text-xs text-slate-500 mt-0.5 dark:text-slate-400"
@@ -437,7 +435,6 @@
             </a>
           </div>
 
-          
           <div
             class="bg-white rounded-xl border border-slate-200 shadow-sm dark:bg-dark-surface dark:border-dark-border"
           >
@@ -445,7 +442,6 @@
               class="p-5 border-b border-slate-100 flex justify-between items-center dark:border-dark-border"
             >
               <div>
-                
                 <h2 class="font-bold" data-i18n="admin_active_projects">المشاريع النشطة</h2>
                 <p
                   class="text-xs text-slate-500 mt-0.5 dark:text-slate-400"
@@ -454,7 +450,7 @@
                   نظرة عامة على المشاريع النشطة
                 </p>
               </div>
-              
+
               <span
                 class="bg-white border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 text-slate-300 cursor-not-allowed opacity-60 dark:bg-dark-surface dark:border-dark-border"
                 aria-disabled="true"
@@ -479,7 +475,7 @@
                 </div>
               </div>
             </div>
-            
+
             <div class="p-4 border-t border-slate-100 text-center dark:border-dark-border">
               <a
                 href="project-details.html"
@@ -490,8 +486,6 @@
             </div>
           </div>
 
-          
-          
           <div
             id="section-audit-trail"
             class="bg-white rounded-xl border border-slate-200 shadow-sm dark:bg-dark-surface dark:border-dark-border"
@@ -500,7 +494,6 @@
               class="p-5 border-b border-slate-100 flex justify-between items-center dark:border-dark-border"
             >
               <div>
-                
                 <h2 class="font-bold" data-i18n="admin_audit_trail">سجل التدقيق</h2>
                 <p
                   class="text-xs text-slate-500 mt-0.5 dark:text-slate-400"
@@ -509,8 +502,7 @@
                   سجل العمليات الأخيرة
                 </p>
               </div>
-              
-              
+
               <button
                 type="button"
                 class="text-xs font-semibold text-slate-300 cursor-not-allowed flex items-center gap-1.5"
@@ -527,7 +519,6 @@
               </button>
             </div>
             <div id="audit-trail" class="divide-y divide-slate-50">
-              
               <div class="px-5 py-8 text-center text-slate-400 dark:text-slate-500">
                 <div class="animate-pulse flex flex-col items-center gap-2" aria-hidden="true">
                   <div class="h-4 w-40 bg-slate-200 rounded"></div>
@@ -537,7 +528,6 @@
             </div>
           </div>
 
-          
           <div
             class="bg-white rounded-xl border border-slate-200 p-5 flex items-center gap-4 dark:bg-dark-surface dark:border-dark-border"
           >
@@ -550,8 +540,9 @@
               ></i>
             </div>
             <div>
-              
-              <h3 class="text-sm font-bold" data-i18n="admin_ocds_compliant">متوافق مع معيار بيانات التعاقد المفتوح</h3>
+              <h3 class="text-sm font-bold" data-i18n="admin_ocds_compliant">
+                متوافق مع معيار بيانات التعاقد المفتوح
+              </h3>
               <p
                 class="text-xs text-slate-500 mt-0.5 dark:text-slate-400"
                 data-i18n="admin_ocds_desc"
@@ -559,7 +550,7 @@
                 معيار البيانات المفتوحة للعقود
               </p>
             </div>
-            
+
             <span
               class="text-3xs font-bold text-smoky-jade bg-smoky-jade/10 px-2 py-1 rounded-full shrink-0 uppercase tracking-wider dark:text-emerald-400"
               data-i18n="admin_ocds_verified"
@@ -569,11 +560,10 @@
         </div>
       </main>
     </div>
-    
+
     <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
     <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 
-    
     <footer class="nm-legal-footer">
       <nav aria-label="Legal navigation">
         <a href="/terms.html" data-i18n="footer_terms">الشروط والأحكام</a>
@@ -583,7 +573,6 @@
       <p class="nm-copyright" data-i18n="footer_copyright">© 2026 نعمِّرها. جميع الحقوق محفوظة.</p>
     </footer>
 
-    
     <template id="tpl-table-empty">
       <div class="bg-white py-12 text-center w-full nm-table-empty dark:bg-dark-surface">
         <div
@@ -609,7 +598,7 @@
     <script src="/i18n.js" defer></script>
     <script src="/i18n/common.js" defer></script>
     <script src="/i18n/admin.js" defer></script>
-    
+
     <script src="/nm-timers.js" defer></script>
     <script src="/load-guard.js" defer></script>
     <script src="/nav.js" defer></script>

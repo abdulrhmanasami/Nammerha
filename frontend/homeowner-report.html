@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="utf-8" />
-    
+
     <style>
       @keyframes _f {
         to {
@@ -16,11 +16,10 @@
     </style>
     <script src="/theme-boot.js"></script>
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
-    
+
     <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    
-    
+
     <link rel="manifest" href="/manifest.json" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -31,10 +30,9 @@
       name="description"
       content="Report structural, plumbing, or electrical damage to your property. Voice-friendly wizard for homeowners."
     />
-    
+
     <meta name="robots" content="noindex, nofollow" />
-    
-    
+
     <link
       rel="preload"
       href="/fonts/ibm-plex-sans-arabic.css"
@@ -47,7 +45,7 @@
     <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
     <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
     <script type="module" src="/src/pages/homeowner-report.ts"></script>
-    
+
     <meta property="og:title" content="Report Damage — Nammerha" />
     <meta
       property="og:description"
@@ -56,14 +54,14 @@
     <meta property="og:type" content="website" />
     <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
     <meta name="twitter:card" content="summary" />
-    
+
     <meta name="twitter:title" content="Report Damage — Nammerha" />
     <link href="/i18n.css" rel="stylesheet" />
+    <script type="module" src="/src/main.ts"></script>
   </head>
   <body
     class="bg-cloud-white font-display text-slate-900 min-h-screen flex flex-col antialiased dark:bg-dark-surface dark:text-slate-100"
   >
-    
     <noscript>
       <style>
         html:not([data-theme]) {
@@ -74,13 +72,11 @@
         <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل جافا سكريبت في إعدادات متصفحك.</p>
       </div>
     </noscript>
-    
+
     <a href="#main-content" class="skip-link" data-i18n="skip_to_content">تخطي إلى المحتوى</a>
     <div class="mobile-container flex flex-col min-h-screen">
-      
       <header class="p-6 pb-2">
         <div class="flex items-center justify-between mb-4">
-          
           <button
             type="button"
             id="back-btn"
@@ -109,9 +105,7 @@
         </div>
       </header>
 
-      
       <main id="main-content" class="flex-1 flex flex-col">
-        
         <section id="step-1" class="flex-1 px-6 flex flex-col wizard-step">
           <h1
             class="nm-text-wizard-title font-bold leading-tight text-slate-900 mt-2 mb-2 text-center dark:text-slate-100"
@@ -127,7 +121,6 @@
           </p>
 
           <div class="space-y-3" id="damage-type-list">
-            
             <button
               type="button"
               class="damage-card glass-card w-full p-5 rounded-xl flex items-center gap-4 text-start transition-all active:scale-[0.97]"
@@ -157,7 +150,6 @@
               </div>
             </button>
 
-            
             <button
               type="button"
               class="damage-card glass-card w-full p-5 rounded-xl flex items-center gap-4 text-start transition-all active:scale-[0.97]"
@@ -187,7 +179,6 @@
               </div>
             </button>
 
-            
             <button
               type="button"
               class="damage-card glass-card w-full p-5 rounded-xl flex items-center gap-4 text-start transition-all active:scale-[0.97]"
@@ -217,7 +208,6 @@
               </div>
             </button>
 
-            
             <button
               type="button"
               class="damage-card glass-card w-full p-5 rounded-xl flex items-center gap-4 text-start transition-all active:scale-[0.97]"
@@ -249,9 +239,7 @@
           </div>
         </section>
 
-        
         <section id="step-2" class="flex-1 px-6 flex flex-col wizard-step nm-hidden">
-          
           <h2
             class="nm-text-wizard-title font-bold leading-tight text-slate-900 mt-2 mb-2 text-center dark:text-slate-100"
             data-i18n="where_is_your"
@@ -265,8 +253,6 @@
             نحتاج لموقعك لنتمكن من توجيه فرق الدعم الهندسية إليك في أسرع وقت
           </p>
 
-          
-          
           <label
             for="governorate"
             class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 dark:text-slate-400"
@@ -278,7 +264,6 @@
               id="governorate"
               class="w-full h-14 bg-white border border-slate-200 rounded-xl px-4 text-base font-medium text-slate-900 appearance-none focus:ring-2 focus:ring-trust-blue/30 focus:border-trust-blue outline-none shadow-sm dark:bg-dark-surface dark:border-dark-border dark:text-slate-100"
             >
-              
               <option value="" disabled selected data-i18n="select_governorate">
                 اختر المحافظة
               </option>
@@ -304,8 +289,6 @@
             </div>
           </div>
 
-          
-          
           <label
             for="neighborhood"
             class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 dark:text-slate-400"
@@ -322,7 +305,6 @@
             dir="auto"
           />
 
-          
           <button
             type="button"
             id="detect-location-btn"
@@ -332,7 +314,6 @@
             <span data-i18n="detect_location_auto">كشف الموقع تلقائياً</span>
           </button>
 
-          
           <div
             id="gps-result"
             class="nm-hidden bg-smoky-jade/10 border border-smoky-jade/20 rounded-xl p-4 flex items-center gap-3"
@@ -358,7 +339,6 @@
             </div>
           </div>
 
-          
           <div
             id="gps-error"
             class="nm-hidden bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3 dark:bg-red-500/10 dark:border-red-500/20"
@@ -386,9 +366,7 @@
           </div>
         </section>
 
-        
         <section id="step-3" class="flex-1 px-6 flex flex-col wizard-step nm-hidden">
-          
           <h2
             class="nm-text-wizard-title font-bold leading-tight text-slate-900 mt-2 mb-2 text-center dark:text-slate-100"
             data-i18n="describe_the_damage"
@@ -402,9 +380,7 @@
             خذ وقتك.. يمكنك الكتابة أو التحدث بصوتك لتوثيق الأضرار
           </p>
 
-          
           <div class="relative mb-4">
-            
             <textarea
               id="damage-description"
               class="w-full min-h-[120px] bg-white border border-slate-200 rounded-xl p-4 text-base font-medium text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-trust-blue/30 focus:border-trust-blue outline-none shadow-sm resize-none dark:bg-dark-surface dark:border-dark-border dark:text-slate-100"
@@ -415,14 +391,12 @@
               dir="auto"
             ></textarea>
             <div class="flex justify-end mt-1">
-              
               <span class="text-3xs text-slate-400 dark:text-slate-500" id="desc-char-count"
                 >0 / 1000</span
               >
             </div>
           </div>
 
-          
           <button
             type="button"
             id="voice-describe-btn"
@@ -436,8 +410,6 @@
             >
           </button>
 
-          
-          
           <label
             for="photo-input"
             class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 dark:text-slate-400"
@@ -460,8 +432,7 @@
             >
               اضغط لتحميل الصور
             </p>
-            
-            
+
             <p class="text-slate-400 text-3xs dark:text-slate-500">
               <span id="photo-count">0</span>/5 •
               <span data-i18n="photos_jpg_or_png">JPG أو PNG</span>
@@ -469,11 +440,9 @@
             <input id="photo-input" type="file" accept="image/*" multiple class="hidden" />
           </div>
 
-          
           <div id="photo-thumbnails" class="flex gap-2 flex-wrap"></div>
         </section>
 
-        
         <section
           id="step-4"
           class="flex-1 px-6 flex flex-col items-center justify-center wizard-step nm-hidden"
@@ -487,7 +456,7 @@
                 aria-hidden="true"
               ></i>
             </div>
-            
+
             <h2
               class="nm-text-wizard-title font-bold leading-tight text-slate-900 mb-3 dark:text-slate-100"
               data-i18n="request_submitted"
@@ -543,7 +512,6 @@
               </p>
             </div>
 
-            
             <div class="mt-6 space-y-3 w-full max-w-xs mx-auto">
               <a
                 href="homeowner-portal.html"
@@ -565,9 +533,7 @@
         </section>
       </main>
 
-      
       <footer id="wizard-footer" class="p-6 pt-2 space-y-3">
-        
         <button type="button" id="next-btn" class="btn-primary w-full nm-btn-hero" disabled>
           <span id="next-btn-text" data-i18n="select_damage_type">اختر نوع الضرر</span>
           <i class="ph ph-arrow-right" aria-hidden="true"></i>
@@ -577,7 +543,6 @@
         </div>
       </footer>
 
-      
       <div
         id="voice-overlay"
         class="nm-hidden fixed inset-0 z-50 bg-white/98 backdrop-blur-sm flex flex-col items-center justify-center dark:bg-[#1e1e1e]/95"
@@ -597,7 +562,7 @@
             جاري الاستماع...
           </p>
           <p class="text-slate-500 text-sm dark:text-slate-400" id="voice-timer">00:00</p>
-          
+
           <p
             class="text-slate-700 text-xs mt-3 max-w-[280px] mx-auto italic min-h-[1.25rem] dark:text-slate-300"
             id="voice-transcript"
@@ -610,7 +575,7 @@
             صف الضرر بوضوح — سنحوّل كلامك إلى نص
           </p>
         </div>
-        
+
         <button
           type="button"
           id="voice-stop-btn"
@@ -622,11 +587,9 @@
       </div>
     </div>
 
-    
     <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
     <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 
-    
     <footer class="nm-legal-footer">
       <nav aria-label="Legal navigation">
         <a href="/terms.html" data-i18n="footer_terms">الشروط والأحكام</a>
@@ -638,7 +601,7 @@
     <script src="/i18n.js" defer></script>
     <script src="/i18n/common.js" defer></script>
     <script src="/i18n/homeowner.js" defer></script>
-    
+
     <script src="/nm-timers.js" defer></script>
     <script src="/load-guard.js" defer></script>
     <script src="/nav.js" defer></script>

@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="utf-8" />
-    
+
     <style>
       @keyframes _f {
         to {
@@ -16,11 +16,10 @@
     </style>
     <script src="/theme-boot.js"></script>
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
-    
+
     <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    
-    
+
     <link rel="manifest" href="/manifest.json" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -31,10 +30,9 @@
       name="description"
       content="Manage your material catalog and track purchase orders on the Nammerha reconstruction platform."
     />
-    
+
     <meta name="robots" content="noindex, nofollow" />
-    
-    
+
     <link
       rel="preload"
       href="/fonts/ibm-plex-sans-arabic.css"
@@ -46,7 +44,7 @@
     />
     <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
     <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
-    
+
     <meta property="og:title" content="Supplier Dashboard — Nammerha" />
     <meta
       property="og:description"
@@ -58,12 +56,12 @@
     <meta name="twitter:title" content="Supplier Dashboard — Nammerha" />
     <script type="module" src="/src/pages/supplier-dashboard.ts"></script>
     <link href="/i18n.css" rel="stylesheet" />
+    <script type="module" src="/src/main.ts"></script>
   </head>
   <body
     class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100"
     data-portal="supplier"
   >
-    
     <noscript>
       <style>
         html:not([data-theme]) {
@@ -74,20 +72,17 @@
         <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل جافا سكريبت في إعدادات متصفحك.</p>
       </div>
     </noscript>
-    
+
     <a href="#main-content" class="skip-link" data-i18n="skip_to_content">تخطي إلى المحتوى</a>
     <div class="dashboard-layout">
-      
       <div class="sidebar-overlay" aria-hidden="true"></div>
 
-      
       <aside class="dashboard-sidebar">
-        
         <div class="p-4 border-b border-slate-200 flex items-center gap-3 dark:border-dark-border">
           <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-9 w-auto" />
           <span class="font-bold text-sm" data-i18n="supplier_portal">بوابة المورد</span>
         </div>
-        
+
         <nav
           class="flex-1 px-4 space-y-1 pt-3"
           role="tablist"
@@ -121,9 +116,7 @@
             <span class="font-medium" data-i18n="supplier_catalog">الكتالوج</span>
           </button>
         </nav>
-        
-        
-        
+
         <div
           class="p-4 border-t border-slate-200 space-y-1 dark:border-dark-border"
           data-section-label="Navigate"
@@ -156,7 +149,7 @@
               </p>
             </div>
           </div>
-          
+
           <button
             type="button"
             id="portal-logout-btn"
@@ -168,10 +161,7 @@
         </div>
       </aside>
 
-      
-      
       <main id="main-content" class="dashboard-main">
-        
         <header
           class="h-14 bg-white border-b border-slate-200 flex items-center justify-center shrink-0 sticky top-0 z-[var(--z-header)] dark:bg-dark-surface dark:border-dark-border"
         >
@@ -191,7 +181,6 @@
               <span class="text-xs text-slate-400 dark:text-slate-500" id="live-timestamp"></span>
             </div>
             <div class="flex items-center gap-4">
-              
               <button
                 type="button"
                 class="relative"
@@ -205,7 +194,7 @@
                   class="ph ph-bell text-slate-400 hover:text-slate-600 transition-colors text-xl dark:text-slate-500"
                   aria-hidden="true"
                 ></i>
-                
+
                 <span
                   class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-3xs font-bold rounded-full flex items-center justify-center nm-hidden"
                   id="notif-count"
@@ -215,10 +204,8 @@
           </div>
         </header>
 
-        
         <div class="flex-1 overflow-y-auto p-6 space-y-6">
           <div class="max-w-6xl mx-auto space-y-6">
-            
             <div>
               <h1 class="text-xl font-bold" data-i18n="supplier_dashboard_heading">
                 نظرة عامة على اللوحة
@@ -230,19 +217,17 @@
                 إدارة كتالوج المواد وتتبع طلبات الشراء
               </p>
             </div>
-            
+
             <div
               id="dashboard-banner"
               class="nm-hidden px-4 py-3 rounded-lg text-sm font-medium"
             ></div>
 
-            
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div
                 class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border"
               >
                 <div class="flex items-center justify-between mb-3">
-                  
                   <div
                     class="size-10 bg-warning-yellow/10 rounded-xl flex items-center justify-center"
                   >
@@ -258,9 +243,7 @@
                 >
                   عروض معلقة
                 </p>
-                
-                
-                
+
                 <p class="text-2xl font-black mt-1" id="kpi-pending-bids">
                   <span
                     class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"
@@ -296,7 +279,6 @@
                 class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border"
               >
                 <div class="flex items-center justify-between mb-3">
-                  
                   <div class="size-10 bg-warm-earth/10 rounded-xl flex items-center justify-center">
                     <i class="ph ph-truck text-warm-earth text-xl" aria-hidden="true"></i>
                   </div>
@@ -336,9 +318,9 @@
                 </p>
               </div>
             </div>
-            
+
             <div class="sr-only" aria-live="polite" id="kpi-live-summary"></div>
-            
+
             <div
               id="section-orders"
               class="bg-white rounded-xl border border-slate-200 shadow-sm dark:bg-dark-surface dark:border-dark-border"
@@ -349,7 +331,6 @@
                 class="p-5 border-b border-slate-100 flex justify-between items-center dark:border-dark-border"
               >
                 <div>
-                  
                   <h2 class="font-bold" data-i18n="supplier_material_requests">طلبات المواد</h2>
                   <p
                     class="text-xs text-slate-500 mt-0.5 dark:text-slate-400"
@@ -360,7 +341,6 @@
                 </div>
               </div>
               <div id="material-requests-body" class="space-y-4">
-                
                 <div
                   class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm animate-pulse space-y-4 dark:bg-dark-surface dark:border-dark-border"
                   aria-hidden="true"
@@ -402,8 +382,6 @@
               </div>
             </div>
 
-            
-            
             <div
               id="section-catalog"
               class="nm-hidden space-y-4"
@@ -412,9 +390,8 @@
             >
               <div class="flex justify-between items-center">
                 <div>
-                  
                   <h2 class="font-bold" data-i18n="supplier_my_catalog">كتالوجي</h2>
-                  
+
                   <p
                     class="text-3xs text-slate-400 mt-0.5 dark:text-slate-500"
                     data-i18n="supplier_catalog_desc"
@@ -443,7 +420,7 @@
                     <div class="bg-slate-200 rounded-xl h-32 hidden md:block"></div>
                   </div>
                 </div>
-                
+
                 <div id="catalog-empty" class="col-span-full text-center py-12 nm-hidden">
                   <div
                     class="size-16 rounded-full bg-warm-earth/10 flex items-center justify-center mx-auto mb-4"
@@ -462,7 +439,7 @@
                   >
                     أضف مواد البناء الخاصة بك ليتمكن المهندسون من العثور عليها والطلب منك
                   </p>
-                  
+
                   <button
                     type="button"
                     class="text-xs font-semibold bg-trust-blue text-white px-4 py-2.5 rounded-lg hover:bg-trust-blue/90 transition-colors inline-flex items-center gap-2"
@@ -478,7 +455,6 @@
         </div>
       </main>
 
-      
       <dialog
         id="modal-add-material"
         class="nm-dialog p-0 w-[90%] max-w-lg rounded-2xl border-0 shadow-2xl backdrop:bg-slate-900/50 backdrop:backdrop-blur-sm open:animate-fade-in-up"
@@ -668,8 +644,6 @@
       </dialog>
     </div>
 
-    
-    
     <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
     <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 
@@ -682,7 +656,6 @@
       <p class="nm-copyright" data-i18n="footer_copyright">© 2026 نعمِّرها. جميع الحقوق محفوظة.</p>
     </footer>
 
-    
     <template id="tpl-table-empty">
       <div
         class="bg-white rounded-xl border border-slate-200 py-12 text-center shadow-sm w-full dark:bg-dark-surface dark:border-dark-border"
@@ -707,7 +680,7 @@
     <script src="/i18n.js" defer></script>
     <script src="/i18n/common.js" defer></script>
     <script src="/i18n/supplier.js" defer></script>
-    
+
     <script src="/nm-timers.js" defer></script>
     <script src="/load-guard.js" defer></script>
     <script src="/nav.js" defer></script>

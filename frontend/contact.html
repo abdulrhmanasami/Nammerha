@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="utf-8" />
-    
+
     <style>
       @keyframes _f {
         to {
@@ -18,8 +18,7 @@
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
     <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    
-    
+
     <link rel="manifest" href="/manifest.json" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -38,7 +37,7 @@
     <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="نعمّرها — تواصل معنا Us" />
-    
+
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -58,7 +57,7 @@
         }
       }
     </script>
-    
+
     <link
       rel="preload"
       href="/fonts/ibm-plex-sans-arabic.css"
@@ -72,11 +71,11 @@
     <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
     <link href="/i18n.css" rel="stylesheet" />
     <script type="module" src="/src/pages/contact.ts"></script>
+    <script type="module" src="/src/main.ts"></script>
   </head>
   <body
     class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100"
   >
-    
     <noscript>
       <style>
         html:not([data-theme]) {
@@ -87,10 +86,9 @@
         <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل جافا سكريبت في إعدادات متصفحك.</p>
       </div>
     </noscript>
-    
+
     <a href="#main-content" class="skip-link" data-i18n="skip_to_content">تخطي إلى المحتوى</a>
     <div class="mobile-container min-h-screen flex flex-col">
-      
       <header class="glass-nav sticky top-0 z-50">
         <div class="flex items-center justify-between px-4 h-16 max-w-md mx-auto">
           <a
@@ -105,7 +103,6 @@
       </header>
 
       <main id="main-content" class="flex-1 px-6 py-8 max-w-md mx-auto w-full">
-        
         <section class="mb-8">
           <div class="flex items-center gap-3 mb-4">
             <div class="size-12 bg-trust-blue/10 rounded-xl flex items-center justify-center">
@@ -120,7 +117,6 @@
           </div>
         </section>
 
-        
         <section class="mb-8 space-y-4">
           <h2 class="text-base font-bold mb-3" data-i18n="contact_details">معلومات التواصل</h2>
 
@@ -188,7 +184,6 @@
           </div>
         </section>
 
-        
         <section class="mb-8">
           <h2 class="text-base font-bold mb-3" data-i18n="contact_sla">أوقات الاستجابة</h2>
           <div class="space-y-2">
@@ -224,7 +219,6 @@
           </div>
         </section>
 
-        
         <section class="mb-8">
           <h2 class="text-base font-bold mb-3" data-i18n="contact_legal">روابط قانونية</h2>
           <div class="grid grid-cols-2 gap-3">
@@ -258,7 +252,6 @@
           </div>
         </section>
 
-        
         <section class="mb-8">
           <h2 class="text-base font-bold mb-3" data-i18n="contact_form_title">أرسل لنا رسالة</h2>
           <form id="contact-form" class="space-y-4" novalidate>
@@ -364,11 +357,10 @@
               <span data-i18n="contact_send">إرسال الرسالة</span>
             </button>
           </form>
-          
+
           <div id="contact-result" class="nm-hidden"></div>
         </section>
 
-        
         <div
           class="flex items-center gap-3 p-4 rounded-xl bg-trust-blue/5 border border-trust-blue/10 mt-4"
         >
@@ -379,11 +371,10 @@
         </div>
       </main>
     </div>
-    
+
     <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
     <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 
-    
     <footer class="nm-legal-footer">
       <nav aria-label="Legal navigation">
         <a href="/terms.html" data-i18n="footer_terms">الشروط والأحكام</a>
@@ -396,7 +387,7 @@
     <script src="/i18n.js" defer></script>
     <script src="/i18n/common.js" defer></script>
     <script src="/i18n/contact.js" defer></script>
-    
+
     <script src="/nm-timers.js" defer></script>
     <script src="/load-guard.js" defer></script>
     <script src="/nav.js" defer></script>

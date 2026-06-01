@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="utf-8" />
-    
+
     <style>
       @keyframes _f {
         to {
@@ -18,8 +18,7 @@
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
     <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    
-    
+
     <link rel="manifest" href="/manifest.json" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -30,9 +29,9 @@
       name="description"
       content="Track your reconstruction projects, manage repair requests, review bids, and approve construction phases."
     />
-    
+
     <meta name="robots" content="noindex, nofollow" />
-    
+
     <link
       rel="preload"
       href="/fonts/ibm-plex-sans-arabic.css"
@@ -46,7 +45,7 @@
     <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
     <script type="module" src="/src/pages/homeowner-portal.ts"></script>
     <link href="/i18n.css" rel="stylesheet" />
-    
+
     <meta property="og:title" content="Homeowner Portal — Nammerha" />
     <meta
       property="og:description"
@@ -56,12 +55,12 @@
     <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="Homeowner Portal — Nammerha" />
+    <script type="module" src="/src/main.ts"></script>
   </head>
   <body
     class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100"
     data-portal="homeowner"
   >
-    
     <noscript>
       <style>
         html:not([data-theme]) {
@@ -72,19 +71,17 @@
         <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل جافا سكريبت في إعدادات متصفحك.</p>
       </div>
     </noscript>
-    
+
     <a href="#main-content" class="skip-link" data-i18n="skip_to_content">تخطي إلى المحتوى</a>
     <div class="dashboard-layout">
-      
       <div class="sidebar-overlay" aria-hidden="true"></div>
 
-      
       <aside class="dashboard-sidebar">
         <div class="p-4 border-b border-slate-200 flex items-center gap-3 dark:border-dark-border">
           <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-9 w-auto" />
           <span class="font-bold text-sm" data-i18n="homeowner_portal">بوابة صاحب المنزل</span>
         </div>
-        
+
         <nav class="flex-1 px-4 space-y-1 pt-3" role="tablist" aria-label="Dashboard navigation">
           <button
             type="button"
@@ -95,7 +92,7 @@
             class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg cursor-pointer w-full text-start"
           >
             <i class="ph ph-squares-four" aria-hidden="true"></i>
-            
+
             <span class="font-medium" data-i18n="common_dashboard">لوحة التحكم</span>
           </button>
           <button
@@ -153,13 +150,12 @@
             <span class="font-medium" data-i18n="homeowner_payments">المدفوعات</span>
           </button>
         </nav>
-        
+
         <div
           class="p-4 border-t border-slate-200 space-y-2 dark:border-dark-border"
           data-section-label="Navigate"
           data-i18n-attr="data-section-label:sidebar_navigate"
         >
-          
           <a
             href="/homeowner-report.html"
             class="flex items-center justify-center gap-2 w-full px-3 py-2.5 bg-trust-blue text-white text-xs font-bold rounded-lg hover:bg-trust-blue/90 transition-colors"
@@ -168,7 +164,7 @@
             <span data-i18n="homeowner_report_damage">الإبلاغ عن أضرار</span>
           </a>
         </div>
-        
+
         <div class="p-4 border-t border-slate-200 space-y-1 dark:border-dark-border">
           <a
             href="profile.html"
@@ -178,7 +174,7 @@
             <span class="font-medium text-sm" data-i18n="nav_profile">الملف الشخصي</span>
           </a>
         </div>
-        
+
         <div class="p-4 border-t border-slate-200 dark:border-dark-border">
           <button
             type="button"
@@ -191,10 +187,7 @@
         </div>
       </aside>
 
-      
-      
       <main id="main-content" class="dashboard-main">
-        
         <header
           class="h-14 bg-white border-b border-slate-200 flex items-center justify-center shrink-0 sticky top-0 z-[var(--z-header)] dark:bg-dark-surface dark:border-dark-border"
         >
@@ -208,15 +201,19 @@
               >
                 <i class="ph ph-list nm-icon-22" aria-hidden="true"></i>
               </button>
-              
-              <span class="font-bold text-lg page-header-title truncate min-w-0" data-i18n="homeowner_portal"
+
+              <span
+                class="font-bold text-lg page-header-title truncate min-w-0"
+                data-i18n="homeowner_portal"
                 >بوابة صاحب المنزل</span
               >
-              
-              <span class="text-xs text-slate-400 dark:text-slate-500 hidden md:inline-block shrink-0 whitespace-nowrap" id="live-timestamp"></span>
+
+              <span
+                class="text-xs text-slate-400 dark:text-slate-500 hidden md:inline-block shrink-0 whitespace-nowrap"
+                id="live-timestamp"
+              ></span>
             </div>
             <div class="flex items-center gap-4">
-              
               <button
                 type="button"
                 class="relative"
@@ -230,7 +227,7 @@
                   class="ph ph-bell text-slate-400 hover:text-slate-600 transition-colors text-xl dark:text-slate-500"
                   aria-hidden="true"
                 ></i>
-                
+
                 <span
                   class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-3xs font-bold rounded-full flex items-center justify-center hidden"
                   id="notif-count"
@@ -242,7 +239,6 @@
 
         <div class="flex-1 overflow-y-auto p-6 space-y-6">
           <div class="max-w-6xl mx-auto space-y-6">
-            
             <div>
               <h1 class="text-xl font-bold" data-i18n="homeowner_welcome">
                 مرحباً بك في منزلك الرقمي
@@ -255,9 +251,6 @@
               </p>
             </div>
 
-            
-
-            
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div
                 class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border"
@@ -273,8 +266,7 @@
                 >
                   نشط
                 </p>
-                
-                
+
                 <p class="text-2xl font-black mt-1" id="kpi-active">
                   <span
                     class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"
@@ -322,7 +314,7 @@
                 >
                   موافقات معلقة
                 </p>
-                
+
                 <p class="text-2xl font-black mt-1 text-warning-yellow" id="kpi-approvals">
                   <span
                     class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"
@@ -347,7 +339,7 @@
                 >
                   الضمان
                 </p>
-                
+
                 <p class="text-3xs text-slate-400/70 -mt-0.5" data-i18n="homeowner_escrow_kpi_hint">
                   إجمالي الأموال المحجوزة في الضمان
                 </p>
@@ -362,10 +354,9 @@
                 </p>
               </div>
             </div>
-            
+
             <div class="sr-only" aria-live="polite" id="kpi-live-summary"></div>
 
-            
             <div
               id="section-dashboard"
               class="space-y-4"
@@ -388,7 +379,6 @@
                   id="active-projects-list"
                   class="divide-y divide-slate-100 dark:divide-dark-border-subtle"
                 >
-                  
                   <div class="p-5 space-y-3 animate-pulse" aria-hidden="true">
                     <div class="flex items-center gap-3">
                       <div class="size-10 rounded-xl bg-slate-200"></div>
@@ -409,7 +399,6 @@
               </div>
             </div>
 
-            
             <div
               id="section-projects"
               class="nm-hidden"
@@ -444,7 +433,6 @@
                   data-i18n-attr-data-scroll-hint="scroll_hint"
                 >
                   <div id="projects-body" class="flex flex-col gap-3 w-full">
-                    
                     <div
                       class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm animate-pulse flex flex-col gap-3 dark:bg-dark-surface dark:border-dark-border"
                       aria-hidden="true"
@@ -464,14 +452,12 @@
               </div>
             </div>
 
-            
             <div
               id="section-requests"
               class="nm-hidden space-y-4"
               role="tabpanel"
               aria-labelledby="tab-requests"
             >
-              
               <div
                 class="bg-white rounded-xl border border-slate-200 shadow-sm dark:bg-dark-surface dark:border-dark-border"
               >
@@ -484,9 +470,8 @@
                     طلبات الخدمة المقدمة
                   </p>
                 </div>
-                
+
                 <div class="p-5 space-y-4">
-                  
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label
@@ -496,7 +481,6 @@
                         >المهنة المطلوبة</label
                       >
                       <select id="sr-trade" class="nm-select">
-                        
                         <option value="" disabled selected data-i18n="sr_select_trade">
                           اختر المهنة
                         </option>
@@ -532,7 +516,6 @@
                     </div>
                   </div>
 
-                  
                   <div>
                     <label
                       for="sr-urgency"
@@ -553,9 +536,7 @@
                     </p>
                   </div>
 
-                  
                   <div id="sr-details-wrap" class="nm-hidden space-y-4 animate-fade-in-up">
-                    
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label
@@ -612,8 +593,7 @@
                         dir="auto"
                       />
                     </div>
-                    
-                    
+
                     <div>
                       <label
                         for="sr-photos"
@@ -641,10 +621,7 @@
                     </div>
                   </div>
 
-                  
-                  
                   <div class="space-y-3">
-                    
                     <button
                       type="button"
                       id="sr-toggle-details"
@@ -652,7 +629,7 @@
                     >
                       <i class="ph ph-plus-circle" aria-hidden="true"></i>
                       <span data-i18n="ho_add_details">أضف التفاصيل</span>
-                      
+
                       <span
                         class="text-slate-400 font-normal dark:text-slate-500"
                         data-i18n="sr_optional_fields_count"
@@ -670,7 +647,7 @@
                   </div>
                 </div>
               </div>
-              
+
               <div
                 class="bg-white rounded-xl border border-slate-200 shadow-sm dark:bg-dark-surface dark:border-dark-border"
               >
@@ -683,7 +660,6 @@
                   data-i18n-attr-data-scroll-hint="scroll_hint"
                 >
                   <div id="requests-body" class="flex flex-col gap-3 w-full">
-                    
                     <div
                       class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm animate-pulse flex flex-col gap-3 dark:bg-dark-surface dark:border-dark-border"
                       aria-hidden="true"
@@ -703,7 +679,6 @@
               </div>
             </div>
 
-            
             <div
               id="section-approvals"
               class="nm-hidden"
@@ -739,7 +714,6 @@
               </div>
             </div>
 
-            
             <div
               id="section-payments"
               class="nm-hidden"
@@ -777,8 +751,6 @@
       </main>
     </div>
 
-    
-    
     <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
     <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 
@@ -791,7 +763,6 @@
       <p class="nm-copyright" data-i18n="footer_copyright">© 2026 نعمِّرها. جميع الحقوق محفوظة.</p>
     </footer>
 
-    
     <template id="tpl-table-empty">
       <div
         class="bg-white rounded-xl border border-slate-200 py-12 text-center shadow-sm w-full nm-table-empty dark:bg-dark-surface dark:border-dark-border"
@@ -820,7 +791,7 @@
     <script src="/i18n/common.js" defer></script>
     <script src="/i18n/homeowner.js" defer></script>
     <script src="/i18n/tradesperson.js" defer></script>
-    
+
     <script src="/nm-timers.js" defer></script>
     <script src="/load-guard.js" defer></script>
     <script src="/nav.js" defer></script>

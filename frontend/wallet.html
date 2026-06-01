@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="utf-8" />
-    
+
     <style>
       @keyframes _f {
         to {
@@ -18,20 +18,19 @@
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
     <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    
-    
+
     <link rel="manifest" href="/manifest.json" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)" />
     <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)" />
     <title>نعمّرها — المحفظة | المحفظة</title>
-    
+
     <meta
       name="description"
       content="View your escrow balances, funding history, and payment transactions."
     />
-    
+
     <meta name="robots" content="noindex, nofollow" />
     <meta property="og:title" content="Wallet — Nammerha" />
     <meta
@@ -41,9 +40,9 @@
     <meta property="og:type" content="website" />
     <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
     <meta name="twitter:card" content="summary" />
-    
+
     <meta name="twitter:title" content="Wallet — Nammerha" />
-    
+
     <link
       rel="preload"
       href="/fonts/ibm-plex-sans-arabic.css"
@@ -57,11 +56,11 @@
     <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
     <script type="module" src="/src/pages/wallet.ts"></script>
     <link href="/i18n.css" rel="stylesheet" />
+    <script type="module" src="/src/main.ts"></script>
   </head>
   <body
     class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100"
   >
-    
     <noscript>
       <style>
         html:not([data-theme]) {
@@ -72,14 +71,11 @@
         <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل جافا سكريبت في إعدادات متصفحك.</p>
       </div>
     </noscript>
-    
+
     <a href="#main-content" class="skip-link" data-i18n="skip_to_content">تخطي إلى المحتوى</a>
-    
+
     <main id="main-content" class="mobile-container min-h-screen flex flex-col">
-      
-      
       <header class="page-header">
-        
         <a
           href="index.html"
           data-back-btn
@@ -108,7 +104,6 @@
         </div>
       </header>
 
-      
       <section class="px-4 pt-6 animate-fade-in-up">
         <div
           class="bg-gradient-to-br from-trust-blue to-blue-700 text-white rounded-2xl p-6 relative overflow-hidden"
@@ -119,20 +114,18 @@
           >
             إجمالي رصيد الضمان
           </p>
-          
+
           <p class="text-white/50 text-3xs leading-tight -mt-0.5 mb-1" data-i18n="escrow_explainer">
             أموالك محمية في حساب ضمان حتى اكتمال العمل
           </p>
-          
-          
-          
+
           <div id="wallet-balance" class="mt-1" aria-busy="true">
             <div class="flex items-baseline gap-2 animate-pulse" data-skeleton aria-hidden="true">
               <div class="h-8 w-28 bg-white/20 rounded-lg"></div>
               <div class="h-4 w-10 bg-white/15 rounded"></div>
             </div>
           </div>
-          
+
           <div class="flex items-center gap-3 mt-4">
             <div class="flex items-center gap-1 text-white/80 text-xs">
               <i class="ph ph-lock-simple text-sm" aria-hidden="true"></i>
@@ -147,8 +140,7 @@
               ></span>
             </div>
           </div>
-          
-          
+
           <button
             type="button"
             id="add-funds-btn"
@@ -166,12 +158,8 @@
         </div>
       </section>
 
-      
       <section class="px-4 pt-6">
-        
-        
         <div class="grid grid-cols-4 gap-2 wallet-quick-grid">
-          
           <button
             type="button"
             id="donate-action"
@@ -191,7 +179,7 @@
               >قريباً</span
             >
           </button>
-          
+
           <button
             type="button"
             id="deposit-action"
@@ -208,14 +196,14 @@
               data-i18n="deposit"
               >إيداع</span
             >
-            
+
             <span
               class="absolute top-1 end-1 text-3xs bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded-full uppercase tracking-wider font-bold dark:text-slate-400"
               data-i18n="coming_soon"
               >قريباً</span
             >
           </button>
-          
+
           <a
             href="wallet.html"
             class="glass-card flex flex-col items-center gap-2 p-3 rounded-xl text-center hover:shadow-md transition-shadow"
@@ -229,7 +217,7 @@
               >إيصالات</span
             >
           </a>
-          
+
           <a
             href="projects.html"
             class="glass-card flex flex-col items-center gap-2 p-3 rounded-xl text-center hover:shadow-md transition-shadow"
@@ -246,19 +234,14 @@
         </div>
       </section>
 
-      
-      
-      
-      
       <section class="px-4 pt-8 animate-fade-in-up" style="--anim-delay: 0.1s">
-        
         <h2
           class="text-sm font-bold uppercase tracking-wider text-slate-900 mb-1 dark:text-slate-100"
           data-i18n="recent_transactions"
         >
           المعاملات الأخيرة
         </h2>
-        
+
         <div class="flex items-center gap-2 mb-3 overflow-x-auto scrollbar-hide">
           <span
             id="tx-count"
@@ -321,9 +304,8 @@
             </button>
           </div>
         </div>
-        
+
         <div id="transaction-list" class="flex flex-col gap-2" role="list">
-          
           <template id="date-group-template">
             <div class="flex items-center gap-2 pt-3 pb-1" role="presentation">
               <span
@@ -332,7 +314,7 @@
               <div class="flex-1 h-px bg-slate-100"></div>
             </div>
           </template>
-          
+
           <div
             class="bg-white rounded-xl p-4 flex items-center gap-4 animate-pulse dark:bg-dark-surface"
             aria-hidden="true"
@@ -359,7 +341,6 @@
       </section>
     </main>
 
-    
     <dialog id="deposit-dialog" class="nm-confirm-dialog">
       <div class="nm-confirm-body">
         <div
@@ -372,12 +353,13 @@
         <div class="mt-3 bg-trust-blue/5 rounded-lg p-3 border border-trust-blue/10">
           <p class="text-3xs text-trust-blue font-semibold flex items-center gap-1.5">
             <i class="ph ph-info text-sm" aria-hidden="true"></i>
-            <span data-i18n="deposit_info">تتم معالجة الإيداعات بشكل آمن عبر بوابة الدفع الآمنة</span>
+            <span data-i18n="deposit_info"
+              >تتم معالجة الإيداعات بشكل آمن عبر بوابة الدفع الآمنة</span
+            >
           </p>
         </div>
       </div>
       <div class="nm-confirm-actions">
-        
         <button
           type="button"
           id="deposit-notify-btn"
@@ -392,11 +374,9 @@
       </div>
     </dialog>
 
-    
     <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
     <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 
-    
     <footer class="nm-legal-footer">
       <nav aria-label="Legal navigation">
         <a href="/terms.html" data-i18n="footer_terms">الشروط والأحكام</a>
@@ -407,10 +387,10 @@
     </footer>
 
     <script src="/i18n.js" defer></script>
-    
+
     <script src="/i18n/common.js" defer></script>
     <script src="/i18n/wallet.js" defer></script>
-    
+
     <script src="/nm-timers.js" defer></script>
     <script src="/load-guard.js" defer></script>
     <script src="/nav.js" defer></script>

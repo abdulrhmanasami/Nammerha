@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="utf-8" />
-    
+
     <style>
       @keyframes _f {
         to {
@@ -16,11 +16,10 @@
     </style>
     <script src="/theme-boot.js"></script>
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
-    
+
     <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    
-    
+
     <link rel="manifest" href="/manifest.json" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -31,10 +30,9 @@
       name="description"
       content="Contractor portal for browsing reconstruction projects, submitting competitive bids, and managing assigned construction work."
     />
-    
+
     <meta name="robots" content="noindex, nofollow" />
-    
-    
+
     <link
       rel="preload"
       href="/fonts/ibm-plex-sans-arabic.css"
@@ -46,7 +44,7 @@
     />
     <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
     <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
-    
+
     <meta property="og:title" content="Contractor Portal — Nammerha" />
     <meta
       property="og:description"
@@ -58,12 +56,12 @@
     <meta name="twitter:title" content="Contractor Portal — Nammerha" />
     <script type="module" src="/src/pages/contractor-portal.ts"></script>
     <link href="/i18n.css" rel="stylesheet" />
+    <script type="module" src="/src/main.ts"></script>
   </head>
   <body
     class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100"
     data-portal="contractor"
   >
-    
     <noscript>
       <style>
         html:not([data-theme]) {
@@ -74,21 +72,17 @@
         <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل جافا سكريبت في إعدادات متصفحك.</p>
       </div>
     </noscript>
-    
+
     <a href="#main-content" class="skip-link" data-i18n="skip_to_content">تخطي إلى المحتوى</a>
     <div class="dashboard-layout">
-      
       <div class="sidebar-overlay" aria-hidden="true"></div>
 
-      
       <aside class="dashboard-sidebar">
-        
-        
         <div class="p-4 border-b border-slate-200 flex items-center gap-3 dark:border-dark-border">
           <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-9 w-auto" />
           <span class="font-bold text-sm" data-i18n="contractor_portal">بوابة المقاول</span>
         </div>
-        
+
         <nav
           class="flex-1 px-4 space-y-1 pt-3"
           role="tablist"
@@ -103,7 +97,7 @@
             class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg cursor-pointer w-full text-start"
           >
             <i class="ph ph-squares-four" aria-hidden="true"></i>
-            
+
             <span class="font-medium" data-i18n="common_dashboard">لوحة التحكم</span>
           </button>
           <button
@@ -145,9 +139,7 @@
             <span class="font-medium" data-i18n="contractor_payments">المدفوعات</span>
           </button>
         </nav>
-        
-        
-        
+
         <div
           class="p-4 border-t border-slate-200 space-y-1 dark:border-dark-border"
           data-section-label="Navigate"
@@ -161,7 +153,7 @@
             <span class="font-medium" data-i18n="nav_profile">الملف الشخصي</span>
           </a>
         </div>
-        
+
         <div class="p-4 border-t border-slate-200 dark:border-dark-border">
           <button
             type="button"
@@ -174,10 +166,7 @@
         </div>
       </aside>
 
-      
       <main id="main-content" class="dashboard-main">
-        
-        
         <header
           class="h-14 bg-white border-b border-slate-200 flex items-center justify-center shrink-0 sticky top-0 z-[var(--z-header)] dark:bg-dark-surface dark:border-dark-border"
         >
@@ -194,12 +183,10 @@
               <span class="font-bold text-lg page-header-title" data-i18n="contractor_portal_title"
                 >بوابة المقاول</span
               >
-              
+
               <span class="text-xs text-slate-400 dark:text-slate-500" id="live-timestamp"></span>
             </div>
             <div class="flex items-center gap-4">
-              
-              
               <button
                 type="button"
                 class="relative"
@@ -213,7 +200,7 @@
                   class="ph ph-bell text-slate-400 hover:text-slate-600 transition-colors text-xl dark:text-slate-500"
                   aria-hidden="true"
                 ></i>
-                
+
                 <span
                   class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-3xs font-bold rounded-full flex items-center justify-center hidden"
                   id="notif-count"
@@ -223,16 +210,12 @@
           </div>
         </header>
 
-        
         <div id="oracle-ticker-container"></div>
 
-        
         <div class="flex-1 overflow-y-auto p-6 space-y-6">
           <div class="max-w-6xl mx-auto space-y-6">
-            
             <div class="flex flex-wrap items-center justify-between gap-4">
               <div>
-                
                 <h1 class="text-xl font-bold" data-i18n="contractor_portal_heading">مشاريعي</h1>
                 <p
                   class="text-sm text-slate-500 dark:text-slate-400"
@@ -244,7 +227,6 @@
               <span class="text-xs text-slate-400 dark:text-slate-500" id="last-sync">—</span>
             </div>
 
-            
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div
                 class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border"
@@ -260,10 +242,12 @@
                 >
                   المشاريع النشطة
                 </p>
-                
-                
+
                 <p class="text-2xl font-black mt-1" id="kpi-active">
-                  <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse" aria-hidden="true"></span>
+                  <span
+                    class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"
+                    aria-hidden="true"
+                  ></span>
                 </p>
               </div>
               <div
@@ -283,7 +267,10 @@
                   عروض معلقة
                 </p>
                 <p class="text-2xl font-black mt-1" id="kpi-pending">
-                  <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse" aria-hidden="true"></span>
+                  <span
+                    class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"
+                    aria-hidden="true"
+                  ></span>
                 </p>
               </div>
               <div
@@ -307,7 +294,10 @@
                   class="text-2xl font-black mt-1 text-smoky-jade dark:text-emerald-400"
                   id="kpi-won"
                 >
-                  <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse" aria-hidden="true"></span>
+                  <span
+                    class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse"
+                    aria-hidden="true"
+                  ></span>
                 </p>
               </div>
               <div
@@ -324,20 +314,21 @@
                 >
                   إجمالي الضمان
                 </p>
-                
+
                 <p class="text-3xs text-trust-blue/70 -mt-0.5" data-i18n="contractor_escrow_hint">
                   الدفعات محفوظة بالأمانة حتى التحقق من المراحل
                 </p>
                 <p class="text-2xl font-black mt-1 text-trust-blue" id="kpi-escrow">
-                  <span class="inline-block h-7 w-20 bg-slate-200 rounded animate-pulse" aria-hidden="true"></span>
+                  <span
+                    class="inline-block h-7 w-20 bg-slate-200 rounded animate-pulse"
+                    aria-hidden="true"
+                  ></span>
                 </p>
               </div>
             </div>
-            
+
             <div class="sr-only" aria-live="polite" id="kpi-live-summary"></div>
 
-            
-            
             <div
               id="section-dashboard"
               class="space-y-4"
@@ -348,7 +339,6 @@
                 class="bg-white rounded-xl border border-slate-200 shadow-sm dark:bg-dark-surface dark:border-dark-border"
               >
                 <div class="p-5 border-b border-slate-100 dark:border-dark-border">
-                  
                   <h2 class="font-bold" data-i18n="contractor_my_projects">مشاريعي</h2>
                   <p
                     class="text-xs text-slate-500 mt-0.5 dark:text-slate-400"
@@ -363,16 +353,17 @@
                   data-i18n-attr-data-scroll-hint="scroll_hint"
                 >
                   <div id="projects-body" class="flex flex-col gap-3 w-full">
-                    
                     <div
                       class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm animate-pulse flex flex-col gap-3 dark:bg-dark-surface dark:border-dark-border"
-                     aria-hidden="true">
+                      aria-hidden="true"
+                    >
                       <div class="h-3 bg-slate-200 rounded w-28"></div>
                       <div class="h-3 bg-slate-200 rounded w-20"></div>
                     </div>
                     <div
                       class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm animate-pulse flex flex-col gap-3 dark:bg-dark-surface dark:border-dark-border"
-                     aria-hidden="true">
+                      aria-hidden="true"
+                    >
                       <div class="h-3 bg-slate-200 rounded w-24"></div>
                       <div class="h-3 bg-slate-200 rounded w-16"></div>
                     </div>
@@ -381,7 +372,6 @@
               </div>
             </div>
 
-            
             <div
               id="section-marketplace"
               class="nm-hidden bg-white rounded-xl border border-slate-200 shadow-sm dark:bg-dark-surface dark:border-dark-border"
@@ -403,16 +393,17 @@
                 data-i18n-attr-data-scroll-hint="scroll_hint"
               >
                 <div id="marketplace-body" class="flex flex-col gap-3 w-full">
-                  
                   <div
                     class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm animate-pulse flex flex-col gap-3 dark:bg-dark-surface dark:border-dark-border"
-                   aria-hidden="true">
+                    aria-hidden="true"
+                  >
                     <div class="h-3 bg-slate-200 rounded w-28"></div>
                     <div class="h-3 bg-slate-200 rounded w-20"></div>
                   </div>
                   <div
                     class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm animate-pulse flex flex-col gap-3 dark:bg-dark-surface dark:border-dark-border"
-                   aria-hidden="true">
+                    aria-hidden="true"
+                  >
                     <div class="h-3 bg-slate-200 rounded w-24"></div>
                     <div class="h-3 bg-slate-200 rounded w-16"></div>
                   </div>
@@ -420,7 +411,6 @@
               </div>
             </div>
 
-            
             <div
               id="section-bids"
               class="nm-hidden bg-white rounded-xl border border-slate-200 shadow-sm dark:bg-dark-surface dark:border-dark-border"
@@ -442,16 +432,17 @@
                 data-i18n-attr-data-scroll-hint="scroll_hint"
               >
                 <div id="bids-body" class="flex flex-col gap-3 w-full">
-                  
                   <div
                     class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm animate-pulse flex flex-col gap-3 dark:bg-dark-surface dark:border-dark-border"
-                   aria-hidden="true">
+                    aria-hidden="true"
+                  >
                     <div class="h-3 bg-slate-200 rounded w-28"></div>
                     <div class="h-3 bg-slate-200 rounded w-20"></div>
                   </div>
                   <div
                     class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm animate-pulse flex flex-col gap-3 dark:bg-dark-surface dark:border-dark-border"
-                   aria-hidden="true">
+                    aria-hidden="true"
+                  >
                     <div class="h-3 bg-slate-200 rounded w-24"></div>
                     <div class="h-3 bg-slate-200 rounded w-16"></div>
                   </div>
@@ -459,7 +450,6 @@
               </div>
             </div>
 
-            
             <div
               id="section-payments"
               class="nm-hidden bg-white rounded-xl border border-slate-200 shadow-sm dark:bg-dark-surface dark:border-dark-border"
@@ -481,16 +471,17 @@
                 data-i18n-attr-data-scroll-hint="scroll_hint"
               >
                 <div id="payments-body" class="flex flex-col gap-3 w-full">
-                  
                   <div
                     class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm animate-pulse flex flex-col gap-3 dark:bg-dark-surface dark:border-dark-border"
-                   aria-hidden="true">
+                    aria-hidden="true"
+                  >
                     <div class="h-3 bg-slate-200 rounded w-28"></div>
                     <div class="h-3 bg-slate-200 rounded w-20"></div>
                   </div>
                   <div
                     class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm animate-pulse flex flex-col gap-3 dark:bg-dark-surface dark:border-dark-border"
-                   aria-hidden="true">
+                    aria-hidden="true"
+                  >
                     <div class="h-3 bg-slate-200 rounded w-24"></div>
                     <div class="h-3 bg-slate-200 rounded w-16"></div>
                   </div>
@@ -502,8 +493,6 @@
       </main>
     </div>
 
-    
-    
     <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
     <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 
@@ -516,7 +505,6 @@
       <p class="nm-copyright" data-i18n="footer_copyright">© 2026 نعمِّرها. جميع الحقوق محفوظة.</p>
     </footer>
 
-    
     <template id="tpl-table-empty">
       <div
         class="bg-white rounded-xl border border-slate-200 py-12 text-center shadow-sm w-full nm-table-empty dark:bg-dark-surface dark:border-dark-border"
@@ -544,7 +532,7 @@
     <script src="/i18n.js" defer></script>
     <script src="/i18n/common.js" defer></script>
     <script src="/i18n/contractor.js" defer></script>
-    
+
     <script src="/nm-timers.js" defer></script>
     <script src="/load-guard.js" defer></script>
     <script src="/nav.js" defer></script>

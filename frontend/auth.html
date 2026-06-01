@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="utf-8" />
-    
+
     <script>
       (function () {
         try {
@@ -14,7 +14,7 @@
         } catch (e) {}
       })();
     </script>
-    
+
     <script>
       (function () {
         var m =
@@ -30,8 +30,7 @@
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
     <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    
-    
+
     <link rel="manifest" href="/manifest.json" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -42,7 +41,7 @@
       name="description"
       content="Sign in to Nammerha — the معيار بيانات التعاقد المفتوح-compliant reconstruction platform rebuilding Syria with transparency."
     />
-    
+
     <meta property="og:title" content="Sign In — Nammerha" />
     <meta
       property="og:description"
@@ -52,7 +51,7 @@
     <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="Sign In — Nammerha" />
-    
+
     <link
       rel="preload"
       href="/fonts/ibm-plex-sans-arabic.css"
@@ -63,7 +62,7 @@
       "
     />
     <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
-    
+
     <link
       rel="preload"
       href="/fonts/phosphor/phosphor.css"
@@ -74,8 +73,7 @@
       "
     />
     <noscript><link rel="stylesheet" href="/fonts/phosphor/phosphor.css" /></noscript>
-    
-    
+
     <script>
       window.__GOOGLE_CLIENT_ID__ =
         '411831386608-kufrn0htaglfivf59ofgveeirteh44o1.apps.googleusercontent.com';
@@ -84,11 +82,11 @@
     </script>
     <script type="module" src="/src/pages/auth.ts"></script>
     <link href="/i18n.css" rel="stylesheet" />
+    <script type="module" src="/src/main.ts"></script>
   </head>
   <body
     class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100"
   >
-    
     <noscript>
       <style>
         html:not([data-theme]) {
@@ -99,17 +97,13 @@
         <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل جافا سكريبت في إعدادات متصفحك.</p>
       </div>
     </noscript>
-    
+
     <a href="#main-content" class="skip-link" data-i18n="skip_to_content">تخطي إلى المحتوى</a>
-    
-    
+
     <main id="main-content" class="mobile-container flex flex-col relative min-h-screen">
-      
       <h1 class="sr-only" data-i18n="auth_page_heading">تسجيل الدخول أو إنشاء حساب</h1>
 
-      
       <header class="px-6 pt-12 pb-6 text-center relative z-10">
-        
         <img
           src="/brand/Nammerha_logo_Full.svg"
           alt="Nammerha — نعمّرها"
@@ -118,21 +112,18 @@
         <p class="text-sm text-slate-500 mt-1 dark:text-slate-400" data-i18n="auth_subtitle">
           منصة إعادة الإعمار
         </p>
-        
+
         <div id="nm-lang-mount" class="flex justify-center mt-3"></div>
-        
-        
+
         <a
           href="/"
           class="inline-flex items-center gap-2 nm-text-caption font-medium text-slate-600 hover:text-trust-blue underline decoration-slate-300 hover:decoration-trust-blue underline-offset-4 transition-colors mt-3 dark:text-slate-400"
           data-i18n="auth_back_home"
         >
-          
           <i class="ph ph-caret-left text-sm" aria-hidden="true"></i> العودة للرئيسية
         </a>
       </header>
 
-      
       <div class="px-6 mb-6 relative z-10">
         <div
           class="flex bg-slate-200/60 rounded-full p-1 dark:bg-dark-border-subtle"
@@ -163,9 +154,7 @@
           </button>
         </div>
       </div>
-      
-      
-      
+
       <div
         class="px-6 mb-4 relative z-10 nm-hidden"
         id="auth-banner"
@@ -181,9 +170,6 @@
         </div>
       </div>
 
-      
-      
-      
       <form
         id="form-login"
         role="tabpanel"
@@ -191,7 +177,6 @@
         class="auth-panel px-6 flex flex-col gap-4 relative z-10"
         novalidate
       >
-        
         <div>
           <label
             for="login-email"
@@ -204,9 +189,7 @@
               class="ph ph-envelope absolute start-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
               aria-hidden="true"
             ></i>
-            
-            
-            
+
             <input
               id="login-email"
               name="email"
@@ -219,10 +202,10 @@
               class="nm-input ps-12 text-start"
               placeholder="بريدك@مثال.كوم"
               data-i18n-placeholder="auth_email_placeholder"
-              />
+            />
           </div>
         </div>
-        
+
         <div>
           <label
             for="login-password"
@@ -247,7 +230,7 @@
               class="nm-input ps-12 pe-12 text-start"
               placeholder="••••••••"
               data-i18n-placeholder="auth_pw_dots"
-              />
+            />
             <button
               type="button"
               id="login-toggle-pw"
@@ -259,7 +242,7 @@
             </button>
           </div>
         </div>
-        
+
         <div class="flex items-center justify-between">
           <label for="remember-me" class="flex items-center gap-2 cursor-pointer select-none">
             <input
@@ -272,18 +255,17 @@
               >تذكرني</span
             >
           </label>
-          
+
           <span class="text-3xs text-slate-400 dark:text-slate-500" data-i18n="remember_me_duration"
             >٣٠ يوم</span
           >
         </div>
-        
+
         <button type="submit" id="login-submit" class="btn-primary mt-2">
           <i class="ph ph-sign-in" aria-hidden="true"></i>
           <span id="login-submit-text" data-i18n="sign_in_btn">تسجيل الدخول</span>
         </button>
-        
-        
+
         <div class="text-center mt-3">
           <a
             href="/reset-password.html"
@@ -294,14 +276,11 @@
           >
         </div>
 
-        
-        
         <div class="nm-social-divider" aria-hidden="true">
           <span data-i18n="auth_or_continue_with">أو تابع بحساب</span>
         </div>
 
         <div class="nm-social-buttons">
-          
           <button
             type="button"
             id="btn-google-login"
@@ -330,7 +309,6 @@
             <span data-i18n="auth_google">جوجل</span>
           </button>
 
-          
           <button
             type="button"
             id="btn-apple-login"
@@ -347,7 +325,6 @@
             <span data-i18n="auth_apple">أبل</span>
           </button>
 
-          
           <button
             type="button"
             id="btn-facebook-login"
@@ -366,9 +343,6 @@
         </div>
       </form>
 
-      
-      
-      
       <form
         id="form-register"
         role="tabpanel"
@@ -376,11 +350,7 @@
         class="auth-panel px-6 flex flex-col gap-4 relative z-10 nm-hidden"
         novalidate
       >
-        
-        
-        
         <div class="nm-step-track" role="group" aria-label="Registration progress">
-          
           <div class="nm-step-indicator active" data-step-dot="1" aria-current="step">
             <span class="nm-step-num">1</span>
             <span class="nm-step-label" data-i18n="reg_step_identity">الهوية</span>
@@ -397,12 +367,9 @@
           </div>
         </div>
 
-        
         <fieldset class="nm-step-panel" data-reg-step="1">
           <legend class="sr-only" data-i18n="reg_legend_identity">الخطوة ١: هويتك</legend>
 
-          
-          
           <div class="nm-social-buttons nm-social-buttons--compact mb-4">
             <button
               type="button"
@@ -464,7 +431,6 @@
             <span data-i18n="auth_or_email">أو بالبريد الإلكتروني</span>
           </div>
 
-          
           <div class="mb-4">
             <label
               for="reg-name"
@@ -477,8 +443,7 @@
                 class="ph ph-user absolute start-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
                 aria-hidden="true"
               ></i>
-              
-              
+
               <input
                 id="reg-name"
                 name="full_name"
@@ -490,10 +455,11 @@
                 class="nm-input ps-12 text-start"
                 placeholder="الاسم الكامل"
                 data-i18n-placeholder="auth_name_placeholder"
-                dir="auto" />
+                dir="auto"
+              />
             </div>
           </div>
-          
+
           <div class="mb-4">
             <label
               for="reg-email"
@@ -506,7 +472,7 @@
                 class="ph ph-envelope absolute start-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
                 aria-hidden="true"
               ></i>
-              
+
               <input
                 id="reg-email"
                 name="email"
@@ -519,10 +485,10 @@
                 class="nm-input ps-12 text-start"
                 placeholder="بريدك@مثال.كوم"
                 data-i18n-placeholder="auth_email_placeholder"
-                />
+              />
             </div>
           </div>
-          
+
           <div class="mb-4">
             <label
               for="reg-phone"
@@ -547,24 +513,21 @@
                 enterkeyhint="next"
                 maxlength="20"
                 class="nm-input ps-12 text-start"
-               
                 placeholder="+963 xxx xxx xxx"
                 data-i18n-placeholder="auth_phone_placeholder"
               />
             </div>
           </div>
-          
-          
+
           <button type="button" class="nm-step-next btn-primary w-full" data-goto-step="2">
             <span data-i18n="reg_next">التالي</span>
             <i class="ph ph-caret-right" aria-hidden="true"></i>
           </button>
         </fieldset>
 
-        
         <fieldset class="nm-step-panel nm-hidden" data-reg-step="2">
           <legend class="sr-only" data-i18n="reg_legend_security">الخطوة ٢: إنشاء كلمة مرور</legend>
-          
+
           <div class="mb-4">
             <label
               for="reg-password"
@@ -577,7 +540,7 @@
                 class="ph ph-lock absolute start-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
                 aria-hidden="true"
               ></i>
-              
+
               <input
                 id="reg-password"
                 name="password"
@@ -588,7 +551,6 @@
                 maxlength="128"
                 enterkeyhint="next"
                 class="nm-input ps-12 pe-12 text-start"
-               
                 placeholder="حد أدنى ٨ أحرف، حرف كبير، رقم"
                 data-i18n-placeholder="auth_pw_placeholder"
               />
@@ -602,15 +564,14 @@
                 <i class="ph ph-eye text-xl" aria-hidden="true"></i>
               </button>
             </div>
-            
+
             <div class="mt-2 flex gap-1" id="pw-strength-bars">
               <div class="h-2 flex-1 rounded-full bg-slate-200"></div>
               <div class="h-2 flex-1 rounded-full bg-slate-200"></div>
               <div class="h-2 flex-1 rounded-full bg-slate-200"></div>
               <div class="h-2 flex-1 rounded-full bg-slate-200"></div>
             </div>
-            
-            
+
             <p
               class="text-3xs text-slate-400 mt-1 dark:text-slate-500"
               id="pw-strength-label"
@@ -619,7 +580,7 @@
               +٨ أحرف، حرف كبير، حرف صغير، رقم، رمز
             </p>
           </div>
-          
+
           <div class="mb-4">
             <label
               for="reg-password-confirm"
@@ -632,8 +593,7 @@
                 class="ph ph-lock-key absolute start-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
                 aria-hidden="true"
               ></i>
-              
-              
+
               <input
                 id="reg-password-confirm"
                 name="password_confirm"
@@ -644,11 +604,10 @@
                 maxlength="128"
                 enterkeyhint="next"
                 class="nm-input ps-12 pe-12 text-start"
-               
                 placeholder="أعد إدخال كلمة المرور"
                 data-i18n-placeholder="auth_pw_confirm_placeholder"
               />
-              
+
               <button
                 type="button"
                 id="reg-toggle-pw-confirm"
@@ -659,7 +618,7 @@
                 <i class="ph ph-eye text-xl" aria-hidden="true"></i>
               </button>
             </div>
-            
+
             <p
               class="text-xs text-red-500 mt-1 nm-hidden"
               id="pw-mismatch-error"
@@ -667,7 +626,7 @@
             >
               كلمتا المرور غير متطابقتين
             </p>
-            
+
             <p
               class="text-xs text-emerald-600 mt-1 nm-hidden dark:text-emerald-400"
               id="pw-match-success"
@@ -678,7 +637,7 @@
               ✓ كلمتا المرور متطابقتان
             </p>
           </div>
-          
+
           <div class="text-center mt-1 mb-2">
             <a
               href="/reset-password.html"
@@ -688,9 +647,8 @@
               >لديك حساب سابق؟ أعد تعيين كلمة المرور</a
             >
           </div>
-          
+
           <div class="flex gap-3">
-            
             <button type="button" class="nm-step-back" data-goto-step="1">
               <i class="ph ph-caret-left" aria-hidden="true"></i>
               <span data-i18n="reg_back">رجوع</span>
@@ -702,15 +660,11 @@
           </div>
         </fieldset>
 
-        
         <fieldset class="nm-step-panel nm-hidden" data-reg-step="3">
           <legend class="sr-only" data-i18n="reg_legend_consent">
             الخطوة ٣: المراجعة والموافقة
           </legend>
-          
-          
 
-          
           <div
             class="bg-slate-50 rounded-xl p-4 mb-4 border border-slate-200 dark:bg-dark-elevated dark:border-dark-border"
           >
@@ -721,7 +675,7 @@
               >
                 راجع معلوماتك قبل إنشاء الحساب
               </p>
-              
+
               <button
                 type="button"
                 class="text-xs font-bold text-trust-blue hover:underline flex items-center gap-1 transition-colors min-h-[44px] min-w-[44px] justify-center"
@@ -745,8 +699,7 @@
                 >
                   —
                 </p>
-                
-                
+
                 <p id="reg-review-pw-strength" class="text-xs font-semibold mt-0.5 nm-hidden">
                   <i class="ph ph-shield-check text-xs" aria-hidden="true"></i>
                   <span id="reg-review-pw-strength-text"></span>
@@ -755,9 +708,7 @@
             </div>
           </div>
 
-          
           <div class="flex items-start gap-3 mt-1">
-            
             <input
               id="reg-terms"
               name="terms"
@@ -770,7 +721,6 @@
               for="reg-terms"
               class="text-xs text-slate-500 leading-relaxed cursor-pointer dark:text-slate-400"
             >
-              
               <span data-i18n-html="auth_terms_agree"
                 >أوافق على
                 <a
@@ -791,8 +741,7 @@
               >
             </label>
           </div>
-          
-          
+
           <p
             id="reg-terms-error"
             class="text-xs text-red-500 font-semibold mt-1 nm-hidden"
@@ -802,14 +751,12 @@
             يجب الموافقة على الشروط
           </p>
 
-          
           <div class="flex gap-3 mt-4">
-            
             <button type="button" class="nm-step-back" data-goto-step="2">
               <i class="ph ph-caret-left" aria-hidden="true"></i>
               <span data-i18n="reg_back">رجوع</span>
             </button>
-            
+
             <button type="submit" id="reg-submit" class="btn-primary flex-[2]">
               <i class="ph ph-user-plus" aria-hidden="true"></i>
               <span id="reg-submit-text" data-i18n="create_account_btn">إنشاء حساب</span>
@@ -818,8 +765,6 @@
         </fieldset>
       </form>
 
-      
-      
       <div class="mt-auto px-6 py-8 text-center relative z-10">
         <details class="mb-3">
           <summary
@@ -846,15 +791,12 @@
             </div>
           </div>
         </details>
-        
       </div>
     </main>
 
-    
     <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
     <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 
-    
     <footer class="nm-legal-footer">
       <nav aria-label="Legal navigation">
         <a href="/terms.html" data-i18n="footer_terms">الشروط والأحكام</a>
@@ -867,7 +809,7 @@
     <script src="/i18n.js" defer></script>
     <script src="/i18n/common.js" defer></script>
     <script src="/i18n/auth.js" defer></script>
-    
+
     <script src="/nm-timers.js" defer></script>
     <script src="/load-guard.js" defer></script>
   </body>

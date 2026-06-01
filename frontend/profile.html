@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="utf-8" />
-    
+
     <style>
       @keyframes _f {
         to {
@@ -18,8 +18,7 @@
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
     <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    
-    
+
     <link rel="manifest" href="/manifest.json" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -30,9 +29,9 @@
       name="description"
       content="Manage your Nammerha account settings, KYC verification, and notification preferences."
     />
-    
+
     <meta name="robots" content="noindex, nofollow" />
-    
+
     <link
       rel="preload"
       href="/fonts/ibm-plex-sans-arabic.css"
@@ -52,15 +51,15 @@
     <meta property="og:type" content="website" />
     <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
     <meta name="twitter:card" content="summary" />
-    
+
     <meta name="twitter:title" content="Profile — Nammerha" />
     <script type="module" src="/src/pages/profile.ts"></script>
     <link href="/i18n.css" rel="stylesheet" />
+    <script type="module" src="/src/main.ts"></script>
   </head>
   <body
     class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100"
   >
-    
     <noscript>
       <style>
         html:not([data-theme]) {
@@ -71,14 +70,11 @@
         <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل جافا سكريبت في إعدادات متصفحك.</p>
       </div>
     </noscript>
-    
+
     <a href="#main-content" class="skip-link" data-i18n="skip_to_content">تخطي إلى المحتوى</a>
-    
+
     <main id="main-content" class="mobile-container min-h-screen flex flex-col">
-      
-      
       <header class="page-header">
-        
         <a
           href="index.html"
           data-back-btn
@@ -97,7 +93,6 @@
         <div class="w-11 h-11 shrink-0"></div>
       </header>
 
-      
       <section class="px-4 pt-6 animate-fade-in-up">
         <div class="glass-card rounded-2xl p-6 flex flex-col items-center text-center">
           <div
@@ -106,7 +101,7 @@
           >
             <i class="ph ph-user text-white nm-icon-36" aria-hidden="true"></i>
           </div>
-          
+
           <div id="profile-display-mode">
             <h2 id="user-name" class="text-xl font-bold">—</h2>
             <p id="user-email" class="text-sm text-slate-500 mt-0.5 dark:text-slate-400">—</p>
@@ -126,29 +121,28 @@
               <span data-i18n="edit_profile">تعديل الملف الشخصي</span>
             </button>
           </div>
-          
+
           <form
             id="profile-edit-form"
             class="nm-hidden w-full mt-2 space-y-3 text-start"
             novalidate
           >
             <div>
-              
               <label
                 for="edit-name"
                 class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2 dark:text-slate-400"
                 data-i18n="full_name"
                 >الاسم الكامل</label
               >
-              
-              
+
               <input
                 id="edit-name"
                 type="text"
                 autocomplete="name"
                 enterkeyhint="next"
                 class="nm-input"
-              dir="auto" />
+                dir="auto"
+              />
             </div>
             <div>
               <label
@@ -164,9 +158,10 @@
                 enterkeyhint="next"
                 autocomplete="email"
                 class="nm-input"
-              dir="auto" />
+                dir="auto"
+              />
             </div>
-            
+
             <div>
               <label
                 for="edit-phone"
@@ -188,10 +183,11 @@
                   placeholder="+٩٦٣ ٠٠٠ ٠٠٠ ٠٠٠٠"
                   data-i18n-placeholder="phone_placeholder"
                   class="nm-input nm-input-icon"
-                dir="auto" />
+                  dir="auto"
+                />
               </div>
             </div>
-            
+
             <div>
               <label
                 for="edit-photo"
@@ -220,7 +216,7 @@
                 accept="image/jpeg,image/png,image/webp"
                 class="sr-only"
               />
-              
+
               <div id="photo-preview-wrap" class="nm-hidden mt-2 flex items-center gap-3">
                 <div class="relative">
                   <img
@@ -238,7 +234,7 @@
                     <i class="ph ph-x text-3xs" aria-hidden="true"></i>
                   </button>
                 </div>
-                
+
                 <span
                   class="text-xs text-smoky-jade font-semibold dark:text-emerald-400"
                   data-i18n="photo_selected"
@@ -268,7 +264,7 @@
               </button>
             </div>
           </form>
-          
+
           <div class="mt-4 border-t border-slate-100 pt-4 dark:border-dark-border">
             <button
               type="button"
@@ -299,7 +295,8 @@
                   autocomplete="current-password"
                   enterkeyhint="next"
                   class="nm-input mt-1"
-                dir="auto" />
+                  dir="auto"
+                />
               </div>
               <div>
                 <label
@@ -314,16 +311,16 @@
                   autocomplete="new-password"
                   enterkeyhint="next"
                   class="nm-input mt-1"
-                dir="auto" />
-                
-                
+                  dir="auto"
+                />
+
                 <div class="flex gap-1 mt-2" id="pw-change-strength-bars">
                   <div class="h-2 flex-1 rounded-full bg-slate-200 transition-colors"></div>
                   <div class="h-2 flex-1 rounded-full bg-slate-200 transition-colors"></div>
                   <div class="h-2 flex-1 rounded-full bg-slate-200 transition-colors"></div>
                   <div class="h-2 flex-1 rounded-full bg-slate-200 transition-colors"></div>
                 </div>
-                
+
                 <p
                   class="text-3xs text-slate-400 mt-1 dark:text-slate-500"
                   id="pw-change-strength-text"
@@ -345,7 +342,8 @@
                   autocomplete="new-password"
                   enterkeyhint="done"
                   class="nm-input mt-1"
-                dir="auto" />
+                  dir="auto"
+                />
               </div>
               <div
                 id="password-change-banner"
@@ -361,8 +359,7 @@
               </button>
             </div>
           </div>
-          
-          
+
           <div class="w-full mt-4" id="profile-completion-container">
             <div class="flex items-center justify-between mb-1">
               <span
@@ -370,15 +367,16 @@
                 data-i18n="profile_completion"
                 >اكتمال الملف الشخصي</span
               >
-              
+
               <span id="profile-completion-pct" class="text-xs font-black text-trust-blue">
                 <span
                   class="inline-block h-3 w-8 bg-slate-200 rounded animate-pulse"
                   data-skeleton
-                 aria-hidden="true"></span>
+                  aria-hidden="true"
+                ></span>
               </span>
             </div>
-            
+
             <div
               class="w-full h-2 bg-slate-200 rounded-full overflow-hidden"
               role="progressbar"
@@ -393,7 +391,7 @@
                 class="h-full bg-gradient-to-r from-trust-blue to-smoky-jade rounded-full transition-all duration-700 nm-progress-init"
               ></div>
             </div>
-            
+
             <details id="completion-checklist" class="mt-2">
               <summary
                 class="text-3xs text-trust-blue font-semibold cursor-pointer hover:underline"
@@ -401,9 +399,7 @@
               >
                 ما الذي ينقصك؟
               </summary>
-              
-              
-              
+
               <ul
                 id="completion-items"
                 class="mt-1.5 space-y-1 text-xs text-slate-500 dark:text-slate-400"
@@ -469,11 +465,9 @@
         </div>
       </section>
 
-      
-      
       <section class="px-4 pt-6 animate-fade-in-up" style="--anim-delay: 0.1s">
         <div class="border-t border-slate-200 pt-5 mt-1 dark:border-dark-border"></div>
-        
+
         <h2
           class="text-sm font-bold uppercase tracking-wider text-slate-900 mb-3 dark:text-slate-100"
           data-i18n="my_roles"
@@ -481,14 +475,13 @@
           أدواري
         </h2>
         <div id="roles-list" class="flex flex-col gap-2">
-          
           <div
             class="bg-white rounded-xl p-4 flex items-center justify-center shadow-sm border border-slate-200 dark:bg-dark-surface dark:border-dark-border"
           >
             <i class="ph ph-spinner-gap ph-spin text-slate-300 text-xl" aria-hidden="true"></i>
           </div>
         </div>
-        
+
         <button
           type="button"
           id="add-role-btn"
@@ -497,7 +490,7 @@
           <i class="ph ph-plus-circle text-lg" aria-hidden="true"></i>
           <span data-i18n="add_new_role">إضافة دور جديد</span>
         </button>
-        
+
         <dialog
           id="role-activation-modal"
           class="nm-confirm-dialog nm-role-dialog"
@@ -508,9 +501,7 @@
             <h4 class="text-sm font-bold mb-3" data-i18n="choose_role_to_activate">
               اختر دوراً لتفعيله
             </h4>
-            <div id="available-roles-grid" class="grid grid-cols-2 gap-2">
-              
-            </div>
+            <div id="available-roles-grid" class="grid grid-cols-2 gap-2"></div>
           </div>
           <div class="nm-confirm-actions">
             <button
@@ -525,9 +516,7 @@
         </dialog>
       </section>
 
-      
       <section class="px-4 pt-6">
-        
         <div class="border-t border-slate-200 pt-5 mt-1 dark:border-dark-border"></div>
         <h2
           class="text-sm font-bold uppercase tracking-wider text-slate-900 mb-3 dark:text-slate-100"
@@ -536,7 +525,6 @@
           الإعدادات
         </h2>
         <div class="flex flex-col gap-2">
-          
           <div
             class="bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-200 dark:bg-dark-surface dark:border-dark-border"
           >
@@ -553,13 +541,13 @@
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
               <input type="checkbox" id="notif-toggle" class="sr-only peer" />
-              
+
               <div
                 class="w-9 h-5 bg-slate-300 peer-checked:bg-smoky-jade rounded-full transition-colors after:content-[''] after:absolute after:top-0.5 after:start-0.5 after:bg-white after:rounded-full after:size-4 after:transition-transform peer-checked:after:translate-x-4 rtl:peer-checked:after:-translate-x-4"
               ></div>
             </label>
           </div>
-          
+
           <div
             class="bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-200 dark:bg-dark-surface dark:border-dark-border"
           >
@@ -584,15 +572,13 @@
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
               <input type="checkbox" id="theme-mode-toggle" class="sr-only peer" />
-              
+
               <div
                 class="w-9 h-5 bg-slate-300 peer-checked:bg-indigo-500 rounded-full transition-colors after:content-[''] after:absolute after:top-0.5 after:start-0.5 after:bg-white after:rounded-full after:size-4 after:transition-transform peer-checked:after:translate-x-4 rtl:peer-checked:after:-translate-x-4"
               ></div>
             </label>
           </div>
-          
-          
-          
+
           <button
             type="button"
             id="kyc-section"
@@ -619,7 +605,7 @@
               aria-hidden="true"
             ></i>
           </button>
-          
+
           <a
             href="wallet.html"
             class="bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm border border-slate-200 hover:bg-slate-50 transition-colors dark:bg-dark-surface dark:border-dark-border"
@@ -637,7 +623,7 @@
             </div>
             <i class="ph ph-caret-right text-slate-400 dark:text-slate-500" aria-hidden="true"></i>
           </a>
-          
+
           <a
             href="admin-dashboard.html"
             data-requires-role="admin"
@@ -674,8 +660,6 @@
         </div>
       </section>
 
-      
-      
       <section class="px-4 pt-8 mt-auto">
         <div class="border-t border-red-100 pt-5 mt-1"></div>
         <button
@@ -688,7 +672,6 @@
         </button>
       </section>
 
-      
       <dialog id="confirm-logout" class="nm-confirm-dialog">
         <div class="nm-confirm-body">
           <h3 data-i18n="confirm_logout_title">تسجيل الخروج</h3>
@@ -710,7 +693,6 @@
       </dialog>
     </main>
 
-    
     <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
     <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 
@@ -726,10 +708,10 @@
     <script src="/i18n.js" defer></script>
     <script src="/i18n/common.js" defer></script>
     <script src="/i18n/profile.js" defer></script>
-    
+
     <script src="/nm-timers.js" defer></script>
     <script src="/load-guard.js" defer></script>
-    
+
     <script src="/theme-toggle.js" defer></script>
     <script src="/nav.js" defer></script>
   </body>

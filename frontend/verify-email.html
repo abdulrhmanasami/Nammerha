@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="utf-8" />
-    
+
     <style>
       @keyframes _f {
         to {
@@ -18,8 +18,7 @@
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
     <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    
-    
+
     <link rel="manifest" href="/manifest.json" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -27,7 +26,7 @@
     <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)" />
     <title>نعمّرها — تأكيد البريد</title>
     <meta name="description" content="Verify your Nammerha account email address." />
-    
+
     <meta name="robots" content="noindex, nofollow" />
     <meta property="og:title" content="Nammerha — Email Verification | تأكيد البريد" />
     <meta property="og:description" content="Verify your Nammerha account email address." />
@@ -35,7 +34,7 @@
     <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="Nammerha — Email Verification | تأكيد البريد" />
-    
+
     <link
       rel="preload"
       href="/fonts/ibm-plex-sans-arabic.css"
@@ -46,7 +45,7 @@
       "
     />
     <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
-    
+
     <link
       rel="preload"
       href="/fonts/phosphor/phosphor.css"
@@ -59,11 +58,11 @@
     <noscript><link rel="stylesheet" href="/fonts/phosphor/phosphor.css" /></noscript>
     <script type="module" src="/src/pages/verify-email.ts"></script>
     <link href="/i18n.css" rel="stylesheet" />
+    <script type="module" src="/src/main.ts"></script>
   </head>
   <body
     class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100"
   >
-    
     <noscript>
       <style>
         html:not([data-theme]) {
@@ -74,11 +73,10 @@
         <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل جافا سكريبت في إعدادات متصفحك.</p>
       </div>
     </noscript>
-    
+
     <a href="#main-content" class="skip-link" data-i18n="skip_to_content">تخطي إلى المحتوى</a>
-    
+
     <main id="main-content" class="mobile-container flex flex-col relative min-h-screen pb-24">
-      
       <header class="px-6 pt-12 pb-6 text-center relative z-10">
         <div
           class="inline-flex items-center justify-center size-16 bg-smoky-jade rounded-2xl shadow-lg shadow-smoky-jade/20 mb-4"
@@ -104,12 +102,10 @@
         >
           يرجى الانتظار بينما نتحقق من بريدك الإلكتروني
         </p>
-        
+
         <div id="nm-lang-mount" class="flex justify-center mt-3"></div>
       </header>
-      
-      
-      
+
       <div
         class="px-6 mb-4 relative z-10 nm-hidden"
         id="verify-banner"
@@ -128,8 +124,6 @@
         </div>
       </div>
 
-      
-      
       <div class="px-6 relative z-10 nm-hidden" id="verify-actions">
         <a
           href="/auth.html"
@@ -140,8 +134,6 @@
           <span data-i18n="sign_in_btn">تسجيل الدخول</span>
         </a>
 
-        
-        
         <div id="verify-resend" class="mt-4 nm-hidden">
           <p
             class="text-xs text-slate-500 mb-2 text-center dark:text-slate-400"
@@ -150,8 +142,6 @@
             لم تستلم رسالة التحقق؟
           </p>
           <div class="flex gap-2">
-            
-            
             <input
               type="email"
               id="verify-resend-email"
@@ -160,9 +150,9 @@
               enterkeyhint="send"
               placeholder="بريدك@مثال.كوم"
               class="nm-input flex-1"
-             
-            dir="auto" />
-            
+              dir="auto"
+            />
+
             <button
               type="button"
               id="verify-resend-btn"
@@ -172,12 +162,11 @@
               <span data-i18n="verify_resend_btn">إعادة إرسال رابط التحقق</span>
             </button>
           </div>
-          
+
           <div id="verify-resend-feedback" class="mt-2 nm-hidden"></div>
         </div>
       </div>
 
-      
       <div class="mt-auto px-6 py-8 text-center relative z-10">
         <details class="mb-3">
           <summary
@@ -207,10 +196,9 @@
       </div>
     </main>
 
-    
     <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
     <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
-    
+
     <footer class="nm-legal-footer">
       <nav aria-label="Legal navigation">
         <a href="/terms.html" data-i18n="footer_terms">الشروط والأحكام</a>
@@ -223,7 +211,7 @@
     <script src="/i18n.js" defer></script>
     <script src="/i18n/common.js" defer></script>
     <script src="/i18n/auth.js" defer></script>
-    
+
     <script src="/nm-timers.js" defer></script>
     <script src="/load-guard.js" defer></script>
     <script src="/nav.js" defer></script>
