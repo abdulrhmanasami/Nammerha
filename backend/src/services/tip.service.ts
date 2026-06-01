@@ -131,7 +131,7 @@ export async function getTipSummary(startDate?: string, endDate?: string): Promi
     total_tip_revenue: parseInt(row?.total_tip_revenue ?? '0', 10),
     mtd_tip_revenue: parseInt(row?.mtd_tip_revenue ?? '0', 10),
     average_tip_cents: Math.round(parseFloat(row?.average_tip_cents ?? '0')),
-    average_tip_percentage: Math.round(parseFloat(row?.average_tip_percentage ?? '0') * 100) / 100,
+    average_tip_percentage: Math.round(Number(row?.average_tip_percentage ?? '0') * 10000) / 10000,
     unique_tipping_users: parseInt(row?.unique_tipping_users ?? '0', 10),
   };
 }

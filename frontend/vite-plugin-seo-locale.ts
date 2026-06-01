@@ -169,26 +169,26 @@ const PAGE_SEO: Record<string, LocalizedMeta> = {
             tr: 'Fotoğraflar ve GPS koordinatları ile detaylı hasar raporu gönderin.',
         },
     },
-    'donor-portal': {
+    'contributor-portal': {
         title: {
-            ar: 'نعمِّرها — بوابة المتبرع',
-            en: 'Nammerha — Donor Portal',
+            ar: 'نعمِّرها — بوابة المساهم',
+            en: 'Nammerha — Contributor Portal',
             de: 'Nammerha — Spender-Portal',
             fr: 'Nammerha — Portail donateur',
             tr: 'Nammerha — Bağışçı Portalı',
         },
         description: {
-            ar: 'بوابة المتبرعين لمتابعة التبرعات والتأثير.',
-            en: 'Donor portal for tracking donations and impact.',
+            ar: 'بوابة المساهمين لمتابعة المساهمات والتأثير.',
+            en: 'Contributor portal for tracking contributions and impact.',
             de: 'Spenderportal zur Verfolgung von Spenden und Wirkung.',
             fr: 'Portail donateur pour suivre les dons et l\'impact.',
             tr: 'Bağışları ve etkiyi takip etmek için bağışçı portalı.',
         },
     },
-    'donor-basket': {
+    'contributor-basket': {
         title: {
-            ar: 'نعمِّرها — سلة التبرع',
-            en: 'Nammerha — Donation Basket',
+            ar: 'نعمِّرها — سلة المساهمة',
+            en: 'Nammerha — Contribution Basket',
             de: 'Nammerha — Spendenkorb',
             fr: 'Nammerha — Panier de dons',
             tr: 'Nammerha — Bağış Sepeti',
@@ -201,7 +201,7 @@ const PAGE_SEO: Record<string, LocalizedMeta> = {
             tr: 'Kitle fonlama yoluyla finanse edilecek inşaat malzemelerini seçin.',
         },
     },
-    'donor-proof': {
+    'contributor-proof': {
         title: {
             ar: 'نعمِّرها — إثبات التسليم',
             en: 'Nammerha — Delivery Proof',
@@ -210,8 +210,8 @@ const PAGE_SEO: Record<string, LocalizedMeta> = {
             tr: 'Nammerha — Teslimat Kanıtı',
         },
         description: {
-            ar: 'عرض إثبات التسليم المُتحقق منه بنظام GPS للتبرعات.',
-            en: 'View GPS-verified delivery proof for your donations.',
+            ar: 'عرض إثبات التسليم المُتحقق منه بنظام GPS للمساهمات.',
+            en: 'View GPS-verified delivery proof for your contributions.',
             de: 'GPS-verifizierter Liefernachweis für Ihre Spenden.',
             fr: 'Preuve de livraison vérifiée par GPS pour vos dons.',
             tr: 'Bağışlarınız için GPS doğrulamalı teslimat kanıtını görüntüleyin.',

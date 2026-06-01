@@ -3,7 +3,7 @@
 // Complete supplier journey: catalog management, purchase order tracking,
 // and dashboard KPI aggregation.
 // ============================================================================
-import { query, transaction } from '../config/database';
+import { query, financialTransaction } from '../config/database';
 import type {
     SupplierCatalogItem,
     AddCatalogItemDTO,
@@ -281,7 +281,7 @@ export async function acknowledgeOrder(
     supplierId: string,
     poId: string,
 ): Promise<PurchaseOrder> {
-    return transaction(async (client) => {
+    return financialTransaction(async (client) => {
         // Lock the PO row to prevent concurrent updates
         const poRes = await client.query<PurchaseOrder>(
             `SELECT po_id, po_number, item_id, project_id, supplier_id,
@@ -354,7 +354,7 @@ export async function updateOrderStatus(
         throw new Error(`Invalid target status: ${newStatus}`);
     }
 
-    return transaction(async (client) => {
+    return financialTransaction(async (client) => {
         const poRes = await client.query<PurchaseOrder>(
             `SELECT po_id, po_number, item_id, project_id, supplier_id,
                     amount, currency, status, material_name, material_category,

@@ -4,7 +4,7 @@
 // ============================================================================
 
 import crypto from 'crypto';
-import pool, { transaction } from '../config/database';
+import pool, { financialTransaction } from '../config/database';
 import { logger } from '../utils/logger';
 import { screenUserAgainstSDN } from './compliance.service';
 
@@ -657,7 +657,7 @@ export const paymentService = {
     try {
       while (true) {
         try {
-          return await transaction(async (client) => {
+          return await financialTransaction(async (client) => {
             // Nammerha Escrow Domain Law 1 FIX: Strict Serializable isolation
             await client.query('SET TRANSACTION ISOLATION LEVEL SERIALIZABLE');
 

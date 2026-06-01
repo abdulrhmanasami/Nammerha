@@ -2,7 +2,7 @@
 // Nammerha Backend — Project Dashboard Service (Ticket 7.3)
 // Bird's eye view for homeowner with daily logs + digital approvals
 // ============================================================================
-import pool, { transaction } from '../config/database';
+import pool, { financialTransaction } from '../config/database';
 import type { PoolClient } from 'pg';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -205,7 +205,7 @@ export async function createDailyLog(
 ): Promise<DailyLog> {
   // P3-004 FIX: Transaction prevents TOCTOU race condition.
   // Without it, engineer could be unassigned between check and INSERT.
-  return transaction(async (client: PoolClient) => {
+  return financialTransaction(async (client: PoolClient) => {
     // Verify engineer is assigned to this project (FOR UPDATE prevents concurrent changes)
     const projRes = await client.query(
       `SELECT assigned_engineer_id FROM projects WHERE project_id = $1 FOR UPDATE`,
