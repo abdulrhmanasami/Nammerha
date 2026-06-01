@@ -18,6 +18,16 @@
 
 ## 🛑 ZERO-REGRESSION MEMOS (CRITICAL AI MEMORY)
 
+**MEMO 68: Platinum Security Audit Phase 2 — Zero-Trust Spatial Reality & EXIF GPS Cryptographic Validation (June 1, 2026)**
+
+- **Root Cause Destroyed:**
+  1. **Client-Side GPS Spoofing Vulnerability:** Both `reality-capture.service.ts` and `execution.service.ts` (Spatial Proofs) trusted `dto.gps_lat` and `dto.gps_lng` payloads from the frontend. This allowed attackers to use Postman to spoof coordinates perfectly matching the project site while uploading photos taken anywhere, enabling escrow fraud and compromising ISO/IEC 25010 geographical atomicity.
+- **New Logic Built:**
+  1. **Cryptographic EXIF Extraction:** Installed `exifr` in the Node.js backend. The server now natively downloads the image buffer over HTTPS and explicitly extracts `latitude` and `longitude` from the image's binary EXIF metadata.
+  2. **Absolute Haversine Integrity:** The extracted EXIF coordinates are strictly used to compute the Haversine distance (`< 150m`) against the project anchor.
+  3. **Fail-Secure Rejection:** If an image is stripped of EXIF data, or the EXIF data does not contain GPS, the API returns a 400 Bad Request and immediately aborts the Database Transaction. The system permanently operates under Zero-Trust Spatial Reality.
+- **Verification:** `npx tsc --noEmit` = 0 errors. Committed to master and deployed to Unified Cloud Server.
+
 **MEMO 67: Platinum Audit Phase 1 Execution — Financial Atomicity, Domain Cleanup & Precision Scaling (June 1, 2026)**
 
 - **Root Cause Destroyed:**
@@ -234,7 +244,7 @@
 - **New Logic Built:**
   1. **Strict NaN Guards:** All `parseFloat` usages in API routes (e.g., Matchmaking) MUST be wrapped in IIFE guards `(function() { const p = parseFloat(val); return Number.isNaN(p) ? undefined : p; })()` to shield PostgreSQL engines from arithmetic crashes.
   2. **Financial Number Casting:** Any numeric reduction (`.reduce`) on financial inputs MUST explicitly cast `Number(m.amount)` to mathematically prevent String Concatenation Traps.
-  3. **Strict HTML XSS Injection Boundaries:** `esc()` must NEVER wrap dynamically generated HTML markup (`cardsHtml`). Variables must be escaped *before* insertion into the template string (`${esc(opt.id)}`), and the final HTML block must be injected natively (`${cardsHtml}`).
+  3. **Strict HTML XSS Injection Boundaries:** `esc()` must NEVER wrap dynamically generated HTML markup (`cardsHtml`). Variables must be escaped _before_ insertion into the template string (`${esc(opt.id)}`), and the final HTML block must be injected natively (`${cardsHtml}`).
 
 **MEMO 54: The Over-Escaping Catastrophe & parseInt Radix Annihilation (May 30, 2026)**
 
@@ -327,7 +337,7 @@
 
 **MEMO 46: The Platinum HTML/CSS Integrity Audit & RTL Physical Annihilation (May 28, 2026)**
 
-- **Root Cause Destroyed:** 
+- **Root Cause Destroyed:**
   1. The AI Agent found lingering Physical CSS classes (`right-0`, `-right-1`) inside the Arbitration Ghost State UI in `homeowner-portal.ts`, which would instantly break the UI upon RTL flip (Arabic).
   2. The MFA Challenge Panel in `auth.ts` used Tailwind JIT arbitrary color injections (`text-[color:var(--nm-text-primary)]`) instead of standard semantic tokens, disrupting the Dark Mode state parity and violating Design System governance.
 - **New Logic Built:**
@@ -337,27 +347,27 @@
 
 **MEMO 45: The Deployment Mirage Loop (Mandatory Deployment Protocol) (May 28, 2026)**
 
-- **Root Cause Destroyed:** The AI Agent spent two months executing "Platinum Standard Audits" locally, successfully wiping bugs (like the Ghost Dark Mode Toggle), but *failed to deploy the code to the live server*. This created a Mirage Loop where the human evaluated the live server, saw the bug, and instructed the Agent to fix it again. The Agent assumed its previous fix failed and wrote unnecessarily complex UI patches (`!important`, DOM Observers) for code that was already correct locally.
-- **New Logic Built:** 
+- **Root Cause Destroyed:** The AI Agent spent two months executing "Platinum Standard Audits" locally, successfully wiping bugs (like the Ghost Dark Mode Toggle), but _failed to deploy the code to the live server_. This created a Mirage Loop where the human evaluated the live server, saw the bug, and instructed the Agent to fix it again. The Agent assumed its previous fix failed and wrote unnecessarily complex UI patches (`!important`, DOM Observers) for code that was already correct locally.
+- **New Logic Built:**
   1. A **Mandatory Deployment Check** is now strictly enforced. ANY session that modifies frontend UI/UX states that the human user must verify, MUST end with an explicit `deploy` protocol execution (`rsync` to the server and a zero-downtime `docker compose up -d --build`).
   2. NEVER assume a bug fix has failed if the environment the user is testing is out-of-sync with the workspace. Always verify deployment state first.
 
 **MEMO 44: The Event Quarantine Pattern (Zombie Listeners) (May 28, 2026)**
 
-- **Root Cause Destroyed:** 
+- **Root Cause Destroyed:**
   1. The SPA (`hash-router.ts`) navigation did not automatically clear JavaScript Event Listeners from the DOM.
   2. Successive module loads stacked duplicate listeners on buttons (e.g., `confirmAction` dialogs, `submitForm`), leading to Exponential Event Triggers (Double Submissions, infinite loops).
 - **New Logic Built:**
-  1. **Event Quarantine Pattern:** ALL dynamic event listeners bound during a view's lifecycle MUST utilize an `AbortController` (or central `nmClearAllListeners` registry). 
+  1. **Event Quarantine Pattern:** ALL dynamic event listeners bound during a view's lifecycle MUST utilize an `AbortController` (or central `nmClearAllListeners` registry).
   2. When navigating away, `controller.abort()` must execute, chemically incinerating all listeners and guaranteeing mathematical zero-leak state.
 
 **MEMO 43: Zero-Patching Policy (The OS Override Rebellion) (May 28, 2026)**
 
 - **Root Cause Destroyed:** The AI Agent fought the "Dark Mode Ghost State" by surgically removing HTML buttons and modifying CSS. However, the root cause was a covert JavaScript listener inside `theme-toggle.js` (`window.matchMedia('(prefers-color-scheme: dark)')`) that forcefully rebelled against the UI and injected the dark theme based on the user's OS. The Agent used "Patching" (CSS overrides) instead of "Root Cause Analysis".
 - **New Logic Built:**
-  1. **Zero-Patching Policy:** We absolutely prohibit using CSS `!important` or `setTimeout` hacks to fight state anomalies. 
+  1. **Zero-Patching Policy:** We absolutely prohibit using CSS `!important` or `setTimeout` hacks to fight state anomalies.
   2. Always trace the ghost state to the fundamental trigger (e.g., Native OS APIs, `StorageEvent`, Service Workers) and eradicate it at the source.
-**MEMO 42: Contractor Bidding State Engine — Cross-Tab Eviction & Scientific Notation Trap (May 27, 2026)**
+     **MEMO 42: Contractor Bidding State Engine — Cross-Tab Eviction & Scientific Notation Trap (May 27, 2026)**
 
 - **Root Cause Destroyed:**
   1. `contractor-portal.ts` `<dialog>` inputs lacked `DirtyStateGuard` integration, allowing silent bid eviction if the user accidentally switched tabs (Hash Router `nm_internal_navigate`).
