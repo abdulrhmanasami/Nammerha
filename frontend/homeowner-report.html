@@ -67,15 +67,15 @@
   >
     <!-- GAP-A02 FIX: Noscript fallback — overrides FOUC guard when JS is disabled/fails.
      Without this, html:not([data-theme]){visibility:hidden} makes page permanently invisible.
-     Standard: Progressive Enhancement — "Content must be accessible without JavaScript." -->
+     Standard: Progressive Enhancement — "Content must be accessible without جافا سكريبت." -->
     <noscript>
       <style>
         html:not([data-theme]) {
         }
       </style>
       <div class="nm-noscript">
-        <p class="nm-noscript-title">نعمّرها تحتاج JavaScript</p>
-        <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل JavaScript في إعدادات متصفحك.</p>
+        <p class="nm-noscript-title">نعمّرها تحتاج جافا سكريبت</p>
+        <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل جافا سكريبت في إعدادات متصفحك.</p>
       </div>
     </noscript>
     <!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
@@ -355,7 +355,7 @@
             <span data-i18n="detect_location_auto">كشف الموقع تلقائياً</span>
           </button>
 
-          <!-- GPS Result (hidden until detected) -->
+          <!-- تحديد المواقع العالمي Result (hidden until detected) -->
           <div
             id="gps-result"
             class="nm-hidden bg-smoky-jade/10 border border-smoky-jade/20 rounded-xl p-4 flex items-center gap-3"
@@ -381,7 +381,7 @@
             </div>
           </div>
 
-          <!-- GAP-AUD-04 FIX: GPS Error State UI.
+          <!-- GAP-AUD-04 FIX: تحديد المواقع العالمي Error State UI.
          Previous: No visible error feedback when geolocation fails (permission denied,
          timeout, unavailable). User tapped the button and saw nothing.
          Standard: Nielsen #1 (System Status Visibility), Apple HIG (Error Feedback). -->

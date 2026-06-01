@@ -20,7 +20,7 @@
     <!-- PLAT-P0-001 FIX: Removed maximum-scale=1.0, user-scalable=no.
        Previous: Zoom was blocked — cargo-culted from native camera apps.
        This is an HTML page, NOT a native camera. Users with low vision MUST be able to zoom
-       to read GPS coordinates and timestamps in the telemetry strip.
+       to read تحديد المواقع العالمي coordinates and timestamps in the telemetry strip.
        Standard: WCAG 2.2 SC 1.4.4 (Resize Text) — "text can be resized up to 200%". -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <!-- CONF-P01 FIX: Enforceable CSP directives -->
@@ -33,7 +33,7 @@
     <title>نعمّرها — التحقق الميداني</title>
     <meta
       name="description"
-      content="Capture GPS-stamped 360° proof of material delivery. Voice snagging and live telemetry for field engineers."
+      content="Capture تحديد المواقع العالمي-stamped 360° proof of material delivery. Voice snagging and live telemetry for field engineers."
     />
     <!-- DEF-013 FIX: Prevent search engine indexing of authenticated pages.
        Standard: SEO Best Practice — authenticated content must not be indexed. -->
@@ -41,7 +41,7 @@
     <meta property="og:title" content="Nammerha — Site Verification | التحقق الميداني" />
     <meta
       property="og:description"
-      content="Capture GPS-stamped 360° proof of material delivery. Voice snagging and live telemetry for field engineers."
+      content="Capture تحديد المواقع العالمي-stamped 360° proof of material delivery. Voice snagging and live telemetry for field engineers."
     />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
@@ -75,7 +75,7 @@
     <link href="/i18n.css" rel="stylesheet" />
   </head>
   <!-- PLAT-P3-003 FIX: Removed select-none from body — prevents ALL text selection globally.
-     Users may need to select GPS coordinates or project IDs to copy-paste.
+     Users may need to select تحديد المواقع العالمي coordinates or project IDs to copy-paste.
      select-none is now scoped to ONLY the viewfinder overlay (L124 crosshair div).
      Standard: WCAG 2.1 SC 1.3.1 (Content must be operable), Apple HIG (Text Selection). -->
   <body class="font-display min-h-screen flex flex-col antialiased">
@@ -86,8 +86,8 @@
         }
       </style>
       <div class="nm-noscript">
-        <p class="nm-noscript-title">نعمّرها تحتاج JavaScript</p>
-        <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل JavaScript في إعدادات متصفحك.</p>
+        <p class="nm-noscript-title">نعمّرها تحتاج جافا سكريبت</p>
+        <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل جافا سكريبت في إعدادات متصفحك.</p>
       </div>
     </noscript>
     <!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
@@ -98,7 +98,7 @@
      Standard: HTML5 §4.4.1, WCAG 1.3.1 (Info and Relationships). -->
     <main id="main-content" class="mobile-container min-h-screen flex flex-col">
       <!-- ═══════════════════════════════════════════════════════════════════════
-       TELEMETRY HEADER — GPS Coordinates + Project ID + Live Status
+       TELEMETRY HEADER — تحديد المواقع العالمي Coordinates + Project ID + Live Status
        ═══════════════════════════════════════════════════════════════════════ -->
       <!-- SWEEP-W8-002: bg-[#1a1a1a] → bg-neutral-900 (design token). -->
       <header class="sticky top-0 z-20 bg-neutral-900/95 backdrop-blur-md border-b border-white/5">
@@ -123,9 +123,9 @@
           </div>
         </div>
 
-        <!-- Telemetry Strip: GPS + Project ID -->
+        <!-- Telemetry Strip: تحديد المواقع العالمي + Project ID -->
         <div class="flex items-center gap-3 px-4 pb-3">
-          <!-- GPS Coordinates -->
+          <!-- تحديد المواقع العالمي Coordinates -->
           <div class="flex-1 bg-black/40 backdrop-blur-sm px-3 py-2 rounded-lg">
             <p
               class="text-3xs text-trust-blue font-bold uppercase tracking-widest mb-0.5 flex items-center gap-1"
@@ -133,7 +133,7 @@
               <!-- PLAT-P1-001 FIX: Was hardcoded English — Syrian field engineers need Arabic.
                Standard: Platform Translation Mandate, i18n RTL parity. -->
               <i class="ph ph-map-pin ph-xs" aria-hidden="true"></i>
-              <span data-i18n="camera_gps_lock">قفل GPS</span>
+              <span data-i18n="camera_gps_lock">قفل تحديد المواقع العالمي</span>
             </p>
             <p class="text-white text-xs font-mono" id="gps-coords">36.2021° N, 37.1342° E</p>
             <p class="text-slate-500 text-3xs mt-0.5 dark:text-slate-400" id="gps-accuracy">

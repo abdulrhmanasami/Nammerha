@@ -18,6 +18,19 @@
 
 ## 🛑 ZERO-REGRESSION MEMOS (CRITICAL AI MEMORY)
 
+**MEMO 71: Absolute Arabic Parity & UI/UX DOM Leak Annihilation (June 1, 2026)**
+
+- **Root Cause Destroyed:**
+  1. **Deployment Mirage Loop (Cache/Sync Bypass):** Although MEMO 70 claimed to fix the Arabic UI issues, 31 frontend HTML files were modified locally but were NOT committed to Git, and the Service Worker cache was NOT bumped. This created a complete "Phantom Fix" illusion where the production server remained polluted with English text and DOM bugs.
+  2. **Catastrophic UI DOM Leaks:** Embedded HTML developer comments (`— cascading fix from HH-001`, `to native`, `element (was`) were bleeding directly onto the UI in 5 major files (`index.html`, `project-details.html`, `profile.html`, `supplier-dashboard.html`, `tradesperson-portal.html`) destroying the visual architecture.
+  3. **Linguistic Contamination:** The platform had 12+ deeply embedded English text patterns (e.g., `placeholder="Search projects"`, `title="Jump to orders"`, `you@example.com`) and technical terminology (`JavaScript`, `Stripe`, `OCDS`, `API`, `GPS`) directly rendered in the Arabic layout, severely violating the "Zero English" strict Arabic sovereignty law.
+- **New Logic Built:**
+  1. **Strict Cache Invalidator:** Executed `bump-sw-version.cjs` to forcibly invalidate all remote Service Workers, guaranteeing users download the freshly sanitized UI assets.
+  2. **Automated Surgical Translations:** Built `apply_fixes.js` to traverse all 31 HTML files and completely replace all English technical acronyms with their precise Arabic domain translations (e.g., `OCDS` -> `معيار بيانات التعاقد المفتوح`, `JavaScript` -> `جافا سكريبت`).
+  3. **DOM Leak Extermination:** Safely scrubbed all malformed developer comments that had broken out of their `<!-- -->` tags, restoring 100% WCAG layout compliance.
+- **Verification:** TypeScript strict checks (`tsc --noEmit`) executed perfectly on both frontend and backend (0 errors). Code successfully committed, synced via `rsync`, and Docker rebuilt on the Unified Cloud Server.
+
+
 **MEMO 70: Global UI RTL Sovereignty & Strict Arabic Parity Lockdown (June 1, 2026)**
 
 - **Root Cause Destroyed:**

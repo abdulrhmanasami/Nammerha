@@ -64,15 +64,15 @@
     data-portal="homeowner"
   >
     <!-- GAP-X07 FIX: Noscript fallback — overrides FOUC guard when JS is disabled/fails.
-     Standard: Progressive Enhancement — "Content must be accessible without JavaScript." -->
+     Standard: Progressive Enhancement — "Content must be accessible without جافا سكريبت." -->
     <noscript>
       <style>
         html:not([data-theme]) {
         }
       </style>
       <div class="nm-noscript">
-        <p class="nm-noscript-title">نعمّرها تحتاج JavaScript</p>
-        <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل JavaScript في إعدادات متصفحك.</p>
+        <p class="nm-noscript-title">نعمّرها تحتاج جافا سكريبت</p>
+        <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل جافا سكريبت في إعدادات متصفحك.</p>
       </div>
     </noscript>
     <!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
@@ -300,7 +300,7 @@
                   نشط
                 </p>
                 <!-- INC-2026-C03 FIX: Skeleton loader replaces hardcoded "0".
-               Previous: Static "0" shown before API → false empty impression.
+               Previous: Static "0" shown before واجهة برمجية → false empty impression.
                Standard: Nielsen #1 (System Status Visibility), FinTech UX. -->
                 <!-- UXD-022 FIX: Removed individual aria-live="polite" — 4 KPIs updating simultaneously
                caused screen reader "announcement fatigue". A single summary region below the grid
@@ -663,10 +663,10 @@
                    is critical for matching tradespeople and assessing scope.
                    accept="image/*" enables image selection; capture="environment" opens rear camera on mobile.
                    Standard: Domain-Specific UX (Reconstruction Platform), Apple HIG (Camera Capture). -->
-                    <!-- CRIT-002 FIX: Photo upload disabled — backend createServiceRequest API
+                    <!-- CRIT-002 FIX: Photo upload disabled — backend createServiceRequest واجهة برمجية
                    has no photo_urls parameter. Rather than silently discarding user photos
-                   (Potemkin feature), input is disabled with visible hint until API extension.
-                   The storage.presign() API exists for S3 upload — backend route extension needed.
+                   (Potemkin feature), input is disabled with visible hint until واجهة برمجية extension.
+                   The storage.presign() واجهة برمجية exists for S3 upload — backend route extension needed.
                    Standard: Nielsen #1 (Visibility of System Status), Honest UX. -->
                     <div>
                       <label
