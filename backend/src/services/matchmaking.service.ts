@@ -78,7 +78,7 @@ export interface SearchEngineersDTO {
 // without redeployment: SCORE_W_PROJECTS, SCORE_W_RESPONSE, SCORE_W_WINRATE, SCORE_W_LICENSE
 //
 // P1-NEW-002 FIX: safeParseFloat guards against NaN injection.
-// If SCORE_W_PROJECTS=abc or SCORE_W_PROJECTS= is set, parseFloat returns NaN
+// If SCORE_W_PROJECTS=abc or SCORE_W_PROJECTS= is set, Number returns NaN
 // which silently corrupts ALL engineer scores. This guard validates isFinite()
 // and falls back to the documented BuildZoom default.
 
@@ -86,7 +86,7 @@ function safeParseFloat(envValue: string | undefined, fallback: number): number 
   if (envValue === undefined || envValue === '') {
     return fallback;
   }
-  const parsed = parseFloat(envValue);
+  const parsed = Number(envValue);
   if (!isFinite(parsed)) {
     logger.error('P1-NEW-002: Invalid numeric env var — using fallback', {
       raw_value: envValue,
@@ -789,7 +789,7 @@ export async function getEngineerScoreBreakdown(engineerId: string): Promise<{
   return {
     user_id: eng.user_id,
     full_name: eng.full_name,
-    dynamic_score: parseFloat(eng.dynamic_score),
+    dynamic_score: Number(eng.dynamic_score),
     factors: {
       completed_projects: {
         value: Math.round(factors.projectsFactor * 100) / 100,

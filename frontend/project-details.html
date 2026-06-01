@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="utf-8" />
-    <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
+    
     <style>
       @keyframes _f {
         to {
@@ -18,8 +18,8 @@
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
     <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <!-- CONF-P01 FIX: Enforceable CSP directives -->
-    <!-- P0-MOB-001 FIX: PWA installability -->
+    
+    
     <link rel="manifest" href="/manifest.json" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -30,7 +30,7 @@
       name="description"
       content="Itemized project BOQ with funding progress and construction verification."
     />
-    <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
+    
     <link
       rel="preload"
       href="/fonts/ibm-plex-sans-arabic.css"
@@ -43,7 +43,7 @@
     <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
     <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
     <script type="module" src="/src/pages/project-details.ts"></script>
-    <!-- GAP-010 FIX: OG/Twitter meta for project sharing — critical for reconstruction reach -->
+    
     <meta property="og:title" content="Project Details — Nammerha" />
     <meta
       property="og:description"
@@ -52,15 +52,14 @@
     <meta property="og:type" content="website" />
     <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
     <meta name="twitter:card" content="summary" />
-    <!-- GAP-SEO-01 FIX: twitter:title was missing — all other pages include it.
-       Standard: Social sharing completeness, OG/Twitter parity. -->
+    
     <meta name="twitter:title" content="Project Details — Nammerha" />
     <link href="/i18n.css" rel="stylesheet" />
   </head>
   <body
     class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100"
   >
-    <!-- GAP-010 FIX: Noscript fallback -->
+    
     <noscript>
       <style>
         html:not([data-theme]) {
@@ -71,14 +70,11 @@
         <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل جافا سكريبت في إعدادات متصفحك.</p>
       </div>
     </noscript>
-    <!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
+    
     <a href="#main-content" class="skip-link" data-i18n="skip_to_content">تخطي إلى المحتوى</a>
 
-    <!-- INC-N01 FIX: Standardized to .page-header pattern (was ad-hoc glass-nav with inconsistent height).
-       CONF-N01 FIX: Cart & share buttons upgraded from size-10 (40×40px) to w-11 h-11 (44×44px).
-       FRC-N05 FIX: Title uses .page-header-title for text-overflow:ellipsis on narrow screens.
-       Standard: Apple HIG §44pt Touch Targets, WCAG 2.5.5, Nielsen Heuristic #4 — Consistency. -->
-    <!-- CON-002 FIX: Removed redundant border-b border-slate-200. .page-header owns the border. -->
+    
+    
     <header class="page-header">
       <a
         href="index.html"
@@ -96,9 +92,7 @@
         تفاصيل المشروع
       </h2>
       <div class="flex items-center gap-1">
-        <!-- P2-WEB-003 FIX: donor-basket.html suspended (KI: nammerha_donation_suspension).
-             Cart icon links to projects page for continued browsing.
-             Standard: KI Compliance, Nielsen #2. -->
+        
         <a
           href="projects.html"
           id="header-cart-btn"
@@ -122,14 +116,12 @@
     </header>
 
     <main id="main-content" class="mobile-container pb-32">
-      <!-- Hero -->
+      
       <div class="p-4">
         <div
           class="relative w-full aspect-[4/3] rounded-xl overflow-hidden shadow-lg bg-gradient-to-br from-warm-earth/30 to-slate-300"
         >
-          <!-- GAP-X06 FIX: Image container ready for dynamic project photos.
-             The gradient+icon serve as fallback until واجهة برمجية injects image src.
-             Standard: Crowdfunding UX (image-first design), Emotional Design. -->
+          
           <img
             id="project-hero-img"
             data-project-image
@@ -143,7 +135,7 @@
           >
             <i class="ph ph-hard-hat text-warm-earth/40 nm-icon-64" aria-hidden="true"></i>
           </div>
-          <!-- UX PLATINUM FIX: Progressive 360 Loading -->
+          
           <div
             id="progressive-360-overlay"
             class="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm z-10"
@@ -182,8 +174,8 @@
         </div>
       </div>
 
-      <!-- INC-006 FIX: Semantic section elements for WCAG 1.3.1 landmark navigation -->
-      <!-- Progress Overview -->
+      
+      
       <section class="px-4 mb-6" aria-label="Funding progress overview">
         <div class="glass-card rounded-xl p-4 flex flex-col gap-3">
           <div class="flex justify-between items-center">
@@ -194,9 +186,7 @@
             >
             <span class="text-sm font-bold text-trust-blue" data-i18n="64_raised">٦٤٪ مموّل</span>
           </div>
-          <!-- INC-N04 FIX: Unified to .progress-fill (smoky-jade) — was progress-fill-primary (trust-blue).
-             Having two different colors for "funding progress" on the same page confused users.
-             Standard: Gestalt Law of Similarity — same meaning should use same visual encoding. -->
+          
           <div
             class="progress-track"
             role="progressbar"
@@ -210,7 +200,7 @@
         </div>
       </section>
 
-      <!-- UX PLATINUM FIX: Sustainability & Maintenance Indicator -->
+      
       <section class="px-4 mb-6" aria-label="Sustainability and Maintenance">
         <div
           class="glass-card rounded-xl p-4 border-s-4 border-s-smoky-jade flex items-start gap-3"
@@ -236,12 +226,10 @@
         </div>
       </section>
 
-      <!-- Itemized Needs (BOQ) -->
+      
       <section class="px-4" aria-label="Itemized construction needs">
         <div class="flex items-center justify-between mb-4">
-          <!-- HH-001 FIX: Was <h3> — skipped <h2> after <h1> in hero. Sequential hierarchy
-             is mandatory for screen reader document outline navigation.
-             Standard: WCAG 1.3.1 (Heading Hierarchy), HTML5 §4.3.11. -->
+          
           <h2 class="text-xl font-bold tracking-tight" data-i18n="itemized_needs_boq">
             الاحتياجات المفصلة (جدول الكميات)
           </h2>
@@ -252,14 +240,9 @@
           >
         </div>
 
-        <!-- FRC-X01 FIX: Visual category grouping headers.
-           Previous: 5 BOQ items in a flat, undifferentiated list — no mental model.
-           Now: Grouped by category with styled labels and icons (Gestalt Proximity).
-           Standard: Gestalt principle of Proximity, Miller's Law, Material Design 3. -->
+        
 
-        <!-- FRC-NEW-01 FIX: Category jump navigation — no way to skip to a category.
-           On mobile, BOQ creates ~1200px+ of scroll. These pills anchor to each category.
-           Standard: Nielsen #7 (Flexibility), Miller's Law, iOS Table of Contents pattern. -->
+        
         <nav
           class="flex gap-2 overflow-x-auto scrollbar-hide py-2 -mx-1 px-1 mb-2"
           aria-label="BOQ categories"
@@ -294,15 +277,9 @@
           </a>
         </nav>
 
-        <!-- P0-DOM-001 + INC-NEW-02 FIX: Removed all 4 static BOQ items and 3 category headers.
-           Root cause: GAP-NEW-01 migration to dynamic rendering left these dead static items
-           with hardcoded prices. Item 4 had 4 unclosed <div> elements (mb-4, glass-card, p-4,
-           progress-track) that corrupted the entire DOM tree — all subsequent content (skeleton,
-           container, empty/error states, escrow banner, cart toast) was rendered inside Item 4.
-           Now: Category headers are dynamically generated by renderBOQ() in project-details.ts.
-           Standard: HTML5 §8.2.1 (well-formed trees), FinTech UX (Data Integrity). -->
+        
 
-        <!-- BOQ Loading Skeleton -->
+        
         <div id="boq-skeleton" class="flex flex-col gap-4">
           <div
             class="glass-card rounded-xl overflow-hidden shadow-sm border border-slate-200/50 animate-pulse"
@@ -357,18 +334,17 @@
           </div>
         </div>
 
-        <!-- BOQ Dynamic Content Container (populated by project-details.ts renderBOQ) -->
+        
         <div id="boq-container" class="nm-hidden"></div>
 
-        <!-- BOQ Empty State -->
+        
         <div id="boq-empty" class="nm-hidden text-center py-12">
           <div
             class="size-16 rounded-full bg-warm-earth/10 flex items-center justify-center mx-auto mb-4"
           >
             <i class="ph ph-clipboard-text text-warm-earth nm-icon-32" aria-hidden="true"></i>
           </div>
-          <!-- HH-002 FIX: Was <h4> — cascading fix from HH-001 (parent is now <h2>).
-             Standard: WCAG 1.3.1 (Sequential Heading Hierarchy). -->
+          
           <h3
             class="text-sm font-bold text-slate-700 mb-1 dark:text-slate-300"
             data-i18n="boq_empty_title"
@@ -383,15 +359,14 @@
           </p>
         </div>
 
-        <!-- BOQ Error State -->
+        
         <div id="boq-error" class="nm-hidden text-center py-12">
           <div
             class="size-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4 dark:bg-red-500/10"
           >
             <i class="ph ph-warning-circle text-red-400 nm-icon-32" aria-hidden="true"></i>
           </div>
-          <!-- HH-002 FIX: Was <h4> — cascading fix from HH-001 (parent is now <h2>).
-             Standard: WCAG 1.3.1 (Sequential Heading Hierarchy). -->
+          
           <h3
             class="text-sm font-bold text-slate-700 mb-1 dark:text-slate-300"
             data-i18n="boq_error_title"
@@ -404,9 +379,7 @@
           >
             يرجى التحقق من اتصالك والمحاولة مرة أخرى.
           </p>
-          <!-- CONF-CSP-01 FIX: Removed inline data-reload-btn="true" — violated CSP script-src 'self'.
-             Handler now wired via addEventListener in project-details.ts.
-             Standard: CSP Level 2 §4.1, OWASP XSS Prevention. -->
+          
           <button
             type="button"
             id="boq-retry-btn"
@@ -417,11 +390,7 @@
           </button>
         </div>
 
-        <!-- FRC-N01 FIX: Escrow trust banner moved from fixed position to content flow.
-           Previous: fixed bottom-20 — created 160px dead zone (banner 56px + bottom-nav 80px)
-           on iPhone SE (375×667), permanently obscuring the last BOQ item.
-           Now: inline at end of content, scrolls naturally with the page.
-           Standard: Apple HIG — "Critical information must not permanently occlude content." -->
+        
         <div class="px-4 mt-8 mb-4">
           <div
             class="bg-slate-900 text-white p-3 rounded-xl shadow-2xl flex items-center gap-3 border border-white/10"
@@ -451,14 +420,12 @@
         </div>
       </section>
 
-      <!-- GAP-NEW-04 FIX: Cart feedback toast — was no visible confirmation after 'Add to Cart'.
-         Hidden by default; JS shows it with item name and a link to the basket.
-         Standard: Nielsen #1 (Visibility of System Status), E-commerce UX. -->
+      
       <div
         id="cart-toast"
         class="fixed bottom-24 start-4 end-4 max-w-[416px] mx-auto z-50 nm-hidden animate-fade-in-up"
       >
-        <!-- PLATINUM UX FIX: Cart Lock Timer Banner -->
+        
         <div
           id="cart-lock-timer"
           class="mb-2 glass-card p-3 rounded-xl border border-warning-yellow shadow-md flex items-center justify-between bg-warning-yellow/10 nm-hidden relative overflow-hidden"
@@ -499,7 +466,7 @@
             >
               تمت الإضافة للسلة
             </p>
-            <!-- P2-WEB-003 FIX: donor-basket.html → projects.html (KI: nammerha_donation_suspension). -->
+            
             <a
               href="projects.html"
               class="text-3xs font-semibold text-trust-blue hover:underline"
@@ -518,8 +485,7 @@
         </div>
       </div>
 
-      <!-- FRC-NEW-08 FIX: Continue browsing CTA — no guidance after adding items to cart.
-         Standard: E-commerce UX (Cross-selling), Conversion Optimization. -->
+      
       <div class="px-4 pb-6 pt-2">
         <a href="projects.html" class="btn-secondary flex items-center justify-center gap-2">
           <i class="ph ph-compass text-lg" aria-hidden="true"></i>
@@ -528,11 +494,11 @@
       </div>
     </main>
 
-    <!-- P1-004 FIX: Orbs before footer — WCAG 1.3.1 landmark order. -->
+    
     <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
     <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 
-    <!-- CONF-N03 FIX: Footer moved OUTSIDE <main> — WCAG 1.3.1 landmark semantics. -->
+    
     <footer class="nm-legal-footer">
       <nav aria-label="Legal navigation">
         <a href="/terms.html" data-i18n="footer_terms">الشروط والأحكام</a>
@@ -545,8 +511,7 @@
     <script src="/i18n.js" defer></script>
     <script src="/i18n/common.js" defer></script>
     <script src="/i18n/project.js" defer></script>
-    <!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
-     Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->
+    
     <script src="/nm-timers.js" defer></script>
     <script src="/load-guard.js" defer></script>
     <script src="/nav.js" defer></script>

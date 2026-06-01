@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="utf-8" />
-    <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
+    
     <style>
       @keyframes _f {
         to {
@@ -18,8 +18,8 @@
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
     <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <!-- CONF-P01 FIX: Enforceable CSP directives -->
-    <!-- P0-MOB-001 FIX: PWA installability -->
+    
+    
     <link rel="manifest" href="/manifest.json" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -27,8 +27,7 @@
     <meta name="theme-color" content="#F4F6F8" media="(prefers-color-scheme: light)" />
     <title>نعمّرها — تأكيد البريد</title>
     <meta name="description" content="Verify your Nammerha account email address." />
-    <!-- DEF-013 FIX: Prevent search engine indexing of authenticated pages.
-       Standard: SEO Best Practice — authenticated content must not be indexed. -->
+    
     <meta name="robots" content="noindex, nofollow" />
     <meta property="og:title" content="Nammerha — Email Verification | تأكيد البريد" />
     <meta property="og:description" content="Verify your Nammerha account email address." />
@@ -36,7 +35,7 @@
     <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="Nammerha — Email Verification | تأكيد البريد" />
-    <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
+    
     <link
       rel="preload"
       href="/fonts/ibm-plex-sans-arabic.css"
@@ -47,9 +46,7 @@
       "
     />
     <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
-    <!-- BUG-F14 FIX: Phosphor CSS async preload — was synchronous (render-blocking).
-       Parity with auth.html and reset-password.html async preload pattern.
-       Standard: Web Vitals (LCP), PRPL Pattern, Platform Consistency. -->
+    
     <link
       rel="preload"
       href="/fonts/phosphor/phosphor.css"
@@ -66,7 +63,7 @@
   <body
     class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100"
   >
-    <!-- PE-001 FIX: Noscript fallback -->
+    
     <noscript>
       <style>
         html:not([data-theme]) {
@@ -77,13 +74,11 @@
         <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل جافا سكريبت في إعدادات متصفحك.</p>
       </div>
     </noscript>
-    <!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
+    
     <a href="#main-content" class="skip-link" data-i18n="skip_to_content">تخطي إلى المحتوى</a>
-    <!-- PLAT-M06 FIX: Changed <div> to <main> for WCAG landmark semantics.
-       Previous: <div id="main-content"> — screen readers didn't announce main region.
-       Standard: HTML5 §4.4.1, parity with reset-password.html and auth.html. -->
+    
     <main id="main-content" class="mobile-container flex flex-col relative min-h-screen pb-24">
-      <!-- Brand Header -->
+      
       <header class="px-6 pt-12 pb-6 text-center relative z-10">
         <div
           class="inline-flex items-center justify-center size-16 bg-smoky-jade rounded-2xl shadow-lg shadow-smoky-jade/20 mb-4"
@@ -109,14 +104,12 @@
         >
           يرجى الانتظار بينما نتحقق من بريدك الإلكتروني
         </p>
-        <!-- PLAT-M06 FIX: Language switcher mount — parity with reset-password.html -->
+        
         <div id="nm-lang-mount" class="flex justify-center mt-3"></div>
       </header>
-      <!-- PLAT-M06 FIX: Theme toggle button — parity with auth.html and reset-password.html -->
-      <!-- PLAT-M06 FIX: Added role="alert" and aria-live for screen reader announcements.
-         Standard: WCAG 4.1.3 (Status Messages), parity with auth.html/reset-password.html. -->
-      <!-- DEF-VIS-002 FIX: Replaced style="display:none" with class="hidden".
-         Standard: DEF-VIS-001 precedent, CSS Single Source of Truth. -->
+      
+      
+      
       <div
         class="px-6 mb-4 relative z-10 nm-hidden"
         id="verify-banner"
@@ -135,8 +128,8 @@
         </div>
       </div>
 
-      <!-- Action Buttons (shown after verification) -->
-      <!-- DEF-VIS-003 FIX: style="display:none" → class="hidden" -->
+      
+      
       <div class="px-6 relative z-10 nm-hidden" id="verify-actions">
         <a
           href="/auth.html"
@@ -147,8 +140,8 @@
           <span data-i18n="sign_in_btn">تسجيل الدخول</span>
         </a>
 
-        <!-- FIX-07: Resend verification email — shown when token expires -->
-        <!-- DEF-VIS-003 FIX: style="display:none" → class="hidden" -->
+        
+        
         <div id="verify-resend" class="mt-4 nm-hidden">
           <p
             class="text-xs text-slate-500 mb-2 text-center dark:text-slate-400"
@@ -157,11 +150,8 @@
             لم تستلم رسالة التحقق؟
           </p>
           <div class="flex gap-2">
-            <!-- DEF-VERIFY-001 FIX: Added enterkeyhint, inputmode, autocomplete for mobile keyboard.
-               Standard: Apple HIG (Keyboard), WCAG 1.3.5 (Input Purpose). -->
-            <!-- DEF-UX-003 FIX: Migrated from ad-hoc Tailwind to canonical nm-input class.
-               Previous: rounded-xl border border-slate-200 px-4 py-3 text-sm — 5 classes duplicating nm-input.
-               Standard: Design System Governance, DRY Principle. -->
+            
+            
             <input
               type="email"
               id="verify-resend-email"
@@ -172,9 +162,7 @@
               class="nm-input flex-1"
              
             dir="auto" />
-            <!-- DEF-UX-001 FIX: Replaced ghost btn-outline (zero CSS definitions) with btn-secondary.
-               Previous: btn-outline had NO CSS rules — button rendered unstyled.
-               Standard: Design System Component Governance. -->
+            
             <button
               type="button"
               id="verify-resend-btn"
@@ -184,14 +172,12 @@
               <span data-i18n="verify_resend_btn">إعادة إرسال رابط التحقق</span>
             </button>
           </div>
-          <!-- DEF-VIS-003 FIX: style="display:none" → class="hidden" -->
+          
           <div id="verify-resend-feedback" class="mt-2 nm-hidden"></div>
         </div>
       </div>
 
-      <!-- PLAT-M06 FIX: Trust Footer — converted to progressive disclosure.
-         Previous: badges shown inline. Now matches auth.html/reset-password.html pattern.
-         Standard: Nielsen #8 (Aesthetic and minimalist design). -->
+      
       <div class="mt-auto px-6 py-8 text-center relative z-10">
         <details class="mb-3">
           <summary
@@ -221,12 +207,10 @@
       </div>
     </main>
 
-    <!-- PLAT-M06 FIX: Gradient orbs — replaced inline styles with standardized CSS classes.
-       Previous: style="width:200px;height:200px;top:-60px;right:-60px" — broke in RTL.
-       Standard: CSS Logical Properties, Design System Visual Cohesion. -->
+    
     <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
     <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
-    <!-- LEG-001 FIX: Legal footer — Terms, Privacy, Refund links (Platinum Standard) -->
+    
     <footer class="nm-legal-footer">
       <nav aria-label="Legal navigation">
         <a href="/terms.html" data-i18n="footer_terms">الشروط والأحكام</a>
@@ -239,8 +223,7 @@
     <script src="/i18n.js" defer></script>
     <script src="/i18n/common.js" defer></script>
     <script src="/i18n/auth.js" defer></script>
-    <!-- PLAT-M06 FIX: Added load-guard.js, theme-toggle.js, nav.js — were missing.
-     Standard: Progressive Enhancement, consistency with all other pages. -->
+    
     <script src="/nm-timers.js" defer></script>
     <script src="/load-guard.js" defer></script>
     <script src="/nav.js" defer></script>

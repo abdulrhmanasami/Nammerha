@@ -168,7 +168,7 @@ export async function getDashboardOverview(projectId: string): Promise<Dashboard
       milestone_id: m.milestone_id,
       name: m.name,
       description: m.description,
-      percentage: parseFloat(m.completion_percentage) || 0,
+      percentage: Number(m.completion_percentage) || 0,
       status: m.status,
     })),
     boq_summary: {

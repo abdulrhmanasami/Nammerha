@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="utf-8" />
-    <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
+    
     <style>
       @keyframes _f {
         to {
@@ -18,8 +18,8 @@
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
     <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <!-- CONF-P01 FIX: Enforceable CSP directives -->
-    <!-- P0-MOB-001 FIX: PWA installability -->
+    
+    
     <link rel="manifest" href="/manifest.json" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -30,7 +30,7 @@
       name="description"
       content="Browse reconstruction projects across Syria. Fund materials directly and track your impact transparently."
     />
-    <!-- GAP-010: OG/Twitter meta -->
+    
     <meta property="og:title" content="Browse Projects — Nammerha" />
     <meta
       property="og:description"
@@ -40,7 +40,7 @@
     <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="نعمّرها — المشاريع | المشاريع" />
-    <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
+    
     <link
       rel="preload"
       href="/fonts/ibm-plex-sans-arabic.css"
@@ -58,9 +58,7 @@
   <body
     class="bg-cloud-white font-display text-slate-900 min-h-screen flex flex-col antialiased dark:bg-dark-surface dark:text-slate-100"
   >
-    <!-- GAP-X07 FIX: Noscript fallback — overrides FOUC guard when JS is disabled/fails.
-     Without this, html:not([data-theme]){visibility:hidden} makes page permanently invisible.
-     Standard: Progressive Enhancement — "Content must be accessible without جافا سكريبت." -->
+    
     <noscript>
       <style>
         html:not([data-theme]) {
@@ -71,14 +69,11 @@
         <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل جافا سكريبت في إعدادات متصفحك.</p>
       </div>
     </noscript>
-    <!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
+    
     <a href="#main-content" class="skip-link" data-i18n="skip_to_content">تخطي إلى المحتوى</a>
     <div class="mobile-container min-h-screen flex flex-col">
-      <!-- INC-NEW-01 FIX: Unified .page-header component.
-       Previous: glass-nav sticky + inner div.px-4.h-14.mobile-container.
-       Now: Flat .page-header — single source of truth. Back button wired by page-header.ts.
-       Standard: Nielsen #4 (Consistency), Apple HIG (Navigation Bar Standard). -->
-      <!-- CON-002 FIX: Removed redundant border-b border-slate-200. .page-header owns the border. -->
+      
+      
       <header class="page-header">
         <a
           href="index.html"
@@ -98,21 +93,18 @@
         <div class="w-11 h-11 shrink-0"></div>
       </header>
 
-      <!-- INC-NEW-03 FIX: Filter bar moved inside <main> so keyboard skip-link doesn't bypass it.
-       Previous: Skip-link targeted #main-content (L90) but filter bar (search, pills, sort)
-       was outside <main> — keyboard users skipped past ALL filtering controls.
-       Standard: WCAG 2.4.1 (Bypass Blocks), Apple HIG (Keyboard Navigation). -->
-      <!-- Projects Grid + Filters -->
+      
+      
       <main id="main-content" class="flex-1 px-4 pb-24">
-        <!-- Filter Bar -->
+        
         <div class="pt-4 pb-2 flex flex-col gap-3">
-          <!-- Search -->
+          
           <div class="relative">
             <i
               class="ph ph-magnifying-glass absolute start-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
               aria-hidden="true"
             ></i>
-            <!-- FRC-P08 FIX: enterkeyhint for mobile keyboard -->
+            
             <input
               type="search"
               id="project-search"
@@ -122,10 +114,8 @@
               data-i18n-placeholder="projects_search_placeholder"
             dir="auto" />
           </div>
-          <!-- Filter pills -->
-          <!-- P2-WEB-001 FIX: Added role="radiogroup" + aria-label for screen reader semantics.
-         Previous: filter pills were plain buttons — screen readers couldn't tell which was active.
-         Standard: WAI-ARIA 1.2 (Button Patterns), WCAG 4.1.2. -->
+          
+          
           <div
             class="flex gap-2 overflow-x-auto w-full max-w-full pb-1 scrollbar-hidden"
             id="filter-pills"
@@ -178,16 +168,11 @@
               مختلط
             </button>
           </div>
-          <!-- Sort & count -->
-          <!-- Sort & count -->
-          <!-- GAP-NEW-07 FIX: Added structured pagination context (showing X of Y).
-         Previous: just "Loading..." with no total count indicator.
-         Standard: Nielsen #1 (Visibility), Infinite Scroll Best Practices. -->
+          
+          
+          
           <div class="flex items-center justify-between">
-            <!-- GAP-2026-B06 FIX: Added aria-live="polite" + role="status" for screen reader announcements.
-           Previous: #project-count updated dynamically but had no ARIA live region —
-           screen reader users received no announcement when filter/sort changed results.
-           Standard: WCAG 4.1.3 (Status Messages), WCAG 1.3.1 (Info and Relationships). -->
+            
             <span
               class="text-xs text-slate-400 dark:text-slate-500"
               id="project-count"
@@ -208,11 +193,9 @@
           </div>
         </div>
 
-        <!-- Projects Grid -->
-        <!-- Loading skeleton -->
-        <!-- P2-WEB-002 FIX: Added aria-busy for screen reader loading announcements.
-         Previous: skeleton divs animated but screen readers had no loading indication.
-         Standard: WCAG 4.1.3 (Status Messages). -->
+        
+        
+        
         <div
           id="projects-skeleton"
           class="flex flex-col gap-4"
@@ -230,10 +213,10 @@
             class="bg-white rounded-xl p-4 h-48 animate-pulse border border-slate-100 dark:bg-dark-surface dark:border-dark-border"
            aria-hidden="true"></div>
         </div>
-        <!-- Project cards rendered here -->
-        <!-- FRC-A01 FIX: animate-fade-in-up for smooth skeleton→content transition -->
+        
+        
         <div id="projects-grid" class="flex flex-col gap-4 nm-hidden animate-fade-in-up"></div>
-        <!-- Empty state -->
+        
         <div id="projects-empty" class="text-center py-16 nm-hidden">
           <div
             class="size-16 rounded-full bg-warm-earth/10 flex items-center justify-center mx-auto mb-4"
@@ -253,7 +236,7 @@
             لا توجد مشاريع تطابق معايير البحث.
           </p>
         </div>
-        <!-- Error state -->
+        
         <div id="projects-error" class="text-center py-16 nm-hidden">
           <div
             class="size-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4 dark:bg-red-500/10"
@@ -281,8 +264,8 @@
             <span data-i18n="projects_retry">إعادة المحاولة</span>
           </button>
         </div>
-        <!-- Load more -->
-        <!-- GAP-NEW-07 FIX: Added visible progress indicator above load-more button. -->
+        
+        
         <div id="load-more-container" class="text-center py-6 nm-hidden">
           <p class="text-3xs text-slate-400 mb-2 dark:text-slate-500" id="load-more-context"></p>
           <button
@@ -297,7 +280,7 @@
       </main>
     </div>
 
-    <!-- P1-004 FIX: Orbs before footer — WCAG 1.3.1 landmark order. -->
+    
     <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
     <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 
@@ -313,8 +296,7 @@
     <script src="/i18n.js" defer></script>
     <script src="/i18n/common.js" defer></script>
     <script src="/i18n/project.js" defer></script>
-    <!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
-     Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->
+    
     <script src="/nm-timers.js" defer></script>
     <script src="/load-guard.js" defer></script>
     <script src="/nav.js" defer></script>

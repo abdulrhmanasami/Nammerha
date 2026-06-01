@@ -128,7 +128,7 @@ export async function getMyStats(tradespersonId: string): Promise<TradespersonSt
     pending_requests: parseInt(r?.pending_requests ?? '0', 10),
     active_assignments: parseInt(r?.active_assignments ?? '0', 10),
     total_earnings: parseInt(r?.total_earnings ?? '0', 10),
-    average_rating: r?.avg_rating ? parseFloat(r.avg_rating) : null,
+    average_rating: r?.avg_rating ? Number(r.avg_rating) : null,
   };
 }
 

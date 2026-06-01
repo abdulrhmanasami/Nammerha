@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="utf-8" />
-    <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
+    
     <style>
       @keyframes _f {
         to {
@@ -18,8 +18,8 @@
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
     <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <!-- CONF-P01 FIX: Enforceable CSP directives -->
-    <!-- P0-MOB-001 FIX: PWA installability -->
+    
+    
     <link rel="manifest" href="/manifest.json" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -33,7 +33,7 @@
     <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="نعمّرها — الصفحة غير موجودة | الصفحة غير موجودة" />
-    <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
+    
     <link
       rel="preload"
       href="/fonts/ibm-plex-sans-arabic.css"
@@ -432,7 +432,7 @@
     </style>
   </head>
   <body>
-    <!-- PE-001 FIX: Noscript fallback -->
+    
     <noscript>
       <style>
         html:not([data-theme]) {
@@ -443,14 +443,9 @@
         <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل جافا سكريبت في إعدادات متصفحك.</p>
       </div>
     </noscript>
-    <!-- DEF-AUD3-001 FIX: Skip-to-content link — was the only page missing it (WCAG 2.4.1).
-     On 404 pages there's no navigation to bypass, but consistency demands it.
-     Standard: WCAG 2.4.1 (Bypass Blocks), Cross-page consistency. -->
+    
     <a href="#main-content" class="skip-link" data-i18n="skip_to_content">تخطي إلى المحتوى</a>
-    <!-- 404-STRUCT-001 FIX: Changed <div> to <main> — WCAG 1.3.1 landmark semantics.
-       Previous: <div id="main-content"> — not recognized as a landmark by screen readers.
-       skip-link targets #main-content which must be a <main> element.
-       Standard: HTML5 §4.4.1, WCAG 1.3.1 (Info and Relationships). -->
+    
     <main id="main-content" class="error-container" role="main">
       <div class="error-icon" aria-hidden="true">
         <i class="ph ph-compass"></i>
@@ -465,20 +460,13 @@
           <i class="ph ph-house" aria-hidden="true"></i>
           <span data-i18n="error_404_go_home">الذهاب للصفحة الرئيسية</span>
         </a>
-        <!-- DEF-AUD3-002 FIX: Replaced inline onclick with data-back-btn.
-           Previous: data-back-btn="true" violates CSP and breaks external script pattern.
-           Now: data-back-btn attribute wired by nav.js (same as all other back buttons).
-           Standard: CSP compliance, Nielsen #4 (Consistency). -->
+        
         <button type="button" data-back-btn class="btn-back" data-i18n="error_404_go_back">
           العودة للخلف
         </button>
       </div>
 
-      <!-- CRIT-UX-012 FIX: Contextual Smart Recovery Links.
-           Previous: Only "Go Home" + "Go Back" — users lost context entirely.
-           Now: Analyzes the attempted URL path and suggests the most relevant pages.
-           Also includes a search shortcut to find projects directly.
-           Standard: Nielsen #9 (Help users recover from errors), Google 404 best practices. -->
+      
       <div
         id="nm-404-suggestions"
         class="error-suggestions"
@@ -490,11 +478,11 @@
       </div>
     </main>
 
-    <!-- GAP-2026-003 FIX: Decorative gradient orbs — visual consistency with all platform pages -->
+    
     <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
     <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 
-    <!-- GAP-2026-003 FIX: Legal footer — consistent with all other pages -->
+    
     <footer class="nm-legal-footer-404">
       <nav aria-label="Legal navigation">
         <a href="/terms.html" data-i18n="footer_terms">الشروط والأحكام</a>
@@ -503,7 +491,7 @@
       </nav>
     </footer>
 
-    <!-- CRIT-UX-012: Smart Recovery Engine -->
+    
     <script>
       (function () {
         'use strict';
@@ -747,9 +735,7 @@
       })();
     </script>
     <script src="/i18n.js" defer></script>
-    <!-- GAP-2026-003 FIX: Bottom navigation bar — users are no longer stranded on 404.
-       nav.js auto-injects the unified bottom nav + dynamically loads theme-toggle.js.
-       Standard: Nielsen #3 (User Control & Freedom), Apple HIG (Persistent Navigation). -->
+    
     <script src="/i18n/common.js" defer></script>
     <script src="/nm-timers.js" defer></script>
     <script src="/load-guard.js" defer></script>

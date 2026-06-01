@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="utf-8" />
-    <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
+    
     <style>
       @keyframes _f {
         to {
@@ -16,13 +16,11 @@
     </style>
     <script src="/theme-boot.js"></script>
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
-    <!-- GAP-AUD-B01 FIX: apple-touch-icon — was missing entirely.
-       Standard: iOS PWA icon fallback, Platinum infrastructure. -->
+    
     <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <!-- GAP-AUD-B01 FIX: CSP meta tag — was missing entirely.
-       Standard: CONF-P01 (Enforceable CSP directives). -->
-    <!-- P0-MOB-001 FIX: PWA installability -->
+    
+    
     <link rel="manifest" href="/manifest.json" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -33,12 +31,10 @@
       name="description"
       content="Tradesperson portal for finding repair jobs, accepting contractor assignments, and managing your trade work."
     />
-    <!-- DEF-013 FIX: Prevent search engine indexing of authenticated pages.
-       Standard: SEO Best Practice — authenticated content must not be indexed. -->
+    
     <meta name="robots" content="noindex, nofollow" />
-    <!-- GAP-AUD-B01 FIX: Font preload — was missing.
-       Standard: Performance consistency, FOUT prevention. -->
-    <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
+    
+    
     <link
       rel="preload"
       href="/fonts/ibm-plex-sans-arabic.css"
@@ -50,8 +46,7 @@
     />
     <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
     <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
-    <!-- GAP-AUD-B01 FIX: OG/Twitter meta tags — were missing entirely.
-       Standard: Social sharing completeness, OG/Twitter parity. -->
+    
     <meta property="og:title" content="Tradesperson Portal — Nammerha" />
     <meta
       property="og:description"
@@ -68,10 +63,7 @@
     class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100"
     data-portal="tradesperson"
   >
-    <!-- GAP-AUD-B01 FIX: Noscript fallback — was missing entirely.
-     Without this, html:not([data-theme]){visibility:hidden} makes page permanently invisible
-     when جافا سكريبت is disabled. Every other page has this guard.
-     Standard: Progressive Enhancement, WCAG 4.1 (Robust). -->
+    
     <noscript>
       <style>
         html:not([data-theme]) {
@@ -82,25 +74,21 @@
         <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل جافا سكريبت في إعدادات متصفحك.</p>
       </div>
     </noscript>
-    <!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
+    
     <a href="#main-content" class="skip-link" data-i18n="skip_to_content">تخطي إلى المحتوى</a>
     <div class="dashboard-layout">
-      <!-- Sidebar Overlay (mobile) -->
+      
       <div class="sidebar-overlay" aria-hidden="true"></div>
 
-      <!-- ═══════ Sidebar ═══════ -->
+      
       <aside class="dashboard-sidebar">
-        <!-- CRIT-002 FIX: Logo standardized to h-9 (was h-8, the ONLY portal with wrong height).
-         All 5 other portals use h-9 w-auto for brand parity.
-         Standard: Nielsen #4 (Consistency), Brand Identity Governance. -->
+        
         <div class="p-4 border-b border-slate-200 flex items-center gap-3 dark:border-dark-border">
           <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-9 w-auto" />
           <span class="font-bold text-sm" data-i18n="tradesperson_portal">بوابة الحرفي</span>
         </div>
-        <!-- INC-AUD-C02 FIX: Removed non-standard pt-3 from nav. Matches other dashboards. -->
-        <!-- GAP-A11Y-02 FIX: Migrated from <a href="#"> to <button type="button" role="tab"> with
-         full WAI-ARIA semantics (aria-selected, aria-controls).
-         Standard: WAI-ARIA Authoring Practices §3.26 (Tabs), WCAG 4.1.2. -->
+        
+        
         <nav
           class="flex-1 px-4 space-y-1 pt-3"
           role="tablist"
@@ -115,7 +103,7 @@
             class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg cursor-pointer w-full text-start"
           >
             <i class="ph ph-squares-four" aria-hidden="true"></i>
-            <!-- GAP-M02 FIX: Was data-i18n="admin_dashboard" — semantically wrong for non-admin portal. -->
+            
             <span class="font-medium" data-i18n="common_dashboard">لوحة التحكم</span>
           </button>
           <button
@@ -128,9 +116,7 @@
           >
             <i class="ph ph-megaphone" aria-hidden="true"></i>
             <span class="font-medium" data-i18n="tradesperson_jobs">المهام</span>
-            <!-- INC-2602 FIX: Was teal-500 — not a design token. Replaced with smoky-jade.
-             Platform tokens: trust-blue, smoky-jade, warm-earth, warning-yellow.
-             Standard: Design System Token Governance, Nielsen #4 (Consistency). -->
+            
             <span
               class="ms-auto bg-smoky-jade/20 text-smoky-jade text-3xs font-bold px-1.5 py-0.5 rounded-full dark:text-emerald-400"
               id="pending-count"
@@ -160,17 +146,9 @@
             <span class="font-medium" data-i18n="tradesperson_earnings">الأرباح</span>
           </button>
         </nav>
-        <!-- RES-002 FIX: Profile link standardized OUTSIDE tablist.
-         Previous: Profile was a tab inside [role="tablist"] (the ONLY portal with this pattern).
-         All 5 other portals use a navigation link to profile.html below the tablist.
-         Standard: Nielsen #4 (Consistency), WAI-ARIA (tabs = in-page panels, not page navigation). -->
-        <!-- PLT-AUD3-A02 FIX: Added space-y-1 and data-i18n-attr (was missing).
-         Previous: Had data-section-label but no i18n binding — "Navigate" was stuck in English.
-         Now matches contractor-dashboard + supplier-dashboard canonical pattern.
-         Standard: Nielsen #4 (Consistency), i18n RTL parity. -->
-        <!-- MED-004 FIX: Added border-t and p-4 — was px-4 pb-2 without separator.
-         All other 5 portals use border-t border-slate-200 p-4 for the profile section.
-         Standard: Nielsen #4 (Consistency), Gestalt (Grouping). -->
+        
+        
+        
         <div
           class="p-4 border-t border-slate-200 space-y-1 dark:border-dark-border"
           data-section-label="Navigate"
@@ -181,24 +159,21 @@
             class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400"
           >
             <i class="ph ph-user-circle" aria-hidden="true"></i>
-            <!-- LOW-003 FIX: Normalized to nav_profile — matches contractor/supplier. -->
+            
             <span class="font-medium" data-i18n="nav_profile">الملف الشخصي</span>
           </a>
         </div>
-        <!-- Availability Toggle -->
+        
         <div class="p-4 border-t border-slate-200 space-y-2 dark:border-dark-border">
-          <!-- I18N-AUD-F01 FIX: "Availability" was hardcoded English — added data-i18n.
-           Standard: RTL i18n parity — all user-facing strings must use data-i18n. -->
+          
           <p
             class="text-3xs font-bold text-slate-400 uppercase tracking-wider dark:text-slate-500"
             data-i18n="tradesperson_availability"
           >
             الحالة
           </p>
-          <!-- A11Y-AUD-E02 FIX: Added aria-pressed to availability buttons.
-           Previous: no ARIA state — screen readers couldn't identify active status.
-           Standard: WAI-ARIA button toggle pattern (aria-pressed). -->
-          <!-- I18N-AUD-F01 FIX: All three status labels now have data-i18n attributes. -->
+          
+          
           <div
             class="flex gap-1"
             id="availability-btns"
@@ -234,7 +209,7 @@
             </button>
           </div>
         </div>
-        <!-- Logout -->
+        
         <div class="p-4 border-t border-slate-200 dark:border-dark-border">
           <button
             type="button"
@@ -247,14 +222,10 @@
         </div>
       </aside>
 
-      <!-- ═══════ Main Content ═══════ -->
-      <!-- CONF-NEW-A01 FIX: Was <div class="dashboard-main"> wrapping a nested <main>.
-       This created a doubled landmark violation (WCAG 1.3.1). Now unified to a
-       single <main> element — matching contractor-dashboard/supplier-dashboard.
-       Standard: WCAG 1.3.1 (Info and Relationships), HTML5 §4.4.2. -->
+      
+      
       <main id="main-content" class="dashboard-main">
-        <!-- PLT-AUD2-C001 FIX: Wrapped header content in max-w-6xl centered container.
-         Standard: Nielsen #4 (Consistency), Apple HIG (Content Width). -->
+        
         <header
           class="h-14 bg-white border-b border-slate-200 flex items-center justify-center shrink-0 sticky top-0 z-[var(--z-header)] dark:bg-dark-surface dark:border-dark-border"
         >
@@ -289,7 +260,7 @@
                   class="ph ph-bell text-slate-400 hover:text-slate-600 transition-colors text-xl dark:text-slate-500"
                   aria-hidden="true"
                 ></i>
-                <!-- SWEEP-W5-002: Hidden + empty \u2014 no notification system exists yet. -->
+                
                 <span
                   class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-3xs font-bold rounded-full flex items-center justify-center nm-hidden"
                   id="notif-count"
@@ -299,15 +270,13 @@
           </div>
         </header>
 
-        <!-- ARCH-C02 FIX: Was missing flex-1 overflow-y-auto — content overflowed on small screens.
-         All other 4 portals (donor, homeowner, supplier, contractor-dashboard) have it.
-         Standard: Apple HIG — Scrollable content areas must be explicitly bounded. -->
+        
         <div class="flex-1 overflow-y-auto p-6 space-y-6">
           <div class="max-w-6xl mx-auto space-y-6">
-            <!-- Header -->
+            
             <div class="flex flex-wrap items-center justify-between gap-4">
               <div>
-                <!-- RES-I03 FIX: Added content-level <h1> — TYPE A heading pattern. -->
+                
                 <h1 class="text-xl font-bold" data-i18n="tradesperson_portal_heading">
                   مساحة العمل
                 </h1>
@@ -328,8 +297,7 @@
               </div>
             </div>
 
-            <!-- RES-I05 FIX: Enriched from SIMPLE to RICH KPI card pattern.
-           Standard: Design System Component Unity, Nielsen #4 (Consistency). -->
+            
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div
                 class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border"
@@ -345,9 +313,8 @@
                 >
                   مهام نشطة
                 </p>
-                <!-- PLT-AUD2-G001 FIX: Skeleton loader replaces hardcoded "0" — prevents false empty impression.
-               Standard: Nielsen #1 (System Status Visibility), FinTech UX. -->
-                <!-- SWEEP-W5-001: Removed individual aria-live — consolidated below grid. -->
+                
+                
                 <p class="text-2xl font-black mt-1" id="kpi-active">
                   <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse" aria-hidden="true"></span>
                 </p>
@@ -417,20 +384,19 @@
             </div>
             <div class="sr-only" aria-live="polite" id="kpi-live-summary"></div>
 
-            <!-- ═══════ Dashboard Section (active jobs overview) ═══════ -->
+            
             <div
               id="section-dashboard"
               class="space-y-4"
               role="tabpanel"
               aria-labelledby="tab-dashboard"
             >
-              <!-- Active contractor assignments -->
+              
               <div
                 class="bg-white rounded-xl border border-slate-200 shadow-sm dark:bg-dark-surface dark:border-dark-border"
               >
                 <div class="p-5 border-b border-slate-100 dark:border-dark-border">
-                  <!-- DFR-HH-003 FIX: h3→h2 — bridges h1→h3 heading hierarchy gap.
-                 Standard: WCAG 2.2 SC 1.3.1 (Heading Hierarchy). -->
+                  
                   <h2 class="font-bold" data-i18n="tradesperson_current_work">العمل الحالي</h2>
                   <p
                     class="text-xs text-slate-500 mt-0.5 dark:text-slate-400"
@@ -440,7 +406,7 @@
                   </p>
                 </div>
                 <div id="active-jobs-body" class="space-y-4 p-5 pt-4">
-                  <!-- DFR-001: Skeleton cards -->
+                  
                   <div
                     class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm animate-pulse space-y-3 dark:bg-dark-surface dark:border-dark-border"
                    aria-hidden="true">
@@ -463,7 +429,7 @@
               </div>
             </div>
 
-            <!-- ═══════ Available Requests (Thumbtack) ═══════ -->
+            
             <div
               id="section-requests"
               class="nm-hidden"
@@ -488,7 +454,7 @@
                   id="requests-list"
                   class="divide-y divide-slate-100 dark:divide-dark-border-subtle"
                 >
-                  <!-- DFR-001: Skeleton card -->
+                  
                   <div class="p-5 space-y-3 animate-pulse" aria-hidden="true">
                     <div class="flex items-center gap-3">
                       <div class="size-10 rounded-xl bg-slate-200"></div>
@@ -509,7 +475,7 @@
               </div>
             </div>
 
-            <!-- ═══════ Contractor Assignments ═══════ -->
+            
             <div
               id="section-assignments"
               class="nm-hidden"
@@ -531,7 +497,7 @@
                   </p>
                 </div>
                 <div id="assignments-body" class="space-y-4 p-5 pt-4">
-                  <!-- DFR-001: Skeleton cards -->
+                  
                   <div
                     class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm animate-pulse space-y-4 dark:bg-dark-surface dark:border-dark-border"
                    aria-hidden="true">
@@ -554,7 +520,7 @@
               </div>
             </div>
 
-            <!-- ═══════ Earnings ═══════ -->
+            
             <div
               id="section-earnings"
               class="nm-hidden"
@@ -574,7 +540,7 @@
                   </p>
                 </div>
                 <div id="earnings-body" class="space-y-4 p-5 pt-4">
-                  <!-- DFR-001: Skeleton cards -->
+                  
                   <div
                     class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm animate-pulse flex justify-between items-center dark:bg-dark-surface dark:border-dark-border"
                    aria-hidden="true">
@@ -591,17 +557,14 @@
               </div>
             </div>
 
-            <!-- RES-002: section-profile removed. Profile now navigates to profile.html. -->
+            
           </div>
         </div>
       </main>
     </div>
 
-    <!-- GAP-AUD-B01 FIX: Legal footer — was missing entirely.
-       All consumer pages include Terms, Privacy, Refund Policy.
-       Dashboard pages handle financial data (earnings) — legal links are mandatory.
-       Standard: Legal compliance, Nielsen #4 (Consistency). -->
-    <!-- P1-004 FIX: Orbs before footer — WCAG 1.3.1 landmark order. -->
+    
+    
     <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
     <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 
@@ -614,7 +577,7 @@
       <p class="nm-copyright" data-i18n="footer_copyright">© 2026 نعمِّرها. جميع الحقوق محفوظة.</p>
     </footer>
 
-    <!-- MED-005 FIX: Reusable empty state template for data tables. -->
+    
     <template id="tpl-table-empty">
       <div
         class="bg-white rounded-xl border border-slate-200 py-12 text-center shadow-sm w-full dark:bg-dark-surface dark:border-dark-border"
@@ -639,8 +602,7 @@
     <script src="/i18n.js" defer></script>
     <script src="/i18n/common.js" defer></script>
     <script src="/i18n/tradesperson.js" defer></script>
-    <!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
-     Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->
+    
     <script src="/nm-timers.js" defer></script>
     <script src="/load-guard.js" defer></script>
     <script src="/nav.js" defer></script>

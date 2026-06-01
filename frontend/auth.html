@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="utf-8" />
-    <!-- FRC-007 FIX: Inline Locale Boot (Synchronous) — Zero FOUC for i18n -->
+    
     <script>
       (function () {
         try {
@@ -14,7 +14,7 @@
         } catch (e) {}
       })();
     </script>
-    <!-- FRC-006 FIX: Inline Theme Boot (Synchronous) — Zero FOUC, Zero Delay -->
+    
     <script>
       (function () {
         var m =
@@ -30,8 +30,8 @@
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
     <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <!-- CONF-P01 FIX: Enforceable CSP directives (frame-ancestors removed — ignored in meta tags per CSP L2 §4.1) -->
-    <!-- P0-MOB-001 FIX: PWA installability -->
+    
+    
     <link rel="manifest" href="/manifest.json" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -42,7 +42,7 @@
       name="description"
       content="Sign in to Nammerha — the معيار بيانات التعاقد المفتوح-compliant reconstruction platform rebuilding Syria with transparency."
     />
-    <!-- I-004 FIX: OpenGraph & Twitter Card meta tags for social sharing -->
+    
     <meta property="og:title" content="Sign In — Nammerha" />
     <meta
       property="og:description"
@@ -52,7 +52,7 @@
     <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="Sign In — Nammerha" />
-    <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
+    
     <link
       rel="preload"
       href="/fonts/ibm-plex-sans-arabic.css"
@@ -63,9 +63,7 @@
       "
     />
     <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
-    <!-- P1-WEB-003 FIX: Phosphor CSS was loaded synchronously — render-blocking.
-       All other pages use async preload. Auth was the sole outlier (~200KB blocking).
-       Standard: Web Vitals (LCP), PRPL Pattern, Platform Consistency. -->
+    
     <link
       rel="preload"
       href="/fonts/phosphor/phosphor.css"
@@ -76,13 +74,8 @@
       "
     />
     <noscript><link rel="stylesheet" href="/fonts/phosphor/phosphor.css" /></noscript>
-    <!-- UX-F019 FIX: OAuth SDKs LAZY-LOADED on first social button click.
-       PREVIOUS: 3 eager <script> tags (~450KB total) — added 7+s to page load on Syria 2G.
-       NOW: SDKs dynamically injected in auth.ts on first click. The code already handles
-       missing SDKs gracefully (Google: falls back to popup; Apple: waits 3s then errors;
-       Facebook: shows 'coming soon'). Zero UX degradation, massive speed gain.
-       Standard: Web Vitals (LCP/TBT), Core Web Vitals 3.0, PRPL Pattern. -->
-    <!-- OAuth-001: Social Client IDs injection (public, not secrets — validated server-side) -->
+    
+    
     <script>
       window.__GOOGLE_CLIENT_ID__ =
         '411831386608-kufrn0htaglfivf59ofgveeirteh44o1.apps.googleusercontent.com';
@@ -95,7 +88,7 @@
   <body
     class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100"
   >
-    <!-- GAP-010 FIX: Noscript fallback -->
+    
     <noscript>
       <style>
         html:not([data-theme]) {
@@ -106,29 +99,17 @@
         <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل جافا سكريبت في إعدادات متصفحك.</p>
       </div>
     </noscript>
-    <!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
+    
     <a href="#main-content" class="skip-link" data-i18n="skip_to_content">تخطي إلى المحتوى</a>
-    <!-- CONF-N05 FIX: Removed mobile-container (max-width: 448px) — breaks immersive auth on tablets.
-       Auth page has full-viewport gradient orbs and centered brand header that need edge-to-edge presentation.
-       Now uses max-w-lg (512px) for the content area via CSS, with full-width background.
-       Standard: Apple HIG — Full-screen immersive experiences should not be artificially constrained. -->
-    <!-- M-AUD-001 FIX: Replaced non-standard inline max-width:32rem with .mobile-container.
-       Previous: Auth was 512px fixed width. All other consumer pages use .mobile-container
-       (448px → 640px → 768px → 960px responsively). At every breakpoint, auth looked different.
-       Standard: Design System Layout Consistency, Single Source of Truth. -->
+    
+    
     <main id="main-content" class="mobile-container flex flex-col relative min-h-screen">
-      <!-- DEFER-P0-001 FIX: Was ZERO h1 headings on the entire page.
-         Brand logo image and tab labels (Sign In / Create Account) are NOT structural headings.
-         Screen readers had no page topic announcement.
-         Standard: WCAG 2.2 SC 1.3.1 (Heading Hierarchy), SEO (h1 required). -->
+      
       <h1 class="sr-only" data-i18n="auth_page_heading">تسجيل الدخول أو إنشاء حساب</h1>
 
-      <!-- Brand Header -->
+      
       <header class="px-6 pt-12 pb-6 text-center relative z-10">
-        <!-- CONF-2026-005 FIX: Responsive logo — h-20 (80px) on mobile, h-28 (112px) on sm+.
-           Previous: Fixed h-28 (112px) at ALL sizes — on 320px screens, logo + pt-12 padding
-           pushed the form below the fold, increasing scroll-to-interact friction.
-           Standard: Apple HIG ("Adapt to device size"), Responsive Design. -->
+        
         <img
           src="/brand/Nammerha_logo_Full.svg"
           alt="Nammerha — نعمّرها"
@@ -137,33 +118,21 @@
         <p class="text-sm text-slate-500 mt-1 dark:text-slate-400" data-i18n="auth_subtitle">
           منصة إعادة الإعمار
         </p>
-        <!-- C-AUD-006 FIX: Language switcher mount point for i18n.js.
-           Previous: No visible language toggle on auth page. Non-Arabic-speaking users
-           (international donors, NGO partners, diaspora) were locked out of the registration flow.
-           The i18n.js engine's final fallback (fixed position) collides with theme toggle.
-           This mount point is detected by i18n.js BEFORE the fallback.
-           Standard: WCAG 3.1.2 (Language of Parts), Internationalization. -->
+        
         <div id="nm-lang-mount" class="flex justify-center mt-3"></div>
-        <!-- CONF-NEW-05 FIX: Escape hatch visibility dramatically improved.
-           Previous: 12px text-slate-400 — nearly invisible on the page.
-           Now: 13px, text-slate-500, underline, icon enlarged — obvious exit path.
-           Standard: Nielsen #3 (User Control), Apple HIG (Clear Escape Routes). -->
-        <!-- P3-PLT-005 FIX: Improved contrast from text-slate-500 to text-slate-600.
-           Previous: nearly invisible on light backgrounds, especially under sunlight.
-           Standard: WCAG 1.4.3 (Minimum Contrast), Apple HIG. -->
+        
+        
         <a
           href="/"
           class="inline-flex items-center gap-2 nm-text-caption font-medium text-slate-600 hover:text-trust-blue underline decoration-slate-300 hover:decoration-trust-blue underline-offset-4 transition-colors mt-3 dark:text-slate-400"
           data-i18n="auth_back_home"
         >
-          <!-- UX-F017 FIX: ph-arrow-left → ph-caret-left for RTL correctness.
-             'Back' in RTL should point right (→). Carets are logical-direction-aware.
-             Standard: WCAG 1.3.2 (Meaningful Sequence), CSS Logical Properties. -->
-          <i class="ph ph-caret-left text-sm" aria-hidden="true"></i> Back to Home
+          
+          <i class="ph ph-caret-left text-sm" aria-hidden="true"></i> العودة للرئيسية
         </a>
       </header>
 
-      <!-- INC-P04 FIX: WAI-ARIA Tabs pattern for screen reader accessibility (WCAG 4.1.2) -->
+      
       <div class="px-6 mb-6 relative z-10">
         <div
           class="flex bg-slate-200/60 rounded-full p-1 dark:bg-dark-border-subtle"
@@ -194,11 +163,9 @@
           </button>
         </div>
       </div>
-      <!-- Error/Success Banner -->
-      <!-- P0-A2 FIX: aria-live region for screen reader announcement of status changes (WCAG 4.1.3) -->
-      <!-- DEF-VIS-002 FIX: Replaced style="display:none" with class="hidden".
-         banner.ts now uses classList.add/remove('hidden') for show/hide.
-         Standard: DEF-VIS-001 precedent, CSS Single Source of Truth. -->
+      
+      
+      
       <div
         class="px-6 mb-4 relative z-10 nm-hidden"
         id="auth-banner"
@@ -214,12 +181,9 @@
         </div>
       </div>
 
-      <!-- LOGIN FORM -->
-      <!-- FRC-009 FIX: auth-panel class enables CSS fade-slide transitions -->
-      <!-- C-AUD-007 FIX: Added role="tabpanel" + aria-labelledby to complete WAI-ARIA Tabs pattern.
-         Previous: Tabs declared aria-controls but forms lacked tabpanel role.
-         Now: Matches donor-portal.html and homeowner-portal.html tab patterns.
-         Standard: WAI-ARIA Authoring Practices §3.26 (Tabs), WCAG 4.1.2. -->
+      
+      
+      
       <form
         id="form-login"
         role="tabpanel"
@@ -227,7 +191,7 @@
         class="auth-panel px-6 flex flex-col gap-4 relative z-10"
         novalidate
       >
-        <!-- Email -->
+        
         <div>
           <label
             for="login-email"
@@ -240,14 +204,9 @@
               class="ph ph-envelope absolute start-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
               aria-hidden="true"
             ></i>
-            <!-- FRC-P08 FIX: enterkeyhint for mobile keyboard context -->
-            <!-- AUD-P0-002 FIX: Migrated to .nm-input design system class.
-               Previous: 105 chars of inline Tailwind with ring-2 focus (divergent from nm-input box-shadow).
-               Now: Inherits dark mode, focus ring, and token updates from design system.
-               Standard: Design System Governance, DEF-004. -->
-            <!-- BUG-F12 FIX: maxlength="254" — RFC 5321 max email length.
-               Backend validates MAX_EMAIL_LENGTH=254 but without this, mobile keyboards
-               don't enforce the limit. Standard: Defense-in-Depth, Input Validation Parity. -->
+            
+            
+            
             <input
               id="login-email"
               name="email"
@@ -263,7 +222,7 @@
               />
           </div>
         </div>
-        <!-- Password -->
+        
         <div>
           <label
             for="login-password"
@@ -300,9 +259,7 @@
             </button>
           </div>
         </div>
-        <!-- M-AUD-005 FIX: "Remember Me" checkbox for session persistence.
-           Previous: No remember-me option. Mobile users re-entered credentials every session.
-           Standard: FinTech UX (Session Persistence), WCAG 3.3.7 (Accessible Authentication). -->
+        
         <div class="flex items-center justify-between">
           <label for="remember-me" class="flex items-center gap-2 cursor-pointer select-none">
             <input
@@ -315,24 +272,18 @@
               >تذكرني</span
             >
           </label>
-          <!-- PLT-F005 FIX: Session duration context — users didn't know what "Remember me" meant.
-             Standard: Security UX Best Practices, WCAG 3.3.2 (Labels or Instructions). -->
+          
           <span class="text-3xs text-slate-400 dark:text-slate-500" data-i18n="remember_me_duration"
             >٣٠ يوم</span
           >
         </div>
-        <!-- Submit -->
+        
         <button type="submit" id="login-submit" class="btn-primary mt-2">
           <i class="ph ph-sign-in" aria-hidden="true"></i>
           <span id="login-submit-text" data-i18n="sign_in_btn">تسجيل الدخول</span>
         </button>
-        <!-- PLT-AUD-002: Forgot Password Link -->
-        <!-- GAP-002 FIX: href changed from mailto: to /reset-password.html.
-           Previous: mailto:support@nammerha.com — opened email client, not password reset.
-           The platform HAS a dedicated reset-password.html with proper password change flow.
-           If auth.ts loads, JS can still intercept for inline UX.
-           If JS fails (common on Syrian mobile networks), users navigate to the real reset page.
-           Standard: Progressive Enhancement, Security UX Best Practices. -->
+        
+        
         <div class="text-center mt-3">
           <a
             href="/reset-password.html"
@@ -343,15 +294,14 @@
           >
         </div>
 
-        <!-- ═══ Social OAuth Login Buttons ═══════════════════════════════ -->
-        <!-- OAuth-001: Divider + branded social buttons per Google, Apple, Meta guidelines.
-           Standard: OAuth 2.0 Best Practices, WCAG 4.1.2 (Name, Role, Value). -->
+        
+        
         <div class="nm-social-divider" aria-hidden="true">
           <span data-i18n="auth_or_continue_with">أو تابع بحساب</span>
         </div>
 
         <div class="nm-social-buttons">
-          <!-- Google Sign-In (GSI button) -->
+          
           <button
             type="button"
             id="btn-google-login"
@@ -377,10 +327,10 @@
                 fill="#EA4335"
               />
             </svg>
-            <span data-i18n="auth_google">Google</span>
+            <span data-i18n="auth_google">جوجل</span>
           </button>
 
-          <!-- Apple Sign-In -->
+          
           <button
             type="button"
             id="btn-apple-login"
@@ -394,10 +344,10 @@
                 fill="currentColor"
               />
             </svg>
-            <span data-i18n="auth_apple">Apple</span>
+            <span data-i18n="auth_apple">أبل</span>
           </button>
 
-          <!-- Facebook Login -->
+          
           <button
             type="button"
             id="btn-facebook-login"
@@ -411,21 +361,14 @@
                 fill="currentColor"
               />
             </svg>
-            <span data-i18n="auth_facebook">Facebook</span>
+            <span data-i18n="auth_facebook">فيسبوك</span>
           </button>
         </div>
       </form>
 
-      <!-- REGISTER FORM (hidden by default)
-         C-AUD-007 FIX: role="tabpanel" + aria-labelledby completes WAI-ARIA Tabs pattern. -->
-      <!-- FRIC-2026-D03 FIX: Multi-Step Registration Wizard
-         Previous: All 7 fields visible at once → cognitive overload on mobile,
-         scrolling past the fold, high abandonment risk.
-         Now: 3-step progressive disclosure wizard. Step validation before advancing.
-         All existing field IDs preserved — auth.ts works without modification.
-         Standard: Miller's Law (7±2), Progressive Disclosure, Material Design 3,
-         Nielsen #6 (Recognition over Recall), Apple HIG (Multi-Step Forms). -->
-      <!-- FRC-009 FIX: auth-panel class enables CSS fade-slide transitions -->
+      
+      
+      
       <form
         id="form-register"
         role="tabpanel"
@@ -433,16 +376,11 @@
         class="auth-panel px-6 flex flex-col gap-4 relative z-10 nm-hidden"
         novalidate
       >
-        <!-- ─── Stepper Indicator ─────────────────────────── -->
-        <!-- DEF-A09 FIX: role="group" replaces role="navigation" — stepper indicates progress,
-           not page navigation targets. aria-label describes the group purpose.
-           Standard: WAI-ARIA Best Practices, WCAG 1.3.1 (Info & Relationships). -->
-        <!-- BUG-004 FIX: Added nm-step-track class — was raw Tailwind flex/gap utilities
-           without the nm-step-indicator/nm-step-num/nm-step-label CSS system defined.
-           Result was all text rendered inline: "Confirm 3Security 2Identity 1". -->
+        
+        
+        
         <div class="nm-step-track" role="group" aria-label="Registration progress">
-          <!-- INC-2026-008 FIX: aria-current="step" for screen reader step identification.
-             Standard: WAI-ARIA Best Practices, WCAG 4.1.2 (Name, Role, Value). -->
+          
           <div class="nm-step-indicator active" data-step-dot="1" aria-current="step">
             <span class="nm-step-num">1</span>
             <span class="nm-step-label" data-i18n="reg_step_identity">الهوية</span>
@@ -459,14 +397,12 @@
           </div>
         </div>
 
-        <!-- ─── STEP 1: Identity ─────────────────────────── -->
+        
         <fieldset class="nm-step-panel" data-reg-step="1">
           <legend class="sr-only" data-i18n="reg_legend_identity">الخطوة ١: هويتك</legend>
 
-          <!-- ═══ Social Quick-Register ═════════════════════ -->
-          <!-- OAuth-002: Social buttons in register flow for one-click registration.
-             Users skip the entire wizard — backend creates account from provider data.
-             Standard: Conversion Optimization, Miller's Law (reduce cognitive load). -->
+          
+          
           <div class="nm-social-buttons nm-social-buttons--compact mb-4">
             <button
               type="button"
@@ -492,7 +428,7 @@
                   fill="#EA4335"
                 />
               </svg>
-              <span data-i18n="auth_google">Google</span>
+              <span data-i18n="auth_google">جوجل</span>
             </button>
             <button
               type="button"
@@ -506,7 +442,7 @@
                   fill="currentColor"
                 />
               </svg>
-              <span data-i18n="auth_apple">Apple</span>
+              <span data-i18n="auth_apple">أبل</span>
             </button>
             <button
               type="button"
@@ -520,7 +456,7 @@
                   fill="currentColor"
                 />
               </svg>
-              <span data-i18n="auth_facebook">Facebook</span>
+              <span data-i18n="auth_facebook">فيسبوك</span>
             </button>
           </div>
 
@@ -528,7 +464,7 @@
             <span data-i18n="auth_or_email">أو بالبريد الإلكتروني</span>
           </div>
 
-          <!-- Full Name -->
+          
           <div class="mb-4">
             <label
               for="reg-name"
@@ -541,10 +477,8 @@
                 class="ph ph-user absolute start-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
                 aria-hidden="true"
               ></i>
-              <!-- PLAT-M02 FIX: enterkeyhint="next" for native-app keyboard UX on mobile.
-                 Standard: Apple HIG (Keyboard Management), Android Material Design. -->
-              <!-- BUG-F11 FIX: maxlength="255" — matches backend VARCHAR(255) column.
-                 Without this, a user can paste 10K+ chars. Standard: Defense-in-Depth. -->
+              
+              
               <input
                 id="reg-name"
                 name="full_name"
@@ -559,7 +493,7 @@
                 dir="auto" />
             </div>
           </div>
-          <!-- Email -->
+          
           <div class="mb-4">
             <label
               for="reg-email"
@@ -572,7 +506,7 @@
                 class="ph ph-envelope absolute start-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
                 aria-hidden="true"
               ></i>
-              <!-- BUG-F12 FIX: maxlength="254" — RFC 5321 parity with login-email. -->
+              
               <input
                 id="reg-email"
                 name="email"
@@ -588,11 +522,7 @@
                 />
             </div>
           </div>
-          <!-- W3-P2-001 FIX: Optional Phone Field.
-             Backend already accepts `phone` (auth.routes.ts L297-308).
-             Mobile app collects phone during registration.
-             Web was the only platform NOT collecting phone — breaking data parity.
-             Standard: Cross-Platform Registration Parity, Anti-Fraud (phone verification). -->
+          
           <div class="mb-4">
             <label
               for="reg-phone"
@@ -623,21 +553,18 @@
               />
             </div>
           </div>
-          <!-- Next button -->
-          <!-- BUG-F07 FIX: ph-arrow-right → ph-caret-right for RTL correctness.
-             Step 2 (L716) uses ph-caret-right. Step 1 was inconsistent.
-             ph-caret-right auto-flips in RTL via Phosphor's built-in mirroring.
-             Standard: RTL Icon Parity, Phosphor Design System. -->
+          
+          
           <button type="button" class="nm-step-next btn-primary w-full" data-goto-step="2">
             <span data-i18n="reg_next">التالي</span>
             <i class="ph ph-caret-right" aria-hidden="true"></i>
           </button>
         </fieldset>
 
-        <!-- ─── STEP 2: Security ─────────────────────────── -->
+        
         <fieldset class="nm-step-panel nm-hidden" data-reg-step="2">
           <legend class="sr-only" data-i18n="reg_legend_security">الخطوة ٢: إنشاء كلمة مرور</legend>
-          <!-- Password -->
+          
           <div class="mb-4">
             <label
               for="reg-password"
@@ -650,9 +577,7 @@
                 class="ph ph-lock absolute start-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
                 aria-hidden="true"
               ></i>
-              <!-- BUG-F04 FIX: maxlength="128" — parity with login-password (L283).
-                 Without this, mobile keyboards don't enforce the SEC-003 bcrypt DoS limit.
-                 Standard: Defense-in-Depth, Frontend-Backend Validation Parity. -->
+              
               <input
                 id="reg-password"
                 name="password"
@@ -677,19 +602,15 @@
                 <i class="ph ph-eye text-xl" aria-hidden="true"></i>
               </button>
             </div>
-            <!-- Password Strength -->
+            
             <div class="mt-2 flex gap-1" id="pw-strength-bars">
               <div class="h-2 flex-1 rounded-full bg-slate-200"></div>
               <div class="h-2 flex-1 rounded-full bg-slate-200"></div>
               <div class="h-2 flex-1 rounded-full bg-slate-200"></div>
               <div class="h-2 flex-1 rounded-full bg-slate-200"></div>
             </div>
-            <!-- INC-002 FIX: Governed micro-hint tier (10px). Complies with text-size governance.
-               Standard: INC-002 Micro-Text Governance, WCAG 1.4.4 (Resize Text). -->
-            <!-- C-AUD-001 FIX: Corrected to match actual auth.ts validation requirements (L175-178).
-               Previous: "8+ chars, 1 uppercase, 1 number" — omitted lowercase and symbol requirements.
-               Users crafted compliant-looking passwords that were rejected, destroying trust.
-               Standard: Nielsen #2 (Match System ↔ Real World), WCAG 3.3.2. -->
+            
+            
             <p
               class="text-3xs text-slate-400 mt-1 dark:text-slate-500"
               id="pw-strength-label"
@@ -698,7 +619,7 @@
               +٨ أحرف، حرف كبير، حرف صغير، رقم، رمز
             </p>
           </div>
-          <!-- FRC-002 FIX: Confirm Password field -->
+          
           <div class="mb-4">
             <label
               for="reg-password-confirm"
@@ -711,10 +632,8 @@
                 class="ph ph-lock-key absolute start-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
                 aria-hidden="true"
               ></i>
-              <!-- P1-UXA-008 FIX: enterkeyhint="next" — Step 3 follows, not end of form.
-                 Previous: "done" dismissed keyboard, requiring manual tap on Next.
-                 Standard: Apple HIG (Custom Keyboard Actions). -->
-              <!-- BUG-F04 FIX: maxlength="128" — parity with reg-password and login-password. -->
+              
+              
               <input
                 id="reg-password-confirm"
                 name="password_confirm"
@@ -729,10 +648,7 @@
                 placeholder="أعد إدخال كلمة المرور"
                 data-i18n-placeholder="auth_pw_confirm_placeholder"
               />
-              <!-- P0-UXA-002 FIX: Toggle button for confirm password field.
-                 Previous: reg-password had toggle (L275) but confirm did NOT.
-                 Users typing complex passwords could not verify their confirm input.
-                 Standard: Password UX Best Practices, WCAG 1.3.1. -->
+              
               <button
                 type="button"
                 id="reg-toggle-pw-confirm"
@@ -743,10 +659,7 @@
                 <i class="ph ph-eye text-xl" aria-hidden="true"></i>
               </button>
             </div>
-            <!-- P2-UXA-010 FIX: Error text upgraded from text-3xs (10px) to text-xs (12px).
-               At 10px on 375px mobile at 2x DPI, error text was ~5pt physical — below readable threshold.
-               Errors must be the ONE thing that is clearly readable.
-               Standard: Mobile Typography, WCAG 1.4.4 (Resize Text). -->
+            
             <p
               class="text-xs text-red-500 mt-1 nm-hidden"
               id="pw-mismatch-error"
@@ -754,10 +667,7 @@
             >
               كلمتا المرور غير متطابقتين
             </p>
-            <!-- P2-S4-001 FIX: Positive match indicator — parity with reset-password.html.
-               PREVIOUS: Only negative (mismatch) indicator shown. Users had no positive
-               feedback that passwords match until form submission.
-               Standard: Nielsen #1 (System Status Visibility), reset-password.ts parity. -->
+            
             <p
               class="text-xs text-emerald-600 mt-1 nm-hidden dark:text-emerald-400"
               id="pw-match-success"
@@ -768,15 +678,7 @@
               ✓ كلمتا المرور متطابقتان
             </p>
           </div>
-          <!-- P1-DEEP-003 FIX: "Forgot Password?" accessibility from Register tab.
-             Scenario: User tries to register, realizes they already have an account,
-             but can't remember the password. Without this, they must:
-             1. Switch to Login tab → 2. Enter email again → 3. Click Forgot Password.
-             That's 3 steps when a direct link would take 1.
-             Design: Visually secondary (text-3xs, muted color) — doesn't compete with
-             primary "Next" flow. Text is contextual: "Already registered? Reset password."
-             Handler in auth.ts reads email from #reg-email (Step 1) automatically.
-             Standard: Nielsen #3 (User Control & Freedom), WCAG 2.4.5 (Multiple Ways). -->
+          
           <div class="text-center mt-1 mb-2">
             <a
               href="/reset-password.html"
@@ -786,10 +688,9 @@
               >لديك حساب سابق؟ أعد تعيين كلمة المرور</a
             >
           </div>
-          <!-- Navigation -->
+          
           <div class="flex gap-3">
-            <!-- INC-2026-004 FIX: Canonical .nm-step-back class replaces 105+ chars inline Tailwind.
-               Standard: Design System Governance (DRY, Single Source of Truth). -->
+            
             <button type="button" class="nm-step-back" data-goto-step="1">
               <i class="ph ph-caret-left" aria-hidden="true"></i>
               <span data-i18n="reg_back">رجوع</span>
@@ -801,15 +702,15 @@
           </div>
         </fieldset>
 
-        <!-- ─── STEP 3: Consent & Submit ─────────────────── -->
+        
         <fieldset class="nm-step-panel nm-hidden" data-reg-step="3">
           <legend class="sr-only" data-i18n="reg_legend_consent">
             الخطوة ٣: المراجعة والموافقة
           </legend>
-          <!-- Multi-Role Architecture note -->
-          <!-- Users start as 'donor' by default and activate additional roles from dashboard. -->
+          
+          
 
-          <!-- Summary card: show what user entered -->
+          
           <div
             class="bg-slate-50 rounded-xl p-4 mb-4 border border-slate-200 dark:bg-dark-elevated dark:border-dark-border"
           >
@@ -820,9 +721,7 @@
               >
                 راجع معلوماتك قبل إنشاء الحساب
               </p>
-              <!-- DEF-008 FIX: Direct edit shortcut from review card.
-                 Previous: Users had to click "Back" twice to edit name/email.
-                 Standard: Nielsen #3 (User Control & Freedom), Material Design 3 Stepper. -->
+              
               <button
                 type="button"
                 class="text-xs font-bold text-trust-blue hover:underline flex items-center gap-1 transition-colors min-h-[44px] min-w-[44px] justify-center"
@@ -846,14 +745,8 @@
                 >
                   —
                 </p>
-                <!-- FRIC-2026-003 FIX: Password strength indicator in review card.
-                   Previous: Only name + email shown — no confirmation that password met requirements.
-                   Reduces user anxiety about password acceptance at final step.
-                   Standard: Nielsen #1 (System Status Visibility), Material Design 3. -->
-                <!-- BUG-F01 FIX: Removed hardcoded "قوي ✓" (Strong ✓).
-                   Previous: Always showed "Strong ✓" regardless of actual score.
-                   Now: auth.ts dynamically populates both text and color.
-                   Standard: Nielsen #1 (System Status Visibility), Zero False Confidence. -->
+                
+                
                 <p id="reg-review-pw-strength" class="text-xs font-semibold mt-0.5 nm-hidden">
                   <i class="ph ph-shield-check text-xs" aria-hidden="true"></i>
                   <span id="reg-review-pw-strength-text"></span>
@@ -862,9 +755,9 @@
             </div>
           </div>
 
-          <!-- GAP-X05 FIX: Active consent checkbox — GDPR Art. 7 -->
+          
           <div class="flex items-start gap-3 mt-1">
-            <!-- GAP-2026-B07 FIX: aria-describedby links checkbox to validation error. -->
+            
             <input
               id="reg-terms"
               name="terms"
@@ -877,8 +770,7 @@
               for="reg-terms"
               class="text-xs text-slate-500 leading-relaxed cursor-pointer dark:text-slate-400"
             >
-              <!-- SEC-W11-001 FIX: Added rel="noopener noreferrer" to prevent reverse tabnapping.
-                 Standard: OWASP Reverse Tabnapping, Security Best Practices. -->
+              
               <span data-i18n-html="auth_terms_agree"
                 >أوافق على
                 <a
@@ -899,8 +791,8 @@
               >
             </label>
           </div>
-          <!-- GAP-2026-B07 FIX: Custom validation error -->
-          <!-- P2-UXA-010 FIX: Error text upgraded from text-3xs to text-xs for readability -->
+          
+          
           <p
             id="reg-terms-error"
             class="text-xs text-red-500 font-semibold mt-1 nm-hidden"
@@ -910,15 +802,14 @@
             يجب الموافقة على الشروط
           </p>
 
-          <!-- Navigation -->
+          
           <div class="flex gap-3 mt-4">
-            <!-- INC-2026-004 FIX: Canonical .nm-step-back class replaces 105+ chars inline Tailwind.
-               Standard: Design System Governance (DRY, Single Source of Truth). -->
+            
             <button type="button" class="nm-step-back" data-goto-step="2">
               <i class="ph ph-caret-left" aria-hidden="true"></i>
               <span data-i18n="reg_back">رجوع</span>
             </button>
-            <!-- Submit (existing ID preserved for auth.ts) -->
+            
             <button type="submit" id="reg-submit" class="btn-primary flex-[2]">
               <i class="ph ph-user-plus" aria-hidden="true"></i>
               <span id="reg-submit-text" data-i18n="create_account_btn">إنشاء حساب</span>
@@ -927,11 +818,8 @@
         </fieldset>
       </form>
 
-      <!-- Trust Footer -->
-      <!-- FRC-N03 FIX: Progressive disclosure for trust signals.
-         Previous: معيار بيانات التعاقد المفتوح/Encryption badges shown alongside login form — cognitive overload.
-         Now: collapsed into a "Security Details" drawer. Legal text always visible.
-         Standard: Nielsen #8 — "Aesthetic and minimalist design." -->
+      
+      
       <div class="mt-auto px-6 py-8 text-center relative z-10">
         <details class="mb-3">
           <summary
@@ -958,20 +846,15 @@
             </div>
           </div>
         </details>
-        <!-- CONF-N02 FIX: Removed passive footer text "By continuing, you agree..."
-           The explicit checkbox consent (L221-227) is the binding legal mechanism per GDPR Art. 7.
-           Having both created dual consent ambiguity — one demonstrable act is required.
-           Standard: GDPR Art. 7, ePrivacy Directive, Nielsen Heuristic #8 (Minimalist Design). -->
+        
       </div>
     </main>
 
-    <!-- PLT-I004 FIX: Standardized DOM order to: </main> → orbs → <footer> → scripts.
-       Orbs (decorative, aria-hidden) precede <footer> landmark per WCAG 1.3.1.
-       Standard: DOM Consistency, WCAG 1.3.1 (Landmark Order). -->
+    
     <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
     <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 
-    <!-- LEG-001 FIX: Legal footer — Terms, Privacy, Refund links (Platinum Standard) -->
+    
     <footer class="nm-legal-footer">
       <nav aria-label="Legal navigation">
         <a href="/terms.html" data-i18n="footer_terms">الشروط والأحكام</a>
@@ -984,8 +867,7 @@
     <script src="/i18n.js" defer></script>
     <script src="/i18n/common.js" defer></script>
     <script src="/i18n/auth.js" defer></script>
-    <!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
-     Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->
+    
     <script src="/nm-timers.js" defer></script>
     <script src="/load-guard.js" defer></script>
   </body>

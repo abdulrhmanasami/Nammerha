@@ -312,7 +312,7 @@ export async function getImpactReport(): Promise<ImpactReport> {
     completion_rate: totalProjects > 0 ? Math.round((completed / totalProjects) * 10000) / 100 : 0,
     verification_rate:
       materialsDelivered > 0 ? Math.round((totalProofs / materialsDelivered) * 10000) / 100 : 0,
-    avg_project_duration_days: Math.round(parseFloat(r?.avg_duration_days ?? '0')),
+    avg_project_duration_days: Math.round(Number(r?.avg_duration_days ?? '0')),
     currency: 'USD',
   };
 }

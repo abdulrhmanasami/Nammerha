@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="utf-8" />
-    <!-- FRC-006 FIX: Inline Theme Boot (Synchronous) — Zero FOUC, Zero Delay -->
+    
     <script>
       (function () {
         var m =
@@ -18,8 +18,8 @@
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
     <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <!-- CONF-P01 FIX: Enforceable CSP directives -->
-    <!-- P0-MOB-001 FIX: PWA installability -->
+    
+    
     <link rel="manifest" href="/manifest.json" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -42,9 +42,9 @@
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="نعمّرها — من نحن" />
 
-    <!-- Fonts: IBM Plex Sans Arabic + Plus Jakarta Sans (self-hosted, zero-CDN) -->
-    <!-- P0-002 FIX: Replaced Google Fonts CDN (fonts.googleapis.com) with self-hosted -->
-    <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
+    
+    
+    
     <link
       rel="preload"
       href="/fonts/ibm-plex-sans-arabic.css"
@@ -57,23 +57,19 @@
     <noscript><link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" /></noscript>
     <link rel="stylesheet" href="/fonts/ibm-plex-sans-arabic.css" />
     <link rel="stylesheet" href="/fonts/plus-jakarta-sans.css" />
-    <!-- Phosphor Icons -->
-    <!-- P2-AUD-004 FIX: Removed duplicate font preload — was declared on both line 32 and here.
-       Duplicate <link rel="preload"> wastes browser resources and triggers console warnings.
-       Standard: Performance hygiene, single source of preload. -->
+    
+    
     <link rel="stylesheet" href="/fonts/phosphor/phosphor.css" />
-    <!-- GSAP + ScrollTrigger (self-hosted, zero-CDN) -->
-    <!-- P0-002 FIX: Replaced cdnjs.cloudflare.com CDN with self-hosted copies -->
+    
+    
     <script src="/vendor/gsap/gsap.min.js" defer></script>
     <script src="/vendor/gsap/ScrollTrigger.min.js" defer></script>
     <link href="/i18n.css" rel="stylesheet" />
 
-    <!-- DEFECT-01 FIX: All about-page CSS extracted to _about.css partial (loaded via main.css @import).
-       Previous: 1130 lines of internal <style> — violated CSS Architecture (caching, governance).
-       Standard: CSS Single Source of Truth, Single Responsibility Principle. -->
+    
   </head>
   <body class="about-page">
-    <!-- PE-001 FIX: Noscript fallback -->
+    
     <noscript>
       <style>
         html:not([data-theme]) {
@@ -84,10 +80,10 @@
         <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل جافا سكريبت في إعدادات متصفحك.</p>
       </div>
     </noscript>
-    <!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
+    
     <a href="#main-content" class="skip-link" data-i18n="skip_to_content">تخطي إلى المحتوى</a>
 
-    <!-- ═══ TOP NAV ═══════════════════════════════════════════════════════════ -->
+    
     <nav class="top-nav" id="topNav">
       <div class="nav-logo">
         <img src="/brand/Nammerha_logo_icon.svg" alt="نعمّرها" />
@@ -111,16 +107,13 @@
       </div>
     </nav>
 
-    <!-- P1-AUD3-002 FIX: Wrapped all page content in <main id="main-content"> landmark.
-       Previous: skip-link targeted an empty <a> anchor — invalid landmark.
-       Now: proper <main> wrapping provides WCAG 1.3.1 landmark + skip-link target.
-       Standard: WCAG 2.4.1 (Bypass Blocks), WCAG 1.3.1 (Info and Relationships). -->
+    
     <main id="main-content">
-      <!-- ═══ HERO ══════════════════════════════════════════════════════════════ -->
+      
       <section class="hero" id="hero" tabindex="-1">
-        <!-- Ambient orbs -->
-        <!-- P2-AUD3-002 FIX: Inline right/left → inset-inline-end/start for RTL parity. -->
-        <!-- P1-SST-002 FIX: Inline styles → CSS classes (hero-orb-1/2/3 in _about.css). -->
+        
+        
+        
         <div class="orb hero-orb-1"></div>
         <div class="orb hero-orb-2"></div>
         <div class="orb hero-orb-3"></div>
@@ -165,16 +158,9 @@
         </div>
       </section>
 
-      <!-- ═══════════════════════════════════════════════════════════════════════
-       GAP-2026-B05 FIX: Floating Table of Contents
-       Provides in-page navigation for this 60KB long-form page.
-       Uses IntersectionObserver for scroll-spy (no scroll event overhead).
-       On mobile ≤768px: collapses into a floating pill toggle.
-       Standard: WCAG 2.4.8 (Location), Nielsen #1 (System Status Visibility),
-       Apple HIG (In-Page Navigation).
-       ═══════════════════════════════════════════════════════════════════════ -->
+      
       <nav class="nm-toc" id="nmToc" aria-label="Table of Contents">
-        <!-- Mobile toggle button -->
+        
         <button
           type="button"
           class="nm-toc-toggle"
@@ -208,7 +194,7 @@
         </div>
       </nav>
 
-      <!-- ═══ STORY SECTION — Timeline ══════════════════════════════════════════ -->
+      
       <section class="section" id="storySection">
         <div class="container">
           <div class="section-header">
@@ -228,7 +214,7 @@
               <div class="timeline-track-fill" id="timelineFill"></div>
             </div>
 
-            <!-- Phase 1 -->
+            
             <div class="timeline-item" data-anim>
               <div class="timeline-dot dot-blue">1</div>
               <div class="timeline-card glass">
@@ -246,7 +232,7 @@
               </div>
             </div>
 
-            <!-- Phase 2 -->
+            
             <div class="timeline-item" data-anim>
               <div class="timeline-dot dot-jade">2</div>
               <div class="timeline-card glass">
@@ -263,7 +249,7 @@
               </div>
             </div>
 
-            <!-- Phase 3 -->
+            
             <div class="timeline-item" data-anim>
               <div class="timeline-dot dot-earth">3</div>
               <div class="timeline-card glass">
@@ -285,7 +271,7 @@
 
       <div class="divider"></div>
 
-      <!-- ═══ LEADERSHIP ════════════════════════════════════════════════════════ -->
+      
       <section class="section" id="leadershipSection">
         <div class="container">
           <div class="section-header">
@@ -354,7 +340,7 @@
 
       <div class="divider"></div>
 
-      <!-- ═══ APPROACH — Bento Grid ═════════════════════════════════════════════ -->
+      
       <section class="section" id="approachSection">
         <div class="container">
           <div class="section-header">
@@ -366,7 +352,7 @@
           </div>
 
           <div class="bento">
-            <!-- Large Card: Theory of Change -->
+            
             <div class="bento-card glass bento-large" data-anim>
               <div class="bento-icon bento-icon-blue">
                 <i class="ph ph-graph"></i>
@@ -379,7 +365,7 @@
               </p>
             </div>
 
-            <!-- TaaS -->
+            
             <div class="bento-card glass" data-anim>
               <div class="bento-icon bento-icon-jade">
                 <i class="ph ph-shield-check"></i>
@@ -393,7 +379,7 @@
               </p>
             </div>
 
-            <!-- Hybrid Model -->
+            
             <div class="bento-card glass" data-anim>
               <div class="bento-icon bento-icon-earth">
                 <i class="ph ph-scales"></i>
@@ -405,7 +391,7 @@
               </p>
             </div>
 
-            <!-- MEAL -->
+            
             <div class="bento-card glass bento-span-2" data-anim>
               <div class="bento-icon bento-icon-blue">
                 <i class="ph ph-chart-bar"></i>
@@ -423,7 +409,7 @@
 
       <div class="divider"></div>
 
-      <!-- ═══ TRUST & COMPLIANCE — Stats ════════════════════════════════════════ -->
+      
       <section class="section" id="trustSection">
         <div class="container">
           <div class="stats-section" data-anim>
@@ -462,7 +448,7 @@
         </div>
       </section>
 
-      <!-- ═══ CTA ═══════════════════════════════════════════════════════════════ -->
+      
       <section class="cta-section">
         <div class="container">
           <div class="cta-box" data-anim>
@@ -472,10 +458,7 @@
               لأن مجتمعات تحمّلت الدمار تستحق أكثر من التعاطف — تستحق شريكاً يحوّل سخاءك إلى تغيير
               دائم وقابل للقياس. نحن نوفر الأدوات. أنت تصنع الأثر.
             </p>
-            <!-- P2-WEB-003 FIX: Replaced donor-basket.html (suspended) with projects.html (live).
-             Donation system permanently suspended (KI: nammerha_donation_suspension).
-             Users can browse and fund active reconstruction projects.
-             Standard: Nielsen #2 (Match System ↔ Real World), KI Compliance. -->
+            
             <a href="projects.html" class="cta-btn">
               <i class="ph ph-heart"></i>
               <span data-i18n="about_cta_btn1">موّل مشروعاً الآن</span>
@@ -488,7 +471,7 @@
         </div>
       </section>
 
-      <!-- ═══ FOOTER ═══════════════════════════════════════════════════════════ -->
+      
       <footer class="site-footer">
         <div class="container">
           <div class="footer-logo">
@@ -505,9 +488,9 @@
         </div>
       </footer>
     </main>
-    <!-- P1-AUD3-002: End of <main> landmark -->
+    
 
-    <!-- ═══ ANIMATIONS — GSAP ScrollTrigger ══════════════════════════════════ -->
+    
     <script>
       document.addEventListener('DOMContentLoaded', function () {
         // ─── Nav scroll effect ───────────────────────────────────────────────
@@ -745,18 +728,11 @@
       });
     </script>
 
-    <!-- FIX-4: Duplicate global legal footer REMOVED.
-       The About page already has its own artisan footer (lines 379-393)
-       with Terms, Privacy, Contact, and Refund links.
-       The global nm-legal-footer created redundant visual clutter.
-       FIX-COS: Gradient orbs REMOVED — the About page has its own
-       hero-orb-1/2/3 system; the global orbs are for portal pages.
-       Standard: DRY, Nielsen #4 (Consistency), Zero Redundancy. -->
+    
     <script src="/i18n.js" defer></script>
     <script src="/i18n/common.js" defer></script>
     <script src="/i18n/legal.js" defer></script>
-    <!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
-     Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->
+    
     <script src="/nm-timers.js" defer></script>
     <script src="/load-guard.js" defer></script>
     <script src="/nav.js" defer></script>

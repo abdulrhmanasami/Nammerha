@@ -137,7 +137,7 @@ export async function screenUserAgainstSDN(userId: string): Promise<ScreeningRes
 
   if (matchRes.rows.length > 0) {
     const match = matchRes.rows[0];
-    matchScore = parseFloat(match.match_score as string);
+    matchScore = Number(match.match_score as string);
     matchedSdnId = match.sdn_id as string;
     matchedName = match.sdn_name as string;
 
@@ -370,7 +370,7 @@ export async function checkDualUse(
 
   if (matchRes.rows.length > 0) {
     const match = matchRes.rows[0];
-    const score = parseFloat(match.match_score as string);
+    const score = Number(match.match_score as string);
 
     if (score > 0.3) {
       // Flag the BOQ item

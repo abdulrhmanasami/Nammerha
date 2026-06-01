@@ -178,7 +178,7 @@ export async function translateText(dto: TranslateDTO): Promise<TranslationResul
             target_lang: row.target_lang,
             provider: 'cached',
             content_type: row.content_type,
-            qe_score: parseFloat(row.qe_score),
+            qe_score: Number(row.qe_score),
             status: row.status,
             from_cache: true,
             glossary_terms_enforced: 0,

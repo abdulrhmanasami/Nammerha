@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="utf-8" />
-    <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
+    
     <style>
       @keyframes _f {
         to {
@@ -18,8 +18,8 @@
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
     <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <!-- CONF-P01 FIX: Enforceable CSP directives -->
-    <!-- P0-MOB-001 FIX: PWA installability -->
+    
+    
     <link rel="manifest" href="/manifest.json" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -30,8 +30,7 @@
       name="description"
       content="Concierge escrow verification: match financial documents with spatial field proofs before releasing funds."
     />
-    <!-- DEF-013 FIX: Prevent search engine indexing of authenticated pages.
-       Standard: SEO Best Practice — authenticated content must not be indexed. -->
+    
     <meta name="robots" content="noindex, nofollow" />
     <meta property="og:title" content="Nammerha — Escrow Verification | التحقق من الضمان" />
     <meta
@@ -42,7 +41,7 @@
     <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="Nammerha — Escrow Verification | التحقق من الضمان" />
-    <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
+    
     <link
       rel="preload"
       href="/fonts/ibm-plex-sans-arabic.css"
@@ -60,7 +59,7 @@
   <body
     class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100"
   >
-    <!-- PE-001 FIX: Noscript fallback -->
+    
     <noscript>
       <style>
         html:not([data-theme]) {
@@ -71,18 +70,15 @@
         <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل جافا سكريبت في إعدادات متصفحك.</p>
       </div>
     </noscript>
-    <!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
+    
     <a href="#main-content" class="skip-link" data-i18n="skip_to_content">تخطي إلى المحتوى</a>
     <div class="dashboard-layout">
-      <!-- Sidebar Overlay (mobile) -->
+      
       <div class="sidebar-overlay" aria-hidden="true"></div>
 
-      <!-- Sidebar Navigation -->
+      
       <aside class="dashboard-sidebar">
-        <!-- CONF-ADM-001 FIX: Standardized from p-6 no-border to p-4 border-b.
-         CONF-ADM-002 FIX: Logo text changed from <h1> to <span> — real <h1> is in content.
-         CONF-ADM-005 FIX: Role-switcher mount added.
-         Standard: Nielsen #4 (Consistency), WCAG 1.3.1 (Heading Hierarchy). -->
+        
         <div class="p-4 border-b border-slate-200 flex items-center gap-3 dark:border-dark-border">
           <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-9 w-auto" />
           <span class="text-xl font-bold tracking-tight">Nammerha</span>
@@ -116,9 +112,7 @@
             <i class="ph ph-chart-line-up" aria-hidden="true"></i>
             <span class="font-medium" data-i18n="admin_pricing_oracle">مؤشر الأسعار</span>
           </a>
-          <!-- CONF-ADM-004 FIX: Active link self-references instead of href="#".
-           href="#" causes scroll-to-top and browser history pollution.
-           Standard: Nielsen #2 (No dead controls), WCAG 4.1.2. -->
+          
           <a
             class="flex items-center gap-3 px-3 py-2 bg-trust-blue/10 text-trust-blue rounded-lg"
             href="admin-escrow.html"
@@ -152,9 +146,7 @@
           </a>
         </nav>
         <div class="p-4 border-t border-slate-200 dark:border-dark-border">
-          <!-- CONF-ADM-006 FIX: Settings disabled with 'Coming Soon' indicator.
-           Was a clickable <a href="#"> — dead link.
-           Standard: Nielsen #2 (No dead controls), Apple HIG (Disabled States). -->
+          
           <span
             class="flex items-center gap-3 px-3 py-2 text-slate-400 rounded-lg cursor-not-allowed opacity-60 dark:text-slate-500"
             aria-disabled="true"
@@ -182,8 +174,7 @@
               </p>
             </div>
           </div>
-          <!-- CONF-ADM-006 FIX: Logout button was missing.
-           Standard: Nielsen #3 (User Control & Freedom), WCAG 2.1. -->
+          
           <button
             type="button"
             id="portal-logout-btn"
@@ -195,12 +186,9 @@
         </div>
       </aside>
 
-      <!-- CONF-ADM-003 FIX: Unified to single <main> element — was <div class="dashboard-main">
-       wrapping a nested <main>, creating doubled landmark violation.
-       Standard: WCAG 1.3.1 (Info and Relationships), HTML5 §4.4.1. -->
+      
       <main id="main-content" class="dashboard-main">
-        <!-- CON-003 FIX: Wrapped header content in max-w-6xl centered container.
-         Standard: Nielsen #4 (Consistency), Apple HIG (Content Width). -->
+        
         <header
           class="h-14 bg-white border-b border-slate-200 flex items-center justify-center shrink-0 sticky top-0 z-[var(--z-header)] dark:bg-dark-surface dark:border-dark-border"
         >
@@ -227,7 +215,7 @@
               >
             </div>
             <div class="flex items-center gap-4">
-              <!-- Case Navigator -->
+              
               <div
                 class="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 dark:bg-dark-elevated dark:border-dark-border"
               >
@@ -251,8 +239,7 @@
                   <i class="ph ph-caret-right text-sm" aria-hidden="true"></i>
                 </button>
               </div>
-              <!-- GAP-P3-001/002 FIX: Search & bell had no JS handler — disabled with accessible label.
-             Standard: Nielsen #2 (No dead controls), WCAG 4.1.2. -->
+              
               <span
                 class="text-slate-300 cursor-not-allowed opacity-60"
                 aria-disabled="true"
@@ -273,10 +260,9 @@
           </div>
         </header>
 
-        <!-- Page Title -->
+        
         <div class="px-6 pt-5 pb-4">
-          <!-- CONF-P3-001 FIX: Was <h2> — promoted to <h1> for proper heading hierarchy.
-           Standard: WCAG 1.3.1 (Heading Hierarchy). -->
+          
           <h1 class="text-2xl font-bold" data-i18n="escrow_release_verification">
             التحقق من تحرير الأمانة
           </h1>
@@ -288,10 +274,10 @@
           </p>
         </div>
 
-        <!-- Split Screen Content -->
+        
         <div class="flex-1 overflow-y-auto px-6 pb-6">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 h-full" id="verification-panel">
-            <!-- LEFT: Financial Audit Documents -->
+            
             <section
               class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col dark:bg-dark-surface dark:border-dark-border"
             >
@@ -315,7 +301,7 @@
               </div>
 
               <div class="p-5 flex-1 space-y-5">
-                <!-- Purchase Order -->
+                
                 <div
                   class="bg-slate-50 rounded-lg border border-slate-100 p-4 space-y-3 dark:bg-dark-elevated dark:border-dark-border"
                 >
@@ -372,7 +358,7 @@
                   </div>
                 </div>
 
-                <!-- Invoice Document -->
+                
                 <div
                   class="bg-white rounded-lg border-2 border-slate-200 p-5 flex-1 flex flex-col dark:bg-dark-surface dark:border-dark-border"
                 >
@@ -416,7 +402,7 @@
                     </div>
                   </div>
 
-                  <!-- Invoice Zone -->
+                  
                   <div
                     class="flex-1 min-h-[120px] border-2 border-dashed border-slate-200 rounded-lg flex items-center justify-center my-3 dark:border-dark-border"
                   >
@@ -448,7 +434,7 @@
               </div>
             </section>
 
-            <!-- RIGHT: Site Validation & Proof of Work -->
+            
             <section
               class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col dark:bg-dark-surface dark:border-dark-border"
             >
@@ -462,7 +448,7 @@
               </div>
 
               <div class="flex-1 relative">
-                <!-- Field Photo Placeholder -->
+                
                 <div
                   class="absolute inset-0 bg-gradient-to-br from-sky-200 via-sky-300 to-emerald-200 flex items-center justify-center"
                 >
@@ -477,7 +463,7 @@
                   </div>
                 </div>
 
-                <!-- تحديد المواقع العالمي Coordinates Overlay -->
+                
                 <div
                   class="absolute top-4 start-4 bg-trust-blue/90 backdrop-blur-sm text-white px-4 py-3 rounded-xl shadow-lg"
                 >
@@ -496,7 +482,7 @@
                   </div>
                 </div>
 
-                <!-- Timestamp Overlay -->
+                
                 <div
                   class="absolute top-4 end-4 bg-trust-blue/90 backdrop-blur-sm text-white px-4 py-3 rounded-xl shadow-lg text-end"
                 >
@@ -509,7 +495,7 @@
                   <p class="text-sm font-bold" id="timestamp">٨ آذار ٢٠٢٦ — ١٠:٤٥ ص</p>
                 </div>
 
-                <!-- Engineer Identity Card -->
+                
                 <div
                   class="absolute bottom-4 end-4 bg-white/95 backdrop-blur-sm px-4 py-3 rounded-xl shadow-lg border border-slate-200 dark:border-dark-border"
                 >
@@ -525,7 +511,7 @@
                   </p>
                 </div>
 
-                <!-- Photo Thumbnail Placeholder (bottom-left) -->
+                
                 <div class="absolute bottom-4 start-4">
                   <div
                     class="size-20 bg-white/90 backdrop-blur-sm rounded-lg border border-slate-200 shadow-lg flex items-center justify-center dark:bg-[#1e1e1e]/90 dark:border-dark-border"
@@ -540,10 +526,9 @@
             </section>
           </div>
 
-          <!-- Action Bar -->
+          
           <div class="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-            <!-- GAP-P3-006 FIX: Button text was hardcoded English. Now uses data-i18n.
-             Standard: i18n Completeness, WCAG 3.1.1. -->
+            
             <button
               type="button"
               id="flag-btn"
@@ -562,7 +547,7 @@
             </button>
           </div>
 
-          <!-- Compliance Footer -->
+          
           <div class="flex items-center justify-center gap-2 mt-4 mb-2">
             <i
               class="ph ph-shield-check text-smoky-jade text-sm dark:text-emerald-400"
@@ -578,11 +563,11 @@
         </div>
       </main>
     </div>
-    <!-- P1-004 FIX: Orbs before footer — WCAG 1.3.1 landmark order. -->
+    
     <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
     <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 
-    <!-- LEG-001 FIX: Legal footer — Terms, Privacy, Refund links (Platinum Standard) -->
+    
     <footer class="nm-legal-footer">
       <nav aria-label="Legal navigation">
         <a href="/terms.html" data-i18n="footer_terms">الشروط والأحكام</a>
@@ -592,8 +577,7 @@
       <p class="nm-copyright" data-i18n="footer_copyright">© 2026 نعمِّرها. جميع الحقوق محفوظة.</p>
     </footer>
 
-    <!-- CONF-ADM-007 FIX: Reusable empty state template for data tables.
-     Standard: Material Design — Empty States, Nielsen #1 (Visibility). -->
+    
     <template id="tpl-table-empty">
       <tr>
         <td colspan="99" class="px-5 py-0">
@@ -609,8 +593,7 @@
     <script src="/i18n.js" defer></script>
     <script src="/i18n/common.js" defer></script>
     <script src="/i18n/admin.js" defer></script>
-    <!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
-     Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->
+    
     <script src="/nm-timers.js" defer></script>
     <script src="/load-guard.js" defer></script>
     <script src="/nav.js" defer></script>

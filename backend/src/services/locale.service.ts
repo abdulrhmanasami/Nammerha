@@ -111,7 +111,7 @@ export function detectLocaleFromHeader(acceptLanguage?: string): LocaleDetection
             const parts = lang.trim().split(';');
             const code = parts[0]?.trim().toLowerCase() ?? '';
             const qMatch = parts[1]?.match(/q=([\d.]+)/);
-            const quality = qMatch ? parseFloat(qMatch[1] ?? '1') : 1.0;
+            const quality = qMatch ? Number(qMatch[1] ?? '1') : 1.0;
             return { code, quality };
         })
         .sort((a, b) => b.quality - a.quality);

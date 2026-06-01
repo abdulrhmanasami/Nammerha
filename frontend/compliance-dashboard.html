@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="utf-8" />
-    <!-- FRC-006 FIX: Pre-paint FOUC guard — hidden until theme-boot.js sets data-theme -->
+    
     <style>
       @keyframes _f {
         to {
@@ -18,8 +18,8 @@
     <link rel="icon" type="image/svg+xml" href="/brand/Nammerha_logo_icon.svg" />
     <link rel="apple-touch-icon" sizes="192x192" href="/brand/icon-192.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <!-- CONF-P01 FIX: Enforceable CSP directives -->
-    <!-- P0-MOB-001 FIX: PWA installability -->
+    
+    
     <link rel="manifest" href="/manifest.json" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -30,8 +30,7 @@
       name="description"
       content="Compliance and auditor portal for verifying معيار بيانات التعاقد المفتوح compliance, reviewing escrow releases, and auditing financial transparency."
     />
-    <!-- DEF-013 FIX: Prevent search engine indexing of authenticated pages.
-       Standard: SEO Best Practice — authenticated content must not be indexed. -->
+    
     <meta name="robots" content="noindex, nofollow" />
     <meta property="og:title" content="نعمّرها — الامتثال | الامتثال والتدقيق" />
     <meta
@@ -42,7 +41,7 @@
     <meta property="og:image" content="https://nammerha.com/brand/og-default.png" />
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="نعمّرها — الامتثال | الامتثال والتدقيق" />
-    <!-- P0-OPT-FONT FIX: Async CSS loading technique for zero render-blocking -->
+    
     <link
       rel="preload"
       href="/fonts/ibm-plex-sans-arabic.css"
@@ -60,7 +59,7 @@
   <body
     class="bg-cloud-white font-display text-slate-900 antialiased dark:bg-dark-surface dark:text-slate-100"
   >
-    <!-- PE-001 FIX: Noscript fallback -->
+    
     <noscript>
       <style>
         html:not([data-theme]) {
@@ -71,31 +70,21 @@
         <p class="nm-noscript-desc">نعمّرها تتطلّب تفعيل جافا سكريبت في إعدادات متصفحك.</p>
       </div>
     </noscript>
-    <!-- P0-A1 FIX: Skip-to-content link (WCAG 2.4.1) -->
+    
     <a href="#main-content" class="skip-link" data-i18n="skip_to_content">تخطي إلى المحتوى</a>
     <div class="dashboard-layout">
-      <!-- Sidebar Overlay (mobile) -->
+      
       <div class="sidebar-overlay" aria-hidden="true"></div>
 
-      <!-- Sidebar Navigation -->
+      
       <aside class="dashboard-sidebar">
-        <!-- P1-AUD-005 FIX: Standardized to p-4 + border-b (was p-6 no-border).
-         Matches homeowner-portal, donor-portal, contractor-dashboard sidebar headers.
-         Standard: Nielsen #4 (Consistency), Brand identity. -->
+        
         <div class="p-4 border-b border-slate-200 flex items-center gap-3 dark:border-dark-border">
           <img src="/brand/Nammerha_logo_icon.svg" alt="Nammerha" class="h-9 w-auto" />
           <span class="font-bold text-sm" data-i18n="auditor_portal">بوابة المدقق</span>
         </div>
-        <!-- P0-AUD-002 FIX: Complete WAI-ARIA tablist rewrite.
-         Previous: <a href="#"> links with no ARIA semantics — violated WAI-ARIA §3.26.
-         - Caused unwanted history entries and scroll-to-top on click
-         - No role="tablist", role="tab", aria-selected, or aria-controls
-         - Active tab used bg-smoky-jade (brand inconsistency — all other portals use bg-trust-blue)
-         - Missing data-i18n on 4 of 5 sidebar items
-         Now: Proper tablist with 2 tabs (Dashboard, Escrow Reviews) + separate nav links.
-         Standard: WAI-ARIA Authoring Practices §3.26 (Tabs), WCAG 4.1.2, Nielsen #4. -->
-        <!-- P3-AUD-002 FIX: Added pt-3 for breathing room between sidebar header and first tab.
-         Standard: Apple HIG Navigation Spacing, Nielsen #4 (Consistency). -->
+        
+        
         <nav
           class="flex-1 px-4 space-y-1 pt-3"
           role="tablist"
@@ -129,20 +118,14 @@
             >
           </button>
         </nav>
-        <!-- Navigation links outside tablist — these navigate to different pages.
-         Standard: WAI-ARIA §3.26 mandates tab containers may ONLY contain role="tab" elements. -->
-        <!-- DEF-NAV-001 FIX: Standardized from legacy px-4 space-y-1 pb-2 to canonical pattern.
-         Standard: Nielsen #4 (Consistency), Design System Structural Unity. -->
+        
+        
         <div
           class="p-4 border-t border-slate-200 space-y-1 dark:border-dark-border"
           data-section-label="Navigate"
           data-i18n-attr="data-section-label:sidebar_navigate"
         >
-          <!-- CRIT-002 FIX: 3 dead href="#" links → disabled <span> with "Coming Soon" badge.
-           Previous: <a href="#"> caused scroll-to-top, browser history pollution, and violated
-           Nielsen #2 (No Dead Controls). WCAG 4.1.2 requires interactive elements to have purpose.
-           Pattern: Matches admin-oracle.html CONF-ADM-006, admin-dashboard.html GAP-ADM-002.
-           Standard: Nielsen #2, WCAG 4.1.2 (Name, Role, Value), Apple HIG (Disabled States). -->
+          
           <span
             class="flex items-center gap-3 px-3 py-2 text-slate-400 rounded-lg cursor-not-allowed opacity-60 dark:text-slate-500"
             aria-disabled="true"
@@ -202,9 +185,7 @@
               </p>
             </div>
           </div>
-          <!-- P0-AUD-003 FIX: Logout button was missing from compliance sidebar.
-           All other portal sidebars (homeowner, donor, tradesperson, contractor) have it.
-           Standard: Nielsen #3 (User Control and Freedom), Security UX. -->
+          
           <button
             type="button"
             id="portal-logout-btn"
@@ -216,13 +197,9 @@
         </div>
       </aside>
 
-      <!-- P0-AUD-001 FIX: Was <div> — skip-link targets #main-content, must be <main> landmark (WCAG 1.3.1).
-       Every other dashboard/portal page uses <main>. This was the sole violator.
-       Standard: WCAG 1.3.1 (Info and Relationships), HTML5 §4.4.1. -->
+      
       <main id="main-content" class="dashboard-main">
-        <!-- P2-AUD-002 FIX: Wrapped header content in max-w-6xl centered container.
-         Previous: content stretched edge-to-edge on wide screens.
-         Standard: Nielsen #4 (Consistency), PLT-AUD2-C001 pattern. -->
+        
         <header
           class="h-14 bg-white border-b border-slate-200 flex items-center justify-center shrink-0 sticky top-0 z-[var(--z-header)] dark:bg-dark-surface dark:border-dark-border"
         >
@@ -242,10 +219,8 @@
               <span class="text-xs text-slate-400 dark:text-slate-500" id="live-timestamp"></span>
             </div>
             <div class="flex items-center gap-4">
-              Standard: Design System Component Consistency. -->
-              <!-- PLAT-P1-004 FIX: Was ONLY portal missing data-scroll-target + title.
-             All other 6 portals have both attributes on notification bell.
-             Standard: Nielsen #4 (Consistency), WCAG 4.1.2 (Name, Role, Value). -->
+
+              
               <button
                 type="button"
                 class="relative"
@@ -259,11 +234,8 @@
                   class="ph ph-bell text-slate-400 hover:text-slate-600 transition-colors text-xl dark:text-slate-500"
                   aria-hidden="true"
                 ></i>
-                <!-- P2-AUD-003 FIX: Changed bg-warning-yellow → bg-trust-blue.
-               All other portals use bg-trust-blue for notification count badge.
-               Compliance was the sole outlier using bg-warning-yellow.
-               Standard: Nielsen #4 (Consistency), Design System Color Token. -->
-                <!-- SWEEP-W5-002: Hidden + empty \u2014 no notification system exists yet. -->
+                
+                
                 <span
                   class="absolute -top-1 -end-1 size-4 bg-trust-blue text-white text-3xs font-bold rounded-full flex items-center justify-center nm-hidden"
                   id="notif-count"
@@ -273,14 +245,10 @@
           </div>
         </header>
 
-        <!-- P1-AUD-003 FIX: Added max-w-6xl wrapper — was missing.
-         Content stretched full-width on >1920px screens. Every other portal has the centering wrapper.
-         Standard: Nielsen #4 (Consistency), Apple HIG (Content Width), CRIT-006 pattern. -->
+        
         <div class="flex-1 overflow-y-auto p-6 space-y-6">
           <div class="max-w-6xl mx-auto space-y-6">
-            <!-- P1-AUD-004 FIX: Content-level <h1> + subtitle — TYPE A heading pattern.
-           Was missing entirely. The only heading was the <span> in the sticky header bar.
-           Standard: WCAG 1.3.1 (Heading Hierarchy), RES-I03 pattern. -->
+            
             <div>
               <h1 class="text-xl font-bold" data-i18n="auditor_dashboard_heading">
                 لوحة التدقيق المالي
@@ -293,9 +261,9 @@
               </p>
             </div>
 
-            <!-- ═══════ Dashboard Section (tab panel) ═══════ -->
+            
             <div id="section-dashboard" role="tabpanel" aria-labelledby="tab-dashboard">
-              <!-- KPI Cards -->
+              
               <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div
                   class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border"
@@ -316,7 +284,7 @@
                   >
                     إجمالي المدقق
                   </p>
-                  <!-- SWEEP-W5-001: Removed individual aria-live. -->
+                  
                   <p class="text-2xl font-black mt-1" data-kpi="total-audited" data-prefix="$">
                     <span class="inline-block h-7 w-24 bg-slate-200 rounded animate-pulse" aria-hidden="true"></span>
                   </p>
@@ -345,9 +313,7 @@
                   >
                     مراجعات معلقة
                   </p>
-                  <!-- CRIT-001a FIX: text-warning-yellow (#FCC934) has 1.56:1 contrast on white — WCAG 1.4.3 FAIL.
-               Replaced with --warning-yellow-text (#b45309, 4.73:1 — PASS AA).
-               Standard: WCAG 2.2 SC 1.4.3 (Contrast Minimum). -->
+                  
                   <p
                     class="text-2xl font-black mt-1 text-warning-yellow"
                     data-kpi="pending-reviews"
@@ -378,10 +344,7 @@
                     <span class="inline-block h-7 w-12 bg-slate-200 rounded animate-pulse" aria-hidden="true"></span>
                   </p>
                 </div>
-                <!-- P2-AUD-001 FIX: Changed non-existent danger-red token to red-500 Tailwind utility.
-             danger-red was not defined in :root or main.css — CSS custom property resolved to empty.
-             Platform uses red-500 for destructive states (profile.html sign-out, error banners).
-             Standard: Design System Token Governance, CSS Custom Property hygiene. -->
+                
                 <div
                   class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-surface dark:border-dark-border"
                 >
@@ -402,7 +365,7 @@
                 </div>
               </div>
 
-              <!-- معيار بيانات التعاقد المفتوح Compliance Status -->
+              
               <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-6">
                 <div
                   class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm dark:bg-dark-surface dark:border-dark-border"
@@ -412,8 +375,7 @@
                       class="ph ph-shield-check text-smoky-jade text-xl dark:text-emerald-400"
                       aria-hidden="true"
                     ></i>
-                    <!-- CRIT-004 FIX: h3→h2 — bridges h1 (L176) → h2 heading hierarchy gap.
-                 Standard: WCAG 2.2 SC 1.3.1 (Heading Hierarchy). -->
+                    
                     <h2 class="font-bold text-sm" data-i18n="auditor_ocds_status">حالة معيار بيانات التعاقد المفتوح</h2>
                   </div>
                   <div class="flex items-center gap-2">
@@ -496,11 +458,8 @@
               </div>
             </div>
 
-            <!-- ═══════ Escrow Review Section (hidden by default) ═══════ -->
-            <!-- DEF-VIS-001 FIX: Replaced style="display:none" with class="hidden".
-           Previous: Inline style forced JS to remove BOTH .hidden AND inline style to show the panel.
-           Every other portal uses class="hidden" exclusively for visibility toggling.
-           Standard: Single Source of Truth for visibility state, CSS Architecture. -->
+            
+            
             <div
               id="section-escrow"
               class="nm-hidden bg-white rounded-xl border border-slate-200 shadow-sm dark:bg-dark-surface dark:border-dark-border"
@@ -540,7 +499,7 @@
               </div>
             </div>
 
-            <!-- معيار بيانات التعاقد المفتوح Footer -->
+            
             <div class="bg-slate-50 rounded-xl p-4 flex items-center gap-4 dark:bg-dark-elevated">
               <div
                 class="size-10 rounded-xl bg-smoky-jade/10 flex items-center justify-center shrink-0"
@@ -551,10 +510,7 @@
                 ></i>
               </div>
               <div>
-                <!-- PLAT-P3-001 FIX: Downgraded from h2→p. This is a decorative trust banner,
-               not a content section heading. Was creating 5+ h2 elements at the same level,
-               diluting screen reader heading navigation.
-               Standard: WCAG 1.3.1 (Heading Hierarchy), Semantic HTML. -->
+                
                 <p class="text-sm font-bold" data-i18n="admin_ocds_compliant">متوافق مع معيار بيانات التعاقد المفتوح</p>
                 <p
                   class="text-xs text-slate-500 mt-0.5 dark:text-slate-400"
@@ -574,13 +530,11 @@
       </main>
     </div>
 
-    <!-- P1-AUD-001 FIX: Gradient orbs — were missing from compliance-dashboard.
-       Every other consumer and portal page has them for visual cohesion.
-       Standard: Design System Visual Cohesion (INC-N03). -->
+    
     <div class="gradient-orb gradient-orb-primary gradient-orb-pos-end" aria-hidden="true"></div>
     <div class="gradient-orb gradient-orb-jade gradient-orb-pos-start" aria-hidden="true"></div>
 
-    <!-- LEG-001 FIX: Legal footer — Terms, Privacy, Refund links (Platinum Standard) -->
+    
     <footer class="nm-legal-footer">
       <nav aria-label="Legal navigation">
         <a href="/terms.html" data-i18n="footer_terms">الشروط والأحكام</a>
@@ -590,10 +544,7 @@
       <p class="nm-copyright" data-i18n="footer_copyright">© 2026 نعمِّرها. جميع الحقوق محفوظة.</p>
     </footer>
 
-    <!-- P1-AUD-002 FIX: Empty-state template — was missing from compliance-dashboard.
-     All other portals (donor, homeowner, tradesperson, contractor-dashboard) have it.
-     TS modules clone this template into empty tbody after data fetch.
-     Standard: Material Design — Empty States, Nielsen #1 (Visibility). -->
+    
     <template id="tpl-table-empty">
       <div class="bg-white py-12 text-center w-full nm-table-empty dark:bg-dark-surface">
         <div
@@ -620,8 +571,7 @@
     <script src="/i18n/common.js" defer></script>
     <script src="/i18n/admin.js" defer></script>
     <script src="/i18n/compliance.js" defer></script>
-    <!-- GAP-2601 FIX: Page Load Guard — detects TS module hydration failures and shows retry UI.
-     Standard: Progressive Enhancement, Nielsen #1 (System Status Visibility). -->
+    
     <script src="/nm-timers.js" defer></script>
     <script src="/load-guard.js" defer></script>
     <script src="/nav.js" defer></script>

@@ -103,7 +103,7 @@ export function requestTimingMiddleware() {
                     {
                         method: req.method,
                         url: req.originalUrl,
-                        durationMs: parseFloat(durationMs.toFixed(2)),
+                        durationMs: Number(durationMs.toFixed(2)),
                         statusCode: res.statusCode,
                     },
                 );

@@ -264,7 +264,7 @@ export async function getQueueStats(): Promise<EmailQueueStats> {
         exhausted: parseInt(row?.exhausted ?? '0', 10),
         total: parseInt(row?.total ?? '0', 10),
         oldest_pending_minutes: row?.oldest_pending_minutes
-            ? Math.round(parseFloat(row.oldest_pending_minutes))
+            ? Math.round(Number(row.oldest_pending_minutes))
             : null,
     };
 }
