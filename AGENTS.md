@@ -914,3 +914,14 @@ or tool call errors) while attempting to fix the same issue:
   3. **Escaping Validation:** Audited `notification-panel.ts` to confirm `esc()` is purely used as `esc(t('key', 'Arabic String'))`, protecting dynamic interpolation without breaking HTML nodes.
   4. **Vite Compilation Guarantee:** Re-triggered `npm run build`. The final optimized `dist` payload passes all strict compilation checks natively inheriting the pure Arabic Tailwind RTL structure with an updated SW cache (`v1780354248019`).
 - **Verification:** 100% Arabic UI compliance across the entire frontend structure. The platform reaches Platinum standard stability. Ready for unified deployment.
+
+**MEMO 76: Logo Dark/Light Mode Adaptability Resolution (June 2, 2026)**
+
+- **Root Cause Destroyed:**
+  1. **UI Contrast Failure:** The platform logo text ("Nammerha") was hardcoded as a white SVG (`nammerha_text_logo_vector.svg`) inside `index.html` and `about.html`. Because the top navigation bar renders as a light glassmorphism element in light mode, the white text became completely invisible, severely violating UI/UX contrast standards and breaking the visual branding.
+- **New Logic Built:**
+  1. **Tailwind Theming Injection:** Natively integrated Tailwind CSS dark/light mode toggle classes into the logo image tags. Replaced the static white logo with a dynamic duality:
+     - `nammerha_text_logo_vector_dark.svg` (Black Text): Rendered via `block dark:hidden`, ensuring perfect visibility in light mode.
+     - `nammerha_text_logo_vector.svg` (White Text): Rendered via `hidden dark:block`, ensuring seamless contrast during dark mode activation.
+  2. **Vite Compilation Guarantee:** Re-triggered `npm run build` locally. The payload natively registers the updated HTML structures and bumps the cache version.
+- **Verification:** The "Nammerha" text logo is now strictly compliant with both light and dark themes across all primary landing endpoints (`index.html`, `about.html`), achieving flawless aesthetic parity.
