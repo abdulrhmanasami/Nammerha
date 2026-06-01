@@ -1,7 +1,7 @@
     """Immutable escrow ledger entry (مجمدة)"""
     type EscrowEntry {
         transactionId: ID!
-        donorId: ID!
+        contributorId: ID!
         itemId: ID!
         projectId: ID!
         amountLocked: BigIntCents!

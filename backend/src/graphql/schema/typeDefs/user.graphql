@@ -1,4 +1,4 @@
-    """Platform user — all roles: donor, homeowner, engineer, supplier, admin, etc."""
+    """Platform user — all roles: contributor, homeowner, engineer, supplier, admin, etc."""
     type User {
         userId: ID!
         email: String!

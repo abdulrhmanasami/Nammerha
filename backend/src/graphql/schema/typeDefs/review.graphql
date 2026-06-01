@@ -15,10 +15,10 @@
         reviewer: User
     }
 
-    """Donor impact communication"""
+    """Contributor impact communication"""
     type ImpactMessage {
         messageId: ID!
-        donorId: ID!
+        contributorId: ID!
         projectId: ID
         eventType: ImpactEventType!
         titleEn: String!

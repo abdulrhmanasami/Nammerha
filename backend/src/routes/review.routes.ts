@@ -3,7 +3,7 @@
 // Polymorphic multi-dimensional review system with trust scoring.
 // ============================================================================
 import { Router, Request, Response } from 'express';
-import { query, transaction } from '../config/database';
+import { query, financialTransaction } from '../config/database';
 import { authMiddleware, requireActive } from '../middleware/auth.middleware';
 import { safeRouteError } from '../utils/safe-error';
 import { logger } from '../utils/logger';
@@ -470,7 +470,7 @@ router.post(
       }
 
       // ── Transaction: insert review + dimension ratings
-      const result = await transaction(async (client) => {
+      const result = await financialTransaction(async (client) => {
         // Insert review
         const reviewResult = await client.query<{ review_id: string }>(
           `INSERT INTO reviews (
@@ -616,7 +616,7 @@ router.put(
 
       // Field-level validation handled by Zod schema (updateReviewSchema)
 
-      await transaction(async (client) => {
+      await financialTransaction(async (client) => {
         // Update review fields
         await client.query(
           `UPDATE reviews SET
@@ -889,7 +889,7 @@ router.post(
       const { reviewId } = req.params;
       const { is_helpful } = reviewHelpfulSchema.parse(req.body);
 
-      await transaction(async (client) => {
+      await financialTransaction(async (client) => {
         // Upsert vote
         await client.query(
           `INSERT INTO review_helpful (review_id, voter_id, is_helpful)

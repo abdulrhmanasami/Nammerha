@@ -3,7 +3,7 @@
 // BuildZoom-style Dynamic Scoring + PostgreSQL-native search + bidding
 // + Georavity (Valhalla) real road distance ranking
 // ============================================================================
-import pool, { transaction } from '../config/database';
+import pool, { financialTransaction } from '../config/database';
 import { getDistanceMatrix } from './georavity.service';
 import type { MatrixEntry } from './georavity.service';
 import { logger } from '../utils/logger';
@@ -548,7 +548,7 @@ export async function submitBid(
   projectId: string,
   dto: SubmitBidDTO,
 ): Promise<ContractorBid> {
-  return transaction(async (client) => {
+  return financialTransaction(async (client) => {
     // Validate project exists and is published
     const projectRes = await client.query(`SELECT status FROM projects WHERE project_id = $1`, [
       projectId,
@@ -667,7 +667,7 @@ export async function acceptBid(
   deciderRole: string = 'homeowner',
 ): Promise<ContractorBid> {
   // HGH-006: Use canonical transaction() utility instead of manual BEGIN/COMMIT
-  const bid = await transaction(async (client) => {
+  const bid = await financialTransaction(async (client) => {
     // Get the bid
     // M-001 FIX: Explicit column list — prevents schema drift.
     const bidRes = await client.query(

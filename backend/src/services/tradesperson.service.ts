@@ -2,7 +2,7 @@
 // Nammerha Backend — Tradesperson Service (أصحاب المهن)
 // Dual-mode: Thumbtack (direct homeowner requests) + Subcontractor (under contractor)
 // ============================================================================
-import { query, transaction } from '../config/database';
+import { query, financialTransaction } from '../config/database';
 import type { TradespersonStats, ServiceRequest, TradeAssignment } from '../types';
 
 // NMR-AUD-201 FIX: Single source of truth for hourly-rate earnings calculation.
@@ -13,28 +13,26 @@ const WORK_HOURS_PER_DAY = parseInt(process.env['WORK_HOURS_PER_DAY'] ?? '10', 1
 // ─── My Profile ─────────────────────────────────────────────────────────────
 
 interface TradespersonProfile {
-    user_id: string;
-    full_name: string;
-    trade: string | null;
-    secondary_trades: string[] | null;
-    hourly_rate: number | null;
-    daily_rate: number | null;
-    availability: string;
-    years_experience: number | null;
-    completed_jobs_count: number;
-    average_rating: number | null;
-    dynamic_score: number;
-    specialty: string | null;
+  user_id: string;
+  full_name: string;
+  trade: string | null;
+  secondary_trades: string[] | null;
+  hourly_rate: number | null;
+  daily_rate: number | null;
+  availability: string;
+  years_experience: number | null;
+  completed_jobs_count: number;
+  average_rating: number | null;
+  dynamic_score: number;
+  specialty: string | null;
 }
 
 /**
  * Get tradesperson's own profile with trade info, rates, and rating.
  */
-export async function getMyProfile(
-    tradespersonId: string,
-): Promise<TradespersonProfile> {
-    const result = await query<TradespersonProfile>(
-        `SELECT
+export async function getMyProfile(tradespersonId: string): Promise<TradespersonProfile> {
+  const result = await query<TradespersonProfile>(
+    `SELECT
             u.user_id,
             u.full_name,
             u.trade,
@@ -49,14 +47,14 @@ export async function getMyProfile(
             u.specialty
          FROM users u
          WHERE u.user_id = $1`,
-        [tradespersonId],
-    );
+    [tradespersonId],
+  );
 
-    if (result.rows.length === 0) {
-        throw new Error('Tradesperson not found');
-    }
+  if (result.rows.length === 0) {
+    throw new Error('Tradesperson not found');
+  }
 
-    return result.rows[0] as TradespersonProfile;
+  return result.rows[0] as TradespersonProfile;
 }
 
 // ─── Dashboard KPIs ─────────────────────────────────────────────────────────
@@ -64,21 +62,19 @@ export async function getMyProfile(
 /**
  * Aggregate tradesperson KPIs across both operating modes.
  */
-export async function getMyStats(
-    tradespersonId: string,
-): Promise<TradespersonStats> {
-    // P2-NEW-001 FIX: Consolidated 5 sequential queries into 1.
-    // Before: 5 round-trips per dashboard load. Now: 1.
-    const result = await query<{
-        active_requests: string;
-        completed_requests: string;
-        active_assignments: string;
-        completed_assignments: string;
-        pending_requests: string;
-        total_earnings: string;
-        avg_rating: string | null;
-    }>(
-        `SELECT
+export async function getMyStats(tradespersonId: string): Promise<TradespersonStats> {
+  // P2-NEW-001 FIX: Consolidated 5 sequential queries into 1.
+  // Before: 5 round-trips per dashboard load. Now: 1.
+  const result = await query<{
+    active_requests: string;
+    completed_requests: string;
+    active_assignments: string;
+    completed_assignments: string;
+    pending_requests: string;
+    total_earnings: string;
+    avg_rating: string | null;
+  }>(
+    `SELECT
             -- Direct jobs (service requests)
             (SELECT COUNT(*) FILTER (WHERE status = 'in_progress')
              FROM service_requests WHERE assigned_tradesperson_id = $1
@@ -119,23 +115,21 @@ export async function getMyStats(
             -- Rating
             (SELECT average_rating FROM users WHERE user_id = $1
             ) AS avg_rating`,
-        [tradespersonId],
-    );
+    [tradespersonId],
+  );
 
-    const r = result.rows[0];
+  const r = result.rows[0];
 
-    return {
-        active_jobs: parseInt(r?.active_requests ?? '0', 10) +
-            parseInt(r?.active_assignments ?? '0', 10),
-        completed_jobs: parseInt(r?.completed_requests ?? '0', 10) +
-            parseInt(r?.completed_assignments ?? '0', 10),
-        pending_requests: parseInt(r?.pending_requests ?? '0', 10),
-        active_assignments: parseInt(r?.active_assignments ?? '0', 10),
-        total_earnings: parseInt(r?.total_earnings ?? '0', 10),
-        average_rating: r?.avg_rating
-            ? parseFloat(r.avg_rating)
-            : null,
-    };
+  return {
+    active_jobs:
+      parseInt(r?.active_requests ?? '0', 10) + parseInt(r?.active_assignments ?? '0', 10),
+    completed_jobs:
+      parseInt(r?.completed_requests ?? '0', 10) + parseInt(r?.completed_assignments ?? '0', 10),
+    pending_requests: parseInt(r?.pending_requests ?? '0', 10),
+    active_assignments: parseInt(r?.active_assignments ?? '0', 10),
+    total_earnings: parseInt(r?.total_earnings ?? '0', 10),
+    average_rating: r?.avg_rating ? parseFloat(r.avg_rating) : null,
+  };
 }
 
 // ─── Available Service Requests (Thumbtack Mode) ────────────────────────────
@@ -143,11 +137,9 @@ export async function getMyStats(
 /**
  * Get open service requests matching tradesperson's primary trade.
  */
-export async function getAvailableRequests(
-    tradespersonId: string,
-): Promise<ServiceRequest[]> {
-    const result = await query<ServiceRequest>(
-        `SELECT
+export async function getAvailableRequests(tradespersonId: string): Promise<ServiceRequest[]> {
+  const result = await query<ServiceRequest>(
+    `SELECT
             sr.request_id,
             sr.homeowner_id,
             u.full_name AS homeowner_name,
@@ -173,9 +165,9 @@ export async function getAvailableRequests(
             END,
             sr.created_at DESC
          LIMIT 50`,
-        [tradespersonId],
-    );
-    return result.rows;
+    [tradespersonId],
+  );
+  return result.rows;
 }
 
 // ─── Accept Service Request ─────────────────────────────────────────────────
@@ -184,48 +176,48 @@ export async function getAvailableRequests(
  * Accept a service request (Thumbtack mode). Assigns tradesperson to the request.
  */
 export function acceptRequest(
-    tradespersonId: string,
-    requestId: string,
+  tradespersonId: string,
+  requestId: string,
 ): Promise<{ request_id: string; status: string }> {
-    // P1-NEW-001 FIX: Wrapped in transaction with FOR UPDATE.
-    // Previous code had a TOCTOU race: two tradespersons could pass the
-    // 'status === open' check concurrently — last writer wins silently.
-    return transaction(async (client) => {
-        // Lock the row to prevent concurrent acceptance
-        const check = await client.query<{ status: string; trade_needed: string }>(
-            `SELECT status, trade_needed FROM service_requests WHERE request_id = $1 FOR UPDATE`,
-            [requestId],
-        );
+  // P1-NEW-001 FIX: Wrapped in transaction with FOR UPDATE.
+  // Previous code had a TOCTOU race: two tradespersons could pass the
+  // 'status === open' check concurrently — last writer wins silently.
+  return financialTransaction(async (client) => {
+    // Lock the row to prevent concurrent acceptance
+    const check = await client.query<{ status: string; trade_needed: string }>(
+      `SELECT status, trade_needed FROM service_requests WHERE request_id = $1 FOR UPDATE`,
+      [requestId],
+    );
 
-        const checkedRequest = check.rows[0];
-        if (!checkedRequest) {
-            throw new Error('Service request not found');
-        }
+    const checkedRequest = check.rows[0];
+    if (!checkedRequest) {
+      throw new Error('Service request not found');
+    }
 
-        if (checkedRequest.status !== 'open') {
-            throw new Error('Request is no longer available');
-        }
+    if (checkedRequest.status !== 'open') {
+      throw new Error('Request is no longer available');
+    }
 
-        // Verify tradesperson matches the trade
-        const tradeCheck = await client.query<{ trade: string }>(
-            `SELECT trade FROM users WHERE user_id = $1`,
-            [tradespersonId],
-        );
+    // Verify tradesperson matches the trade
+    const tradeCheck = await client.query<{ trade: string }>(
+      `SELECT trade FROM users WHERE user_id = $1`,
+      [tradespersonId],
+    );
 
-        if (tradeCheck.rows[0]?.trade !== checkedRequest.trade_needed) {
-            throw new Error('Your trade does not match this request');
-        }
+    if (tradeCheck.rows[0]?.trade !== checkedRequest.trade_needed) {
+      throw new Error('Your trade does not match this request');
+    }
 
-        // Assign tradesperson
-        await client.query(
-            `UPDATE service_requests
+    // Assign tradesperson
+    await client.query(
+      `UPDATE service_requests
              SET assigned_tradesperson_id = $1, status = 'matched', matched_at = NOW()
              WHERE request_id = $2`,
-            [tradespersonId, requestId],
-        );
+      [tradespersonId, requestId],
+    );
 
-        return { request_id: requestId, status: 'matched' };
-    });
+    return { request_id: requestId, status: 'matched' };
+  });
 }
 
 // ─── My Contractor Assignments (Subcontractor Mode) ─────────────────────────
@@ -234,10 +226,10 @@ export function acceptRequest(
  * Get all assignments from contractors on larger projects.
  */
 export async function getMyAssignments(
-    tradespersonId: string,
-    status?: string,
+  tradespersonId: string,
+  status?: string,
 ): Promise<TradeAssignment[]> {
-    let sql = `
+  let sql = `
         SELECT
             ta.assignment_id,
             ta.contractor_id,
@@ -257,17 +249,17 @@ export async function getMyAssignments(
         JOIN users con ON con.user_id = ta.contractor_id
         JOIN projects p ON p.project_id = ta.project_id
         WHERE ta.tradesperson_id = $1`;
-    const params: unknown[] = [tradespersonId];
+  const params: unknown[] = [tradespersonId];
 
-    if (status) {
-        sql += ` AND ta.status = $2`;
-        params.push(status);
-    }
+  if (status) {
+    sql += ` AND ta.status = $2`;
+    params.push(status);
+  }
 
-    sql += ` ORDER BY ta.created_at DESC`;
+  sql += ` ORDER BY ta.created_at DESC`;
 
-    const result = await query<TradeAssignment>(sql, params);
-    return result.rows;
+  const result = await query<TradeAssignment>(sql, params);
+  return result.rows;
 }
 
 // ─── Respond to Assignment ──────────────────────────────────────────────────
@@ -276,64 +268,61 @@ export async function getMyAssignments(
  * Accept or decline a contractor assignment.
  */
 export function respondToAssignment(
-    tradespersonId: string,
-    assignmentId: string,
-    accept: boolean,
+  tradespersonId: string,
+  assignmentId: string,
+  accept: boolean,
 ): Promise<{ assignment_id: string; status: string }> {
-    // P1-NEW-002 FIX: Wrapped in transaction with FOR UPDATE.
-    // Previous code had a TOCTOU race: concurrent accept/decline could conflict.
-    return transaction(async (client) => {
-        const check = await client.query<{ status: string; tradesperson_id: string }>(
-            `SELECT status, tradesperson_id FROM trade_assignments WHERE assignment_id = $1 FOR UPDATE`,
-            [assignmentId],
-        );
+  // P1-NEW-002 FIX: Wrapped in transaction with FOR UPDATE.
+  // Previous code had a TOCTOU race: concurrent accept/decline could conflict.
+  return financialTransaction(async (client) => {
+    const check = await client.query<{ status: string; tradesperson_id: string }>(
+      `SELECT status, tradesperson_id FROM trade_assignments WHERE assignment_id = $1 FOR UPDATE`,
+      [assignmentId],
+    );
 
-        const checkedAssignment = check.rows[0];
-        if (!checkedAssignment) {
-            throw new Error('Assignment not found');
-        }
+    const checkedAssignment = check.rows[0];
+    if (!checkedAssignment) {
+      throw new Error('Assignment not found');
+    }
 
-        if (checkedAssignment.tradesperson_id !== tradespersonId) {
-            throw new Error('This assignment is not assigned to you');
-        }
+    if (checkedAssignment.tradesperson_id !== tradespersonId) {
+      throw new Error('This assignment is not assigned to you');
+    }
 
-        if (checkedAssignment.status !== 'pending') {
-            throw new Error('Assignment is no longer pending');
-        }
+    if (checkedAssignment.status !== 'pending') {
+      throw new Error('Assignment is no longer pending');
+    }
 
-        const newStatus = accept ? 'accepted' : 'declined';
-        await client.query(
-            `UPDATE trade_assignments
+    const newStatus = accept ? 'accepted' : 'declined';
+    await client.query(
+      `UPDATE trade_assignments
              SET status = $1, responded_at = NOW()
              WHERE assignment_id = $2`,
-            [newStatus, assignmentId],
-        );
+      [newStatus, assignmentId],
+    );
 
-        return { assignment_id: assignmentId, status: newStatus };
-    });
+    return { assignment_id: assignmentId, status: newStatus };
+  });
 }
 
 // ─── My Earnings ────────────────────────────────────────────────────────────
 
 interface EarningRecord {
-    source_type: string;       // 'service_request' | 'assignment'
-    source_id: string;
-    title: string;
-    amount: number;
-    rate_type: string | null;
-    status: string;
-    completed_at: Date | null;
+  source_type: string; // 'service_request' | 'assignment'
+  source_id: string;
+  title: string;
+  amount: number;
+  rate_type: string | null;
+  status: string;
+  completed_at: Date | null;
 }
 
 /**
  * Get earnings from completed jobs (both modes).
  */
-export async function getMyEarnings(
-    tradespersonId: string,
-    limit = 50,
-): Promise<EarningRecord[]> {
-    const result = await query<EarningRecord>(
-        `-- Completed assignments (subcontractor)
+export async function getMyEarnings(tradespersonId: string, limit = 50): Promise<EarningRecord[]> {
+  const result = await query<EarningRecord>(
+    `-- Completed assignments (subcontractor)
          SELECT
             'assignment' AS source_type,
             ta.assignment_id AS source_id,
@@ -366,9 +355,9 @@ export async function getMyEarnings(
 
          ORDER BY completed_at DESC NULLS LAST
          LIMIT $2`,
-        [tradespersonId, limit],
-    );
-    return result.rows;
+    [tradespersonId, limit],
+  );
+  return result.rows;
 }
 
 // ─── Update Availability ────────────────────────────────────────────────────
@@ -377,18 +366,15 @@ export async function getMyEarnings(
  * Toggle tradesperson availability for matching.
  */
 export async function updateAvailability(
-    tradespersonId: string,
-    status: 'available' | 'busy' | 'offline',
+  tradespersonId: string,
+  status: 'available' | 'busy' | 'offline',
 ): Promise<{ availability: string }> {
-    const validStatuses = ['available', 'busy', 'offline'];
-    if (!validStatuses.includes(status)) {
-        throw new Error(`Invalid availability status. Must be: ${validStatuses.join(', ')}`);
-    }
+  const validStatuses = ['available', 'busy', 'offline'];
+  if (!validStatuses.includes(status)) {
+    throw new Error(`Invalid availability status. Must be: ${validStatuses.join(', ')}`);
+  }
 
-    await query(
-        `UPDATE users SET availability = $1 WHERE user_id = $2`,
-        [status, tradespersonId],
-    );
+  await query(`UPDATE users SET availability = $1 WHERE user_id = $2`, [status, tradespersonId]);
 
-    return { availability: status };
+  return { availability: status };
 }

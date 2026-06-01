@@ -392,7 +392,7 @@ export async function getCommissionSummary(
     total_commissions: parseInt(row?.total_commissions ?? '0', 10),
     total_commission_revenue: parseInt(row?.total_commission_revenue ?? '0', 10),
     mtd_commission_revenue: parseInt(row?.mtd_commission_revenue ?? '0', 10),
-    average_rate_bps: Math.round(parseFloat(row?.average_rate_bps ?? '0')),
+    average_rate_bps: Math.round(Number(row?.average_rate_bps ?? '0')),
     top_tier: tierRes.rows[0]?.tier_name ?? 'N/A',
   };
 }

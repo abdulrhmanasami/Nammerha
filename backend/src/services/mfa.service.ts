@@ -15,7 +15,7 @@
 import crypto from 'node:crypto';
 import * as OTPAuth from 'otpauth';
 import QRCode from 'qrcode';
-import { query, transaction } from '../config/database';
+import { query, financialTransaction } from '../config/database';
 import { logger } from '../utils/logger';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
@@ -37,7 +37,7 @@ function getEncryptionKey(): Buffer {
   if (!keyHex || keyHex.length !== 64) {
     throw new Error(
       '[MFA FATAL] MFA_ENCRYPTION_KEY must be a 64-character hex string (32 bytes). ' +
-        'Generate with: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"',
+        "Generate with: node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\"",
     );
   }
   return Buffer.from(keyHex, 'hex');
@@ -225,7 +225,9 @@ export async function confirmMfaSetup(
 
   const delta = totp.validate({ token, window: TOTP_WINDOW });
   if (delta === null) {
-    throw new Error('Invalid verification code. Please try again with the current code from your authenticator app.');
+    throw new Error(
+      'Invalid verification code. Please try again with the current code from your authenticator app.',
+    );
   }
 
   // ── Activate MFA (transactional) ──
@@ -236,12 +238,11 @@ export async function confirmMfaSetup(
 
   const recoveryCodes = generateRecoveryCodes();
 
-  await transaction(async (client) => {
+  await financialTransaction(async (client) => {
     // Mark secret verified
-    await client.query(
-      'UPDATE user_mfa_secrets SET verified_at = NOW() WHERE user_id = $1',
-      [userId],
-    );
+    await client.query('UPDATE user_mfa_secrets SET verified_at = NOW() WHERE user_id = $1', [
+      userId,
+    ]);
 
     // Enable MFA on user
     await client.query(
@@ -254,10 +255,10 @@ export async function confirmMfaSetup(
 
     // Insert new recovery codes (hashed)
     for (const code of recoveryCodes) {
-      await client.query(
-        'INSERT INTO user_recovery_codes (user_id, code_hash) VALUES ($1, $2)',
-        [userId, hashCode(code)],
-      );
+      await client.query('INSERT INTO user_recovery_codes (user_id, code_hash) VALUES ($1, $2)', [
+        userId,
+        hashCode(code),
+      ]);
     }
 
     // Audit log
@@ -282,7 +283,10 @@ export async function verifyTotpCode(userId: string, token: string): Promise<boo
     encrypted_secret: string;
     verified_at: Date | null;
     last_totp_counter: number | null;
-  }>('SELECT encrypted_secret, verified_at, last_totp_counter FROM user_mfa_secrets WHERE user_id = $1', [userId]);
+  }>(
+    'SELECT encrypted_secret, verified_at, last_totp_counter FROM user_mfa_secrets WHERE user_id = $1',
+    [userId],
+  );
 
   const row = result.rows[0];
   if (!row || !row.verified_at) {
@@ -302,7 +306,9 @@ export async function verifyTotpCode(userId: string, token: string): Promise<boo
       `INSERT INTO audit_trail (entity_type, entity_id, action, actor_id, details)
        VALUES ('mfa_failed', $1, 'mfa_totp_failed', $1, '{"method":"totp"}')`,
       [userId],
-    ).catch(() => { /* Non-blocking */ });
+    ).catch(() => {
+      /* Non-blocking */
+    });
 
     return false;
   }
@@ -326,23 +332,27 @@ export async function verifyTotpCode(userId: string, token: string): Promise<boo
       `INSERT INTO audit_trail (entity_type, entity_id, action, actor_id, details)
        VALUES ('mfa_failed', $1, 'mfa_totp_replay_blocked', $1, $2)`,
       [userId, JSON.stringify({ method: 'totp', replay_counter: acceptedCounter })],
-    ).catch(() => { /* Non-blocking */ });
+    ).catch(() => {
+      /* Non-blocking */
+    });
 
     return false;
   }
 
   // Store the accepted counter to prevent replay
-  await query(
-    'UPDATE user_mfa_secrets SET last_totp_counter = $1 WHERE user_id = $2',
-    [acceptedCounter, userId],
-  );
+  await query('UPDATE user_mfa_secrets SET last_totp_counter = $1 WHERE user_id = $2', [
+    acceptedCounter,
+    userId,
+  ]);
 
   // Log successful MFA login
   await query(
     `INSERT INTO audit_trail (entity_type, entity_id, action, actor_id, details)
      VALUES ('mfa_login', $1, 'mfa_totp_success', $1, '{"method":"totp"}')`,
     [userId],
-  ).catch(() => { /* Non-blocking */ });
+  ).catch(() => {
+    /* Non-blocking */
+  });
 
   return true;
 }
@@ -369,7 +379,9 @@ export async function verifyRecoveryCode(userId: string, code: string): Promise<
       `INSERT INTO audit_trail (entity_type, entity_id, action, actor_id, details)
        VALUES ('mfa_failed', $1, 'mfa_recovery_failed', $1, '{"method":"recovery_code"}')`,
       [userId],
-    ).catch(() => { /* Non-blocking */ });
+    ).catch(() => {
+      /* Non-blocking */
+    });
 
     return false;
   }
@@ -386,7 +398,9 @@ export async function verifyRecoveryCode(userId: string, code: string): Promise<
     `INSERT INTO audit_trail (entity_type, entity_id, action, actor_id, details)
      VALUES ('mfa_login', $1, 'mfa_recovery_success', $1, $2)`,
     [userId, JSON.stringify({ method: 'recovery_code', remaining_codes: remainingCount })],
-  ).catch(() => { /* Non-blocking */ });
+  ).catch(() => {
+    /* Non-blocking */
+  });
 
   if (remainingCount <= 2) {
     logger.warn('MFA: User running low on recovery codes', { userId, remaining: remainingCount });
@@ -400,7 +414,7 @@ export async function verifyRecoveryCode(userId: string, code: string): Promise<
  * Removes TOTP secret and all recovery codes.
  */
 export async function disableMfa(userId: string): Promise<void> {
-  await transaction(async (client) => {
+  await financialTransaction(async (client) => {
     await client.query('DELETE FROM user_mfa_secrets WHERE user_id = $1', [userId]);
     await client.query('DELETE FROM user_recovery_codes WHERE user_id = $1', [userId]);
     await client.query(
@@ -422,9 +436,7 @@ export async function disableMfa(userId: string): Promise<void> {
 /**
  * Get MFA status for the profile page.
  */
-export async function getMfaStatus(
-  userId: string,
-): Promise<{
+export async function getMfaStatus(userId: string): Promise<{
   enabled: boolean;
   enforced_at: string | null;
   recovery_codes_remaining: number;
@@ -472,16 +484,16 @@ export async function regenerateRecoveryCodes(userId: string): Promise<string[]>
 
   const newCodes = generateRecoveryCodes();
 
-  await transaction(async (client) => {
+  await financialTransaction(async (client) => {
     // Delete old codes
     await client.query('DELETE FROM user_recovery_codes WHERE user_id = $1', [userId]);
 
     // Insert new codes
     for (const code of newCodes) {
-      await client.query(
-        'INSERT INTO user_recovery_codes (user_id, code_hash) VALUES ($1, $2)',
-        [userId, hashCode(code)],
-      );
+      await client.query('INSERT INTO user_recovery_codes (user_id, code_hash) VALUES ($1, $2)', [
+        userId,
+        hashCode(code),
+      ]);
     }
 
     // Audit

@@ -7,13 +7,8 @@
 //   3. Engineer uploads BOQ items (assessed)
 //   4. Engineer publishes project to marketplace (published)
 // ============================================================================
-import { query, transaction } from '../config/database';
-import type {
-    Project,
-    ItemizedBOQ,
-    CreateProjectDTO,
-    AddBOQItemDTO,
-} from '../types';
+import { query, financialTransaction } from '../config/database';
+import type { Project, ItemizedBOQ, CreateProjectDTO, AddBOQItemDTO } from '../types';
 
 // ─── Path 1.1: Create Damage Report ─────────────────────────────────────────
 
@@ -22,12 +17,9 @@ import type {
  * Generates an OCDS-compliant project ID (OCDS-SYR-NNNNN).
  * Initial status: 'draft'.
  */
-export async function createProject(
-    homeownerId: string,
-    dto: CreateProjectDTO
-): Promise<Project> {
-    const result = await query<Project>(
-        `INSERT INTO projects (
+export async function createProject(homeownerId: string, dto: CreateProjectDTO): Promise<Project> {
+  const result = await query<Project>(
+    `INSERT INTO projects (
       project_id, homeowner_id, title, description, damage_type, damage_severity,
       gps_location, address_text, cover_image_url, status
     ) VALUES (
@@ -38,24 +30,24 @@ export async function createProject(
                damage_type, damage_severity, status, is_public,
                total_estimated_cost, total_funded_amount,
                published_at, completed_at, created_at, updated_at`,
-        [
-            homeownerId,
-            dto.title,
-            dto.description ?? null,
-            dto.damage_type,
-            dto.damage_severity ?? null,
-            dto.gps_lng,   // PostGIS: longitude first (X)
-            dto.gps_lat,   // PostGIS: latitude second (Y)
-            dto.address_text ?? null,
-            dto.cover_image_url ?? null,
-        ]
-    );
+    [
+      homeownerId,
+      dto.title,
+      dto.description ?? null,
+      dto.damage_type,
+      dto.damage_severity ?? null,
+      dto.gps_lng, // PostGIS: longitude first (X)
+      dto.gps_lat, // PostGIS: latitude second (Y)
+      dto.address_text ?? null,
+      dto.cover_image_url ?? null,
+    ],
+  );
 
-    const project = result.rows[0];
-    if (!project) {
-        throw new Error('Failed to create project');
-    }
-    return project;
+  const project = result.rows[0];
+  if (!project) {
+    throw new Error('Failed to create project');
+  }
+  return project;
 }
 
 // ─── Path 1.2: Assign Engineer ──────────────────────────────────────────────
@@ -68,33 +60,37 @@ export async function createProject(
  * Social Underwriting: The system selects the engineer, not the homeowner.
  */
 export async function assignEngineer(
-    projectId: string
+  projectId: string,
 ): Promise<{ engineer_id: string; engineer_name: string }> {
-    return transaction(async (client) => {
-        // 1. Get project to verify status and location
-        // M-001 FIX: Explicit column list — prevents schema drift.
-        const projectResult = await client.query<Project>(
-            `SELECT project_id, homeowner_id, assigned_engineer_id, assigned_contractor_id,
+  return financialTransaction(async (client) => {
+    // 1. Get project to verify status and location
+    // M-001 FIX: Explicit column list — prevents schema drift.
+    const projectResult = await client.query<Project>(
+      `SELECT project_id, homeowner_id, assigned_engineer_id, assigned_contractor_id,
                     title, description, cover_image_url, gps_location, address_text,
                     damage_type, damage_severity, status, is_public,
                     total_estimated_cost, total_funded_amount, ocds_release_id,
                     published_at, completed_at, created_at, updated_at
              FROM projects WHERE project_id = $1 FOR UPDATE`,
-            [projectId]
-        );
-        const project = projectResult.rows[0];
-        if (!project) { throw new Error(`Project ${projectId} not found`); }
-        if (project.status !== 'draft') {
-            throw new Error(`Cannot assign engineer: project status is '${project.status}', expected 'draft'`);
-        }
+      [projectId],
+    );
+    const project = projectResult.rows[0];
+    if (!project) {
+      throw new Error(`Project ${projectId} not found`);
+    }
+    if (project.status !== 'draft') {
+      throw new Error(
+        `Cannot assign engineer: project status is '${project.status}', expected 'draft'`,
+      );
+    }
 
-        // 2. Find nearest KYC-verified engineer with guild membership
-        const engineerResult = await client.query<{
-            user_id: string;
-            full_name: string;
-            distance_meters: number;
-        }>(
-            `SELECT u.user_id, u.full_name,
+    // 2. Find nearest KYC-verified engineer with guild membership
+    const engineerResult = await client.query<{
+      user_id: string;
+      full_name: string;
+      distance_meters: number;
+    }>(
+      `SELECT u.user_id, u.full_name,
               ST_Distance(u.gps_last_known, p.gps_location) AS distance_meters
        FROM users u
        JOIN user_roles ur ON ur.user_id = u.user_id
@@ -108,27 +104,29 @@ export async function assignEngineer(
          AND u.gps_last_known IS NOT NULL
        ORDER BY ST_Distance(u.gps_last_known, p.gps_location) ASC
        LIMIT 1`,
-            [projectId]
-        );
+      [projectId],
+    );
 
-        const engineer = engineerResult.rows[0];
-        if (!engineer) {
-            throw new Error('No verified engineers available. All engineers must have KYC verification and guild membership.');
-        }
+    const engineer = engineerResult.rows[0];
+    if (!engineer) {
+      throw new Error(
+        'No verified engineers available. All engineers must have KYC verification and guild membership.',
+      );
+    }
 
-        // 3. Assign and transition status
-        await client.query(
-            `UPDATE projects
+    // 3. Assign and transition status
+    await client.query(
+      `UPDATE projects
        SET assigned_engineer_id = $1, status = 'pending_assessment'
        WHERE project_id = $2`,
-            [engineer.user_id, projectId]
-        );
+      [engineer.user_id, projectId],
+    );
 
-        return {
-            engineer_id: engineer.user_id,
-            engineer_name: engineer.full_name,
-        };
-    });
+    return {
+      engineer_id: engineer.user_id,
+      engineer_name: engineer.full_name,
+    };
+  });
 }
 
 // ─── Path 1.3: Add BOQ Item ─────────────────────────────────────────────────
@@ -140,72 +138,74 @@ export async function assignEngineer(
  * Auto-fetches oracle reference price if available.
  */
 export async function addBOQItem(
-    projectId: string,
-    engineerId: string,
-    dto: AddBOQItemDTO
+  projectId: string,
+  engineerId: string,
+  dto: AddBOQItemDTO,
 ): Promise<ItemizedBOQ> {
-    return transaction(async (client) => {
-        // 1. Verify engineer assignment
-        // M-001 FIX: Explicit column list — prevents schema drift.
-        const projectResult = await client.query<Project>(
-            `SELECT project_id, homeowner_id, assigned_engineer_id, assigned_contractor_id,
+  return financialTransaction(async (client) => {
+    // 1. Verify engineer assignment
+    // M-001 FIX: Explicit column list — prevents schema drift.
+    const projectResult = await client.query<Project>(
+      `SELECT project_id, homeowner_id, assigned_engineer_id, assigned_contractor_id,
                     title, description, cover_image_url, gps_location, address_text,
                     damage_type, damage_severity, status, is_public,
                     total_estimated_cost, total_funded_amount, ocds_release_id,
                     published_at, completed_at, created_at, updated_at
              FROM projects WHERE project_id = $1`,
-            [projectId]
-        );
-        const project = projectResult.rows[0];
-        if (!project) { throw new Error(`Project ${projectId} not found`); }
-        if (project.assigned_engineer_id !== engineerId) {
-            throw new Error('You are not assigned to this project');
-        }
-        if (!['pending_assessment', 'assessed'].includes(project.status)) {
-            throw new Error(`Cannot add BOQ items: project status is '${project.status}'`);
-        }
+      [projectId],
+    );
+    const project = projectResult.rows[0];
+    if (!project) {
+      throw new Error(`Project ${projectId} not found`);
+    }
+    if (project.assigned_engineer_id !== engineerId) {
+      throw new Error('You are not assigned to this project');
+    }
+    if (!['pending_assessment', 'assessed'].includes(project.status)) {
+      throw new Error(`Cannot add BOQ items: project status is '${project.status}'`);
+    }
 
-        // 2. Validate preferred supplier (per strategic study §7.2)
-        // UNIFIED CITIZEN: Check user_roles table instead of users.role column
-        const supplierResult = await client.query<{
-            user_id: string;
-            full_name: string;
-            kyc_verification_status: string;
-        }>(
-            `SELECT u.user_id, u.full_name, u.kyc_verification_status
+    // 2. Validate preferred supplier (per strategic study §7.2)
+    // UNIFIED CITIZEN: Check user_roles table instead of users.role column
+    const supplierResult = await client.query<{
+      user_id: string;
+      full_name: string;
+      kyc_verification_status: string;
+    }>(
+      `SELECT u.user_id, u.full_name, u.kyc_verification_status
              FROM users u
              JOIN user_roles ur ON ur.user_id = u.user_id
              JOIN roles r ON r.role_id = ur.role_id AND r.role_name = 'supplier'
              WHERE u.user_id = $1
                AND ur.status = 'active'
                AND u.is_active = TRUE`,
-            [dto.preferred_supplier_id]
-        );
-        const supplier = supplierResult.rows[0];
-        if (!supplier) {
-            throw new Error('Preferred supplier not found or is not an active supplier');
-        }
-        if (supplier.kyc_verification_status !== 'verified') {
-            throw new Error(`Supplier "${supplier.full_name}" has not passed KYC verification`);
-        }
+      [dto.preferred_supplier_id],
+    );
+    const supplier = supplierResult.rows[0];
+    if (!supplier) {
+      throw new Error('Preferred supplier not found or is not an active supplier');
+    }
+    if (supplier.kyc_verification_status !== 'verified') {
+      throw new Error(`Supplier "${supplier.full_name}" has not passed KYC verification`);
+    }
 
-        // 3. Fetch oracle reference price (best match)
-        const oracleResult = await client.query<{
-            current_price: number;
-            recorded_at: Date;
-        }>(
-            `SELECT current_price, recorded_at
+    // 3. Fetch oracle reference price (best match)
+    const oracleResult = await client.query<{
+      current_price: number;
+      recorded_at: Date;
+    }>(
+      `SELECT current_price, recorded_at
        FROM pricing_oracle_entries
        WHERE material_category = $1
        ORDER BY recorded_at DESC
        LIMIT 1`,
-            [dto.material_category ?? null]
-        );
-        const oracle = oracleResult.rows[0];
+      [dto.material_category ?? null],
+    );
+    const oracle = oracleResult.rows[0];
 
-        // 4. Insert BOQ item with pre-assigned supplier
-        const boqResult = await client.query<ItemizedBOQ>(
-            `INSERT INTO itemized_boq (
+    // 4. Insert BOQ item with pre-assigned supplier
+    const boqResult = await client.query<ItemizedBOQ>(
+      `INSERT INTO itemized_boq (
         project_id, material_name, material_category, description, unit,
         unit_price, required_quantity, image_url, oracle_reference_price,
         oracle_price_date, preferred_supplier_id, status, created_by
@@ -214,34 +214,35 @@ export async function addBOQItem(
                description, image_url, unit, unit_price, required_quantity,
                funded_amount, oracle_reference_price, oracle_price_date,
                preferred_supplier_id, status, created_by, created_at, updated_at`,
-            [
-                projectId,
-                dto.material_name,
-                dto.material_category ?? null,
-                dto.description ?? null,
-                dto.unit,
-                dto.unit_price,
-                dto.required_quantity,
-                dto.image_url ?? null,
-                oracle?.current_price ?? null,
-                oracle?.recorded_at ?? null,
-                dto.preferred_supplier_id,
-                engineerId,
-            ]
-        );
+      [
+        projectId,
+        dto.material_name,
+        dto.material_category ?? null,
+        dto.description ?? null,
+        dto.unit,
+        dto.unit_price,
+        dto.required_quantity,
+        dto.image_url ?? null,
+        oracle?.current_price ?? null,
+        oracle?.recorded_at ?? null,
+        dto.preferred_supplier_id,
+        engineerId,
+      ],
+    );
 
-        // 5. Update project status to 'assessed' if still 'pending_assessment'
-        if (project.status === 'pending_assessment') {
-            await client.query(
-                "UPDATE projects SET status = 'assessed' WHERE project_id = $1",
-                [projectId]
-            );
-        }
+    // 5. Update project status to 'assessed' if still 'pending_assessment'
+    if (project.status === 'pending_assessment') {
+      await client.query("UPDATE projects SET status = 'assessed' WHERE project_id = $1", [
+        projectId,
+      ]);
+    }
 
-        const item = boqResult.rows[0];
-        if (!item) { throw new Error('Failed to create BOQ item'); }
-        return item;
-    });
+    const item = boqResult.rows[0];
+    if (!item) {
+      throw new Error('Failed to create BOQ item');
+    }
+    return item;
+  });
 }
 
 // ─── Path 1.4: Publish Project ──────────────────────────────────────────────
@@ -251,43 +252,42 @@ export async function addBOQItem(
  * Changes status: assessed → published.
  * Requires at least 1 BOQ item to exist.
  */
-export async function publishProject(
-    projectId: string,
-    engineerId: string
-): Promise<Project> {
-    return transaction(async (client) => {
-        // 1. Verify project and engineer
-        // M-001 FIX: Explicit column list — prevents schema drift.
-        const projectResult = await client.query<Project>(
-            `SELECT project_id, homeowner_id, assigned_engineer_id, assigned_contractor_id,
+export async function publishProject(projectId: string, engineerId: string): Promise<Project> {
+  return financialTransaction(async (client) => {
+    // 1. Verify project and engineer
+    // M-001 FIX: Explicit column list — prevents schema drift.
+    const projectResult = await client.query<Project>(
+      `SELECT project_id, homeowner_id, assigned_engineer_id, assigned_contractor_id,
                     title, description, cover_image_url, gps_location, address_text,
                     damage_type, damage_severity, status, is_public,
                     total_estimated_cost, total_funded_amount, ocds_release_id,
                     published_at, completed_at, created_at, updated_at
              FROM projects WHERE project_id = $1 FOR UPDATE`,
-            [projectId]
-        );
-        const project = projectResult.rows[0];
-        if (!project) { throw new Error(`Project ${projectId} not found`); }
-        if (project.assigned_engineer_id !== engineerId) {
-            throw new Error('You are not assigned to this project');
-        }
-        if (project.status !== 'assessed') {
-            throw new Error(`Cannot publish: project status is '${project.status}', expected 'assessed'`);
-        }
+      [projectId],
+    );
+    const project = projectResult.rows[0];
+    if (!project) {
+      throw new Error(`Project ${projectId} not found`);
+    }
+    if (project.assigned_engineer_id !== engineerId) {
+      throw new Error('You are not assigned to this project');
+    }
+    if (project.status !== 'assessed') {
+      throw new Error(`Cannot publish: project status is '${project.status}', expected 'assessed'`);
+    }
 
-        // 2. Verify BOQ items exist
-        const boqCount = await client.query<{ count: string }>(
-            'SELECT COUNT(*) AS count FROM itemized_boq WHERE project_id = $1',
-            [projectId]
-        );
-        if (parseInt(boqCount.rows[0]?.count ?? '0', 10) === 0) {
-            throw new Error('Cannot publish: project has no BOQ items');
-        }
+    // 2. Verify BOQ items exist
+    const boqCount = await client.query<{ count: string }>(
+      'SELECT COUNT(*) AS count FROM itemized_boq WHERE project_id = $1',
+      [projectId],
+    );
+    if (parseInt(boqCount.rows[0]?.count ?? '0', 10) === 0) {
+      throw new Error('Cannot publish: project has no BOQ items');
+    }
 
-        // 3. Publish
-        const updated = await client.query<Project>(
-            `UPDATE projects
+    // 3. Publish
+    const updated = await client.query<Project>(
+      `UPDATE projects
        SET status = 'published', published_at = NOW(), is_public = TRUE
        WHERE project_id = $1
        RETURNING project_id, homeowner_id, assigned_engineer_id, title,
@@ -295,13 +295,15 @@ export async function publishProject(
                 damage_type, damage_severity, status, is_public,
                 total_estimated_cost, total_funded_amount,
                 published_at, completed_at, created_at, updated_at`,
-            [projectId]
-        );
+      [projectId],
+    );
 
-        const result = updated.rows[0];
-        if (!result) { throw new Error('Failed to publish project'); }
-        return result;
-    });
+    const result = updated.rows[0];
+    if (!result) {
+      throw new Error('Failed to publish project');
+    }
+    return result;
+  });
 }
 
 // ─── Queries ────────────────────────────────────────────────────────────────
@@ -310,34 +312,34 @@ export async function publishProject(
  * Get a single project by ID.
  */
 export async function getProjectById(projectId: string): Promise<Project | null> {
-    // M-001 FIX: Explicit column list — prevents schema drift.
-    const result = await query<Project>(
-        `SELECT project_id, homeowner_id, assigned_engineer_id, assigned_contractor_id,
+  // M-001 FIX: Explicit column list — prevents schema drift.
+  const result = await query<Project>(
+    `SELECT project_id, homeowner_id, assigned_engineer_id, assigned_contractor_id,
                 title, description, cover_image_url, gps_location, address_text,
                 damage_type, damage_severity, status, is_public,
                 total_estimated_cost, total_funded_amount, ocds_release_id,
                 published_at, completed_at, created_at, updated_at
          FROM projects WHERE project_id = $1`,
-        [projectId]
-    );
-    return result.rows[0] ?? null;
+    [projectId],
+  );
+  return result.rows[0] ?? null;
 }
 
 // ─── GeoJSON Export (Map Layer) ─────────────────────────────────────────────
 
 interface ProjectCardRow {
-    project_id: string;
-    title: string;
-    status: string;
-    damage_type: string;
-    funded_percentage: number;
-    cover_image_url: string | null;
-    homeowner_name: string;
-    total_estimated_cost: number;
-    total_funded_amount: number;
-    address_text: string | null;
-    latitude: number | null;
-    longitude: number | null;
+  project_id: string;
+  title: string;
+  status: string;
+  damage_type: string;
+  funded_percentage: number;
+  cover_image_url: string | null;
+  homeowner_name: string;
+  total_estimated_cost: number;
+  total_funded_amount: number;
+  address_text: string | null;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 /**
@@ -348,55 +350,55 @@ interface ProjectCardRow {
  * Only includes projects that have valid GPS coordinates.
  */
 export async function getProjectsGeoJSON(): Promise<GeoJSON.FeatureCollection> {
-    const result = await query<ProjectCardRow>(
-        `SELECT project_id, title, status, damage_type,
+  const result = await query<ProjectCardRow>(
+    `SELECT project_id, title, status, damage_type,
                 funded_percentage, cover_image_url, homeowner_name,
                 total_estimated_cost, total_funded_amount, address_text,
                 latitude, longitude
          FROM vw_project_cards
          WHERE latitude IS NOT NULL AND longitude IS NOT NULL
-         ORDER BY published_at DESC NULLS LAST`
-    );
+         ORDER BY published_at DESC NULLS LAST`,
+  );
 
-    const features: GeoJSON.Feature[] = result.rows.map((row) => ({
-        type: 'Feature' as const,
-        geometry: {
-            type: 'Point' as const,
-            coordinates: [Number(row.longitude ?? 0), Number(row.latitude ?? 0)],
-        },
-        properties: {
-            project_id: row.project_id,
-            title: row.title,
-            status: row.status,
-            damage_type: row.damage_type,
-            funded_percentage: Number(row.funded_percentage),
-            cover_image_url: row.cover_image_url,
-            homeowner_name: row.homeowner_name,
-            total_estimated_cost: row.total_estimated_cost,
-            total_funded_amount: row.total_funded_amount,
-            address_text: row.address_text,
-        },
-    }));
+  const features: GeoJSON.Feature[] = result.rows.map((row) => ({
+    type: 'Feature' as const,
+    geometry: {
+      type: 'Point' as const,
+      coordinates: [Number(row.longitude ?? 0), Number(row.latitude ?? 0)],
+    },
+    properties: {
+      project_id: row.project_id,
+      title: row.title,
+      status: row.status,
+      damage_type: row.damage_type,
+      funded_percentage: Number(row.funded_percentage),
+      cover_image_url: row.cover_image_url,
+      homeowner_name: row.homeowner_name,
+      total_estimated_cost: row.total_estimated_cost,
+      total_funded_amount: row.total_funded_amount,
+      address_text: row.address_text,
+    },
+  }));
 
-    return {
-        type: 'FeatureCollection',
-        features,
-    };
+  return {
+    type: 'FeatureCollection',
+    features,
+  };
 }
 
 /**
  * Get all projects for a homeowner.
  */
 export async function getHomeownerProjects(homeownerId: string): Promise<Project[]> {
-    // M-001 FIX: Explicit column list — prevents schema drift.
-    const result = await query<Project>(
-        `SELECT project_id, homeowner_id, assigned_engineer_id, assigned_contractor_id,
+  // M-001 FIX: Explicit column list — prevents schema drift.
+  const result = await query<Project>(
+    `SELECT project_id, homeowner_id, assigned_engineer_id, assigned_contractor_id,
                 title, description, cover_image_url, gps_location, address_text,
                 damage_type, damage_severity, status, is_public,
                 total_estimated_cost, total_funded_amount, ocds_release_id,
                 published_at, completed_at, created_at, updated_at
          FROM projects WHERE homeowner_id = $1 ORDER BY created_at DESC`,
-        [homeownerId]
-    );
-    return result.rows;
+    [homeownerId],
+  );
+  return result.rows;
 }
