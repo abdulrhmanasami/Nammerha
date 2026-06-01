@@ -1,4 +1,6 @@
-<!doctype html>
+import os
+
+html_content = """<!doctype html>
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="utf-8" />
@@ -423,3 +425,9 @@
     <script src="/nav.js" defer></script>
   </body>
 </html>
+"""
+
+with open("frontend/about.html", "w") as f:
+    f.write(html_content)
+
+print("Successfully rewrote frontend/about.html")

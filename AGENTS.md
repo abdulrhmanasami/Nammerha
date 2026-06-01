@@ -18,6 +18,18 @@
 
 ## 🛑 ZERO-REGRESSION MEMOS (CRITICAL AI MEMORY)
 
+**MEMO 74: About Page Structural Unification & Tailwind Translation (June 2, 2026)**
+
+- **Root Cause Destroyed:**
+  1. **Legacy Layout Drift:** The `about.html` page utilized an obsolete CSS architecture (`stitch/_about.css`), completely disconnected from the unified global Tailwind CSS grid defined in `index.html`. This created catastrophic typography breaks, redundant header logos, and layout collapse.
+  2. **Non-Compliant Navigation:** The `about.html` navigation bar was hardcoded instead of utilizing the dynamic, RTL-compliant `glass-nav` component used across all modern endpoints.
+  3. **Linguistic Breaches:** Minor English terms and unescaped translation markers existed inside the HTML structure, violating strict Arabic parity.
+- **New Logic Built:**
+  1. **Tailwind Unification:** Rewrote `about.html` entirely from the ground up to inherit the exact CSS utility structure, `glass-nav` shell, and footer architecture of `index.html`. The page now purely relies on native Tailwind layout (`min-h-screen`, `flex-col`, `gap-8`) combined with Phosphor icons.
+  2. **Strict Accessibility Alignment:** Enforced WCAG AAA contrasting ratios inside the Trust and Methodology sections via explicit `text-primary`, `bg-dark-paper`, and responsive padding properties.
+  3. **Vite Compilation Guarantee:** Verified the TS/CSS compilation cycle (`npm run build`). `about.html` natively consumes the optimized `main-[hash].css` stylesheet and passes all strict compilation checks.
+- **Verification:** TS build (0 errors) and Vite build (EXIT:0). Layout rendered identical to `index.html` structure.
+
 **MEMO 73: The Missing CSS Catastrophe — Global HTML Scripts Injection (June 2, 2026)**
 
 - **Root Cause Destroyed:**
