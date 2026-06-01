@@ -11,6 +11,7 @@ import crypto from 'crypto';
 import { query, financialTransaction } from '../config/database';
 import type { SpatialProof, PurchaseOrder, SubmitSpatialProofDTO } from '../types';
 import { logger } from '../utils/logger';
+import exifr from 'exifr';
 
 // GPS proximity threshold (meters) — configurable via env
 const GPS_THRESHOLD = parseInt(process.env['GPS_PROXIMITY_THRESHOLD_METERS'] ?? '100', 10);
@@ -116,24 +117,7 @@ export async function submitSpatialProof(
       throw new Error('You are not assigned to this project');
     }
 
-    // 2. Validate GPS proximity (engineer proof GPS vs project GPS)
-    if (project.gps_location) {
-      const distanceResult = await client.query<{ distance_meters: number }>(
-        `SELECT ST_Distance(
-          ST_SetSRID(ST_MakePoint($1, $2), 4326)::GEOGRAPHY,
-          gps_location
-        ) AS distance_meters
-        FROM projects WHERE project_id = $3`,
-        [dto.gps_lng, dto.gps_lat, dto.project_id],
-      );
-      const distance = distanceResult.rows[0]?.distance_meters;
-      if (distance !== undefined && distance > GPS_THRESHOLD) {
-        throw new Error(
-          `GPS validation failed: proof location is ${Math.round(distance)}m from project site (threshold: ${GPS_THRESHOLD}m). ` +
-            `This may indicate fraud. Contact admin if you believe this is an error.`,
-        );
-      }
-    }
+    // 2. We will validate GPS proximity AFTER extracting it from EXIF (removed DTO reliance)
 
     // 3. Verify BOQ item exists and belongs to project
     const boqResult = await client.query<{ item_id: string }>(
@@ -144,10 +128,12 @@ export async function submitSpatialProof(
       throw new Error(`BOQ item ${dto.item_id} not found in project ${dto.project_id}`);
     }
 
-    // 4. Compute image hash (SHA-256) for tamper detection
+    // 4. Compute image hash (SHA-256) for tamper detection and EXIF GPS extraction
     // P2-003 FIX: Download actual image binary and hash the raw bytes.
     // P1-AUT-001 FIX: Validate URL against SSRF before fetching.
     let imageHash: string;
+    let extractedLat: number;
+    let extractedLng: number;
     try {
       validateExternalUrl(dto.image_url);
 
@@ -165,6 +151,16 @@ export async function submitSpatialProof(
 
       const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
       imageHash = crypto.createHash('sha256').update(imageBuffer).digest('hex');
+
+      // EXTRACT TRUE GPS COORDINATES FROM BINARY
+      const gpsData = await exifr.gps(imageBuffer);
+      if (!gpsData || gpsData.latitude === undefined || gpsData.longitude === undefined) {
+        throw new Error(
+          'Image verification failed: Missing EXIF GPS metadata. All spatial proofs must contain original location data to prevent escrow fraud.',
+        );
+      }
+      extractedLat = gpsData.latitude;
+      extractedLng = gpsData.longitude;
 
       // IMP-007: Dual Verification (Absolute Spatial Reality rule)
       // If the client provided a hash compiled BEFORE upload, it MUST identically match
@@ -193,6 +189,24 @@ export async function submitSpatialProof(
       );
     }
 
+    // 4.1 Validate GPS proximity using verified EXIF coordinates
+    if (project.gps_location) {
+      const distanceResult = await client.query<{ distance_meters: number }>(
+        `SELECT ST_Distance(
+          ST_SetSRID(ST_MakePoint($1, $2), 4326)::GEOGRAPHY,
+          gps_location
+        ) AS distance_meters
+        FROM projects WHERE project_id = $3`,
+        [extractedLng, extractedLat, dto.project_id],
+      );
+      const distance = distanceResult.rows[0]?.distance_meters;
+      if (distance !== undefined && distance > GPS_THRESHOLD) {
+        throw new Error(
+          `GPS validation failed: proof location is ${Math.round(distance)}m from project site (threshold: ${GPS_THRESHOLD}m). ` +
+            `This may indicate fraud. Contact admin if you believe this is an error.`,
+        );
+      }
+    }
     // 5. Create spatial proof
     const proofResult = await client.query<SpatialProof>(
       `INSERT INTO spatial_proof (
@@ -210,8 +224,8 @@ export async function submitSpatialProof(
         dto.item_id,
         dto.project_id,
         engineerId,
-        dto.gps_lng,
-        dto.gps_lat,
+        extractedLng,
+        extractedLat,
         dto.gps_accuracy_meters ?? null,
         dto.image_url,
         imageHash,

@@ -5,100 +5,108 @@
 // ============================================================================
 import pool from '../config/database';
 import { logger } from '../utils/logger';
+import exifr from 'exifr';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 export type CaptureType = 'photo_360' | 'video_360' | 'point_cloud' | 'photo_standard';
 export type ConstructionPhase =
-    | 'demolition' | 'foundation' | 'structural'
-    | 'plumbing_pre_concrete' | 'electrical_pre_concrete' | 'concrete_pour'
-    | 'masonry' | 'plastering' | 'finishing' | 'final_inspection';
+  | 'demolition'
+  | 'foundation'
+  | 'structural'
+  | 'plumbing_pre_concrete'
+  | 'electrical_pre_concrete'
+  | 'concrete_pour'
+  | 'masonry'
+  | 'plastering'
+  | 'finishing'
+  | 'final_inspection';
 
 export interface RealityCapture {
-    capture_id: string;
-    project_id: string;
-    engineer_id: string;
-    floor_plan_id: string | null;
-    capture_type: CaptureType;
-    construction_phase: ConstructionPhase;
-    title: string | null;
-    description: string | null;
-    file_url: string;
-    thumbnail_url: string | null;
-    file_size_bytes: number | null;
-    camera_model: string | null;
-    horizontal_fov: number | null;
-    heading: number | null;
-    pitch: number | null;
-    gps_coordinates: string | null;
-    gps_accuracy_meters: number | null;
-    altitude_meters: number | null;
-    captured_at: Date;
-    is_verified: boolean;
-    verified_by: string | null;
-    verified_at: Date | null;
-    created_at: Date;
+  capture_id: string;
+  project_id: string;
+  engineer_id: string;
+  floor_plan_id: string | null;
+  capture_type: CaptureType;
+  construction_phase: ConstructionPhase;
+  title: string | null;
+  description: string | null;
+  file_url: string;
+  thumbnail_url: string | null;
+  file_size_bytes: number | null;
+  camera_model: string | null;
+  horizontal_fov: number | null;
+  heading: number | null;
+  pitch: number | null;
+  gps_coordinates: string | null;
+  gps_accuracy_meters: number | null;
+  altitude_meters: number | null;
+  captured_at: Date;
+  is_verified: boolean;
+  verified_by: string | null;
+  verified_at: Date | null;
+  created_at: Date;
 }
 
 export interface SubmitCaptureDTO {
-    capture_type?: CaptureType;
-    construction_phase: ConstructionPhase;
-    title?: string;
-    description?: string;
-    file_url: string;
-    thumbnail_url?: string;
-    file_size_bytes?: number;
-    camera_model?: string;
-    horizontal_fov?: number;
-    heading?: number;
-    pitch?: number;
-    gps_lat?: number;
-    gps_lng?: number;
-    gps_accuracy_meters?: number;
-    altitude_meters?: number;
-    floor_plan_id?: string;
+  capture_type?: CaptureType;
+  construction_phase: ConstructionPhase;
+  title?: string;
+  description?: string;
+  file_url: string;
+  thumbnail_url?: string;
+  file_size_bytes?: number;
+  camera_model?: string;
+  horizontal_fov?: number;
+  heading?: number;
+  pitch?: number;
+  gps_lat?: number;
+  gps_lng?: number;
+  gps_accuracy_meters?: number;
+  altitude_meters?: number;
+  floor_plan_id?: string;
 }
 
 export interface CaptureAnnotation {
-    annotation_id: string;
-    capture_id: string;
-    author_id: string;
-    pos_x: number | null;
-    pos_y: number | null;
-    note: string;
-    severity: 'info' | 'warning' | 'critical';
-    status: 'open' | 'resolved' | 'dismissed';
-    resolved_by: string | null;
-    resolved_at: Date | null;
-    resolution_note: string | null;
-    created_at: Date;
+  annotation_id: string;
+  capture_id: string;
+  author_id: string;
+  pos_x: number | null;
+  pos_y: number | null;
+  note: string;
+  severity: 'info' | 'warning' | 'critical';
+  status: 'open' | 'resolved' | 'dismissed';
+  resolved_by: string | null;
+  resolved_at: Date | null;
+  resolution_note: string | null;
+  created_at: Date;
 }
 
 export interface AddAnnotationDTO {
-    pos_x?: number;
-    pos_y?: number;
-    note: string;
-    severity?: 'info' | 'warning' | 'critical';
+  pos_x?: number;
+  pos_y?: number;
+  note: string;
+  severity?: 'info' | 'warning' | 'critical';
 }
 
 export interface FloorPlan {
-    plan_id: string;
-    project_id: string;
-    uploaded_by: string;
-    title: string;
-    description: string | null;
-    file_url: string;
-    file_type: string;
-    version: number;
-    is_active: boolean;
-    created_at: Date;
+  plan_id: string;
+  project_id: string;
+  uploaded_by: string;
+  title: string;
+  description: string | null;
+  file_url: string;
+  file_type: string;
+  version: number;
+  is_active: boolean;
+  created_at: Date;
 }
 
 export interface UploadFloorPlanDTO {
-    title: string;
-    description?: string;
-    file_url: string;
-    file_type?: string;
+  title: string;
+  description?: string;
+  file_url: string;
+  file_type?: string;
 }
 
 // ─── GAP-2 FIX: GPS Proximity Validation ────────────────────────────────────
@@ -116,20 +124,16 @@ const GPS_PROXIMITY_THRESHOLD_METERS = 150;
  * Calculate the Haversine distance between two points on Earth.
  * Returns distance in meters.
  */
-function haversineDistanceMeters(
-    lat1: number, lon1: number,
-    lat2: number, lon2: number,
-): number {
-    const R = 6371e3; // Earth radius in meters
-    const toRad = Math.PI / 180;
-    const dLat = (lat2 - lat1) * toRad;
-    const dLon = (lon2 - lon1) * toRad;
-    const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(lat1 * toRad) * Math.cos(lat2 * toRad) *
-        Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
+function haversineDistanceMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371e3; // Earth radius in meters
+  const toRad = Math.PI / 180;
+  const dLat = (lat2 - lat1) * toRad;
+  const dLon = (lon2 - lon1) * toRad;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * toRad) * Math.cos(lat2 * toRad) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
 }
 
 /**
@@ -143,60 +147,65 @@ function haversineDistanceMeters(
  * @returns null if valid, or an error message if GPS is too far from project.
  */
 async function validateGPSProximity(
-    projectId: string,
-    claimedLat: number,
-    claimedLng: number,
-    engineerId: string,
+  projectId: string,
+  claimedLat: number,
+  claimedLng: number,
+  engineerId: string,
 ): Promise<string | null> {
-    // Fetch the project's registered GPS location
-    const projRes = await pool.query(
-        `SELECT
+  // Fetch the project's registered GPS location
+  const projRes = await pool.query(
+    `SELECT
             ST_Y(gps_location::GEOMETRY) AS project_lat,
             ST_X(gps_location::GEOMETRY) AS project_lng
          FROM projects WHERE project_id = $1 AND gps_location IS NOT NULL`,
-        [projectId]
-    );
+    [projectId],
+  );
 
-    if (projRes.rows.length === 0 || projRes.rows[0].project_lat === null) {
-        // Project has no GPS location set — skip validation (allow capture)
-        return null;
-    }
+  if (projRes.rows.length === 0 || projRes.rows[0].project_lat === null) {
+    // Project has no GPS location set — skip validation (allow capture)
+    return null;
+  }
 
-    const { project_lat, project_lng } = projRes.rows[0];
-    const distance = haversineDistanceMeters(
-        Number(project_lat), Number(project_lng),
-        claimedLat, claimedLng,
-    );
+  const { project_lat, project_lng } = projRes.rows[0];
+  const distance = haversineDistanceMeters(
+    Number(project_lat),
+    Number(project_lng),
+    claimedLat,
+    claimedLng,
+  );
 
-    if (distance > GPS_PROXIMITY_THRESHOLD_METERS) {
-        // Log the discrepancy to audit_trail for compliance review
-        try {
-            await pool.query(
-                `INSERT INTO audit_trail
+  if (distance > GPS_PROXIMITY_THRESHOLD_METERS) {
+    // Log the discrepancy to audit_trail for compliance review
+    try {
+      await pool.query(
+        `INSERT INTO audit_trail
                     (entity_type, entity_id, action, actor_id, new_values)
                  VALUES ('reality_capture', $1, 'gps_proximity_violation', $2, $3)`,
-                [
-                    projectId,
-                    engineerId,
-                    JSON.stringify({
-                        claimed_lat: claimedLat,
-                        claimed_lng: claimedLng,
-                        project_lat: Number(project_lat),
-                        project_lng: Number(project_lng),
-                        distance_meters: Math.round(distance),
-                        threshold_meters: GPS_PROXIMITY_THRESHOLD_METERS,
-                        timestamp: new Date().toISOString(),
-                    }),
-                ]
-            );
-        } catch (auditErr) {
-            logger.error('Failed to log GPS violation to audit_trail', { projectId, error: auditErr instanceof Error ? auditErr.message : String(auditErr) });
-        }
-
-        return `GPS location mismatch: capture was ${Math.round(distance)}m from the project site (max allowed: ${GPS_PROXIMITY_THRESHOLD_METERS}m). Photo must be taken on-site.`;
+        [
+          projectId,
+          engineerId,
+          JSON.stringify({
+            claimed_lat: claimedLat,
+            claimed_lng: claimedLng,
+            project_lat: Number(project_lat),
+            project_lng: Number(project_lng),
+            distance_meters: Math.round(distance),
+            threshold_meters: GPS_PROXIMITY_THRESHOLD_METERS,
+            timestamp: new Date().toISOString(),
+          }),
+        ],
+      );
+    } catch (auditErr) {
+      logger.error('Failed to log GPS violation to audit_trail', {
+        projectId,
+        error: auditErr instanceof Error ? auditErr.message : String(auditErr),
+      });
     }
 
-    return null; // Valid — within threshold
+    return `GPS location mismatch: capture was ${Math.round(distance)}m from the project site (max allowed: ${GPS_PROXIMITY_THRESHOLD_METERS}m). Photo must be taken on-site.`;
+  }
+
+  return null; // Valid — within threshold
 }
 
 // ─── Captures ───────────────────────────────────────────────────────────────
@@ -206,42 +215,74 @@ async function validateGPSProximity(
  * GPS auto-links to project by project_id.
  */
 export async function submitCapture(
-    engineerId: string,
-    projectId: string,
-    dto: SubmitCaptureDTO
+  engineerId: string,
+  projectId: string,
+  dto: SubmitCaptureDTO,
 ): Promise<RealityCapture> {
-    // Verify engineer is assigned to project
-    const projRes = await pool.query(
-        `SELECT assigned_engineer_id FROM projects WHERE project_id = $1`,
-        [projectId]
-    );
-    if (projRes.rows.length === 0) {
-        throw new Error(`Project ${projectId} not found`);
-    }
-    if (projRes.rows[0].assigned_engineer_id !== engineerId) {
-        throw new Error('Only the assigned engineer can submit reality captures');
+  // Verify engineer is assigned to project
+  const projRes = await pool.query(
+    `SELECT assigned_engineer_id FROM projects WHERE project_id = $1`,
+    [projectId],
+  );
+  if (projRes.rows.length === 0) {
+    throw new Error(`Project ${projectId} not found`);
+  }
+  if (projRes.rows[0].assigned_engineer_id !== engineerId) {
+    throw new Error('Only the assigned engineer can submit reality captures');
+  }
+
+  // BUILD: EXIF-Based Anti-Fraud Extraction (Platinum Audit)
+  let extractedLat: number | null = null;
+  let extractedLng: number | null = null;
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15_000);
+    const imageResponse = await fetch(dto.file_url, {
+      signal: controller.signal,
+      headers: { Accept: 'image/*' },
+    });
+    clearTimeout(timeout);
+
+    if (!imageResponse.ok) {
+      throw new Error(`Failed to download capture image: HTTP ${imageResponse.status}`);
     }
 
-    // Build GPS point if coordinates provided
-    const gpsExpr = dto.gps_lat !== undefined && dto.gps_lat !== null
-        && dto.gps_lng !== undefined && dto.gps_lng !== null
-        ? `ST_SetSRID(ST_MakePoint($12, $11), 4326)::GEOGRAPHY`
-        : 'NULL';
+    const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
 
-    // GAP-2 FIX: Validate GPS proximity BEFORE accepting the capture.
-    // This prevents fraud where engineers submit photos from unrelated locations.
-    if (dto.gps_lat !== undefined && dto.gps_lat !== null
-        && dto.gps_lng !== undefined && dto.gps_lng !== null) {
-        const gpsError = await validateGPSProximity(
-            projectId, dto.gps_lat, dto.gps_lng, engineerId,
-        );
-        if (gpsError) {
-            throw new Error(gpsError);
-        }
+    // Extract GPS strictly from binary EXIF data
+    const gpsData = await exifr.gps(imageBuffer);
+
+    if (!gpsData || gpsData.latitude === undefined || gpsData.longitude === undefined) {
+      throw new Error(
+        'Image verification failed: Missing EXIF GPS metadata. All captures must contain original location data to prevent fraud.',
+      );
     }
 
-    const { rows } = await pool.query(
-        `INSERT INTO reality_captures
+    extractedLat = gpsData.latitude;
+    extractedLng = gpsData.longitude;
+  } catch (exifErr) {
+    const reason = exifErr instanceof Error ? exifErr.message : 'Unknown error';
+    logger.error('Reality Capture EXIF verification failed', { fileUrl: dto.file_url, reason });
+    throw new Error(reason);
+  }
+
+  // GAP-2 FIX: Validate GPS proximity BEFORE accepting the capture using TRUE EXIF DATA.
+  if (extractedLat !== null && extractedLng !== null) {
+    const gpsError = await validateGPSProximity(projectId, extractedLat, extractedLng, engineerId);
+    if (gpsError) {
+      throw new Error(gpsError);
+    }
+  }
+
+  // Build GPS point using verified EXIF coordinates
+  const gpsExpr =
+    extractedLat !== null && extractedLng !== null
+      ? `ST_SetSRID(ST_MakePoint($12, $11), 4326)::GEOGRAPHY`
+      : 'NULL';
+
+  const { rows } = await pool.query(
+    `INSERT INTO reality_captures
             (project_id, engineer_id, floor_plan_id, capture_type,
              construction_phase, title, description, file_url, thumbnail_url,
              file_size_bytes, camera_model, horizontal_fov, heading, pitch,
@@ -254,29 +295,29 @@ export async function submitCapture(
                   horizontal_fov, heading, pitch, gps_coordinates,
                   gps_accuracy_meters, altitude_meters, is_verified,
                   verified_by, verified_at, created_at`,
-        [
-            projectId,                              // $1
-            engineerId,                             // $2
-            dto.floor_plan_id || null,              // $3
-            dto.capture_type || 'photo_360',        // $4
-            dto.construction_phase,                 // $5
-            dto.title || null,                      // $6
-            dto.description || null,                // $7
-            dto.file_url,                           // $8
-            dto.thumbnail_url || null,              // $9
-            dto.file_size_bytes || null,             // $10
-            dto.gps_lat ?? null,                    // $11 (for ST_MakePoint Y)
-            dto.gps_lng ?? null,                    // $12 (for ST_MakePoint X)
-            dto.camera_model || null,               // $13
-            dto.horizontal_fov ?? null,             // $14
-            dto.heading ?? null,                    // $15
-            dto.pitch ?? null,                      // $16
-            dto.gps_accuracy_meters ?? null,        // $17
-            dto.altitude_meters ?? null,            // $18
-        ]
-    );
+    [
+      projectId, // $1
+      engineerId, // $2
+      dto.floor_plan_id || null, // $3
+      dto.capture_type || 'photo_360', // $4
+      dto.construction_phase, // $5
+      dto.title || null, // $6
+      dto.description || null, // $7
+      dto.file_url, // $8
+      dto.thumbnail_url || null, // $9
+      dto.file_size_bytes || null, // $10
+      extractedLat, // $11 (for ST_MakePoint Y)
+      extractedLng, // $12 (for ST_MakePoint X)
+      dto.camera_model || null, // $13
+      dto.horizontal_fov ?? null, // $14
+      dto.heading ?? null, // $15
+      dto.pitch ?? null, // $16
+      dto.gps_accuracy_meters ?? null, // $17
+      dto.altitude_meters ?? null, // $18
+    ],
+  );
 
-    return rows[0];
+  return rows[0];
 }
 
 /**
@@ -284,37 +325,37 @@ export async function submitCapture(
  * Filterable by construction_phase and capture_type.
  */
 export async function getProjectCaptures(
-    projectId: string,
-    phase?: ConstructionPhase,
-    captureType?: CaptureType,
-    limit = 50,
-    offset = 0
+  projectId: string,
+  phase?: ConstructionPhase,
+  captureType?: CaptureType,
+  limit = 50,
+  offset = 0,
 ): Promise<RealityCapture[]> {
-    let sql = `
+  let sql = `
         SELECT rc.*, u.full_name AS engineer_name
         FROM reality_captures rc
         JOIN users u ON u.user_id = rc.engineer_id
         WHERE rc.project_id = $1
     `;
-    const params: unknown[] = [projectId];
-    let paramIdx = 2;
+  const params: unknown[] = [projectId];
+  let paramIdx = 2;
 
-    if (phase) {
-        sql += ` AND rc.construction_phase = $${paramIdx}`;
-        params.push(phase);
-        paramIdx++;
-    }
-    if (captureType) {
-        sql += ` AND rc.capture_type = $${paramIdx}`;
-        params.push(captureType);
-        paramIdx++;
-    }
+  if (phase) {
+    sql += ` AND rc.construction_phase = $${paramIdx}`;
+    params.push(phase);
+    paramIdx++;
+  }
+  if (captureType) {
+    sql += ` AND rc.capture_type = $${paramIdx}`;
+    params.push(captureType);
+    paramIdx++;
+  }
 
-    sql += ` ORDER BY rc.captured_at DESC LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`;
-    params.push(Math.min(limit, 100), offset);
+  sql += ` ORDER BY rc.captured_at DESC LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`;
+  params.push(Math.min(limit, 100), offset);
 
-    const { rows } = await pool.query(sql, params);
-    return rows;
+  const { rows } = await pool.query(sql, params);
+  return rows;
 }
 
 /**
@@ -323,35 +364,35 @@ export async function getProjectCaptures(
  * providing legal evidence of plumbing/electrical installation.
  */
 export async function getHiddenWorks(projectId: string): Promise<RealityCapture[]> {
-    const hiddenPhases: ConstructionPhase[] = [
-        'plumbing_pre_concrete',
-        'electrical_pre_concrete',
-        'foundation',
-        'structural',
-    ];
+  const hiddenPhases: ConstructionPhase[] = [
+    'plumbing_pre_concrete',
+    'electrical_pre_concrete',
+    'foundation',
+    'structural',
+  ];
 
-    const { rows } = await pool.query(
-        `SELECT rc.*, u.full_name AS engineer_name
+  const { rows } = await pool.query(
+    `SELECT rc.*, u.full_name AS engineer_name
          FROM reality_captures rc
          JOIN users u ON u.user_id = rc.engineer_id
          WHERE rc.project_id = $1
            AND rc.construction_phase = ANY($2)
          ORDER BY rc.construction_phase, rc.captured_at ASC`,
-        [projectId, hiddenPhases]
-    );
+    [projectId, hiddenPhases],
+  );
 
-    return rows;
+  return rows;
 }
 
 /**
  * Verify a reality capture (admin/auditor).
  */
 export async function verifyCapture(
-    captureId: string,
-    verifierId: string
+  captureId: string,
+  verifierId: string,
 ): Promise<RealityCapture> {
-    const { rows } = await pool.query(
-        `UPDATE reality_captures
+  const { rows } = await pool.query(
+    `UPDATE reality_captures
          SET is_verified = true, verified_by = $1, verified_at = NOW()
          WHERE capture_id = $2
          RETURNING capture_id, project_id, engineer_id, floor_plan_id,
@@ -360,12 +401,12 @@ export async function verifyCapture(
                    horizontal_fov, heading, pitch, gps_coordinates,
                    gps_accuracy_meters, altitude_meters, is_verified,
                    verified_by, verified_at, created_at`,
-        [verifierId, captureId]
-    );
-    if (rows.length === 0) {
-        throw new Error('Capture not found');
-    }
-    return rows[0];
+    [verifierId, captureId],
+  );
+  if (rows.length === 0) {
+    throw new Error('Capture not found');
+  }
+  return rows[0];
 }
 
 // ─── Annotations ────────────────────────────────────────────────────────────
@@ -374,53 +415,43 @@ export async function verifyCapture(
  * Add a snagging annotation to a capture.
  */
 export async function addAnnotation(
-    captureId: string,
-    authorId: string,
-    dto: AddAnnotationDTO
+  captureId: string,
+  authorId: string,
+  dto: AddAnnotationDTO,
 ): Promise<CaptureAnnotation> {
-    // Verify capture exists
-    const capRes = await pool.query(
-        `SELECT capture_id FROM reality_captures WHERE capture_id = $1`,
-        [captureId]
-    );
-    if (capRes.rows.length === 0) {
-        throw new Error('Capture not found');
-    }
+  // Verify capture exists
+  const capRes = await pool.query(`SELECT capture_id FROM reality_captures WHERE capture_id = $1`, [
+    captureId,
+  ]);
+  if (capRes.rows.length === 0) {
+    throw new Error('Capture not found');
+  }
 
-    const { rows } = await pool.query(
-        `INSERT INTO capture_annotations
+  const { rows } = await pool.query(
+    `INSERT INTO capture_annotations
             (capture_id, author_id, pos_x, pos_y, note, severity)
         VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING annotation_id, capture_id, author_id, pos_x, pos_y,
                   note, severity, created_at`,
-        [
-            captureId,
-            authorId,
-            dto.pos_x ?? null,
-            dto.pos_y ?? null,
-            dto.note,
-            dto.severity || 'info',
-        ]
-    );
+    [captureId, authorId, dto.pos_x ?? null, dto.pos_y ?? null, dto.note, dto.severity || 'info'],
+  );
 
-    return rows[0];
+  return rows[0];
 }
 
 /**
  * Get annotations for a capture.
  */
-export async function getCaptureAnnotations(
-    captureId: string
-): Promise<CaptureAnnotation[]> {
-    const { rows } = await pool.query(
-        `SELECT ca.*, u.full_name AS author_name
+export async function getCaptureAnnotations(captureId: string): Promise<CaptureAnnotation[]> {
+  const { rows } = await pool.query(
+    `SELECT ca.*, u.full_name AS author_name
          FROM capture_annotations ca
          JOIN users u ON u.user_id = ca.author_id
          WHERE ca.capture_id = $1
          ORDER BY ca.created_at DESC`,
-        [captureId]
-    );
-    return rows;
+    [captureId],
+  );
+  return rows;
 }
 
 // ─── Floor Plans ────────────────────────────────────────────────────────────
@@ -429,48 +460,48 @@ export async function getCaptureAnnotations(
  * Upload a floor plan for a project.
  */
 export async function uploadFloorPlan(
-    engineerId: string,
-    projectId: string,
-    dto: UploadFloorPlanDTO
+  engineerId: string,
+  projectId: string,
+  dto: UploadFloorPlanDTO,
 ): Promise<FloorPlan> {
-    // Get next version number
-    const versionRes = await pool.query(
-        `SELECT COALESCE(MAX(version), 0) + 1 AS next_version
+  // Get next version number
+  const versionRes = await pool.query(
+    `SELECT COALESCE(MAX(version), 0) + 1 AS next_version
          FROM floor_plans WHERE project_id = $1`,
-        [projectId]
-    );
+    [projectId],
+  );
 
-    const { rows } = await pool.query(
-        `INSERT INTO floor_plans
+  const { rows } = await pool.query(
+    `INSERT INTO floor_plans
             (project_id, uploaded_by, title, description, file_url, file_type, version)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING plan_id, project_id, uploaded_by, title, description,
                   file_url, file_type, version, created_at`,
-        [
-            projectId,
-            engineerId,
-            dto.title,
-            dto.description || null,
-            dto.file_url,
-            dto.file_type || 'image',
-            versionRes.rows[0].next_version,
-        ]
-    );
+    [
+      projectId,
+      engineerId,
+      dto.title,
+      dto.description || null,
+      dto.file_url,
+      dto.file_type || 'image',
+      versionRes.rows[0].next_version,
+    ],
+  );
 
-    return rows[0];
+  return rows[0];
 }
 
 /**
  * Get floor plans for a project.
  */
 export async function getFloorPlans(projectId: string): Promise<FloorPlan[]> {
-    const { rows } = await pool.query(
-        `SELECT fp.*, u.full_name AS uploaded_by_name
+  const { rows } = await pool.query(
+    `SELECT fp.*, u.full_name AS uploaded_by_name
          FROM floor_plans fp
          JOIN users u ON u.user_id = fp.uploaded_by
          WHERE fp.project_id = $1 AND fp.is_active = true
          ORDER BY fp.version DESC`,
-        [projectId]
-    );
-    return rows;
+    [projectId],
+  );
+  return rows;
 }
