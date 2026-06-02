@@ -107,7 +107,8 @@ function renderErrorBoundary(error: unknown): void {
  * document.addEventListener('DOMContentLoaded', guardPageInit(() => {
  *   if (!requireAuth()) return;
  *   bootstrapPortal();
- *   // ... rest of page init
+ *   initializeCharts();
+ *   bindEventListeners();
  * }));
  * ```
  */

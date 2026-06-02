@@ -13,6 +13,7 @@ const mockTransaction = vi.fn();
 vi.mock('../../config/database', () => ({
   query: (...args: unknown[]) => mockQuery(...args),
   transaction: (fn: (client: unknown) => Promise<unknown>) => mockTransaction(fn),
+  financialTransaction: (fn: (client: unknown) => Promise<unknown>) => mockTransaction(fn),
   default: { end: vi.fn(), query: (...args: unknown[]) => mockQuery(...args) },
 }));
 
@@ -185,8 +186,6 @@ describe('Escrow Service', () => {
       const mockClient = {
         query: vi
           .fn()
-          // 0. SET TRANSACTION ISOLATION LEVEL SERIALIZABLE
-          .mockResolvedValueOnce({ rows: [], rowCount: 0 })
           // 1. Fetch proof (FOR UPDATE)
           .mockResolvedValueOnce({
             rows: [
@@ -242,13 +241,13 @@ describe('Escrow Service', () => {
       expect(result.released_count).toBe(2);
       expect(result.total_released).toBe(500000); // 300000 + 200000
 
-      // Verify proof was marked as verified (call index 2 due to SERIALIZABLE set)
-      const proofUpdateCall = mockClient.query.mock.calls[2] as unknown[];
+      // Verify proof was marked as verified
+      const proofUpdateCall = mockClient.query.mock.calls[1] as unknown[];
       expect(proofUpdateCall[0] as string).toContain("verification_status = 'verified'");
       expect(proofUpdateCall[1]).toContain('auditor-001');
 
-      // Verify BOQ was updated to delivered (call index 4)
-      const boqUpdateCall = mockClient.query.mock.calls[4] as unknown[];
+      // Verify BOQ was updated to delivered
+      const boqUpdateCall = mockClient.query.mock.calls[3] as unknown[];
       expect(boqUpdateCall[0] as string).toContain("status = 'delivered'");
 
       // Verify notifications sent to both users
@@ -271,10 +270,7 @@ describe('Escrow Service', () => {
 
     it('should throw when spatial proof does not exist', async () => {
       const mockClient = {
-        query: vi
-          .fn()
-          .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // SET ISOLATION LEVEL
-          .mockResolvedValueOnce({ rows: [], rowCount: 0 }),
+        query: vi.fn().mockResolvedValueOnce({ rows: [], rowCount: 0 }),
       };
 
       mockTransaction.mockImplementationOnce(async (fn: (client: unknown) => Promise<unknown>) =>
@@ -288,19 +284,16 @@ describe('Escrow Service', () => {
 
     it('should throw when proof is already processed (idempotency guard)', async () => {
       const mockClient = {
-        query: vi
-          .fn()
-          .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // SET ISOLATION LEVEL
-          .mockResolvedValueOnce({
-            rows: [
-              {
-                proof_id: 'proof-001',
-                item_id: 'item-001',
-                verification_status: 'verified', // Already processed
-              },
-            ],
-            rowCount: 1,
-          }),
+        query: vi.fn().mockResolvedValueOnce({
+          rows: [
+            {
+              proof_id: 'proof-001',
+              item_id: 'item-001',
+              verification_status: 'verified', // Already processed
+            },
+          ],
+          rowCount: 1,
+        }),
       };
 
       mockTransaction.mockImplementationOnce(async (fn: (client: unknown) => Promise<unknown>) =>
@@ -314,19 +307,16 @@ describe('Escrow Service', () => {
 
     it('should throw when proof item_id mismatches the requested item_id', async () => {
       const mockClient = {
-        query: vi
-          .fn()
-          .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // SET ISOLATION LEVEL
-          .mockResolvedValueOnce({
-            rows: [
-              {
-                proof_id: 'proof-001',
-                item_id: 'item-DIFFERENT',
-                verification_status: 'submitted',
-              },
-            ],
-            rowCount: 1,
-          }),
+        query: vi.fn().mockResolvedValueOnce({
+          rows: [
+            {
+              proof_id: 'proof-001',
+              item_id: 'item-DIFFERENT',
+              verification_status: 'submitted',
+            },
+          ],
+          rowCount: 1,
+        }),
       };
 
       mockTransaction.mockImplementationOnce(async (fn: (client: unknown) => Promise<unknown>) =>
@@ -342,7 +332,6 @@ describe('Escrow Service', () => {
       const mockClient = {
         query: vi
           .fn()
-          .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // SET ISOLATION LEVEL
           .mockResolvedValueOnce({
             rows: [
               {

@@ -35,13 +35,18 @@ export class DirtyStateGuard {
       if (this.isDirty) {
         // PLATINUM FIX: If another guard already intercepted and canceled the navigation,
         // do not show a duplicate confirm dialog.
-        if (e.defaultPrevented) {return;}
+        if (e.defaultPrevented) {
+          return;
+        }
+
+        interface ExtendedEvent extends Event {
+          _nmUserConfirmedLeave?: boolean;
+        }
 
         // PLATINUM FIX: Double Confirmation Paradox Resolution
         // If the user already confirmed data loss for another guard in this same event loop,
         // we silently mark this guard as clean and exit to prevent spamming confirm dialogs.
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        if ((e as any)._nmUserConfirmedLeave) {
+        if ((e as ExtendedEvent)._nmUserConfirmedLeave) {
           this.markClean();
           return;
         }
@@ -52,8 +57,7 @@ export class DirtyStateGuard {
         if (!confirmLoss) {
           e.preventDefault();
         } else {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (e as any)._nmUserConfirmedLeave = true;
+          (e as ExtendedEvent)._nmUserConfirmedLeave = true;
           this.markClean();
         }
       }

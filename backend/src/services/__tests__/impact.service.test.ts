@@ -8,6 +8,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 const mockQuery = vi.fn();
 vi.mock('../../config/database', () => ({
   query: (...args: unknown[]) => mockQuery(...args),
+  financialTransaction: vi.fn(),
 }));
 
 vi.mock('../../utils/logger', () => ({
@@ -75,7 +76,7 @@ describe('Impact Service', () => {
     it('should format amount from cents to dollars in template', async () => {
       mockQuery.mockResolvedValueOnce({ rows: [MOCK_IMPACT_MESSAGE] });
 
-      await generateImpactMessage('contractor_assigned', MOCK_CONTRIBUTOR_ID, MOCK_PROJECT_ID, {
+      await generateImpactMessage('donation_received', MOCK_CONTRIBUTOR_ID, MOCK_PROJECT_ID, {
         project_title: 'مشروع تجريبي',
         amount: 150000,
       });

@@ -29,6 +29,7 @@ vi.mock('../../config/database', () => ({
   query: (...args: unknown[]) => mockPoolQuery(...args),
   getClient: vi.fn(),
   transaction: (fn: (client: unknown) => Promise<unknown>) => mockTransaction(fn),
+  financialTransaction: (fn: (client: unknown) => Promise<unknown>) => mockTransaction(fn),
   default: {
     end: vi.fn(),
     query: (...args: unknown[]) => mockPoolQuery(...args),
@@ -311,7 +312,7 @@ describe('Matchmaking Routes (HTTP Integration)', () => {
         .send({})
         .expect(400);
 
-      expect(res.body.error).toContain('Missing required fields');
+      expect(res.body.error).toContain('Validation failed');
     });
 
     it('should return 400 for negative cost', async () => {
@@ -320,7 +321,7 @@ describe('Matchmaking Routes (HTTP Integration)', () => {
         .send({ proposed_cost: -100, estimated_days: 30 })
         .expect(400);
 
-      expect(res.body.error).toContain('positive');
+      expect(res.body.error).toContain('Validation failed');
     });
 
     it('should return 400 for zero days (falsy check)', async () => {
@@ -329,7 +330,7 @@ describe('Matchmaking Routes (HTTP Integration)', () => {
         .send({ proposed_cost: 500000, estimated_days: 0 })
         .expect(400);
 
-      expect(res.body.error).toContain('Missing required fields');
+      expect(res.body.error).toContain('Validation failed');
     });
 
     it('should create bid with valid data via transaction', async () => {

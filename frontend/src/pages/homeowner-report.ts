@@ -21,7 +21,6 @@ import { DirtyStateGuard } from '../utils/dirty-guard';
 import { initAutoSaveTextareas } from '../utils/auto-save';
 import { addTrackedTimer } from '../utils/tracked-timers';
 
-
 initAutoSaveTextareas();
 
 const wizardGuard = new DirtyStateGuard();
@@ -351,8 +350,8 @@ if (nextBtn) {
         let gps_lng = 0;
         if (state.gpsCoords) {
           const parts = state.gpsCoords.split(',');
-          gps_lat = parseFloat(parts[0]?.replace(/[^\d.-]/g, '') ?? '0');
-          gps_lng = parseFloat(parts[1]?.replace(/[^\d.-]/g, '') ?? '0');
+          gps_lat = Number(parts[0]?.replace(/[^\d.-]/g, '') ?? '0');
+          gps_lng = Number(parts[1]?.replace(/[^\d.-]/g, '') ?? '0');
         }
 
         const response = await projects.create({
@@ -575,17 +574,19 @@ if (detectLocationBtn) {
         // to the damage site after initial detection, they couldn't update GPS.
         // NOW: After a brief delay, button text changes to "Re-detect" and is
         // re-enabled. Standard: Nielsen #3 (User Control & Freedom).
-        addTrackedTimer(setTimeout(() => {
-          (detectLocationBtn as HTMLButtonElement).disabled = false;
-          detectLocationBtn.classList.remove('opacity-60');
-          if (btnIcon) {
-            btnIcon.classList.remove('ph-check-circle');
-            btnIcon.classList.add('ph-crosshair');
-          }
-          if (btnLabel) {
-            btnLabel.textContent = t('hr_redetect_location', 'إعادة تحديد الموقع');
-          }
-        }, 2000));
+        addTrackedTimer(
+          setTimeout(() => {
+            (detectLocationBtn as HTMLButtonElement).disabled = false;
+            detectLocationBtn.classList.remove('opacity-60');
+            if (btnIcon) {
+              btnIcon.classList.remove('ph-check-circle');
+              btnIcon.classList.add('ph-crosshair');
+            }
+            if (btnLabel) {
+              btnLabel.textContent = t('hr_redetect_location', 'إعادة تحديد الموقع');
+            }
+          }, 2000),
+        );
 
         // GAP-NEW-06: Persist GPS coords to sessionStorage
         saveWizardState();
@@ -759,14 +760,16 @@ function startVoice(): void {
   recognition.continuous = true;
 
   // Timer display
-  voiceInterval = addTrackedTimer(setInterval(() => {
-    const elapsed = Math.floor((Date.now() - voiceStart) / 1000);
-    const m = String(Math.floor(elapsed / 60)).padStart(2, '0');
-    const s = String(elapsed % 60).padStart(2, '0');
-    if (voiceTimerEl) {
-      voiceTimerEl.textContent = `${m}:${s}`;
-    }
-  }, 200));
+  voiceInterval = addTrackedTimer(
+    setInterval(() => {
+      const elapsed = Math.floor((Date.now() - voiceStart) / 1000);
+      const m = String(Math.floor(elapsed / 60)).padStart(2, '0');
+      const s = String(elapsed % 60).padStart(2, '0');
+      if (voiceTimerEl) {
+        voiceTimerEl.textContent = `${m}:${s}`;
+      }
+    }, 200),
+  );
 
   haptic.custom([40, 80, 40]);
 
@@ -789,7 +792,7 @@ function startVoice(): void {
     if (finalTranscript && descriptionTextarea) {
       const prefix = descriptionTextarea.value ? ' ' : '';
       descriptionTextarea.value += prefix + finalTranscript.trim();
-      
+
       // PLATINUM FIX: Dispatch synthetic input event to force character counter sync
       // and trigger the sessionStorage auto-save loop.
       descriptionTextarea.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
@@ -947,7 +950,9 @@ function compressImage(
 }
 
 async function processPhotoFile(file: File) {
-  if (!photoThumbnails) {return;}
+  if (!photoThumbnails) {
+    return;
+  }
   try {
     const { dataUrl, blob } = await compressImage(file);
 
@@ -995,7 +1000,9 @@ async function processPhotoFile(file: File) {
               const ring = progressOverlay.querySelector<HTMLElement>('.nm-upload-ring');
               const label = progressOverlay.querySelector<HTMLElement>('span');
 
-              if (ring) {ring.style.setProperty('--progress', String(visualPct));}
+              if (ring) {
+                ring.style.setProperty('--progress', String(visualPct));
+              }
               if (label) {
                 if (visualPct >= 90) {
                   // Contextual Reassurance
@@ -1023,7 +1030,9 @@ async function processPhotoFile(file: File) {
           </div>
         `;
         const countEl = document.getElementById('photo-count');
-        if (countEl) {countEl.textContent = String(state.photoCount);}
+        if (countEl) {
+          countEl.textContent = String(state.photoCount);
+        }
       } else {
         throw new Error();
       }
@@ -1050,7 +1059,9 @@ async function processPhotoFile(file: File) {
       photoThumbnails.appendChild(thumb);
       state.photoCount++;
       const countEl = document.getElementById('photo-count');
-      if (countEl) {countEl.textContent = String(state.photoCount);}
+      if (countEl) {
+        countEl.textContent = String(state.photoCount);
+      }
     };
     reader.readAsDataURL(file);
   }
@@ -1073,7 +1084,9 @@ function updateMaxPhotosUI() {
 
 if (photoUploadZone && photoInput) {
   photoUploadZone.addEventListener('click', () => {
-    if (state.photoCount >= 5) {return;}
+    if (state.photoCount >= 5) {
+      return;
+    }
     const scanner = new SmartScanner({
       containerId: 'main-content',
       mode: 'document',
@@ -1095,12 +1108,16 @@ if (photoUploadZone && photoInput) {
 
   photoInput.addEventListener('change', async () => {
     const files = photoInput.files;
-    if (!files || !photoThumbnails) {return;}
+    if (!files || !photoThumbnails) {
+      return;
+    }
 
     const count = Math.min(files.length, 5 - state.photoCount);
     for (let i = 0; i < count; i++) {
       const f = files[i];
-      if (f) {await processPhotoFile(f);}
+      if (f) {
+        await processPhotoFile(f);
+      }
     }
     updateMaxPhotosUI();
   });

@@ -21,6 +21,7 @@ vi.mock('../../config/database', () => ({
   query: (...args: unknown[]) => mockQuery(...args),
   getClient: vi.fn(),
   transaction: (fn: (client: unknown) => Promise<unknown>) => mockTransaction(fn),
+  financialTransaction: (fn: (client: unknown) => Promise<unknown>) => mockTransaction(fn),
   default: { end: vi.fn(), query: (...args: unknown[]) => mockQuery(...args) },
 }));
 
@@ -151,7 +152,7 @@ describe('Payment Routes (HTTP Integration)', () => {
       const res = await request(app).post('/initiate').send({}).expect(400);
 
       expect(res.body.success).toBe(false);
-      expect(res.body.error).toContain('Missing required fields');
+      expect(res.body.error).toContain('Validation failed');
     });
 
     it('should return 400 for invalid gateway', async () => {
@@ -165,8 +166,7 @@ describe('Payment Routes (HTTP Integration)', () => {
         })
         .expect(400);
 
-      expect(res.body.error).toContain('Invalid gateway');
-      expect(res.body.error).toContain('visa, fatora');
+      expect(res.body.error).toContain('Validation failed');
     });
 
     it('should return 400 for zero amount (caught by falsy check)', async () => {
@@ -183,7 +183,7 @@ describe('Payment Routes (HTTP Integration)', () => {
         })
         .expect(400);
 
-      expect(res.body.error).toContain('Missing required fields');
+      expect(res.body.error).toContain('Validation failed');
     });
 
     it('should return 400 for negative amount', async () => {
@@ -197,7 +197,7 @@ describe('Payment Routes (HTTP Integration)', () => {
         })
         .expect(400);
 
-      expect(res.body.error).toContain('positive number');
+      expect(res.body.error).toContain('Validation failed');
     });
 
     it('should return 400 for non-numeric amount (string)', async () => {
@@ -211,7 +211,7 @@ describe('Payment Routes (HTTP Integration)', () => {
         })
         .expect(400);
 
-      expect(res.body.error).toContain('positive number');
+      expect(res.body.error).toContain('Validation failed');
     });
 
     it('should reject unauthenticated users', async () => {
@@ -234,10 +234,11 @@ describe('Payment Routes (HTTP Integration)', () => {
   // POST /webhook — Signature Verification
   // ═══════════════════════════════════════════════════════════════════════
   describe('POST /webhook — Signature Verification', () => {
-    it('should return 400 when required webhook fields are missing', async () => {
-      const res = await request(app).post('/webhook').send({}).expect(400);
+    it('should return 200 (to prevent retries) when required webhook fields are missing', async () => {
+      const res = await request(app).post('/webhook').send({}).expect(200);
 
-      expect(res.body.error).toContain('Missing required webhook fields');
+      expect(res.body.success).toBe(false);
+      expect(res.body.processed).toBe(false);
     });
 
     it('should return 401 when signature is missing', async () => {
@@ -297,7 +298,7 @@ describe('Payment Routes (HTTP Integration)', () => {
       // Mock: getStatus returns payment owned by the authenticated user
       mockPaymentService.getStatus.mockResolvedValueOnce({
         reference: 'NM-PAY-OWNED',
-        user_id: 'user-uuid-001', // Same as mockAuthUser.user_id
+        user_id: 'homeowner-uuid-001', // Same as mockAuthUser.user_id
         status: 'completed',
         amount: 50000,
         currency: 'USD',

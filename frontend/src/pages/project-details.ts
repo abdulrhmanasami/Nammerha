@@ -161,11 +161,13 @@ function renderHero(project: ProjectData): void {
       load360Btn.classList.add('opacity-80', 'cursor-not-allowed');
 
       // Simulate network request for the 4MB 360 panorama asset
-      addTrackedTimer(setTimeout(() => {
-        progressiveOverlay.classList.add('nm-hidden');
-        // Real app would init 360 viewer (e.g. Pannellum) here on the imgContainer
-        showToast(t('view_360_loaded', 'تم تحميل العرض البانورامي 360° بنجاح'), 'success');
-      }, 1500));
+      addTrackedTimer(
+        setTimeout(() => {
+          progressiveOverlay.classList.add('nm-hidden');
+          // Real app would init 360 viewer (e.g. Pannellum) here on the imgContainer
+          showToast(t('view_360_loaded', 'تم تحميل العرض البانورامي 360° بنجاح'), 'success');
+        }, 1500),
+      );
     });
   }
 }
@@ -420,7 +422,7 @@ function initCartButtons(): void {
 
       const itemId = btn.dataset.itemId;
       const itemName = btn.dataset.itemName;
-      const unitPrice = parseFloat(btn.dataset.itemUnitPrice ?? '0');
+      const unitPrice = Number(btn.dataset.itemUnitPrice ?? '0');
       const category = btn.dataset.itemCategory ?? '';
       const projectId = btn.dataset.itemProject ?? '';
       const iconClass = btn.dataset.itemIcon ?? 'ph-package';
@@ -433,48 +435,52 @@ function initCartButtons(): void {
       // Simulating the backend escrow allocation lock for the BOQ item
       const unlock = showProcessingLock(t('processing_escrow', 'جاري تأمين المادة في الضمان...'));
 
-      addTrackedTimer(setTimeout(() => {
-        unlock();
+      addTrackedTimer(
+        setTimeout(() => {
+          unlock();
 
-        CartStore.addItem({
-          id: itemId,
-          name: itemName,
-          unitPrice,
-          category,
-          projectId,
-          iconClass,
-        });
+          CartStore.addItem({
+            id: itemId,
+            name: itemName,
+            unitPrice,
+            category,
+            projectId,
+            iconClass,
+          });
 
-        haptic.medium(); // UX-004: Add-to-cart confirmation feedback
+          haptic.medium(); // UX-004: Add-to-cart confirmation feedback
 
-        // Start UX Platinum Cart Lock Timer
-        startCartLockTimer();
+          // Start UX Platinum Cart Lock Timer
+          startCartLockTimer();
 
-        const iconEl = btn.querySelector<HTMLElement>('i.ph');
-        if (iconEl && cartBtn) {
-          // P3-UXA-002 FIX: Sequence markAsAdded AFTER flyToCart animation completes.
-          flyToCart(iconEl, cartBtn, () => {
+          const iconEl = btn.querySelector<HTMLElement>('i.ph');
+          if (iconEl && cartBtn) {
+            // P3-UXA-002 FIX: Sequence markAsAdded AFTER flyToCart animation completes.
+            flyToCart(iconEl, cartBtn, () => {
+              renderCartBadge(cartBadge);
+              markAsAdded(btn);
+            });
+          } else {
             renderCartBadge(cartBadge);
             markAsAdded(btn);
-          });
-        } else {
-          renderCartBadge(cartBadge);
-          markAsAdded(btn);
-        }
-      }, 600));
+          }
+        }, 600),
+      );
     });
   }
 
   // Mark items already in cart after render
-  addTrackedTimer(setTimeout(() => {
-    const addButtons = document.querySelectorAll<HTMLButtonElement>('.add-to-cart-btn');
-    addButtons.forEach((btn) => {
-      const itemId = btn.dataset.itemId;
-      if (itemId && CartStore.hasItem(itemId)) {
-        markAsAdded(btn);
-      }
-    });
-  }, 0));
+  addTrackedTimer(
+    setTimeout(() => {
+      const addButtons = document.querySelectorAll<HTMLButtonElement>('.add-to-cart-btn');
+      addButtons.forEach((btn) => {
+        const itemId = btn.dataset.itemId;
+        if (itemId && CartStore.hasItem(itemId)) {
+          markAsAdded(btn);
+        }
+      });
+    }, 0),
+  );
 
   // Listen for cross-tab/cross-page cart updates
   window.addEventListener('cart:updated', () => renderCartBadge(cartBadge));
@@ -522,7 +528,9 @@ function showExpirationModal() {
 function startCartLockTimer() {
   const timerContainer = document.getElementById('cart-lock-timer');
   const countdownEl = document.getElementById('cart-timer-countdown');
-  if (!timerContainer || !countdownEl) {return;}
+  if (!timerContainer || !countdownEl) {
+    return;
+  }
 
   timerContainer.classList.remove('nm-hidden');
 
@@ -561,7 +569,9 @@ function startCartLockTimer() {
     }
 
     if (timeLeft <= 0) {
-      if (cartTimerInterval) {window.clearInterval(cartTimerInterval);}
+      if (cartTimerInterval) {
+        window.clearInterval(cartTimerInterval);
+      }
       countdownEl.textContent = '00:00';
       showExpirationModal();
       addTrackedTimer(setTimeout(() => timerContainer.classList.add('nm-hidden'), 3000));
@@ -581,9 +591,13 @@ document.addEventListener('visibilitychange', () => {
       const expiry = parseInt(storedExpiry, 10);
       if (now >= expiry) {
         // Timer expired while in background
-        if (cartTimerInterval) {window.clearInterval(cartTimerInterval);}
+        if (cartTimerInterval) {
+          window.clearInterval(cartTimerInterval);
+        }
         const timerContainer = document.getElementById('cart-lock-timer');
-        if (timerContainer) {timerContainer.classList.add('nm-hidden');}
+        if (timerContainer) {
+          timerContainer.classList.add('nm-hidden');
+        }
         showExpirationModal();
       }
     }
@@ -656,10 +670,14 @@ async function loadProjectData(): Promise<void> {
 // ─────────────────────────────────────────────────────────────────────────────
 function renderRoleCTA(projectId: string): void {
   const user = getCurrentUser();
-  if (!user) {return;} // Unauthenticated → no CTA
+  if (!user) {
+    return;
+  } // Unauthenticated → no CTA
 
   const main = document.querySelector('main');
-  if (!main) {return;}
+  if (!main) {
+    return;
+  }
 
   // Determine primary role CTA
   interface RoleCTA {
@@ -707,7 +725,9 @@ function renderRoleCTA(projectId: string): void {
     };
   }
 
-  if (!cta) {return;}
+  if (!cta) {
+    return;
+  }
 
   const section = document.createElement('section');
   section.id = 'nm-role-cta';
@@ -769,7 +789,9 @@ const ACTION_COLORS: Record<string, string> = {
 async function renderActivityTimeline(projectId: string): Promise<void> {
   // Find or create activity container after BOQ section
   const main = document.querySelector('main');
-  if (!main) {return;}
+  if (!main) {
+    return;
+  }
 
   // Create timeline section
   const section = document.createElement('section');
@@ -794,13 +816,17 @@ async function renderActivityTimeline(projectId: string): Promise<void> {
   main.appendChild(section);
 
   const timeline = document.getElementById('v004-timeline');
-  if (!timeline) {return;}
+  if (!timeline) {
+    return;
+  }
 
   let currentOffset = 0;
   const pageSize = 15;
 
   async function loadEvents(append = false): Promise<void> {
-    if (!timeline) {return;}
+    if (!timeline) {
+      return;
+    }
     try {
       const res = await dashboard.getActivity(projectId, {
         limit: pageSize,
@@ -879,10 +905,18 @@ function formatRelativeTime(isoDate: string): string {
   const diffHr = Math.floor(diffMs / 3_600_000);
   const diffDay = Math.floor(diffMs / 86_400_000);
 
-  if (diffMin < 1) {return t('just_now', 'الآن');}
-  if (diffMin < 60) {return `${diffMin}${t('min_ago', 'منذ دقيقة')}`;}
-  if (diffHr < 24) {return `${diffHr}${t('hr_ago', 'منذ ساعة')}`;}
-  if (diffDay < 7) {return `${diffDay}${t('day_ago', 'منذ يوم')}`;}
+  if (diffMin < 1) {
+    return t('just_now', 'الآن');
+  }
+  if (diffMin < 60) {
+    return `${diffMin}${t('min_ago', 'منذ دقيقة')}`;
+  }
+  if (diffHr < 24) {
+    return `${diffHr}${t('hr_ago', 'منذ ساعة')}`;
+  }
+  if (diffDay < 7) {
+    return `${diffDay}${t('day_ago', 'منذ يوم')}`;
+  }
   return new Date(isoDate).toLocaleDateString();
 }
 

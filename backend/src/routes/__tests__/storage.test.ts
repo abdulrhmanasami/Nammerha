@@ -30,6 +30,7 @@ vi.mock('../../config/database', () => ({
   query: vi.fn().mockResolvedValue({ rows: [{ cnt: '1' }], rowCount: 1 }),
   getClient: vi.fn(),
   transaction: vi.fn(),
+  financialTransaction: vi.fn(),
   default: { end: vi.fn(), query: vi.fn() },
 }));
 
@@ -254,13 +255,13 @@ describe('Storage Routes (HTTP Integration)', () => {
         .send({ project_id: VALID_UUID })
         .expect(400);
 
-      expect(res.body.error).toContain('Missing required fields');
+      expect(res.body.error).toContain('Validation failed');
     });
 
     it('should return 400 for completely empty body', async () => {
       const res = await request(app).post('/api/storage/upload-url').send({}).expect(400);
 
-      expect(res.body.error).toContain('Missing required fields');
+      expect(res.body.error).toContain('Validation failed');
     });
 
     it('should return 200 with pre-signed URL for valid request', async () => {

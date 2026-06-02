@@ -7,6 +7,8 @@ import { Router } from 'express';
 import { logger } from '../utils/logger';
 import { authMiddleware } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role-guard.middleware';
+import { requireIdempotencyKey } from '../middleware/require-idempotency-key.middleware';
+import { idempotencyMiddleware } from '../middleware/idempotency.middleware';
 import { ZodError } from 'zod';
 import { commissionRateSchema, createTipSchema } from '../validation/schemas';
 import {
@@ -140,34 +142,41 @@ router.get('/admin/config', authMiddleware, requireRole('admin'), async (_req, r
  * PUT /api/revenue/admin/config/:tierId
  * Update a commission tier's rate (in basis points).
  */
-router.put('/admin/config/:tierId', authMiddleware, requireRole('admin'), async (req, res) => {
-  try {
-    const tierId = req.params['tierId'] as string;
-    if (!tierId) {
+router.put(
+  '/admin/config/:tierId',
+  authMiddleware,
+  requireRole('admin'),
+  requireIdempotencyKey,
+  idempotencyMiddleware,
+  async (req, res) => {
+    try {
+      const tierId = req.params['tierId'] as string;
+      if (!tierId) {
+        res.status(400).json({
+          success: false,
+          error: 'tierId is required',
+        });
+        return;
+      }
+      const { commission_rate_bps } = commissionRateSchema.parse(req.body);
+
+      const updated = await updateCommissionRate(tierId, commission_rate_bps);
+      res.json({ success: true, data: updated });
+    } catch (err) {
+      if (err instanceof ZodError) {
+        res.status(400).json({ success: false, error: 'Validation failed', details: err.issues });
+        return;
+      }
+      logger.error('Failed to update tier', {
+        error: err instanceof Error ? err.message : String(err),
+      });
       res.status(400).json({
         success: false,
-        error: 'tierId is required',
+        error: 'Failed to update tier',
       });
-      return;
     }
-    const { commission_rate_bps } = commissionRateSchema.parse(req.body);
-
-    const updated = await updateCommissionRate(tierId, commission_rate_bps);
-    res.json({ success: true, data: updated });
-  } catch (err) {
-    if (err instanceof ZodError) {
-      res.status(400).json({ success: false, error: 'Validation failed', details: err.issues });
-      return;
-    }
-    logger.error('Failed to update tier', {
-      error: err instanceof Error ? err.message : String(err),
-    });
-    res.status(400).json({
-      success: false,
-      error: 'Failed to update tier',
-    });
-  }
-});
+  },
+);
 
 // ═════════════════════════════════════════════════════════════════════════════
 // UNIFIED CITIZEN ROUTES (any authenticated user)
@@ -212,50 +221,56 @@ const PAYMENTS_ENABLED = process.env['PAYMENTS_ENABLED'] === 'true';
  * POST /api/revenue/user/tip
  * Record a voluntary platform tip from a user.
  */
-router.post('/user/tip', authMiddleware, async (req, res) => {
-  if (!PAYMENTS_ENABLED) {
-    res.status(503).json({ success: false, error: 'Payments are temporarily disabled.' });
-    return;
-  }
-  try {
-    const userId = req.authUser?.user_id;
-    if (!userId) {
-      res.status(401).json({ success: false, error: 'Unauthorized' });
+router.post(
+  '/user/tip',
+  authMiddleware,
+  requireIdempotencyKey,
+  idempotencyMiddleware,
+  async (req, res) => {
+    if (!PAYMENTS_ENABLED) {
+      res.status(503).json({ success: false, error: 'Payments are temporarily disabled.' });
       return;
     }
+    try {
+      const userId = req.authUser?.user_id;
+      if (!userId) {
+        res.status(401).json({ success: false, error: 'Unauthorized' });
+        return;
+      }
 
-    const {
-      payment_reference,
-      tip_amount_cents,
-      tip_percentage,
-      payment_gateway,
-      payment_gateway_ref,
-    } = createTipSchema.parse(req.body);
+      const {
+        payment_reference,
+        tip_amount_cents,
+        tip_percentage,
+        payment_gateway,
+        payment_gateway_ref,
+      } = createTipSchema.parse(req.body);
 
-    const tip = await recordTip(
-      userId,
-      payment_reference,
-      tip_amount_cents,
-      tip_percentage ?? null,
-      payment_gateway,
-      payment_gateway_ref,
-    );
+      const tip = await recordTip(
+        userId,
+        payment_reference,
+        tip_amount_cents,
+        tip_percentage ?? null,
+        payment_gateway,
+        payment_gateway_ref,
+      );
 
-    res.status(201).json({ success: true, data: tip });
-  } catch (err) {
-    if (err instanceof ZodError) {
-      res.status(400).json({ success: false, error: 'Validation failed', details: err.issues });
-      return;
+      res.status(201).json({ success: true, data: tip });
+    } catch (err) {
+      if (err instanceof ZodError) {
+        res.status(400).json({ success: false, error: 'Validation failed', details: err.issues });
+        return;
+      }
+      logger.error('Failed to record tip', {
+        error: err instanceof Error ? err.message : String(err),
+      });
+      res.status(400).json({
+        success: false,
+        error: 'Failed to record tip',
+      });
     }
-    logger.error('Failed to record tip', {
-      error: err instanceof Error ? err.message : String(err),
-    });
-    res.status(400).json({
-      success: false,
-      error: 'Failed to record tip',
-    });
-  }
-});
+  },
+);
 
 /**
  * GET /api/revenue/user/tips

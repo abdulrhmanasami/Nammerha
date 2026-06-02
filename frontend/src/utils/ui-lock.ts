@@ -7,7 +7,6 @@
 import { escapeHtml } from './xss';
 import { addTrackedTimer } from './tracked-timers';
 
-
 // Global interceptors to guarantee cleanup and prevent ghost inputs
 let _lockKeydownInterceptor: ((e: KeyboardEvent) => void) | null = null;
 let _lockPopstateInterceptor: (() => void) | null = null;
@@ -15,15 +14,16 @@ let _lockTouchInterceptor: ((e: TouchEvent) => void) | null = null;
 
 export function showProcessingLock(message: string = 'جاري المعالجة...'): () => void {
   // Prevent multiple locks
-  if (document.getElementById('nm-ui-lock')) {return () => {};}
+  if (document.getElementById('nm-ui-lock')) {
+    return () => {};
+  }
 
   // 1. Ghost Keyboard Submissions (0-Day Fix)
   // Instantly blur active element so holding 'Enter' doesn't queue multiple submit events
-  // PLATINUM FIX: SVG Focus Trap Bypass. Use duck typing to catch SVGElements.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if (document.activeElement && typeof (document.activeElement as any).blur === 'function') {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (document.activeElement as any).blur();
+  // PLATINUM FIX: SVG Focus Trap Bypass. Use 'in' operator to safely check for blur method.
+  const activeEl = document.activeElement;
+  if (activeEl && 'blur' in activeEl && typeof activeEl.blur === 'function') {
+    activeEl.blur();
   }
 
   const lock = document.createElement('div');
@@ -76,17 +76,17 @@ export function showProcessingLock(message: string = 'جاري المعالجة.
         'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
       );
       const focusable = Array.from(focusableElements);
-      
+
       // If nothing is focusable inside, just hold focus on the lock itself
       if (focusable.length === 0) {
         e.preventDefault();
         lock.focus();
         return;
       }
-      
+
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
-      
+
       // PLATINUM FIX: Absolute Boundary Trap
       // querySelectorAll does not include the root 'lock' element itself.
       // If focus is currently on the root 'lock' container, route it deterministically.
@@ -99,7 +99,7 @@ export function showProcessingLock(message: string = 'جاري المعالجة.
         }
         return;
       }
-      
+
       // If focus somehow leaked outside the focusable list entirely, snap it back
       if (!focusable.includes(document.activeElement as HTMLElement)) {
         e.preventDefault();
@@ -148,23 +148,29 @@ export function showProcessingLock(message: string = 'جاري المعالجة.
   };
 
   const removeLock = () => {
-    if (isRemoved) {return;}
+    if (isRemoved) {
+      return;
+    }
     isRemoved = true;
     cleanupInterceptors();
 
     lock.classList.add('opacity-0');
     document.getElementById('nm-ui-lock-modal')?.classList.add('scale-95');
-    addTrackedTimer(setTimeout(() => {
-      lock.remove();
-      document.body.style.overflow = originalOverflow;
-    }, 300));
+    addTrackedTimer(
+      setTimeout(() => {
+        lock.remove();
+        document.body.style.overflow = originalOverflow;
+      }, 300),
+    );
   };
 
   // 2. Scroll Lock Memory Leak / Bfcache Zombie Scroll Fix
   // If the user hits the browser 'Back' button while locked, the popstate event fires.
   // We instantly destroy the lock and restore scrolling, preventing a permanently locked Bfcache page.
   _lockPopstateInterceptor = () => {
-    if (isRemoved) {return;}
+    if (isRemoved) {
+      return;
+    }
     isRemoved = true;
     cleanupInterceptors();
     lock.remove(); // Remove immediately without animation to prevent breaking transitions on the new page

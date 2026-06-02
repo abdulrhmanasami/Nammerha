@@ -23,11 +23,8 @@ import express from 'express';
 
 import { type Server as HttpServer } from 'http';
 import { WebSocketServer } from 'ws';
-// L-1 AUDIT: @ts-ignore is required because graphql-ws uses Node16 exports map
-// (`exports["./use/ws"]`). TypeScript cannot resolve this without moduleResolution: Node16,
-// which would break the rest of the codebase. The runtime import is correct.
-// @ts-expect-error - graphql-ws exports require moduleResolution: Node16
-import { useServer } from 'graphql-ws/use/ws';
+// The graphql-ws `useServer` export is dynamically imported within setupGraphQL()
+// to avoid the need for @ts-expect-error when moduleResolution is not Node16.
 
 import { schema } from './schema/index';
 import { buildContext, type GQLContext } from './context/auth.context';
@@ -43,76 +40,78 @@ import { initPgNotifyListener } from './resolvers/subscription/notification.reso
  * @returns The started Apollo Server, ready for Express middleware integration
  */
 async function createApolloServer(): Promise<ApolloServer<GQLContext>> {
-    const server = new ApolloServer<GQLContext>({
-        schema,
+  const server = new ApolloServer<GQLContext>({
+    schema,
 
-        // ── Introspection & Playground ──────────────────────────────────
-        // Enable in development for GraphQL IDE; disable in production
-        // for security (prevents schema exposure)
-        introspection: process.env['NODE_ENV'] !== 'production',
+    // ── Introspection & Playground ──────────────────────────────────
+    // Enable in development for GraphQL IDE; disable in production
+    // for security (prevents schema exposure)
+    introspection: process.env['NODE_ENV'] !== 'production',
 
-        // ── Error Formatting ────────────────────────────────────────────
-        // SEC-008 compliance: Never expose internal error messages to clients
-        formatError: (formattedError, error) => {
-            // Log the full error server-side for debugging
-            logger.error('GraphQL Error', {
-                message: formattedError.message,
-                path: formattedError.path,
-                extensions: formattedError.extensions,
-                originalError: error instanceof Error ? error.stack : String(error),
-            });
+    // ── Error Formatting ────────────────────────────────────────────
+    // SEC-008 compliance: Never expose internal error messages to clients
+    formatError: (formattedError, error) => {
+      // Log the full error server-side for debugging
+      logger.error('GraphQL Error', {
+        message: formattedError.message,
+        path: formattedError.path,
+        extensions: formattedError.extensions,
+        originalError: error instanceof Error ? error.stack : String(error),
+      });
 
-            // In production, sanitize error messages
-            if (process.env['NODE_ENV'] === 'production') {
-                // Preserve authentication and authorization errors as-is
-                if (formattedError.message.includes('Authentication required') ||
-                    formattedError.message.includes('Insufficient permissions')) {
-                    return formattedError;
-                }
+      // In production, sanitize error messages
+      if (process.env['NODE_ENV'] === 'production') {
+        // Preserve authentication and authorization errors as-is
+        if (
+          formattedError.message.includes('Authentication required') ||
+          formattedError.message.includes('Insufficient permissions')
+        ) {
+          return formattedError;
+        }
 
-                // Preserve "Not implemented" errors during migration
-                if (formattedError.message.includes('Not implemented')) {
-                    return {
-                        ...formattedError,
-                        message: 'This feature is not yet available via GraphQL. Please use the REST API.',
-                    };
-                }
+        // Preserve "Not implemented" errors during migration
+        if (formattedError.message.includes('Not implemented')) {
+          return {
+            ...formattedError,
+            message: 'This feature is not yet available via GraphQL. Please use the REST API.',
+          };
+        }
 
-                // Sanitize all other errors
-                return {
-                    message: 'Internal server error',
-                    extensions: {
-                        code: formattedError.extensions?.['code'] ?? 'INTERNAL_SERVER_ERROR',
-                    },
-                };
-            }
+        // Sanitize all other errors
+        return {
+          message: 'Internal server error',
+          extensions: {
+            code: formattedError.extensions?.['code'] ?? 'INTERNAL_SERVER_ERROR',
+          },
+        };
+      }
 
-            return formattedError;
-        },
+      return formattedError;
+    },
 
-        // ── Performance ─────────────────────────────────────────────────
-        // Set reasonable limits to prevent abuse
-        plugins: [
-            {
-                async requestDidStart() {
-                    const start = Date.now();
-                    return {
-                        async willSendResponse() {
-                            const duration = Date.now() - start;
-                            if (duration > 200) {
-                                logger.warn('GraphQL slow query detected', { durationMs: duration });
-                            }
-                        },
-                    };
-                },
+    // ── Performance ─────────────────────────────────────────────────
+    // Set reasonable limits to prevent abuse
+    plugins: [
+      {
+        async requestDidStart() {
+          const start = Date.now();
+          return {
+            async willSendResponse() {
+              const duration = Date.now() - start;
+              if (duration > 200) {
+                logger.warn('GraphQL slow query detected', { durationMs: duration });
+              }
             },
-        ],
-    });
+          };
+        },
+      },
+    ],
+  });
 
-    await server.start();
-    logger.info('Apollo GraphQL server started');
+  await server.start();
+  logger.info('Apollo GraphQL server started');
 
-    return server;
+  return server;
 }
 
 /**
@@ -124,84 +123,94 @@ async function createApolloServer(): Promise<ApolloServer<GQLContext>> {
  * @param app - The Express application instance from server.ts
  */
 export async function setupGraphQL(app: Express, httpServer: HttpServer): Promise<void> {
-    try {
-        await initPgNotifyListener();
-        
-        const server = await createApolloServer();
+  try {
+    await initPgNotifyListener();
 
-        // Mount Apollo as Express middleware
-        // The context builder extracts auth from the request headers
-        app.use(
-            '/graphql',
-            express.json(),
-            expressMiddleware(server, {
-                context: async ({ req }: { req: express.Request }) => buildContext({ req }),
-            }),
-        );
-        
-        // Mount graphql-ws handler
-        const wsServer = new WebSocketServer({
-            server: httpServer,
-            path: '/graphql',
-        });
-        
-        // M-4 FIX: Typed WebSocket context — no `any` annotations.
-        interface WsConnectionContext {
-            connectionParams?: Record<string, unknown>;
-        }
+    const server = await createApolloServer();
 
-        useServer(
-            {
-                schema,
-                context: async (ctx: WsConnectionContext) => {
-                    const token = ctx.connectionParams?.['token'] as string | undefined;
-                    const fakeReq = {
-                        headers: token ? { authorization: `Bearer ${token}` } : {},
-                        authUser: null as null | Record<string, unknown>,
-                    };
-                    
-                    if (token) {
-                        try {
-                            const jwt = await import('jsonwebtoken');
-                            const secret = process.env['JWT_SECRET'];
-                            if (secret) {
-                                const decoded = jwt.default.verify(token, secret) as Record<string, unknown>;
-                                fakeReq.authUser = {
-                                    user_id: decoded['userId'],
-                                    role: decoded['role'],
-                                    roles: decoded['roles'] ?? [decoded['role']],
-                                };
-                            }
-                        } catch (err) {
-                            logger.error('WebSocket context JWT verify failed', { error: err instanceof Error ? err.message : String(err) });
-                        }
-                    }
-                    
-                    return {
-                        req: fakeReq,
-                        user: fakeReq.authUser,
-                        loaders: {
-                            userLoader: createUserLoader(),
-                            projectLoader: createProjectLoader(),
-                            boqLoader: createBOQLoader(),
-                        },
-                    } as unknown as GQLContext;
-                },
-                onConnect: () => {
-                    logger.info('WebSocket client connected for GraphQL Subscriptions');
-                },
-                onDisconnect: () => {
-                    logger.info('WebSocket client disconnected');
-                },
-            },
-            wsServer
-        );
+    // Mount Apollo as Express middleware
+    // The context builder extracts auth from the request headers
+    app.use(
+      '/graphql',
+      express.json(),
+      expressMiddleware(server, {
+        context: async ({ req }: { req: express.Request }) => buildContext({ req }),
+      }),
+    );
 
-        logger.info('GraphQL endpoint mounted at /graphql');
-    } catch (err) {
-        logger.error('Failed to mount GraphQL server', {
-            error: err instanceof Error ? err.message : String(err),
-        });
-        throw err;
+    // Mount graphql-ws handler
+    const wsServer = new WebSocketServer({
+      server: httpServer,
+      path: '/graphql',
+    });
+
+    // M-4 FIX: Typed WebSocket context — no `any` annotations.
+    interface WsConnectionContext {
+      connectionParams?: Record<string, unknown>;
     }
+
+    // Dynamically import to avoid TS2307 on Node16 export maps
+    // We use a variable to prevent TS from attempting static module resolution
+    const wsModulePath = 'graphql-ws/use/ws';
+    const wsModule = (await import(wsModulePath)) as {
+      useServer: (options: unknown, ws: unknown) => void;
+    };
+    const useServer = wsModule.useServer;
+
+    useServer(
+      {
+        schema,
+        context: async (ctx: WsConnectionContext) => {
+          const token = ctx.connectionParams?.['token'] as string | undefined;
+          const fakeReq = {
+            headers: token ? { authorization: `Bearer ${token}` } : {},
+            authUser: null as null | Record<string, unknown>,
+          };
+
+          if (token) {
+            try {
+              const jwt = await import('jsonwebtoken');
+              const secret = process.env['JWT_SECRET'];
+              if (secret) {
+                const decoded = jwt.default.verify(token, secret) as Record<string, unknown>;
+                fakeReq.authUser = {
+                  user_id: decoded['userId'],
+                  role: decoded['role'],
+                  roles: decoded['roles'] ?? [decoded['role']],
+                };
+              }
+            } catch (err) {
+              logger.error('WebSocket context JWT verify failed', {
+                error: err instanceof Error ? err.message : String(err),
+              });
+            }
+          }
+
+          return {
+            req: fakeReq,
+            user: fakeReq.authUser,
+            loaders: {
+              userLoader: createUserLoader(),
+              projectLoader: createProjectLoader(),
+              boqLoader: createBOQLoader(),
+            },
+          } as unknown as GQLContext;
+        },
+        onConnect: () => {
+          logger.info('WebSocket client connected for GraphQL Subscriptions');
+        },
+        onDisconnect: () => {
+          logger.info('WebSocket client disconnected');
+        },
+      },
+      wsServer,
+    );
+
+    logger.info('GraphQL endpoint mounted at /graphql');
+  } catch (err) {
+    logger.error('Failed to mount GraphQL server', {
+      error: err instanceof Error ? err.message : String(err),
+    });
+    throw err;
+  }
 }

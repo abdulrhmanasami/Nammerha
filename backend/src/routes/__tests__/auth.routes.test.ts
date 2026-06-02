@@ -15,6 +15,7 @@ vi.mock('../../config/database', () => ({
   query: (...args: unknown[]) => mockQuery(...args),
   getClient: vi.fn(),
   transaction: vi.fn(),
+  financialTransaction: vi.fn(),
   default: { end: vi.fn() },
 }));
 

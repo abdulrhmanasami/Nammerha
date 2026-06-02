@@ -280,11 +280,16 @@ export { _originalQuery };
 // Patch: Add slow query detection to the existing query function
 pool.on('connect', (client) => {
   const originalClientQuery = client.query.bind(client);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (client as any).query = async (...args: unknown[]) => {
+
+  // Create an explicitly typed wrapper rather than casting to any
+  type QueryFunc = (...args: unknown[]) => Promise<unknown>;
+  const patchedClient = client as unknown as { query: QueryFunc };
+
+  patchedClient.query = async (...args: unknown[]) => {
     const start = Date.now();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const result = await (originalClientQuery as any)(...args);
+
+    // Explicitly cast the original function to our strict type
+    const result = await (originalClientQuery as QueryFunc)(...args);
     const duration = Date.now() - start;
 
     if (duration > SLOW_QUERY_THRESHOLD_MS) {

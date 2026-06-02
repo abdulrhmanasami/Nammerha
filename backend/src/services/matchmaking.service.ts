@@ -77,12 +77,12 @@ export interface SearchEngineersDTO {
 // Defaults to BuildZoom methodology values. Can be tuned via env vars
 // without redeployment: SCORE_W_PROJECTS, SCORE_W_RESPONSE, SCORE_W_WINRATE, SCORE_W_LICENSE
 //
-// P1-NEW-002 FIX: safeParseFloat guards against NaN injection.
+// P1-NEW-002 FIX: parseEnvWeight guards against NaN injection.
 // If SCORE_W_PROJECTS=abc or SCORE_W_PROJECTS= is set, Number returns NaN
 // which silently corrupts ALL engineer scores. This guard validates isFinite()
 // and falls back to the documented BuildZoom default.
 
-function safeParseFloat(envValue: string | undefined, fallback: number): number {
+function parseEnvWeight(envValue: string | undefined, fallback: number): number {
   if (envValue === undefined || envValue === '') {
     return fallback;
   }
@@ -98,10 +98,10 @@ function safeParseFloat(envValue: string | undefined, fallback: number): number 
 }
 
 const SCORE_WEIGHTS = {
-  completed_projects: safeParseFloat(process.env['SCORE_W_PROJECTS'], 0.35),
-  response_speed: safeParseFloat(process.env['SCORE_W_RESPONSE'], 0.2),
-  bid_win_rate: safeParseFloat(process.env['SCORE_W_WINRATE'], 0.3),
-  license_status: safeParseFloat(process.env['SCORE_W_LICENSE'], 0.15),
+  completed_projects: parseEnvWeight(process.env['SCORE_W_PROJECTS'], 0.35),
+  response_speed: parseEnvWeight(process.env['SCORE_W_RESPONSE'], 0.2),
+  bid_win_rate: parseEnvWeight(process.env['SCORE_W_WINRATE'], 0.3),
+  license_status: parseEnvWeight(process.env['SCORE_W_LICENSE'], 0.15),
 } as const;
 
 // P1-NEW-002 FIX: Startup integrity check — weights must sum to 1.0 (±0.01 tolerance)
