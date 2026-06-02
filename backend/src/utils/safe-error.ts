@@ -23,60 +23,93 @@ import { logger } from './logger';
  * or null if the error is not recognized (→ defaults to 500).
  */
 function inferStatusFromMessage(message: string): number | null {
-    const lower = message.toLowerCase();
+  const lower = message.toLowerCase();
 
-    // F5-2 FIX: PostgreSQL / internal error guard — MUST be checked FIRST.
-    // Raw DB errors contain schema details (table names, constraint names,
-    // column names) that must NEVER reach the client. If the error smells
-    // like a database error, force 500 immediately — do not pattern-match.
-    // NOTE: Patterns use DB-specific syntax (quoted identifiers, pg_ prefix)
-    // to avoid false positives on business-logic messages like "FIDIC constraint".
-    const DB_LEAK_PATTERNS = [
-        'relation "', 'constraint "', 'violates unique', 'violates check',
-        'violates foreign key', 'violates not-null', 'pg_',
-        'syntax error at', 'column "', 'table "', 'index "', 'sequence "',
-        'operator does not exist', 'permission denied for', 'deadlock detected',
-        'could not serialize', 'connection refused', 'connection terminated',
-        'too many clients', 'remaining connection slots',
-    ];
-    if (DB_LEAK_PATTERNS.some(p => lower.includes(p))) {
-        return null; // → falls through to 500 in safeRouteError
-    }
+  // F5-2 FIX: PostgreSQL / internal error guard — MUST be checked FIRST.
+  // Raw DB errors contain schema details (table names, constraint names,
+  // column names) that must NEVER reach the client. If the error smells
+  // like a database error, force 500 immediately — do not pattern-match.
+  // NOTE: Patterns use DB-specific syntax (quoted identifiers, pg_ prefix)
+  // to avoid false positives on business-logic messages like "FIDIC constraint".
+  const DB_LEAK_PATTERNS = [
+    'relation "',
+    'constraint "',
+    'violates unique',
+    'violates check',
+    'violates foreign key',
+    'violates not-null',
+    'pg_',
+    'syntax error at',
+    'column "',
+    'table "',
+    'index "',
+    'sequence "',
+    'operator does not exist',
+    'permission denied for',
+    'deadlock detected',
+    'could not serialize',
+    'connection refused',
+    'connection terminated',
+    'too many clients',
+    'remaining connection slots',
+  ];
+  if (DB_LEAK_PATTERNS.some((p) => lower.includes(p))) {
+    return null; // → falls through to 500 in safeRouteError
+  }
 
-    // 404 — Resource not found
-    if (lower.includes('not found') || lower.includes('not exist')) {
-        return 404;
-    }
+  // 404 — Resource not found
+  if (lower.includes('not found') || lower.includes('not exist')) {
+    return 404;
+  }
 
-    // 403 — Forbidden / Authorization
-    if (lower.includes('not assigned') || lower.includes('not the owner') ||
-        lower.includes('access denied') || lower.includes('insufficient permission') ||
-        lower.includes('you do not own') || lower.includes('you are not')) {
-        return 403;
-    }
+  // 403 — Forbidden / Authorization
+  if (
+    lower.includes('not assigned') ||
+    lower.includes('not the owner') ||
+    lower.includes('access denied') ||
+    lower.includes('insufficient permission') ||
+    lower.includes('you do not own') ||
+    lower.includes('you are not')
+  ) {
+    return 403;
+  }
 
-    // 409 — Conflict / Duplicate
-    if (lower.includes('already') || lower.includes('duplicate') ||
-        lower.includes('conflict') || lower.includes('no longer')) {
-        return 409;
-    }
+  // 409 — Conflict / Duplicate
+  if (
+    lower.includes('already') ||
+    lower.includes('duplicate') ||
+    lower.includes('conflict') ||
+    lower.includes('no longer')
+  ) {
+    return 409;
+  }
 
-    // 422 — Validation / Constraint violation
-    if (lower.includes('gps') || lower.includes('fidic') ||
-        lower.includes('constraint violation') || lower.includes('validation')) {
-        return 422;
-    }
+  // 422 — Validation / Constraint violation
+  if (
+    lower.includes('gps') ||
+    lower.includes('fidic') ||
+    lower.includes('constraint violation') ||
+    lower.includes('validation')
+  ) {
+    return 422;
+  }
 
-    // 400 — Bad Request (generic business logic)
-    if (lower.includes('must be') || lower.includes('missing') ||
-        lower.includes('invalid') || lower.includes('required') ||
-        lower.includes('cannot') || lower.includes('expected') ||
-        lower.includes('not allowed') || lower.includes('only')) {
-        return 400;
-    }
+  // 400 — Bad Request (generic business logic)
+  if (
+    lower.includes('must be') ||
+    lower.includes('missing') ||
+    lower.includes('invalid') ||
+    lower.includes('required') ||
+    lower.includes('cannot') ||
+    lower.includes('expected') ||
+    lower.includes('not allowed') ||
+    lower.includes('only')
+  ) {
+    return 400;
+  }
 
-    // Unknown pattern — let it fall through to 500
-    return null;
+  // Unknown pattern — let it fall through to 500
+  return null;
 }
 
 /**
@@ -99,34 +132,32 @@ function inferStatusFromMessage(message: string): number | null {
  * @param status   Optional explicit HTTP status code. When omitted, inferred from error message.
  */
 export function safeRouteError(
-    res: Response,
-    error: unknown,
-    context: string,
-    status?: number
+  res: Response,
+  error: unknown,
+  context: string,
+  status?: number,
 ): void {
-    const rawMessage = error instanceof Error ? error.message : 'Unknown error';
+  const rawMessage = error instanceof Error ? error.message : 'Unknown error';
 
-    // Determine the appropriate HTTP status code:
-    // 1. Explicit status takes precedence
-    // 2. Infer from error message patterns
-    // 3. Default to 500
-    const httpStatus = status ?? inferStatusFromMessage(rawMessage) ?? 500;
+  // Determine the appropriate HTTP status code:
+  // 1. Explicit status takes precedence
+  // 2. Infer from error message patterns
+  // 3. Default to 500
+  const httpStatus = status ?? inferStatusFromMessage(rawMessage) ?? 500;
 
-    if (httpStatus >= 500) {
-        // ─── CRITICAL: Never expose internal error details ──────────────
-        // Log the full error server-side for debugging
-        logger.error(`${context}: Internal error`, { error: error instanceof Error ? error.message : String(error) });
-        const response: ApiResponse = {
-            success: false,
-            error: 'Internal server error',
-        };
-        res.status(httpStatus).json(response);
-    } else {
-        // 4xx errors are intentional business logic — safe to expose
-        const response: ApiResponse = {
-            success: false,
-            error: rawMessage,
-        };
-        res.status(httpStatus).json(response);
-    }
+  if (httpStatus >= 500) {
+    // ─── CRITICAL: Never expose internal error details ──────────────
+    // Log the full error server-side for debugging
+    logger.error(`${context}: Internal error`, {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    res.status(500).json({ success: false, error: 'Internal server error' });
+  } else {
+    // 4xx errors are intentional business logic — safe to expose
+    const response: ApiResponse = {
+      success: false,
+      error: rawMessage,
+    };
+    res.status(httpStatus).json(response);
+  }
 }

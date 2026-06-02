@@ -22,7 +22,17 @@ vi.mock('../../config/database', () => ({
   query: (...args: unknown[]) => mockPoolQuery(...args),
   getClient: vi.fn(),
   transaction: (fn: (client: unknown) => Promise<unknown>) => mockTransaction(fn),
-  default: { end: vi.fn(), query: (...args: unknown[]) => mockPoolQuery(...args) },
+  financialTransaction: (fn: (client: unknown) => Promise<unknown>) => mockTransaction(fn),
+  default: {
+    end: vi.fn(),
+    query: (...args: unknown[]) => mockPoolQuery(...args),
+    connect: vi
+      .fn()
+      .mockResolvedValue({
+        query: (...args: unknown[]) => mockPoolQuery(...args),
+        release: vi.fn(),
+      }),
+  },
 }));
 
 // ─── Mock notification (used by escrow service internally) ──────────────────
@@ -89,7 +99,18 @@ vi.mock('../../middleware/auth.middleware', () => ({
   },
 }));
 
-// ─── Import AFTER mocks ────────────────────────────────────────────────────
+// ─── Mock Idempotency Middleware ───────────────────────────────────────────
+vi.mock('../../middleware/idempotency.middleware', () => ({
+  idempotencyMiddleware: (
+    _req: express.Request,
+    _res: express.Response,
+    next: express.NextFunction,
+  ) => {
+    next();
+  },
+}));
+
+// ─── Setup App & Mocks ──────────────────────────────────────────────────────
 import adminRoutes from '../../routes/admin.routes';
 
 // ─── Express App Factory ───────────────────────────────────────────────────
@@ -114,6 +135,8 @@ describe('Admin / Escrow Routes (HTTP Integration)', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockPoolQuery.mockReset();
+    mockTransaction.mockReset();
     app = createApp();
     // Default: authenticated admin
     mockAuthUser = { user_id: 'admin-uuid-001', role: 'admin', roles: ['admin'], is_active: true };
@@ -147,7 +170,10 @@ describe('Admin / Escrow Routes (HTTP Integration)', () => {
 
       const res = await request(app)
         .post('/api/admin/escrow/release')
-        .send({ proof_id: 'proof-001', item_id: 'item-001' })
+        .send({
+          proof_id: '11111111-1111-4111-8111-111111111111',
+          item_id: '22222222-2222-4222-8222-222222222222',
+        })
         .expect(403);
 
       expect(res.body.error).toContain('Access denied');
@@ -163,7 +189,7 @@ describe('Admin / Escrow Routes (HTTP Integration)', () => {
 
       const res = await request(app)
         .post('/api/admin/escrow/flag')
-        .send({ proof_id: 'proof-001', reason: 'Suspicious' })
+        .send({ proof_id: '11111111-1111-4111-8111-111111111111', reason: 'Suspicious' })
         .expect(403);
 
       expect(res.body.error).toContain('Access denied');
@@ -231,30 +257,34 @@ describe('Admin / Escrow Routes (HTTP Integration)', () => {
     it('should return 400 when required fields are missing', async () => {
       const res = await request(app)
         .post('/api/admin/escrow/release')
-        .send({ proof_id: 'proof-001' }) // missing item_id
+        .set('Idempotency-Key', 'test-key-123')
+        .send({ proof_id: '11111111-1111-4111-8111-111111111111' }) // missing item_id
         .expect(400);
 
-      expect(res.body.error).toContain('Missing required fields');
+      expect(res.body.error).toContain('Validation failed');
     });
 
     it('should return 400 with no body', async () => {
-      const res = await request(app).post('/api/admin/escrow/release').send({}).expect(400);
+      const res = await request(app)
+        .post('/api/admin/escrow/release')
+        .set('Idempotency-Key', 'test-key-123')
+        .send({})
+        .expect(400);
 
-      expect(res.body.error).toContain('Missing required fields');
+      expect(res.body.error).toContain('Validation failed');
     });
 
     it('should release escrow successfully', async () => {
       const mockClient = {
         query: vi
           .fn()
-          // 0. SET TRANSACTION ISOLATION LEVEL SERIALIZABLE
-          .mockResolvedValueOnce({ rows: [], rowCount: 0 })
+
           // 1. proof lookup (FOR UPDATE)
           .mockResolvedValueOnce({
             rows: [
               {
-                proof_id: 'proof-001',
-                item_id: 'item-001',
+                proof_id: '11111111-1111-4111-8111-111111111111',
+                item_id: '22222222-2222-4222-8222-222222222222',
                 project_id: 'proj-001',
                 verification_status: 'submitted',
                 image_url: 'https://storage/proof.jpg',
@@ -285,7 +315,11 @@ describe('Admin / Escrow Routes (HTTP Integration)', () => {
 
       const res = await request(app)
         .post('/api/admin/escrow/release')
-        .send({ proof_id: 'proof-001', item_id: 'item-001' })
+        .set('Idempotency-Key', 'test-key-123')
+        .send({
+          proof_id: '11111111-1111-4111-8111-111111111111',
+          item_id: '22222222-2222-4222-8222-222222222222',
+        })
         .expect(200);
 
       expect(res.body.success).toBe(true);
@@ -298,7 +332,6 @@ describe('Admin / Escrow Routes (HTTP Integration)', () => {
       const mockClient = {
         query: vi
           .fn()
-          .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // SET ISOLATION LEVEL
           // proof lookup returns empty
           .mockResolvedValueOnce({ rows: [], rowCount: 0 }),
       };
@@ -308,7 +341,11 @@ describe('Admin / Escrow Routes (HTTP Integration)', () => {
 
       const res = await request(app)
         .post('/api/admin/escrow/release')
-        .send({ proof_id: 'proof-nonexistent', item_id: 'item-001' })
+        .set('Idempotency-Key', 'test-key-123')
+        .send({
+          proof_id: '33333333-3333-4333-8333-333333333333',
+          item_id: '22222222-2222-4222-8222-222222222222',
+        })
         .expect(404);
 
       expect(res.body.error).toContain('not found');
@@ -325,12 +362,11 @@ describe('Admin / Escrow Routes (HTTP Integration)', () => {
       const mockClient = {
         query: vi
           .fn()
-          .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // SET ISOLATION LEVEL
           .mockResolvedValueOnce({
             rows: [
               {
-                proof_id: 'proof-001',
-                item_id: 'item-001',
+                proof_id: '11111111-1111-4111-8111-111111111111',
+                item_id: '22222222-2222-4222-8222-222222222222',
                 project_id: 'proj-001',
                 verification_status: 'submitted',
                 image_url: 'https://storage/proof.jpg',
@@ -350,7 +386,11 @@ describe('Admin / Escrow Routes (HTTP Integration)', () => {
 
       const res = await request(app)
         .post('/api/admin/escrow/release')
-        .send({ proof_id: 'proof-001', item_id: 'item-001' })
+        .set('Idempotency-Key', 'test-key-123')
+        .send({
+          proof_id: '11111111-1111-4111-8111-111111111111',
+          item_id: '22222222-2222-4222-8222-222222222222',
+        })
         .expect(200);
 
       expect(res.body.success).toBe(true);
@@ -362,10 +402,11 @@ describe('Admin / Escrow Routes (HTTP Integration)', () => {
     it('should return 400 when required fields are missing', async () => {
       const res = await request(app)
         .post('/api/admin/escrow/flag')
-        .send({ proof_id: 'proof-001' }) // missing reason
+        .set('Idempotency-Key', 'test-key-123')
+        .send({ proof_id: '11111111-1111-4111-8111-111111111111' }) // missing reason
         .expect(400);
 
-      expect(res.body.error).toContain('Missing required fields');
+      expect(res.body.error).toContain('Validation failed');
     });
 
     it('should flag discrepancy successfully', async () => {
@@ -376,9 +417,9 @@ describe('Admin / Escrow Routes (HTTP Integration)', () => {
           .mockResolvedValueOnce({
             rows: [
               {
-                proof_id: 'proof-001',
+                proof_id: '11111111-1111-4111-8111-111111111111',
                 project_id: 'proj-001',
-                item_id: 'item-001',
+                item_id: '22222222-2222-4222-8222-222222222222',
                 engineer_id: 'eng-001',
                 verification_status: 'rejected',
               },
@@ -392,8 +433,9 @@ describe('Admin / Escrow Routes (HTTP Integration)', () => {
 
       const res = await request(app)
         .post('/api/admin/escrow/flag')
+        .set('Idempotency-Key', 'test-key-123')
         .send({
-          proof_id: 'proof-001',
+          proof_id: '11111111-1111-4111-8111-111111111111',
           reason: 'Material quantity mismatch: claimed 50 bags, GPS evidence shows 30',
         })
         .expect(200);
@@ -415,7 +457,11 @@ describe('Admin / Escrow Routes (HTTP Integration)', () => {
 
       const res = await request(app)
         .post('/api/admin/escrow/flag')
-        .send({ proof_id: 'nonexistent', reason: 'Testing' })
+        .set('Idempotency-Key', 'test-key-123')
+        .send({
+          proof_id: '44444444-4444-4444-8444-444444444444',
+          reason: 'Testing for missing proof',
+        })
         .expect(404);
 
       expect(res.body.success).toBe(false);

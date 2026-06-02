@@ -21,6 +21,7 @@ vi.mock('../../config/database', () => ({
   query: (...args: unknown[]) => mockQuery(...args),
   getClient: vi.fn(),
   transaction: vi.fn(),
+  financialTransaction: vi.fn(),
   default: { end: vi.fn(), query: (...args: unknown[]) => mockQuery(...args) },
 }));
 
@@ -251,6 +252,7 @@ describe('EPA Oracle Routes (HTTP Integration)', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockQuery.mockReset();
     app = createApp();
     // Default: authenticated admin
     mockAuthUser = { user_id: 'admin-uuid-001', role: 'admin', roles: ['admin'], is_active: true };
@@ -368,22 +370,23 @@ describe('EPA Oracle Routes (HTTP Integration)', () => {
         .send({ material_code: 'STL-001' }) // missing others
         .expect(400);
 
-      expect(res.body.error).toContain('Required');
+      expect(res.body.error).toContain('Invalid input');
     });
 
     it('should return 400 for negative prices', async () => {
       const res = await request(app)
         .post('/api/oracle/prices')
+        .set('Authorization', 'Bearer admin-token')
         .send({
+          material_name: 'Steel Rebar',
           material_code: 'STL-001',
-          material_name: 'Steel',
           unit: 'ton',
           base_price: -100,
-          current_price: 5000,
+          current_price: 55000,
         })
         .expect(400);
 
-      expect(res.body.error).toContain('positive numbers');
+      expect(res.body.error).toContain('positive integer');
     });
 
     it('should create oracle entry with valid data', async () => {
@@ -425,7 +428,7 @@ describe('EPA Oracle Routes (HTTP Integration)', () => {
         .send({}) // no fields
         .expect(400);
 
-      expect(res.body.error).toContain('Required');
+      expect(res.body.error).toContain('Invalid input');
       expect(res.body.error).toContain('fidic_params');
     });
 
@@ -444,7 +447,7 @@ describe('EPA Oracle Routes (HTTP Integration)', () => {
       const res = await request(app)
         .post('/api/oracle/epa/calculate')
         .send({
-          project_id: 'proj-001',
+          project_id: '11111111-1111-4111-8111-111111111111',
           fidic_params: VALID_FIDIC_PARAMS,
           original_amount: 12500000,
         })
@@ -459,8 +462,8 @@ describe('EPA Oracle Routes (HTTP Integration)', () => {
       const res = await request(app)
         .post('/api/oracle/epa/calculate')
         .send({
-          project_id: 'proj-001',
-          fidic_params: { ...VALID_FIDIC_PARAMS, Lo: 0 }, // division by zero
+          project_id: '11111111-1111-4111-8111-111111111111',
+          fidic_params: { ...VALID_FIDIC_PARAMS, a: 0.9 }, // sum != 1.0
           original_amount: 12500000,
         })
         .expect(422);
@@ -477,7 +480,7 @@ describe('EPA Oracle Routes (HTTP Integration)', () => {
         .send({ decision: 'maybe' })
         .expect(400);
 
-      expect(res.body.error).toContain('decision');
+      expect(res.body.error).toContain('Validation failed');
     });
 
     it('should approve EPA adjustment', async () => {

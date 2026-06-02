@@ -20,151 +20,163 @@ router.use(requireActive);
 
 // ─── GET /api/oracle/prices — List Oracle Prices ────────────────────────────
 router.get(
-    '/prices',
-    requireRole('admin', 'auditor', 'engineer'),
-    async (req: Request, res: Response) => {
-        try {
-            const materialCode = req.query.material_code as string | undefined;
-            const entries = await oracle.getOracleEntries(materialCode);
+  '/prices',
+  requireRole('admin', 'auditor', 'engineer'),
+  async (req: Request, res: Response) => {
+    try {
+      const materialCode = req.query.material_code as string | undefined;
+      const entries = await oracle.getOracleEntries(materialCode);
 
-            const response: ApiResponse = {
-                success: true,
-                data: entries,
-                message: `${entries.length} oracle entries`,
-            };
-            res.json(response);
-                } catch (error) {
-                    safeRouteError(res, error, 'EpaOracle');
-        }
+      const response: ApiResponse = {
+        success: true,
+        data: entries,
+        message: `${entries.length} oracle entries`,
+      };
+      res.json(response);
+    } catch (error) {
+      safeRouteError(res, error, 'EpaOracle');
     }
+  },
 );
 
 // ─── POST /api/oracle/prices — Create/Update Price Entry ────────────────────
-router.post(
-    '/prices',
-    requireRole('admin'),
-    async (req: Request, res: Response) => {
-        try {
-            const dto = upsertPriceSchema.parse(req.body);
+router.post('/prices', requireRole('admin'), async (req: Request, res: Response) => {
+  try {
+    const dto = upsertPriceSchema.parse(req.body);
 
-            const entry = await oracle.upsertOracleEntry(dto, getAuthUser(req).user_id);
+    const entry = await oracle.upsertOracleEntry(dto, getAuthUser(req).user_id);
 
-            const response: ApiResponse = {
-                success: true,
-                data: entry,
-                message: `Oracle entry created: ${entry.material_name}`,
-            };
-            res.status(201).json(response);
-        } catch (error) {
-            if (error instanceof ZodError) {
-                res.status(400).json({
-                    success: false,
-                    error: formatZodErrors(error),
-                } as ApiResponse);
-                return;
-            }
-            safeRouteError(res, error, 'EPAOracle');
-        }
+    const response: ApiResponse = {
+      success: true,
+      data: entry,
+      message: `Oracle entry created: ${entry.material_name}`,
+    };
+    res.status(201).json(response);
+  } catch (error) {
+    if (error instanceof ZodError) {
+      res.status(400).json({
+        success: false,
+        error: formatZodErrors(error),
+      } as ApiResponse);
+      return;
     }
-);
+    safeRouteError(res, error, 'EPAOracle');
+  }
+});
 
 // ─── POST /api/oracle/epa/calculate — Calculate FIDIC 13.8 Adjustment ───────
 router.post(
-    '/epa/calculate',
-    requireRole('admin', 'auditor', 'engineer'),
-    async (req: Request, res: Response) => {
-        try {
-            const dto = calculateEPASchema.parse(req.body);
+  '/epa/calculate',
+  requireRole('admin', 'auditor', 'engineer'),
+  async (req: Request, res: Response) => {
+    try {
+      const dto = calculateEPASchema.parse(req.body);
 
-            const adjustment = await oracle.calculateAndStoreEPA(dto, getAuthUser(req).user_id);
+      const adjustment = await oracle.calculateAndStoreEPA(dto, getAuthUser(req).user_id);
 
-            const response: ApiResponse = {
-                success: true,
-                data: adjustment,
-                message: `FIDIC adjustment: Pn=${adjustment.adjustment_multiplier}, delta=$${(adjustment.adjustment_delta / 100).toFixed(2)}`,
-            };
-            res.status(201).json(response);
-        } catch (error) {
-            if (error instanceof ZodError) {
-                res.status(400).json({
-                    success: false,
-                    error: formatZodErrors(error),
-                } as ApiResponse);
-                return;
-            }
-            safeRouteError(res, error, 'EPAOracle');
+      const response: ApiResponse = {
+        success: true,
+        data: adjustment,
+        message: `FIDIC adjustment: Pn=${adjustment.adjustment_multiplier}, delta=$${(adjustment.adjustment_delta / 100).toFixed(2)}`,
+      };
+      res.status(201).json(response);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        const isFidic = error.issues.some((i) => i.message.includes('FIDIC'));
+        if (isFidic) {
+          res
+            .status(422)
+            .json({
+              success: false,
+              error: 'FIDIC constraint violation: coefficients must sum to 1.0',
+            } as ApiResponse);
+          return;
         }
+        res.status(400).json({
+          success: false,
+          error: formatZodErrors(error),
+        } as ApiResponse);
+        return;
+      }
+      if (error instanceof Error && error.message.includes('FIDIC')) {
+        res.status(422).json({ success: false, error: error.message } as ApiResponse);
+        return;
+      }
+      safeRouteError(res, error, 'EPAOracle');
     }
+  },
 );
 
 // ─── GET /api/oracle/epa/history/:projectId — EPA History ───────────────────
 router.get(
-    '/epa/history/:projectId',
-    requireRole('admin', 'auditor', 'engineer', 'homeowner'),
-    async (req: Request, res: Response) => {
-        try {
-            const history = await oracle.getEPAHistory(String(req.params.projectId));
+  '/epa/history/:projectId',
+  requireRole('admin', 'auditor', 'engineer', 'homeowner'),
+  async (req: Request, res: Response) => {
+    try {
+      const history = await oracle.getEPAHistory(String(req.params.projectId));
 
-            const response: ApiResponse = {
-                success: true,
-                data: history,
-                message: `${history.length} EPA adjustments`,
-            };
-            res.json(response);
-                } catch (error) {
-                    safeRouteError(res, error, 'EpaOracle');
-        }
+      const response: ApiResponse = {
+        success: true,
+        data: history,
+        message: `${history.length} EPA adjustments`,
+      };
+      res.json(response);
+    } catch (error) {
+      safeRouteError(res, error, 'EpaOracle');
     }
+  },
 );
 
 // ─── POST /api/oracle/epa/approve/:adjustmentId — Approve/Reject EPA ────────
 router.post(
-    '/epa/approve/:adjustmentId',
-    requireRole('admin', 'auditor'),
-    async (req: Request, res: Response) => {
-        try {
-            const { decision } = epaApprovalSchema.parse(req.body);
+  '/epa/approve/:adjustmentId',
+  requireRole('admin', 'auditor'),
+  async (req: Request, res: Response) => {
+    try {
+      const { decision } = epaApprovalSchema.parse(req.body);
 
-            const result = await oracle.respondToEPA(
-                String(req.params.adjustmentId),
-                getAuthUser(req).user_id,
-                decision
-            );
+      const result = await oracle.respondToEPA(
+        String(req.params.adjustmentId),
+        getAuthUser(req).user_id,
+        decision,
+      );
 
-            const response: ApiResponse = {
-                success: true,
-                data: result,
-                message: `EPA adjustment ${decision}`,
-            };
-            res.json(response);
-        } catch (error) {
-            if (error instanceof ZodError) {
-                res.status(400).json({ success: false, error: 'Validation failed', details: error.issues } as ApiResponse);
-                return;
-            }
-            safeRouteError(res, error, 'EPAOracle');
-        }
+      const response: ApiResponse = {
+        success: true,
+        data: result,
+        message: `EPA adjustment ${decision}`,
+      };
+      res.json(response);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        res
+          .status(400)
+          .json({
+            success: false,
+            error: 'Validation failed',
+            details: error.issues,
+          } as ApiResponse);
+        return;
+      }
+      safeRouteError(res, error, 'EPAOracle');
     }
+  },
 );
 
 // ─── GET /api/oracle/epa/alerts — Threshold Alerts ──────────────────────────
-router.get(
-    '/epa/alerts',
-    requireRole('admin', 'auditor'),
-    async (_req: Request, res: Response) => {
-        try {
-            const alerts = await oracle.checkEPAThresholds();
+router.get('/epa/alerts', requireRole('admin', 'auditor'), async (_req: Request, res: Response) => {
+  try {
+    const alerts = await oracle.checkEPAThresholds();
 
-            const response: ApiResponse = {
-                success: true,
-                data: alerts,
-                message: `${alerts.length} projects with >5% price drift`,
-            };
-            res.json(response);
-                } catch (error) {
-                    safeRouteError(res, error, 'EpaOracle');
-        }
-    }
-);
+    const response: ApiResponse = {
+      success: true,
+      data: alerts,
+      message: `${alerts.length} projects with >5% price drift`,
+    };
+    res.json(response);
+  } catch (error) {
+    safeRouteError(res, error, 'EpaOracle');
+  }
+});
 
 export default router;
