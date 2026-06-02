@@ -908,7 +908,7 @@ export const paymentService = {
             typeof err === 'object' &&
             err !== null &&
             'code' in err &&
-            (err as any).code === '40001' &&
+            (err as { code: string }).code === '40001' &&
             retryCount < MAX_RETRIES
           ) {
             retryCount++;

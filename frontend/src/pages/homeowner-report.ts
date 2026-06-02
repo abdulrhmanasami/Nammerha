@@ -709,7 +709,7 @@ interface SpeechRecognitionInstance extends EventTarget {
 type SpeechRecognitionConstructor = new () => SpeechRecognitionInstance;
 
 const SpeechRecognition: SpeechRecognitionConstructor | undefined = (() => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Web Speech API not in lib.dom.d.ts
+  // MEMO-77 FIX: Web Speech API not in lib.dom.d.ts — cast through unknown (no `any`).
   const w = window as unknown as Record<string, unknown>;
   if (w.SpeechRecognition) {
     return w.SpeechRecognition as SpeechRecognitionConstructor;

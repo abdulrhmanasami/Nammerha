@@ -271,6 +271,10 @@ export async function cancelDeletion(
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
+    // MEMO-77 FIX: Serializable isolation prevents TOCTOU race between
+    // cancelDeletion and executePermanentDeletion cron. Without this,
+    // the cron could purge a user mid-cancel, destroying their data.
+    await client.query('SET TRANSACTION ISOLATION LEVEL SERIALIZABLE');
 
     // 1. Clear soft-delete fields
     const updateResult = await client.query<{ deleted_at: Date | null }>(

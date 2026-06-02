@@ -4,6 +4,7 @@
 // Queries users.kyc_verification_status (Migration 001 schema).
 // ============================================================================
 import { query } from '../config/database';
+import { logger } from '../utils/logger';
 import type { KycStatus } from '../types';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -147,8 +148,8 @@ export async function updateKycStatus(
 
     // Log the reason if provided (for audit trail — future: dedicated audit table)
     if (reason) {
-        // eslint-disable-next-line no-console -- Audit trail logging until dedicated table exists
-        console.log(`[KYC-AUDIT] User ${userId} ${decision} by ${adminId}: ${reason}`);
+        // MEMO-77 FIX: Replaced raw console.log with structured logger (KYC audit trail).
+        logger.info('[KYC-AUDIT] Decision recorded', { userId, decision, adminId, reason });
     }
 
     return updated;

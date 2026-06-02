@@ -14,7 +14,7 @@
 //   7. Never Cache                      — /api/auth/*, /api/csrf-token
 // ============================================================================
 
-const CACHE_VERSION = 'v1780389235271';
+const CACHE_VERSION = 'v1780393272929';
 const SHELL_CACHE  = `nammerha-shell-${CACHE_VERSION}`;
 const API_CACHE    = `nammerha-api-${CACHE_VERSION}`;
 const IMG_CACHE    = `nammerha-img-${CACHE_VERSION}`;

@@ -39,7 +39,7 @@ vi.mock('exifr', () => ({
   },
 }));
 
-global.fetch = vi.fn() as any;
+global.fetch = vi.fn() as unknown as typeof fetch;
 
 // ─── Import AFTER mocks ────────────────────────────────────────────────────
 import {
@@ -63,11 +63,11 @@ describe('Reality Capture Service', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockPoolQuery.mockReset();
-    (global.fetch as any).mockResolvedValue({
+    vi.mocked(global.fetch).mockResolvedValue({
       ok: true,
       arrayBuffer: async () => new ArrayBuffer(0),
-    });
-    (exifr.gps as any).mockResolvedValue({ latitude: 33.5138, longitude: 36.2765 }); // Damascus
+    } as unknown as Response);
+    vi.mocked(exifr.gps).mockResolvedValue({ latitude: 33.5138, longitude: 36.2765 }); // Damascus
   });
 
   // ─── submitCapture ──────────────────────────────────────────────────
@@ -105,7 +105,7 @@ describe('Reality Capture Service', () => {
       });
 
       // Mock EXIF to return NO GPS data
-      (exifr.gps as any).mockResolvedValueOnce(undefined);
+      vi.mocked(exifr.gps).mockResolvedValueOnce(undefined as unknown as { latitude: number; longitude: number });
 
       await expect(
         submitCapture('eng-001', 'proj-001', {
@@ -128,7 +128,7 @@ describe('Reality Capture Service', () => {
       });
 
       // Mock EXIF to return Aleppo coordinates
-      (exifr.gps as any).mockResolvedValueOnce({ latitude: 36.1956, longitude: 37.132 });
+      vi.mocked(exifr.gps).mockResolvedValueOnce({ latitude: 36.1956, longitude: 37.132 });
 
       // 3. Audit trail insert for GPS violation
       mockPoolQuery.mockResolvedValueOnce({ rows: [], rowCount: 1 });
