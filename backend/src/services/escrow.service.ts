@@ -193,7 +193,7 @@ export async function releaseEscrow(
   }
 
   try {
-    return await financialTransaction(async (client) => {
+    const result = await financialTransaction(async (client) => {
       // 1. Verify the proof exists and is in 'submitted' status
       // M-001 FIX: Explicit column list — prevents schema drift.
       const proofResult = await client.query<SpatialProof>(
@@ -259,29 +259,9 @@ export async function releaseEscrow(
       );
       const materialName = boqResult.rows[0]?.material_name ?? 'Material';
 
-      // 7. Notify ALL users who funded this item
+      // 7. Extract notification data for async processing
       const totalReleased = releaseResult.rows.reduce((sum, r) => sum + Number(r.amount_locked), 0);
       const uniqueUserIds = [...new Set(releaseResult.rows.map((r) => r.user_id))];
-
-      for (const userId of uniqueUserIds) {
-        // HGH-AUD-007 FIX: Use i18n template keys instead of hardcoded bilingual strings.
-        // The notification rendering layer resolves these keys per user locale.
-        await createNotification(client, {
-          user_id: userId,
-          type: 'delivery_confirmed',
-          title: 'notification.delivery_confirmed.title',
-          body: 'notification.delivery_confirmed.body',
-          data: {
-            project_id: proof.project_id,
-            item_id: dto.item_id,
-            proof_id: dto.proof_id,
-            proof_image_url: proof.image_url,
-            material_name: materialName,
-            project_title: projectTitle,
-          },
-          channel: 'in_app',
-        });
-      }
 
       // ─── Phase 3: Escrow Transaction Fee (Commercial Projects Only) ──────
       // Per study §5: 1-3% fee on commercial (homeowner-funded) projects.
@@ -292,17 +272,19 @@ export async function releaseEscrow(
         const projectCheck = await client.query<{
           homeowner_id: string;
           user_count: string;
+          status: string;
         }>(
-          `SELECT p.homeowner_id,
+          `SELECT p.homeowner_id, p.status,
                         (SELECT COUNT(DISTINCT user_id)
                          FROM escrow_ledger
                          WHERE project_id = p.project_id
                            AND user_id != p.homeowner_id) AS user_count
-                 FROM projects p WHERE p.project_id = $1`,
+                 FROM projects p WHERE p.project_id = $1 FOR UPDATE`,
           [proof.project_id],
         );
         const projectData = projectCheck.rows[0];
         const isCommercial = projectData && parseInt(projectData.user_count, 10) === 0;
+        const currentStatus = projectData?.status;
 
         if (isCommercial && totalReleased > 0) {
           const feeConfig = await getActiveFeeConfig();
@@ -327,6 +309,19 @@ export async function releaseEscrow(
             }
           }
         }
+
+        // 8. Update Project State Machine (End-State & Mid-State)
+        const boqCheck = await client.query<{ pending_count: string }>(
+          `SELECT COUNT(*) AS pending_count FROM itemized_boq WHERE project_id = $1 AND status != 'delivered'`,
+          [proof.project_id]
+        );
+        const pendingCount = parseInt(boqCheck.rows[0]?.pending_count ?? '0', 10);
+        
+        if (pendingCount === 0) {
+            await client.query(`UPDATE projects SET status = 'completed', completed_at = NOW() WHERE project_id = $1`, [proof.project_id]);
+        } else if (currentStatus === 'pending_execution') {
+            await client.query(`UPDATE projects SET status = 'in_progress' WHERE project_id = $1`, [proof.project_id]);
+        }
       } catch (feeErr) {
         // GAP-ACD-001 FIX: Enforce ACID Mutations.
         // Fee recording failure MUST block the escrow release. If we silently
@@ -343,8 +338,57 @@ export async function releaseEscrow(
         released_count: releaseResult.rowCount ?? 0,
         total_released: totalReleased,
         fee_charged: feeCharged,
+        _notificationData: {
+          uniqueUserIds,
+          project_id: proof.project_id,
+          item_id: dto.item_id,
+          proof_id: dto.proof_id,
+          proof_image_url: proof.image_url,
+          material_name: materialName,
+          project_title: projectTitle,
+        }
       };
     });
+
+    // Fire notifications asynchronously outside the transaction
+    if (result._notificationData && result._notificationData.uniqueUserIds.length > 0) {
+      setImmediate(() => {
+        (async () => {
+          try {
+            const client = await pool.connect();
+            try {
+              for (const userId of result._notificationData.uniqueUserIds) {
+                await createNotification(client, {
+                  user_id: userId,
+                  type: 'delivery_confirmed',
+                  title: 'notification.delivery_confirmed.title',
+                  body: 'notification.delivery_confirmed.body',
+                  data: {
+                    project_id: result._notificationData.project_id,
+                    item_id: result._notificationData.item_id,
+                    proof_id: result._notificationData.proof_id,
+                    proof_image_url: result._notificationData.proof_image_url,
+                    material_name: result._notificationData.material_name,
+                    project_title: result._notificationData.project_title,
+                  },
+                  channel: 'in_app',
+                });
+              }
+            } finally {
+              client.release();
+            }
+          } catch (notifErr) {
+            logger.error('Failed to send async escrow notifications', { error: String(notifErr) });
+          }
+        })();
+      });
+    }
+
+    return {
+      released_count: result.released_count,
+      total_released: result.total_released,
+      fee_charged: result.fee_charged,
+    };
   } finally {
     await redisLockManager.releaseLock(lockKey, lockToken);
   }

@@ -108,6 +108,21 @@ router.post('/:id/boq', async (req: Request, res: Response) => {
     }
 });
 
+// ─── POST /api/projects/:id/cancel — Cancel Project (Homeowner) ────────────
+// UNIFIED CITIZEN: Homeowner can cancel if the project hasn't been published yet.
+router.post('/:id/cancel', async (req: Request, res: Response) => {
+    try {
+        await projectService.cancelProject(
+            String(req.params['id']),
+            getAuthUser(req).user_id
+        );
+        const response: ApiResponse = { success: true, message: 'Project cancelled successfully' };
+        res.status(200).json(response);
+    } catch (error) {
+        safeRouteError(res, error, 'Project.Cancel');
+    }
+});
+
 // ─── PATCH /api/projects/:id/publish — Publish to Marketplace (Engineer) ───
 // UNIFIED CITIZEN: Any authenticated user can publish a project.
 router.patch('/:id/publish', async (req: Request, res: Response) => {

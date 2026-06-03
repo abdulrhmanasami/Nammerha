@@ -307,7 +307,13 @@ describe('Admin / Escrow Routes (HTTP Integration)', () => {
           // 5. get project title
           .mockResolvedValueOnce({ rows: [{ title: 'Aleppo School Reconstruction' }], rowCount: 1 })
           // 6. get BOQ material name
-          .mockResolvedValueOnce({ rows: [{ material_name: 'Steel Rebar' }], rowCount: 1 }),
+          .mockResolvedValueOnce({ rows: [{ material_name: 'Steel Rebar' }], rowCount: 1 })
+          // 7. Commercial check
+          .mockResolvedValueOnce({ rows: [{ homeowner_id: 'homeowner-001', status: 'in_progress', user_count: '2' }], rowCount: 1 })
+          // 8. BOQ Check
+          .mockResolvedValueOnce({ rows: [{ pending_count: '0' }], rowCount: 1 })
+          // 9. State machine update
+          .mockResolvedValueOnce({ rows: [], rowCount: 1 }),
       };
       mockTransaction.mockImplementationOnce(async (fn: (client: unknown) => Promise<unknown>) =>
         fn(mockClient),
@@ -378,7 +384,10 @@ describe('Admin / Escrow Routes (HTTP Integration)', () => {
           .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // no escrow entries
           .mockResolvedValueOnce({ rows: [], rowCount: 1 })
           .mockResolvedValueOnce({ rows: [{ title: 'Test Project' }], rowCount: 1 })
-          .mockResolvedValueOnce({ rows: [{ material_name: 'Cement' }], rowCount: 1 }),
+          .mockResolvedValueOnce({ rows: [{ material_name: 'Cement' }], rowCount: 1 })
+          .mockResolvedValueOnce({ rows: [{ homeowner_id: 'homeowner-001', status: 'in_progress', user_count: '2' }], rowCount: 1 })
+          .mockResolvedValueOnce({ rows: [{ pending_count: '0' }], rowCount: 1 })
+          .mockResolvedValueOnce({ rows: [], rowCount: 1 }),
       };
       mockTransaction.mockImplementationOnce(async (fn: (client: unknown) => Promise<unknown>) =>
         fn(mockClient),

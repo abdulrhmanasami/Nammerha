@@ -18,6 +18,22 @@
 
 ## 🛑 ZERO-REGRESSION MEMOS (CRITICAL AI MEMORY)
 
+**MEMO 83: Absolute User Journey Logical Gap Resolution & Unified Citizen Enforcement Phase 2 (June 4, 2026)**
+
+- **Root Cause Destroyed:**
+  1. **PostgreSQL Crash / State Machine Violation:** The `project_status` ENUM lacked `pending_execution`, causing fatal DB errors when accepting bids.
+  2. **Wash Trading Loophole (Supplier Designation):** The system allowed engineers and homeowners to be designated as preferred suppliers without enforcing strict Commercial Register (`commercial_register_number`) presence, violating the separation of execution layer.
+  3. **Project Cancellation Immortality:** Projects could be cancelled at any point (even post-funding/execution) due to lacking strict `draft` / `pending_assessment` / `assessed` state guards.
+  4. **Financial Deadlocks & Notification Blocks:** `createNotification` was tightly coupled inside the `financialTransaction` in `escrow.service.ts`, leading to potential deadlocks and prolonged table locks during high-traffic escrow releases.
+  5. **Static State Progressions:** The BOQ delivery lifecycle was disconnected from the Project state machine (projects did not automatically transition to `in_progress` or `completed`).
+- **New Logic Built:**
+  1. **Schema Hardening:** Applied `065_add_pending_execution_enum.sql` migration to strictly inject `pending_execution` into the state machine.
+  2. **Role Fencing:** Implemented hard guards inside `project.service.ts` rejecting supplier designations if the user is the homeowner or lacks a valid Commercial Register.
+  3. **Cancellation State Guarding:** `cancelProject()` specifically isolates cancellations, instantly throwing 400 Bad Request if the project has moved into funding or execution.
+  4. **Async Non-Blocking Isolation:** Used `setImmediate` with a dedicated `pool.connect()` to offload all asynchronous notification deliveries outside the `financialTransaction` serialization scope.
+  5. **Dynamic Lifecycle Connection:** Rewrote `releaseEscrow` to actively mutate the project status to `in_progress` upon the first payout, and seal it as `completed` when the BOQ `pending_count` reaches zero.
+- **Verification:** Both Frontend and Backend TypeScript strict builds passed with 0 errors. Vitest executed perfectly (592/592 tests passing). Codebase strictly aligns with Platinum Security constraints.
+
 **MEMO 82: Absolute User Journey Logical Gap Resolution & Unified Citizen Enforcement (June 4, 2026)**
 
 - **Root Cause Destroyed:**

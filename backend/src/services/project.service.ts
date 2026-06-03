@@ -50,6 +50,40 @@ export async function createProject(homeownerId: string, dto: CreateProjectDTO):
   return project;
 }
 
+// ─── Path 1.5: Cancel Project ───────────────────────────────────────────────
+
+/**
+ * Allows a Homeowner to cancel a project before it is published or executed.
+ */
+export async function cancelProject(projectId: string, homeownerId: string): Promise<void> {
+  return financialTransaction(async (client) => {
+    const { rows } = await client.query(
+      `SELECT status, homeowner_id FROM projects WHERE project_id = $1 FOR UPDATE`,
+      [projectId]
+    );
+
+    if (rows.length === 0) {
+      throw new Error(`Project ${projectId} not found`);
+    }
+
+    const project = rows[0];
+
+    if (project.homeowner_id !== homeownerId) {
+      throw new Error('Access denied: You do not own this project');
+    }
+
+    const cancellableStatuses = ['draft', 'pending_assessment', 'assessed'];
+    if (!cancellableStatuses.includes(project.status)) {
+      throw new Error(`Cannot cancel project from status: ${project.status}`);
+    }
+
+    await client.query(
+      `UPDATE projects SET status = 'cancelled', updated_at = NOW() WHERE project_id = $1`,
+      [projectId]
+    );
+  });
+}
+
 // ─── Path 1.2: Assign Engineer ──────────────────────────────────────────────
 
 /**
@@ -166,6 +200,14 @@ export async function addBOQItem(
     }
 
     // 2. Validate preferred supplier (per strategic study §7.2)
+    // GAP-SEC-005 FIX: Prevent Self-Dealing (Wash Trading)
+    if (dto.preferred_supplier_id === engineerId) {
+      throw new Error('Self-dealing prohibited: Engineer cannot act as preferred supplier');
+    }
+    if (dto.preferred_supplier_id === project.homeowner_id) {
+      throw new Error('Self-dealing prohibited: Homeowner cannot act as preferred supplier');
+    }
+
     // UNIFIED CITIZEN: Check user_roles table instead of users.role column
     const supplierResult = await client.query<{
       user_id: string;

@@ -14,7 +14,14 @@ vi.mock('../../config/database', () => ({
   query: (...args: unknown[]) => mockQuery(...args),
   transaction: (fn: (client: unknown) => Promise<unknown>) => mockTransaction(fn),
   financialTransaction: (fn: (client: unknown) => Promise<unknown>) => mockTransaction(fn),
-  default: { end: vi.fn(), query: (...args: unknown[]) => mockQuery(...args) },
+  default: { 
+    end: vi.fn(), 
+    query: (...args: unknown[]) => mockQuery(...args),
+    connect: vi.fn().mockResolvedValue({
+      query: (...args: unknown[]) => mockQuery(...args),
+      release: vi.fn(),
+    }),
+  },
 }));
 
 // ─── Mock notification service ──────────────────────────────────────────────
@@ -213,15 +220,15 @@ describe('Escrow Service', () => {
           // 4. Update BOQ status to 'delivered'
           .mockResolvedValueOnce({ rows: [], rowCount: 1 })
           // 5. Get project title
-          .mockResolvedValueOnce({
-            rows: [{ title: 'Aleppo School' }],
-            rowCount: 1,
-          })
+          .mockResolvedValueOnce({ rows: [{ title: 'Aleppo School' }], rowCount: 1 })
           // 6. Get material name
-          .mockResolvedValueOnce({
-            rows: [{ material_name: 'Cement' }],
-            rowCount: 1,
-          }),
+          .mockResolvedValueOnce({ rows: [{ material_name: 'Cement' }], rowCount: 1 })
+          // 7. Commercial check
+          .mockResolvedValueOnce({ rows: [{ homeowner_id: 'homeowner-001', status: 'in_progress', user_count: '2' }], rowCount: 1 })
+          // 8. BOQ Check
+          .mockResolvedValueOnce({ rows: [{ pending_count: '0' }], rowCount: 1 })
+          // 9. State machine update
+          .mockResolvedValueOnce({ rows: [], rowCount: 1 }),
       };
 
       // Mock notification creation (called for each unique user)
@@ -238,6 +245,9 @@ describe('Escrow Service', () => {
         item_id: 'item-001',
       });
 
+      // Wait for async notifications
+      await new Promise(resolve => setTimeout(resolve, 0));
+
       expect(result.released_count).toBe(2);
       expect(result.total_released).toBe(500000); // 300000 + 200000
 
@@ -253,14 +263,14 @@ describe('Escrow Service', () => {
       // Verify notifications sent to both users
       expect(mockCreateNotification).toHaveBeenCalledTimes(2);
       expect(mockCreateNotification).toHaveBeenCalledWith(
-        mockClient,
+        expect.any(Object),
         expect.objectContaining({
           user_id: 'user-001',
           type: 'delivery_confirmed',
         }),
       );
       expect(mockCreateNotification).toHaveBeenCalledWith(
-        mockClient,
+        expect.any(Object),
         expect.objectContaining({
           user_id: 'user-002',
           type: 'delivery_confirmed',
@@ -332,21 +342,8 @@ describe('Escrow Service', () => {
       const mockClient = {
         query: vi
           .fn()
-          .mockResolvedValueOnce({
-            rows: [
-              {
-                proof_id: 'proof-001',
-                item_id: 'item-001',
-                project_id: 'proj-001',
-                engineer_id: 'eng-001',
-                verification_status: 'submitted',
-                image_url: 'url',
-              },
-            ],
-            rowCount: 1,
-          })
+          .mockResolvedValueOnce({ rows: [{ proof_id: 'proof-001', item_id: 'item-001', project_id: 'proj-001', engineer_id: 'eng-001', verification_status: 'submitted', image_url: 'url' }], rowCount: 1 })
           .mockResolvedValueOnce({ rows: [], rowCount: 1 })
-          // Same user has 3 escrow entries for this item
           .mockResolvedValueOnce({
             rows: [
               { transaction_id: 'tx-001', user_id: 'user-001', amount_locked: 100000 },
@@ -357,7 +354,10 @@ describe('Escrow Service', () => {
           })
           .mockResolvedValueOnce({ rows: [], rowCount: 1 })
           .mockResolvedValueOnce({ rows: [{ title: 'Test Project' }], rowCount: 1 })
-          .mockResolvedValueOnce({ rows: [{ material_name: 'Steel' }], rowCount: 1 }),
+          .mockResolvedValueOnce({ rows: [{ material_name: 'Steel' }], rowCount: 1 })
+          .mockResolvedValueOnce({ rows: [{ homeowner_id: 'homeowner-001', status: 'in_progress', user_count: '1' }], rowCount: 1 })
+          .mockResolvedValueOnce({ rows: [{ pending_count: '0' }], rowCount: 1 })
+          .mockResolvedValueOnce({ rows: [], rowCount: 1 }),
       };
 
       mockCreateNotification.mockResolvedValue({ notification_id: 'notif-001' });
@@ -369,6 +369,9 @@ describe('Escrow Service', () => {
         proof_id: 'proof-001',
         item_id: 'item-001',
       });
+
+      // Wait for async notifications
+      await new Promise(resolve => setTimeout(resolve, 0));
 
       expect(result.released_count).toBe(3);
       expect(result.total_released).toBe(600000);
