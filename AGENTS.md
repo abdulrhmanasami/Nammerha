@@ -18,6 +18,22 @@
 
 ## 🛑 ZERO-REGRESSION MEMOS (CRITICAL AI MEMORY)
 
+**MEMO 82: Absolute User Journey Logical Gap Resolution & Unified Citizen Enforcement (June 4, 2026)**
+
+- **Root Cause Destroyed:**
+  1. **Wash Trading Loophole:** The \`matchmaking.service.ts\` allowed the \`assigned_engineer_id\` (who assessed the damage) to bid on the project as a contractor, creating a massive conflict of interest.
+  2. **State Machine Regression (Infinite BOQ Loop):** Accepting an engineer's legacy bid reverted the project to \`pending_assessment\` instead of moving it to \`pending_execution\`, effectively erasing the BOQ phase.
+  3. **Supplier KYC Bypass:** The platform allowed users to be designated as preferred suppliers based on role rather than explicitly verifying their \`commercial_register_number\`.
+  4. **Platform Fee Desync:** Escrow fee collection failures were silently caught and ignored in \`escrow.service.ts\`, leading to potential non-recoverable platform fee losses while releasing contractor funds.
+  5. **UI Role Masking:** The frontend \`project-details.ts\` \`renderRoleCTA\` used an \`if / else if\` block that only rendered the first matching role's CTA, preventing unified citizens from accessing all contextually appropriate actions for their project.
+- **New Logic Built:**
+  1. **Self-Dealing Extermination:** Hardcoded \`assigned_engineer_id !== engineerId\` into \`submitBid\` to immediately reject assessors from bidding on their own evaluations.
+  2. **Linear State Progression:** Hardcoded \`pending_execution\` and mapped legacy engineer bids to \`assigned_contractor_id\` in \`acceptBid\`, ensuring the state machine never regresses.
+  3. **Commercial Register Enforcement:** Forced \`AND u.commercial_register_number IS NOT NULL\` in the SQL JOIN block for preferred suppliers in \`addBOQItem\`.
+  4. **ACID Mutation Completeness:** Re-threw \`feeErr\` inside \`releaseEscrow\` to trigger a global PostgreSQL \`ROLLBACK\` via \`financialTransaction\` if platform fees cannot be collected.
+  5. **UI Unified Expansion:** Re-architected \`renderRoleCTA\` from an exclusive \`if/else if\` chain to an inclusive Array builder, rendering every valid CTA based on the user's multiple roles.
+- **Verification:** Both Frontend and Backend TypeScript builds (\`npx tsc --noEmit\`) completed with 0 errors. The deployment pipeline executed flawlessly. Codebase is now Platinum Compliant for User Journey Atomicity.
+
 **MEMO 81: Unified Citizen Logical Paradox Destruction & Zero-Trust Governance (June 3, 2026)**
 
 - **Root Cause Destroyed:**

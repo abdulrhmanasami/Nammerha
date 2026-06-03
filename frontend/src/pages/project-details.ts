@@ -689,50 +689,60 @@ function renderRoleCTA(projectId: string): void {
   }
 
   const roles = user.roles;
-  let cta: RoleCTA | null = null;
+  const ctas: RoleCTA[] = [];
 
+  // GAP-UI-001 FIX: Render all applicable roles for a Unified Citizen.
+  // Previously used an if/else chain, preventing users with multiple roles
+  // from seeing all their available contextual actions.
   if (roles.includes('contractor')) {
-    cta = {
+    ctas.push({
       icon: 'ph-gavel',
       label: t('cta_submit_bid', 'تقديم عرض سعر لهذا المشروع'),
       href: `/contractor-portal.html#bids?project=${encodeURIComponent(projectId)}`,
       bgClass: 'bg-trust-blue/5 border-trust-blue/15',
       textClass: 'text-trust-blue',
-    };
-  } else if (roles.includes('engineer')) {
-    cta = {
+    });
+  }
+  
+  if (roles.includes('engineer')) {
+    ctas.push({
       icon: 'ph-camera',
       label: t('cta_upload_proof', 'رفع إثبات مرئي لهذا المشروع'),
       href: `/engineer-portal.html#captures?project=${encodeURIComponent(projectId)}`,
       bgClass: 'bg-smoky-jade/5 border-smoky-jade/15',
       textClass: 'text-smoky-jade',
-    };
-  } else if (roles.includes('homeowner')) {
-    cta = {
+    });
+  }
+  
+  if (roles.includes('homeowner')) {
+    ctas.push({
       icon: 'ph-check-square',
       label: t('cta_view_approvals', 'عرض الموافقات المعلّقة'),
       href: `/homeowner-portal.html#approvals`,
       bgClass: 'bg-warm-earth/5 border-warm-earth/15',
       textClass: 'text-warm-earth',
-    };
-  } else if (roles.includes('tradesperson')) {
-    cta = {
+    });
+  }
+  
+  if (roles.includes('tradesperson')) {
+    ctas.push({
       icon: 'ph-wrench',
       label: t('cta_view_assignments', 'عرض مهامك في المشاريع'),
       href: `/tradesperson-portal.html#assignments`,
       bgClass: 'bg-trust-blue/5 border-trust-blue/15',
       textClass: 'text-trust-blue',
-    };
+    });
   }
 
-  if (!cta) {
+  if (ctas.length === 0) {
     return;
   }
 
   const section = document.createElement('section');
   section.id = 'nm-role-cta';
-  section.className = 'mt-4 px-4 animate-fade-in-up';
-  section.innerHTML = `
+  section.className = 'mt-4 px-4 animate-fade-in-up flex flex-col gap-3';
+  
+  section.innerHTML = ctas.map(cta => `
     <a href="${esc(cta.href)}" class="flex items-center gap-3 p-4 rounded-xl border ${esc(cta.bgClass)} no-underline transition-all hover:shadow-md group">
       <div class="size-10 rounded-lg ${esc(cta.bgClass)} flex items-center justify-center shrink-0">
         <i class="ph ${esc(cta.icon)} ${esc(cta.textClass)} text-xl" aria-hidden="true"></i>
@@ -740,7 +750,7 @@ function renderRoleCTA(projectId: string): void {
       <span class="flex-1 text-sm font-semibold ${esc(cta.textClass)}">${esc(cta.label)}</span>
       <i class="ph ph-arrow-right nm-dir-shift ${esc(cta.textClass)} group-hover:translate-x-1 transition-transform" aria-hidden="true"></i>
     </a>
-  `;
+  `).join('');
 
   // Insert before activity timeline if it exists, otherwise append to main
   const activitySection = document.getElementById('v004-activity-section');

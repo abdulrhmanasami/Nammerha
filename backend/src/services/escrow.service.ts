@@ -328,12 +328,15 @@ export async function releaseEscrow(
           }
         }
       } catch (feeErr) {
-        // Fee recording failure should NOT block escrow release
-        logger.error('Escrow fee recording failed (non-blocking)', {
+        // GAP-ACD-001 FIX: Enforce ACID Mutations.
+        // Fee recording failure MUST block the escrow release. If we silently
+        // swallow this error, the funds are released but the platform loses its fee.
+        logger.error('Escrow fee recording failed, triggering transaction rollback', {
           projectId: proof.project_id,
           itemId: dto.item_id,
           error: feeErr instanceof Error ? feeErr.message : String(feeErr),
         });
+        throw feeErr;
       }
 
       return {

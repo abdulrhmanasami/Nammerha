@@ -178,7 +178,8 @@ export async function addBOQItem(
              JOIN roles r ON r.role_id = ur.role_id AND r.role_name = 'supplier'
              WHERE u.user_id = $1
                AND ur.status = 'active'
-               AND u.is_active = TRUE`,
+               AND u.is_active = TRUE
+               AND u.commercial_register_number IS NOT NULL`,
       [dto.preferred_supplier_id],
     );
     const supplier = supplierResult.rows[0];

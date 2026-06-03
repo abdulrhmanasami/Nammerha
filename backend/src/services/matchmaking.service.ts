@@ -555,7 +555,7 @@ export async function submitBid(
 ): Promise<ContractorBid> {
   return financialTransaction(async (client) => {
     // Validate project exists and is published
-    const projectRes = await client.query(`SELECT status, homeowner_id FROM projects WHERE project_id = $1`, [
+    const projectRes = await client.query(`SELECT status, homeowner_id, assigned_engineer_id FROM projects WHERE project_id = $1`, [
       projectId,
     ]);
 
@@ -572,6 +572,12 @@ export async function submitBid(
     // verify the bidder is not the owner of the project to prevent escrow fraud.
     if (projectRes.rows[0].homeowner_id === engineerId) {
       throw new Error('Cannot bid on your own project. Self-dealing is strictly prohibited.');
+    }
+
+    // GAP-SEC-004 FIX: Prevent Assessor/Bidder Conflict of Interest
+    // The engineer who assessed the project and created the BOQ cannot bid on it.
+    if (projectRes.rows[0].assigned_engineer_id === engineerId) {
+      throw new Error('Assessing engineers cannot bid on their own assessed projects. Conflict of interest prohibited.');
     }
 
     // Get current engineer score
@@ -722,21 +728,15 @@ export async function acceptBid(
       [foundBid.project_id, bidId],
     );
 
-    // Assign contractor to project (or engineer for backward compat)
-    if (foundBid.contractor_id) {
-      await client.query(
-        `UPDATE projects SET assigned_contractor_id = $1, status = 'pending_execution'
-                 WHERE project_id = $2`,
-        [foundBid.contractor_id, foundBid.project_id],
-      );
-    } else {
-      // Legacy path: engineer submitted bid directly
-      await client.query(
-        `UPDATE projects SET assigned_engineer_id = $1, status = 'pending_assessment'
-                 WHERE project_id = $2`,
-        [foundBid.engineer_id, foundBid.project_id],
-      );
-    }
+    // GAP-STM-001 FIX: State Machine Regression Prevention
+    // All accepted bids must move the project to 'pending_execution' with a contractor.
+    // Reverting to 'pending_assessment' throws away the published BOQ and creates an infinite loop.
+    const assigneeId = foundBid.contractor_id || foundBid.engineer_id;
+    await client.query(
+      `UPDATE projects SET assigned_contractor_id = $1, status = 'pending_execution'
+               WHERE project_id = $2`,
+      [assigneeId, foundBid.project_id],
+    );
 
     // Recalculate bid_win_rate
     await client.query(
