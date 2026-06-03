@@ -267,7 +267,7 @@ function renderTransaction(tx: Transaction): string {
     ? `<button
             class="v003-receipt-btn size-8 rounded-lg bg-trust-blue/5 hover:bg-trust-blue/15 flex items-center justify-center transition-colors shrink-0"
             data-escrow-id="${escapeHtml(tx.transaction_id)}"
-            title="${escapeHtml(t('download_receipt', 'تحميل الإيصال'))}"
+            data-tooltip="${escapeHtml(t('download_receipt', 'تحميل الإيصال'))}"
             aria-label="${escapeHtml(t('download_receipt', 'تحميل الإيصال'))}"
           >
             <i class="ph ph-file-pdf text-trust-blue text-sm" aria-hidden="true"></i>

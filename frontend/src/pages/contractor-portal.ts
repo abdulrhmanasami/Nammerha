@@ -570,7 +570,7 @@ async function loadPayments(): Promise<void> {
                         <div class="flex-1 h-0.5 \${p.transaction_type === 'held' ? 'bg-trust-blue/30' : 'bg-smoky-jade/50'} mx-1 mt-[-16px]"></div>
                         
                         <!-- Step 2: Arbitration -->
-                        <div class="flex flex-col items-center z-10 w-16 opacity-50 grayscale hover:opacity-100 hover:grayscale-0 transition-all cursor-help" title="\${esc(t('arb_tooltip', 'يتم تفعيل التحكيم الثلاثي في حال النزاع'))}">
+                        <div class="flex flex-col items-center z-10 w-16 opacity-50 grayscale hover:opacity-100 hover:grayscale-0 transition-all cursor-help" data-tooltip="\${esc(t('arb_tooltip', 'يتم تفعيل التحكيم الثلاثي في حال النزاع'))}" aria-label="\${esc(t('arb_tooltip', 'يتم تفعيل التحكيم الثلاثي في حال النزاع'))}">
                             <div class="size-6 rounded-full bg-warning-yellow text-white flex items-center justify-center mb-1 relative">
                                 <i class="ph-bold ph-gavel text-xs"></i>
                             </div>

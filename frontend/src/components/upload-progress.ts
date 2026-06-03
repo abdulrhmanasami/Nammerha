@@ -98,7 +98,8 @@ export function updateUploadProgress(containerId: string, state: UploadState): H
           ? `
         <button type="button" class="nm-upload-cancel" data-upload-id="${escapeHtml(state.id)}"
                 aria-label="${escapeHtml(t('upload_cancel', 'إلغاء الرفع'))}"
-                title="${escapeHtml(t('upload_cancel', 'إلغاء الرفع'))}">
+                data-tooltip="${escapeHtml(t('upload_cancel', 'إلغاء الرفع'))}"
+                aria-label="${escapeHtml(t('upload_cancel', 'إلغاء الرفع'))}">
           <i class="ph ph-x" aria-hidden="true"></i>
         </button>
       `

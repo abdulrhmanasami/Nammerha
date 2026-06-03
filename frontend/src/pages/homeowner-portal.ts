@@ -1246,7 +1246,7 @@ async function loadEscrow(): Promise<void> {
                         <div class="flex-1 h-0.5 bg-trust-blue/30 mx-1 mt-[-20px]"></div>
                         
                         <!-- Step 2: Arbitration (Ghost State) -->
-                        <div class="flex flex-col items-center z-10 opacity-50 grayscale hover:opacity-100 hover:grayscale-0 transition-all cursor-help" style="width: 70px;" title="${esc(t('arb_tooltip', 'يتم تفعيل التحكيم الثلاثي في حال النزاع'))}">
+                        <div class="flex flex-col items-center z-10 opacity-50 grayscale hover:opacity-100 hover:grayscale-0 transition-all cursor-help" style="width: 70px;" data-tooltip="${esc(t('arb_tooltip', 'يتم تفعيل التحكيم الثلاثي في حال النزاع'))}" aria-label="${esc(t('arb_tooltip', 'يتم تفعيل التحكيم الثلاثي في حال النزاع'))}">
                             <div class="size-8 rounded-full bg-warning-yellow text-white flex items-center justify-center shadow-md mb-2 relative">
                                 <i class="ph-bold ph-gavel text-base"></i>
                                 <span class="absolute -top-1 -end-1 flex h-2.5 w-2.5">

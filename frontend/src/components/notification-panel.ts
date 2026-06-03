@@ -593,7 +593,8 @@ function renderNotificationItem(n: Notification): string {
     : `
         <button type="button" data-mark-read="${escapeHtml(n.notification_id)}"
                 class="nm-notif-item-mark" aria-label="${escapeHtml(t('mark_read', 'تعيين كمقروء'))}"
-                title="${escapeHtml(t('mark_read', 'تعيين كمقروء'))}">
+                data-tooltip="${escapeHtml(t('mark_read', 'تعيين كمقروء'))}"
+                aria-label="${escapeHtml(t('mark_read', 'تعيين كمقروء'))}">
             <i class="ph ph-check" aria-hidden="true"></i>
         </button>
     `;

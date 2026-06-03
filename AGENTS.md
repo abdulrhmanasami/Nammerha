@@ -18,6 +18,18 @@
 
 ## 🛑 ZERO-REGRESSION MEMOS (CRITICAL AI MEMORY)
 
+**MEMO 80: Platinum Tooltip Architecture & Zero-JS UI Enforcement (June 3, 2026)**
+
+- **Root Cause Destroyed:**
+  1. **Linguistic Contamination & UX Failures:** Native `title=` attributes were used across 20+ HTML nodes with hardcoded English text (`Coming Soon`, `Jump to...`), violating strict Arabic parity. Native browser tooltips failed WCAG AAA contrast requirements, lacked RTL logical positioning, and could not be styled or animated.
+  2. **Deployment Mirage Loop:** Fixes were applied locally but the UI modifications were invisible to the user because the local Git repository was uncommitted, and the Unified Cloud Server was never synced.
+- **New Logic Built:**
+  1. **Zero-JS CSS Tooltip Engine:** Injected `[data-tooltip]` CSS architecture into `main.css`. It utilizes `::before`/`::after` pseudo-elements, `logical properties` (`inset-inline-start`, `inset-block-end`), and strict directional conditionals (`html[dir='rtl']`) to provide animated, high-contrast, Platinum-standard hints.
+  2. **AST/Regex Surgical Scrubbing:** Designed `fix_tooltips.js` to scan the entire `/frontend` directory, replacing all `title=` attributes with `aria-label=` and `data-tooltip=` equivalents.
+  3. **Strict Arabic Parity:** Hardcoded English terms were translated to their Arabic equivalents (e.g. `Coming Soon` -> `قريباً`, `Jump to bids` -> `الانتقال للعطاءات`).
+  4. **Deployment Verification:** Executed `/deploy` workflow to sync all repository changes to `46.224.113.10`.
+- **Verification:** All 13 modified HTML files and 5 TS files passed strict typing. Frontend built successfully (`npm run build = EXIT:0`), Service Worker bumped, and Git committed to unlock the Deployment Pipeline.
+
 **MEMO 79: The Platinum Zenith — Complete Zero-Trust Codebase Purity Verification & Server Sync (June 2, 2026)**
 
 - **Root Cause Destroyed:**
