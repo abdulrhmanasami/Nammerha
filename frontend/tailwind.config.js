@@ -87,7 +87,7 @@ export default {
         // ── Supplier PO Status (supplierStatusColor) ────────────────────────
         'bg-smoky-jade/10', 'text-smoky-jade',
     ],
-    darkMode: ['selector', '[data-theme="dark"]'],
+    darkMode: ['class', '[data-theme="dark"]'],
     theme: {
         extend: {
             /* TW-001 FIX: Design System Typography Floor Token.

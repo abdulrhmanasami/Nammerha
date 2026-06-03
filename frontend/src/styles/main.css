@@ -789,7 +789,7 @@ html[data-theme='dark'] :focus-visible {
 [data-tooltip]::before {
   content: attr(data-tooltip);
   inset-block-end: calc(100% + 8px);
-  inset-inline-start: 50%;
+  left: 50%;
   transform: translateX(-50%) translateY(4px);
   background-color: var(--dark-tech);
   color: var(--surface);
@@ -798,48 +798,35 @@ html[data-theme='dark'] :focus-visible {
   font-weight: 600;
   padding: 6px 12px;
   border-radius: var(--radius-sm);
-  white-space: nowrap;
+  width: max-content;
+  max-width: 250px;
+  white-space: normal;
+  text-align: center;
   box-shadow: var(--shadow-elevation);
-}
-
-/* RTL logical property handling for translateX(-50%) */
-html[dir='rtl'] [data-tooltip]::before,
-[dir='rtl'] [data-tooltip]::before,
-body[dir='rtl'] [data-tooltip]::before {
-  transform: translateX(50%) translateY(4px);
 }
 
 /* The Tooltip Arrow (Triangle) */
 [data-tooltip]::after {
   content: '';
   inset-block-end: calc(100% + 2px);
-  inset-inline-start: 50%;
+  left: 50%;
   transform: translateX(-50%);
   border-width: 6px;
   border-style: solid;
   border-color: var(--dark-tech) transparent transparent transparent;
 }
 
-html[dir='rtl'] [data-tooltip]::after,
-[dir='rtl'] [data-tooltip]::after,
-body[dir='rtl'] [data-tooltip]::after {
-  transform: translateX(50%);
+[data-tooltip]:hover::before,
+[data-tooltip]:focus-visible::before,
+[data-tooltip]:hover::after,
+[data-tooltip]:focus-visible::after {
+  visibility: visible;
+  opacity: 1;
 }
 
 [data-tooltip]:hover::before,
 [data-tooltip]:focus-visible::before {
-  visibility: visible;
-  opacity: 1;
   transform: translateX(-50%) translateY(0);
-}
-
-html[dir='rtl'] [data-tooltip]:hover::before,
-[dir='rtl'] [data-tooltip]:hover::before,
-body[dir='rtl'] [data-tooltip]:hover::before,
-html[dir='rtl'] [data-tooltip]:focus-visible::before,
-[dir='rtl'] [data-tooltip]:focus-visible::before,
-body[dir='rtl'] [data-tooltip]:focus-visible::before {
-  transform: translateX(50%) translateY(0);
 }
 
 /* ============================================================================ */

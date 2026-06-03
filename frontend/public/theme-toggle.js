@@ -44,7 +44,6 @@
     // light mode shows moon (→ go dark).
     var ICON_DARK  = 'ph ph-sun-dim text-amber-500';
     var ICON_LIGHT = 'ph ph-moon-stars text-indigo-400';
-    var ICON_SYSTEM = 'ph ph-monitor text-slate-400 dark:text-slate-500';
 
     // ─── Storage Key ────────────────────────────────────────────────────
     var STORAGE_KEY = 'nm-theme';
@@ -55,13 +54,13 @@
 
     /**
      * Get the explicit mode from storage.
-     * @returns {'dark'|'light'|'system'}
+     * @returns {'dark'|'light'}
      */
     function getMode() {
         try {
-            return localStorage.getItem(STORAGE_KEY) || 'system';
+            return localStorage.getItem(STORAGE_KEY) || 'light';
         } catch (e) {
-            return 'system';
+            return 'light';
         }
     }
 
@@ -74,37 +73,22 @@
     }
 
     /**
-     * Toggle theme between dark ↔ light ↔ system.
+     * Toggle theme between dark ↔ light.
      * Manages transition class, persists to localStorage, syncs all icons,
      * and dispatches CustomEvent for cross-component coordination.
-     * @returns {'dark'|'light'|'system'} The NEW mode
+     * @returns {'dark'|'light'} The NEW mode
      */
     function toggleTheme() {
         var currentMode = getMode();
-        var nextMode;
+        var nextMode = currentMode === 'dark' ? 'light' : 'dark';
 
-        if (currentMode === 'dark') {
-            nextMode = 'light';
-        } else if (currentMode === 'light') {
-            nextMode = 'system';
-        } else {
-            nextMode = 'dark'; // from system to dark
-        }
-
-        var nextTheme;
-        if (nextMode === 'system') {
-            try { localStorage.removeItem(STORAGE_KEY); } catch (e) { /* incognito */ }
-            nextTheme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark';
-        } else {
-            nextTheme = nextMode;
-            try { localStorage.setItem(STORAGE_KEY, nextMode); } catch (e) { /* incognito */ }
-        }
+        try { localStorage.setItem(STORAGE_KEY, nextMode); } catch (e) { /* incognito */ }
 
         // Smooth transition class
         document.documentElement.classList.add(TRANSITION_CLASS);
 
         // Apply theme
-        document.documentElement.setAttribute('data-theme', nextTheme);
+        document.documentElement.setAttribute('data-theme', nextMode);
 
         // Sync all icons on page
         syncAllIcons(nextMode);
@@ -112,7 +96,7 @@
         // Dispatch event for cross-module coordination (nav.js data-nav-theme, etc.)
         try {
             document.dispatchEvent(new CustomEvent('nm-theme-changed', {
-                detail: { theme: nextTheme, mode: nextMode, previousMode: currentMode }
+                detail: { theme: nextMode, mode: nextMode, previousMode: currentMode }
             }));
         } catch (e) { /* IE11 fallback — CustomEvent not supported */ }
 
@@ -131,11 +115,7 @@
      */
     function syncIcon(iconEl, mode) {
         if (!iconEl) { return; }
-        if (mode === 'system') {
-            iconEl.className = ICON_SYSTEM;
-        } else {
-            iconEl.className = mode === 'dark' ? ICON_DARK : ICON_LIGHT;
-        }
+        iconEl.className = mode === 'dark' ? ICON_DARK : ICON_LIGHT;
         // P3-SST-003 FIX: Removed defensive `iconEl.style.fontSize = '18px'`.
         // Font-size is now governed by CSS: `[data-nm-theme-icon] { font-size: 18px; }`
         // Standard: CSS Single Source of Truth.

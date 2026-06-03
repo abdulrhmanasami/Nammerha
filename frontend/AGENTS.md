@@ -2,6 +2,16 @@
 
 ## 🛑 ZERO-REGRESSION MEMOS (CRITICAL AI MEMORY)
 
+**MEMO 81: Tooltip RTL Cartesian Mismatch & Theme Ghost OS Hijacking (June 3, 2026)**
+
+- **Root Cause Destroyed:**
+  1. **Tooltip Alignment Failure:** The zero-JS CSS tooltip engine attempted to mix logical positioning (`inset-inline-start: 50%`) with physical CSS transforms (`translateX(-50%)`). In a strict RTL environment, this caused a mathematical Cartesian mismatch, pushing the tooltip completely off the target element. Also, long text broke the UI via `white-space: nowrap`.
+  2. **Theme Mirage & Ghost State:** Nammerha enforces a strict "Light Mode Default" mandate. However, Tailwind was configured with `darkMode: ['selector', '[data-theme="dark"]']`. On first boot without localStorage, `theme-toggle.js` injected a shadow `system` state. Tailwind v3.4 silently fell back to `@media (prefers-color-scheme: dark)`, allowing the OS to hijack the UI and render it dark against the user's will and in violation of the light-mode mandate.
+- **New Logic Built:**
+  1. **Tooltip Pure Symmetry:** Replaced the logical/physical mismatch with strict physical absolute symmetry globally (`left: 50%` + `translateX(-50%)`), completely bypassing RTL drift. Tooltip text wraps responsively using `max-width: 250px; white-space: normal`.
+  2. **Absolute Light Mandate Validation:** Changed Tailwind to strict class-mode (`darkMode: ['class', '[data-theme="dark"]']`) to permanently eliminate OS-media-query fallback. Purged the `system` state from `theme-toggle.js`. The default mode is mathematically locked to `light`.
+- **Verification:** Frontend compiled correctly. `main.css`, `theme-toggle.js`, and `tailwind.config.js` locked to Platinum standard. Server recompiled via `/deploy` workflow.
+
 **MEMO 45: The Deployment Mirage Loop (Mandatory Deployment Protocol) (May 28, 2026)**
 
 - **Root Cause Destroyed:** The AI Agent spent two months executing "Platinum Standard Audits" locally, successfully wiping bugs (like the Ghost Dark Mode Toggle), but *failed to deploy the code to the live server*. This created a Mirage Loop where the human evaluated the live server, saw the bug, and instructed the Agent to fix it again. The Agent assumed its previous fix failed and wrote unnecessarily complex UI patches (`!important`, DOM Observers) for code that was already correct locally.
