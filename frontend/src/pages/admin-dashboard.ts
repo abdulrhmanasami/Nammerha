@@ -9,6 +9,7 @@ import { relativeTimeAgo } from '../utils/format';
 import { renderErrorWithRetry } from '../utils/error-retry';
 import { renderProgressive } from '../utils/progressive-render';
 import { requireAuth } from '../utils/auth-guard';
+import { getCurrentUser } from '../auth';
 import { addTrackedTimer } from '../utils/tracked-timers';
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -21,6 +22,13 @@ import { addTrackedTimer } from '../utils/tracked-timers';
 document.addEventListener('DOMContentLoaded', () => {
     // BLOCKER-1 FIX: Guard all protected content behind auth check.
     if (!requireAuth()) { return; }
+
+    // GAP-SEC-002 FIX: Prevent UI exposure to non-admins.
+    const user = getCurrentUser();
+    if (!user || (!user.roles.includes('admin') && !user.roles.includes('auditor'))) {
+        window.location.replace('index.html');
+        return;
+    }
 
     initTimestamp();
     loadKPIs();

@@ -18,6 +18,18 @@
 
 ## 🛑 ZERO-REGRESSION MEMOS (CRITICAL AI MEMORY)
 
+**MEMO 81: Unified Citizen Logical Paradox Destruction & Zero-Trust Governance (June 3, 2026)**
+
+- **Root Cause Destroyed:**
+  1. **KYC Role Paradox:** Under the Unified Citizen Model (MEMO 1/64), all users receive the `engineer` role by default. However, `matchmaking.service.ts` only checked for `kyc_verification_status = 'verified'` and the `engineer` role, allowing verified Homeowners (verified via Property Title) to appear in Engineer search results and auto-match with projects without holding a valid Engineering License.
+  2. **Self-Dealing / Wash-Trading Vulnerability:** `submitBid` inside `matchmaking.service.ts` did not verify if the bidder was the project owner, allowing users to bid on and execute their own projects to manipulate Escrow payouts.
+  3. **Admin Dashboard Exposure:** `/admin-dashboard.html` loaded its UI for any user. Even though the backend endpoints were secured (403 Forbidden), the frontend UI elements (metrics, tables) were exposed, violating the Zero-Trust UI constraint.
+- **New Logic Built:**
+  1. **Strict Engineering License Enforcement:** Injected `u.engineering_license_number IS NOT NULL` into `searchEngineers` and `matchProjectToEngineers`. No user can act as an engineer without cryptographic proof of license.
+  2. **Self-Dealing Eradication:** Added explicit check in `submitBid` rejecting bids where `project.homeowner_id === engineerId`.
+  3. **Frontend Role Guarding:** Implemented `getCurrentUser()` role checks directly in `admin-dashboard.ts` initialization, kicking unauthorized users immediately to `index.html`.
+- **Verification:** Vitest passed 592/592 tests. Frontend/Backend TypeScript builds `npx tsc --noEmit` = 0 errors. Deployed to Unified Cloud Server.
+
 **MEMO 80: Platinum Tooltip Architecture & Zero-JS UI Enforcement (June 3, 2026)**
 
 - **Root Cause Destroyed:**

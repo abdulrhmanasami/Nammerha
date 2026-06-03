@@ -236,6 +236,9 @@ export async function searchEngineers(dto: SearchEngineersDTO): Promise<Engineer
     // UNIFIED CITIZEN: All users have engineer role — filter by is_active + kyc instead
     `u.is_active = TRUE`,
     `u.kyc_verification_status = 'verified'`,
+    // GAP-SEC-003 FIX: Prevent KYC Contextual Paradox. A verified Homeowner
+    // must not be able to act as an Engineer without an actual engineering license.
+    `u.engineering_license_number IS NOT NULL`,
     // Verify user has engineer role in user_roles table
     `EXISTS (
             SELECT 1 FROM user_roles ur
@@ -418,6 +421,8 @@ export async function matchProjectToEngineers(projectId: string): Promise<Engine
           )
           AND u.is_active = TRUE
           AND u.kyc_verification_status = 'verified'
+          -- GAP-SEC-003 FIX: Enforce license presence for auto-match
+          AND u.engineering_license_number IS NOT NULL
           AND u.gps_last_known IS NOT NULL
           AND (u.specialty = $2 OR u.specialty = 'mixed')
           AND ST_DWithin(u.gps_last_known, p.gps_location, u.service_radius_km * 1000)
@@ -550,7 +555,7 @@ export async function submitBid(
 ): Promise<ContractorBid> {
   return financialTransaction(async (client) => {
     // Validate project exists and is published
-    const projectRes = await client.query(`SELECT status FROM projects WHERE project_id = $1`, [
+    const projectRes = await client.query(`SELECT status, homeowner_id FROM projects WHERE project_id = $1`, [
       projectId,
     ]);
 
@@ -560,6 +565,13 @@ export async function submitBid(
 
     if (projectRes.rows[0].status !== 'published') {
       throw new Error('Bids can only be submitted for published projects');
+    }
+
+    // GAP-SEC-001 FIX: Prevent Self-Dealing (Wash-Trading).
+    // The "Unified Citizen" model grants all users all roles. We must explicitly
+    // verify the bidder is not the owner of the project to prevent escrow fraud.
+    if (projectRes.rows[0].homeowner_id === engineerId) {
+      throw new Error('Cannot bid on your own project. Self-dealing is strictly prohibited.');
     }
 
     // Get current engineer score
