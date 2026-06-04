@@ -248,6 +248,16 @@ export async function submitSpatialProof(
     if (!proof) {
       throw new Error('Failed to create spatial proof');
     }
+
+    // 6. Update Project State Machine (Linearly transition to in_progress)
+    // If the project is still pending_execution when the first proof arrives, 
+    // it means execution has definitely started.
+    await client.query(
+      `UPDATE projects SET status = 'in_progress', updated_at = NOW()
+       WHERE project_id = $1 AND status = 'pending_execution'`,
+      [dto.project_id]
+    );
+
     return proof;
   });
 }

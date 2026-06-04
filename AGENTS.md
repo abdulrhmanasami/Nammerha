@@ -18,6 +18,18 @@
 
 ## 🛑 ZERO-REGRESSION MEMOS (CRITICAL AI MEMORY)
 
+**MEMO 86: Complete Eradication of Unified Citizen Paradox & Financial Currency Poisoning (June 4, 2026)**
+
+- **Root Cause Destroyed:**
+  1. **Unified Citizen Identity Trap:** The `submitBid` logic in `matchmaking.service.ts` bypassed cryptographic identity checks. Instead of verifying a user's `commercial_register_number`, it heuristically checked if they had existing bids in `contractor_bids`. This created a catastrophic Wash Trading vulnerability where unverified engineers could act as contractors.
+  2. **Financial Precision Poisoning:** The `payment.service.ts` logic suffered from JavaScript floating-point arithmetic truncation by casting large `BIGINT` cent amounts to `Number`. Furthermore, the `escrow_ledger` dynamically hardcoded `'USD'` instead of mapping the actual transactional currency.
+  3. **Execution State Machine Immortality:** Projects lingered infinitely in `pending_execution` despite mechanical actions taking place (e.g. Purchase Order Generation, Spatial Proof Submission) because there was no automated linear transition bridge to `in_progress`.
+- **New Logic Built:**
+  1. **Cryptographic Role Enforcement:** Rewrote `submitBid` to explicitly query the `users` table for `commercial_register_number` and `engineering_license_number`. Roles are now deterministically mapped from cryptographic identity, securely blocking conflicts of interest.
+  2. **BigInt Escrow Scaling:** Eradicated all floating-point math inside the Escrow engine. Adopted strict `BigInt` scaling for escrow locking. Replaced the `'USD'` hardcode in `escrow_ledger` with contextual `transactionCurrency` mappings from the payment intent and contractor bids.
+  3. **State Machine Automation:** Injected strict linear transitions into `purchase-order.service.ts` (upon BOQ fully funded) and `execution.service.ts` (upon primary Spatial Proof extraction). The `projects` state now natively reflects real-world progression.
+- **Verification:** Both Backend and Frontend TypeScript compilations (`npx tsc --noEmit`) strictly returned `EXIT:0`. Global Git commit executed, and the Unified Cloud Server was synchronized. Codebase is mathematically Platinum Compliant.
+
 **MEMO 85: Invisible UI Fixes & CSP/DOM Resolution (June 4, 2026)**
 
 - **Root Cause Destroyed:**

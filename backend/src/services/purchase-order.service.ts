@@ -17,7 +17,8 @@ export async function generatePurchaseOrder(itemId: string, client: PoolClient):
   const itemResult = await client.query(
     `SELECT b.item_id, b.project_id, b.material_name, b.material_category, 
             b.required_quantity, b.unit, b.unit_price, b.preferred_supplier_id,
-            u.full_name AS supplier_name, u.commercial_register_number
+            u.full_name AS supplier_name, u.commercial_register_number,
+            (SELECT currency FROM contractor_bids cb WHERE cb.project_id = b.project_id AND cb.status = 'accepted' LIMIT 1) as bid_currency
      FROM itemized_boq b
      LEFT JOIN users u ON u.user_id = b.preferred_supplier_id
      WHERE b.item_id = $1 AND b.preferred_supplier_id IS NOT NULL`,
@@ -31,6 +32,7 @@ export async function generatePurchaseOrder(itemId: string, client: PoolClient):
 
   const item = itemResult.rows[0];
   const totalAmount = Math.round(Number(item.required_quantity) * Number(item.unit_price));
+  const currency = item.bid_currency || 'USD';
 
   // 3. Generate PO number using the sequence
   const poNumResult = await client.query(`SELECT generate_po_number() AS po_number`);
@@ -43,7 +45,7 @@ export async function generatePurchaseOrder(itemId: string, client: PoolClient):
         amount, currency, status, material_name, material_category,
         quantity, unit, unit_price, supplier_name, supplier_commercial_reg
      ) VALUES (
-        $1, $2, $3, $4, $5, 'USD', 'generated', $6, $7, $8, $9, $10, $11, $12
+        $1, $2, $3, $4, $5, $6, 'generated', $7, $8, $9, $10, $11, $12, $13
      )`,
     [
       poNumber,
@@ -51,6 +53,7 @@ export async function generatePurchaseOrder(itemId: string, client: PoolClient):
       item.project_id,
       item.preferred_supplier_id,
       totalAmount,
+      currency,
       item.material_name,
       item.material_category || null,
       item.required_quantity,
@@ -59,6 +62,13 @@ export async function generatePurchaseOrder(itemId: string, client: PoolClient):
       item.supplier_name,
       item.commercial_register_number || null
     ]
+  );
+
+  // 5. Update Project State Machine (Linearly transition to in_progress)
+  await client.query(
+    `UPDATE projects SET status = 'in_progress', updated_at = NOW() 
+     WHERE project_id = $1 AND status = 'pending_execution'`,
+    [item.project_id]
   );
 
   logger.info('[PO-GEN] Auto-generated Purchase Order', {

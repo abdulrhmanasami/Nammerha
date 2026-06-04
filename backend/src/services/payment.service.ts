@@ -750,13 +750,24 @@ export const paymentService = {
                   } else {
                     const qtyFixed = BigInt(qtyIntPart) * 100n + BigInt(qtyDecPart);
 
-                    const totalCost = Number((BigInt(priceStr) * qtyFixed) / 100n);
-                    const remainingNeed = totalCost - Number(BigInt(fundedStr));
+                    // P2-001 FIX & PLT-AUD-009 FIX: strictly use BigInt for large financial numbers
+                    // to prevent precision loss if > 90 trillion cents.
+                    const totalCostCents = (BigInt(priceStr) * qtyFixed) / 100n;
+                    const remainingNeedCents = totalCostCents - BigInt(fundedStr);
 
-                    const actualAmount = Math.min(payment.amount, remainingNeed);
-                    const excessAmount = payment.amount - actualAmount;
+                    // Since amount is originally a Number (which we need to fix if it exceeds MAX_SAFE_INTEGER,
+                    // but it's passed as a Number in PaymentInitiation), we do safe conversion here:
+                    const amountBigInt = BigInt(Math.round(payment.amount));
+                    
+                    const actualAmountBigInt = amountBigInt < remainingNeedCents ? amountBigInt : remainingNeedCents;
+                    const excessAmountBigInt = amountBigInt - actualAmountBigInt;
+                    
+                    // Convert back to Number for DB insertion, ensuring we don't pass JS Objects to pg if it expects numbers.
+                    // PostgreSQL handles bigints natively, we can pass strings to be safe with pg.
+                    const actualAmount = actualAmountBigInt.toString();
+                    const excessAmount = excessAmountBigInt.toString();
 
-                    if (remainingNeed <= 0) {
+                    if (remainingNeedCents <= 0n) {
                       logger.warn(
                         'BOQ item already fully funded, capturing full amount as excess/refund',
                         { itemId: payment.item_id },
@@ -765,18 +776,21 @@ export const paymentService = {
 
                     // 4c. Create escrow entry (locked) for the required amount
                     const paymentMethod = data.gateway;
+                    // Use payment.currency (from payment_transactions) instead of hardcoding USD
+                    const transactionCurrency = payment.currency || 'USD';
 
-                    if (actualAmount > 0) {
+                    if (actualAmountBigInt > 0n) {
                       await client.query(
                         `INSERT INTO escrow_ledger (
                                     user_id, item_id, project_id, amount_locked, currency,
                                     payment_status, payment_method, payment_gateway_ref, locked_at
-                                ) VALUES ($1, $2, $3, $4, 'USD', 'locked', $5, $6, NOW())`,
+                                ) VALUES ($1, $2, $3, $4, $5, 'locked', $6, $7, NOW())`,
                         [
                           payment.user_id,
                           payment.item_id,
                           payment.project_id,
                           actualAmount,
+                          transactionCurrency,
                           paymentMethod,
                           data.reference,
                         ],
@@ -784,18 +798,19 @@ export const paymentService = {
                     }
 
                     // 4c-2. Overfunding Theft Bug Fix: Track excess funds and auto-request refund
-                    if (excessAmount > 0) {
+                    if (excessAmountBigInt > 0n) {
                       const excessResult = await client.query<{ transaction_id: string }>(
                         `INSERT INTO escrow_ledger (
                                     user_id, item_id, project_id, amount_locked, currency,
                                     payment_status, payment_method, payment_gateway_ref, locked_at, donation_intent
-                                 ) VALUES ($1, $2, $3, $4, 'USD', 'locked', $5, $6, NOW(), 'overfunding_excess')
+                                 ) VALUES ($1, $2, $3, $4, $5, 'locked', $6, $7, NOW(), 'overfunding_excess')
                                  RETURNING transaction_id`,
                         [
                           payment.user_id,
                           payment.item_id,
                           payment.project_id,
                           excessAmount,
+                          transactionCurrency,
                           paymentMethod,
                           data.reference,
                         ],
@@ -824,20 +839,20 @@ export const paymentService = {
                     }
 
                     // 4d. Check if item is now fully funded (trigger updates funded_amount)
-                    const updatedBoq = await client.query<{ funded_amount: number }>(
+                    const updatedBoq = await client.query<{ funded_amount: string }>(
                       'SELECT funded_amount FROM itemized_boq WHERE item_id = $1',
                       [payment.item_id],
                     );
-                    const newFunded = updatedBoq.rows[0]?.funded_amount ?? 0;
+                    const newFunded = BigInt(updatedBoq.rows[0]?.funded_amount ?? '0');
 
-                    if (newFunded >= totalCost) {
+                    if (newFunded >= totalCostCents) {
                       await client.query(
                         "UPDATE itemized_boq SET status = 'fully_funded' WHERE item_id = $1",
                         [payment.item_id],
                       );
                       // Auto-generate PO for the supplier
                       await generatePurchaseOrder(payment.item_id, client);
-                    } else if (newFunded > 0 && boqItem.status === 'verified') {
+                    } else if (newFunded > 0n && boqItem.status === 'verified') {
                       await client.query(
                         "UPDATE itemized_boq SET status = 'partially_funded' WHERE item_id = $1",
                         [payment.item_id],

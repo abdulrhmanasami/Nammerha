@@ -47,6 +47,7 @@ export interface ContractorBid {
 
 export interface SubmitBidDTO {
   proposed_cost: number; // in cents
+  currency?: string;
   estimated_days: number;
   cover_letter?: string;
   methodology?: string;
@@ -589,13 +590,21 @@ export async function submitBid(
       throw new Error('User not found or inactive');
     }
 
-    // UNIFIED CITIZEN: All users can bid — determine bid column from context
-    // If user has active bids as contractor, use contractor_id; otherwise engineer_id
-    const existingAsContractor = await client.query(
-      `SELECT 1 FROM contractor_bids WHERE contractor_id = $1 LIMIT 1`,
+    // UNIFIED CITIZEN FIX: Determine role by verified cryptographic identity, not history.
+    const userRes = await client.query(
+      `SELECT commercial_register_number, engineering_license_number FROM users WHERE user_id = $1`,
       [engineerId],
     );
-    const userRole = existingAsContractor.rows.length > 0 ? 'contractor' : 'engineer';
+    if (userRes.rows.length === 0) {
+      throw new Error('User not found');
+    }
+    const userRow = userRes.rows[0];
+    let userRole = 'engineer';
+    if (userRow.commercial_register_number) {
+      userRole = 'contractor';
+    } else if (!userRow.engineering_license_number) {
+      throw new Error('User must have either a commercial register or an engineering license to submit a bid');
+    }
 
     // MED-009: Prevent duplicate bids on the same project (checked within transaction)
     const existingBid = await client.query(
@@ -620,7 +629,7 @@ export async function submitBid(
         userRole === 'contractor' ? engineerId : null,
         projectId,
         dto.proposed_cost,
-        'USD',
+        dto.currency || 'USD',
         dto.estimated_days,
         dto.cover_letter || null,
         dto.methodology || null,
