@@ -60,6 +60,7 @@ import socialAuthRoutes from './social-auth.routes';
 import contractPaymentRoutes from './contract-payment.routes';
 import mfaRoutes from './mfa.routes';
 import accountDeletionRoutes from './account-deletion.routes';
+import rumRoutes from './rum.routes';
 
 /**
  * Register all API routes on the Express app.
@@ -158,6 +159,7 @@ export function registerRoutes(app: Express): void {
   // ── Client Error & CSP Reporting ───────────────────────────────────────
   app.use('/api/client-errors', clientErrorRoutes);
   app.use('/api/csp-report', cspReportRoutes);
+  app.use('/api/rum', express.json({ limit: '10kb' }), rumRoutes);
 
   // ── Role Management (Multi-Role Architecture) ──────────────────────────
   app.use('/api/roles', roleRoutes);

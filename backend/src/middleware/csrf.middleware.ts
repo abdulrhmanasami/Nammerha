@@ -38,6 +38,7 @@ const CSRF_EXEMPT_PATHS: ReadonlySet<string> = new Set([
   '/auth/social',
   '/client-errors',
   '/csp-report',
+  '/rum/vitals',
 ]);
 
 const SAFE_METHODS: ReadonlySet<string> = new Set(['GET', 'HEAD', 'OPTIONS']);
@@ -89,9 +90,9 @@ export function csrfProtection(req: Request, res: Response, next: NextFunction):
   const platform = req.headers['x-platform'] as string | undefined;
   if (
     (platform === 'mobile' ||
-     platform === 'flutter' ||
-     platform === 'android' ||
-     platform === 'ios') &&
+      platform === 'flutter' ||
+      platform === 'android' ||
+      platform === 'ios') &&
     req.headers['authorization']?.startsWith('Bearer ')
   ) {
     return next();

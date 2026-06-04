@@ -18,6 +18,18 @@
 
 ## 🛑 ZERO-REGRESSION MEMOS (CRITICAL AI MEMORY)
 
+**MEMO 88: Real User Monitoring (RUM) Telemetry Activation & CSRF Exemption (June 4, 2026)**
+
+- **Root Cause Destroyed:**
+  1. **Telemetry Blockade:** The frontend `rum.ts` was attempting to send Web Vitals (LCP, FID, CLS, etc.) using `navigator.sendBeacon('/api/rum/vitals', JSON.stringify(payload))`. However, the backend globally enforced CSRF protection on `/api`. Since `sendBeacon` cannot include custom headers (e.g., `X-CSRF-Token`), all RUM requests were rejected with `403 Forbidden`.
+  2. **Missing Sink:** The backend completely lacked a route handler for `/api/rum/vitals`, meaning even if CSRF was bypassed, the request would fall through to a 404.
+  3. **Body Parsing Failure:** `sendBeacon` sends stringified JSON as `text/plain`, which `express.json()` ignores by default, resulting in an empty body payload.
+- **New Logic Built:**
+  1. **CSRF Exemption:** Added `'/rum/vitals'` to `CSRF_EXEMPT_PATHS` in `csrf.middleware.ts`. This is secure because RUM is pure telemetry and cannot mutate user state.
+  2. **Blob Encoding:** Modified `rum.ts` to wrap the payload in a `Blob` with `{ type: 'application/json' }`, allowing the backend's `express.json()` to parse it correctly natively.
+  3. **Dedicated Telemetry Sink:** Created `rum.routes.ts` with strict rate limiting (30 requests/minute/IP), payload schema validation, and structured JSON logging. Integrated it into `index.ts` with a tight `10kb` body limit to prevent DoS.
+- **Verification:** Both Frontend and Backend TypeScript builds passed strictly. RUM endpoints return `204 No Content` and log cleanly.
+
 **MEMO 87: Complete Eradication of SW Update Contradiction & Deployment Mirage (June 4, 2026)**
 
 - **Root Cause Destroyed:**
