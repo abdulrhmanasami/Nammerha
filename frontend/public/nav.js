@@ -429,54 +429,13 @@
         // Now: Detects 'waiting' SW and shows a toast with tap-to-update action.
         // Standard: PWA Best Practices, Nielsen #1 (System Status Visibility).
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.ready.then(function (reg) {
-                // Check if an update is already waiting
-                function promptUpdate(sw) {
-                    // P1-SW-001 FIX: CSS class replaces 4-line inline style.cssText.
-                    // Previous: physical left:0;right:0 (RTL-unsafe), z-index:99999 (magic number).
-                    // Now: .nm-sw-banner uses inset-inline:0 and var(--z-overlay).
-                    // Standard: P1-001 precedent, CSS Architecture, Logical Properties.
-                    var banner = document.createElement('div');
-                    banner.className = 'nm-sw-banner';
-                    banner.setAttribute('role', 'alert');
-                    var bannerText = document.createElement('span');
-                    bannerText.textContent = window.NammerhaI18n && window.NammerhaI18n.t
-                        ? window.NammerhaI18n.t('sw_update_available')
-                        : 'Update available — tap to refresh';
-                    var bannerBtn = document.createElement('button');
-                    bannerBtn.textContent = window.NammerhaI18n && window.NammerhaI18n.t
-                        ? window.NammerhaI18n.t('sw_update_btn')
-                        : 'Update';
-                    bannerBtn.setAttribute('data-haptic', 'tap');
-                    bannerBtn.addEventListener('click', function () {
-                        sw.postMessage({ type: 'SKIP_WAITING' });
-                        banner.remove();
-                    });
-                    banner.appendChild(bannerText);
-                    banner.appendChild(bannerBtn);
-                    document.body.appendChild(banner);
-                }
-
-                if (reg.waiting) { promptUpdate(reg.waiting); }
-
-                reg.addEventListener('updatefound', function () {
-                    var newSW = reg.installing;
-                    if (!newSW) return;
-                    newSW.addEventListener('statechange', function () {
-                        if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
-                            promptUpdate(newSW);
-                        }
-                    });
-                });
-
-                // Reload when the new SW takes over
-                var refreshing = false;
-                navigator.serviceWorker.addEventListener('controllerchange', function () {
-                    if (refreshing) return;
-                    refreshing = true;
-                    window.location.reload();
-                });
+            // P0-SW-002 FIX: Universal SW Registration
+            // Register it on EVERY page, not just index.html.
+            navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(function(err) {
+                console.warn('SW registration failed:', err);
             });
+            // Update UI is natively handled by src/offline/network-status.ts
+            // to avoid duplication and visual conflicts.
         }
     }
 

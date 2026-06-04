@@ -18,6 +18,18 @@
 
 ## 🛑 ZERO-REGRESSION MEMOS (CRITICAL AI MEMORY)
 
+**MEMO 87: Complete Eradication of SW Update Contradiction & Deployment Mirage (June 4, 2026)**
+
+- **Root Cause Destroyed:**
+  1. **The Deployment Mirage:** Frontend fixes (like MEMO 85) were successfully committed and built locally, but failed to appear on the production Unified Cloud Server because the `nammerha-frontend` Docker container was never rebuilt during deployment. Users were stuck on the old container state indefinitely.
+  2. **The Update Contradiction (Forced Reloads):** `sw.js` was invoking `self.skipWaiting()` automatically during install. Simultaneously, `nav.js` and `sw-register.ts` were trying to show a "Click to update" UI banner. Because the SW activated instantly, it triggered the `controllerchange` event across all open tabs, causing a catastrophic `window.location.reload()` while the user was actively using the platform.
+  3. **The Duplication & Omission Paradox:** `nav.js` contained update banner logic, while `sw-register.ts` and `network-status.ts` also contained banner logic, leading to duplicate DOM injection. Conversely, standalone HTML pages like `auth.html` completely failed to register the SW because they lacked the `registerServiceWorker()` import.
+- **New Logic Built:**
+  1. **Silent Install, Manual Activation:** Eradicated `self.skipWaiting()` from `sw.js`. The SW now installs quietly and remains in `waiting` until the user explicitly clicks the update banner.
+  2. **Global Single-Source Registration:** Injected `navigator.serviceWorker.register` directly into `nav.js` to ensure 100% coverage across all 24 entry points, completely un-siloing SW registration from `main.ts`.
+  3. **UI Deduplication:** Stripped the duplicate `updatefound` banner logic out of `nav.js`. Now, `network-status.ts` acts as the exclusive visual orchestrator for SW updates (with its RTL-aware, Phosphor-icon UI). Fixed `sw-register.ts` to actively check `registration.waiting` on page load, ensuring the banner persists across navigations until the user accepts.
+- **Verification:** Both Frontend and Backend TypeScript strictly compile (0 errors). Frontend `npm run build` executed flawlessly, incrementing `CACHE_VERSION`. The repository is locked for full-stack Docker rebuild deployment.
+
 **MEMO 86: Complete Eradication of Unified Citizen Paradox & Financial Currency Poisoning (June 4, 2026)**
 
 - **Root Cause Destroyed:**
@@ -43,7 +55,6 @@
   3. **Data Service Refactor:** Fixed `open-data.service.ts` to cleanly count `total_users` without relying on conflicted enums.
   4. **SW Cache Busting:** Bumped `CACHE_VERSION` in `sw.js` and rebuilt the frontend container to force clients to clear their cache and load the updated logic.
 - **Verification:** Frontend strictly built (`npm run build = EXIT:0`), backend rebuilt with Docker Compose on the server, and the API health confirmed. Codebase locked.
-
 
 **MEMO 84: Complete Execution Layer Resolution & Spatial Sovereignty (June 4, 2026)**
 
@@ -145,7 +156,7 @@
   3. **Audit Trail Negligence:** `kyc.service.ts` utilized raw `console.log` for its audit trail instead of the structured, JSON-formatted `logger` utility.
   4. **Stale Suppressions:** Dead `eslint-disable` comments remained in the frontend, artificially inflating suppression counts.
 - **New Logic Built:**
-  1. **Strict TypeScript Refactoring:** 
+  1. **Strict TypeScript Refactoring:**
      - `payment.service.ts`: Replaced `(err as any).code` with a targeted interface cast: `(err as { code: string }).code`.
      - `reality-capture.test.ts`: Replaced 5 instances of `as any` with `vi.mocked()` and type-safe augmentations (`as unknown as typeof fetch`, `as unknown as { latitude: number; longitude: number }`).
   2. **Serializable Enforcement:** Injected `SET TRANSACTION ISOLATION LEVEL SERIALIZABLE` directly after `BEGIN` in `cancelDeletion`.
@@ -1131,7 +1142,7 @@ or tool call errors) while attempting to fix the same issue:
 - **Root Cause Destroyed:**
   1. **Trust Deficit & Phantom Bugs:** To achieve Platinum Status and prove the eradication of all hacks, a comprehensive line-by-line audit was mandated to guarantee zero presence of technical debt patterns (`as any`, `@ts-ignore`, `parseFloat` financial poisoning, physical CSS directionality breaks, and missing `idempotencyMiddleware` on POST/PUT endpoints).
 - **New Logic Built:**
-  1. **Strict Automated Validation:** Executed global regex/AST sweeps using agentic tools on both `/frontend` and `/backend`. 
+  1. **Strict Automated Validation:** Executed global regex/AST sweeps using agentic tools on both `/frontend` and `/backend`.
      - Checked for `as any`, `<any>`, and `@ts-ignore`: Found 0 active violations (only present inside descriptive comments).
      - Checked for `parseFloat()`: Found 0 violations (strictly using `Number()` globally).
      - Checked for Physical CSS (`ml-`, `pr-`, `border-l`): Found 0 violations (strictly using logical properties).

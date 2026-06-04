@@ -14,7 +14,7 @@
 //   7. Never Cache                      — /api/auth/*, /api/csrf-token
 // ============================================================================
 
-const CACHE_VERSION = 'v1780566384480';
+const CACHE_VERSION = 'v1780582500129';
 const SHELL_CACHE  = `nammerha-shell-${CACHE_VERSION}`;
 const API_CACHE    = `nammerha-api-${CACHE_VERSION}`;
 const IMG_CACHE    = `nammerha-img-${CACHE_VERSION}`;
@@ -86,14 +86,14 @@ const STORE_NAME = 'pending-requests';
 
 // ─── Install: Pre-cache App Shell ───────────────────────────────────────────
 self.addEventListener('install', (event) => {
-    // MEMO 58 FIX: skipWaiting() moved INSIDE waitUntil() to fix race condition.
-    // Previous: skipWaiting() fired BEFORE cache was populated, causing the new
-    // SW to take over with an empty cache while activate() deleted the old cache.
-    // This created blank/broken pages during deployment transitions.
+    // P0-SW-001 FIX: Removed self.skipWaiting() from install phase.
+    // Previous: It forced the SW to activate immediately, causing a Forced Reload
+    // via controllerchange listener in nav.js and disrupting the user.
+    // Now: It installs and waits. The user sees an "Update available" banner
+    // and clicks to send a SKIP_WAITING message explicitly.
     event.waitUntil(
         caches.open(SHELL_CACHE)
             .then((cache) => cache.addAll(SHELL_ASSETS))
-            .then(() => self.skipWaiting())
     );
 });
 
