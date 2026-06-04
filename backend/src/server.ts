@@ -104,7 +104,7 @@ app.use(
         //   3. Style injection is low-severity compared to script injection
         styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
         fontSrc: ["'self'", 'https://fonts.gstatic.com'],
-        imgSrc: ["'self'", 'data:', 'blob:', 'https://*.nammerha.com'],
+        imgSrc: ["'self'", 'data:', 'blob:', 'https://*.nammerha.com', 'https://images.unsplash.com'],
         connectSrc: [
           "'self'",
           'https://*.nammerha.com',

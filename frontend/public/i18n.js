@@ -1094,7 +1094,7 @@
             // Find the user avatar (last child = avatar div with rounded-full)
             var userAvatar = navbar.querySelector('.rounded-full.border-2');
             if (userAvatar) {
-                navbar.insertBefore(widget, userAvatar);
+                userAvatar.parentNode.insertBefore(widget, userAvatar);
             } else {
                 navbar.appendChild(widget);
             }

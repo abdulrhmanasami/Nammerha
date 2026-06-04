@@ -408,7 +408,7 @@ export async function getPlatformStats(): Promise<PlatformStats> {
         SELECT
             (SELECT COUNT(*) FROM projects WHERE is_public = true) AS total_projects,
             (SELECT COALESCE(SUM(total_funded_amount), 0) FROM projects WHERE is_public = true) AS total_funded_amount,
-            (SELECT COUNT(DISTINCT ur.user_id) FROM user_roles ur JOIN roles r ON r.role_id = ur.role_id AND r.role_name = 'user' JOIN users u ON u.user_id = ur.user_id AND u.is_active = true WHERE ur.status = 'active') AS total_users,
+            (SELECT COUNT(*) FROM users WHERE is_active = true) AS total_users,
             (SELECT COUNT(DISTINCT ur.user_id) FROM user_roles ur JOIN roles r ON r.role_id = ur.role_id AND r.role_name = 'engineer' JOIN users u ON u.user_id = ur.user_id AND u.is_active = true WHERE ur.status = 'active') AS total_engineers,
             (SELECT COUNT(*) FROM projects WHERE status = 'completed') AS projects_completed,
             (SELECT COUNT(*) FROM projects WHERE status IN ('in_progress', 'under_review')) AS projects_in_progress,
