@@ -7,6 +7,7 @@ import crypto from 'crypto';
 import pool, { financialTransaction } from '../config/database';
 import { logger } from '../utils/logger';
 import { screenUserAgainstSDN } from './compliance.service';
+import { generatePurchaseOrder } from './purchase-order.service';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 export type PaymentGateway = 'visa' | 'fatora';
@@ -834,6 +835,8 @@ export const paymentService = {
                         "UPDATE itemized_boq SET status = 'fully_funded' WHERE item_id = $1",
                         [payment.item_id],
                       );
+                      // Auto-generate PO for the supplier
+                      await generatePurchaseOrder(payment.item_id, client);
                     } else if (newFunded > 0 && boqItem.status === 'verified') {
                       await client.query(
                         "UPDATE itemized_boq SET status = 'partially_funded' WHERE item_id = $1",

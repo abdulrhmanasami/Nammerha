@@ -445,3 +445,30 @@ export async function getHomeownerProjects(homeownerId: string): Promise<Project
   );
   return result.rows;
 }
+
+/**
+ * Start execution of a project.
+ * Transitions state from 'pending_execution' to 'in_progress'.
+ * This fixes the logical gap where a project remains in pending_execution
+ * even while the contractor is actively working on it.
+ */
+export async function startProjectExecution(projectId: string, contractorId: string): Promise<Project> {
+  const result = await query<Project>(
+    `UPDATE projects 
+     SET status = 'in_progress', updated_at = NOW()
+     WHERE project_id = $1 AND assigned_contractor_id = $2 AND status = 'pending_execution'
+     RETURNING project_id, homeowner_id, assigned_engineer_id, assigned_contractor_id,
+               title, description, cover_image_url, gps_location, address_text,
+               damage_type, damage_severity, status, is_public,
+               total_estimated_cost, total_funded_amount, ocds_release_id,
+               published_at, completed_at, created_at, updated_at`,
+    [projectId, contractorId]
+  );
+
+  const project = result.rows[0];
+  if (!project) {
+    throw new Error('Project not found, not in pending_execution state, or you are not the assigned contractor');
+  }
+
+  return project;
+}

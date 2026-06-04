@@ -704,14 +704,16 @@ export async function acceptBid(
     const foundBid = bidRes.rows[0];
 
     // DT-IDOR-002 FIX: Verify deciderId owns the project (admin bypasses)
-    if (deciderRole !== 'admin') {
-      const projectCheck = await client.query<{ homeowner_id: string }>(
-        'SELECT homeowner_id FROM projects WHERE project_id = $1',
-        [foundBid.project_id],
-      );
-      if (!projectCheck.rows[0] || projectCheck.rows[0].homeowner_id !== deciderId) {
-        throw new Error('Access denied: you do not own this project');
-      }
+    const projectCheck = await client.query<{ homeowner_id: string }>(
+      'SELECT homeowner_id FROM projects WHERE project_id = $1',
+      [foundBid.project_id],
+    );
+    if (!projectCheck.rows[0]) {
+      throw new Error('Project not found');
+    }
+    const homeownerId = projectCheck.rows[0].homeowner_id;
+    if (deciderRole !== 'admin' && homeownerId !== deciderId) {
+      throw new Error('Access denied: you do not own this project');
     }
     const bidderId = foundBid.contractor_id || foundBid.engineer_id;
 
@@ -732,10 +734,28 @@ export async function acceptBid(
     // All accepted bids must move the project to 'pending_execution' with a contractor.
     // Reverting to 'pending_assessment' throws away the published BOQ and creates an infinite loop.
     const assigneeId = foundBid.contractor_id || foundBid.engineer_id;
+    const providerType = foundBid.contractor_id ? 'contractor' : 'engineer';
+
     await client.query(
       `UPDATE projects SET assigned_contractor_id = $1, status = 'pending_execution'
                WHERE project_id = $2`,
       [assigneeId, foundBid.project_id],
+    );
+
+    // GAP-FIN-003 FIX: Automatically bridge the financial gap by creating a formal service contract
+    await client.query(
+      `INSERT INTO service_contracts
+                (project_id, homeowner_id, provider_id, provider_type,
+                 total_agreed_amount, bid_id, status)
+       VALUES ($1, $2, $3, $4, $5, $6, 'active')`,
+      [
+        foundBid.project_id,
+        homeownerId,
+        assigneeId,
+        providerType,
+        foundBid.proposed_cost,
+        bidId
+      ]
     );
 
     // Recalculate bid_win_rate

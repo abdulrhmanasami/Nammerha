@@ -190,6 +190,7 @@ export async function submitSpatialProof(
     }
 
     // 4.1 Validate GPS proximity using verified EXIF coordinates
+    let isOffsiteProof = false;
     if (project.gps_location) {
       const distanceResult = await client.query<{ distance_meters: number }>(
         `SELECT ST_Distance(
@@ -201,12 +202,21 @@ export async function submitSpatialProof(
       );
       const distance = distanceResult.rows[0]?.distance_meters;
       if (distance !== undefined && distance > GPS_THRESHOLD) {
-        throw new Error(
-          `GPS validation failed: proof location is ${Math.round(distance)}m from project site (threshold: ${GPS_THRESHOLD}m). ` +
-            `This may indicate fraud. Contact admin if you believe this is an error.`,
-        );
+        if (dto.is_offsite) {
+          logger.info('Offsite spatial proof accepted', { distance, threshold: GPS_THRESHOLD, project: dto.project_id });
+          isOffsiteProof = true;
+        } else {
+          throw new Error(
+            `GPS validation failed: proof location is ${Math.round(distance)}m from project site (threshold: ${GPS_THRESHOLD}m). ` +
+              `This may indicate fraud. Contact admin if you believe this is an error, or mark the proof as offsite.`
+          );
+        }
       }
     }
+
+    const finalDescription = isOffsiteProof 
+      ? `[OFFSITE_PROOF] ${dto.description || ''}`.trim() 
+      : dto.description;
     // 5. Create spatial proof
     const proofResult = await client.query<SpatialProof>(
       `INSERT INTO spatial_proof (
@@ -229,7 +239,7 @@ export async function submitSpatialProof(
         dto.gps_accuracy_meters ?? null,
         dto.image_url,
         imageHash,
-        dto.description ?? null,
+        finalDescription ?? null,
         dto.device_info ? JSON.stringify(dto.device_info) : null,
       ],
     );

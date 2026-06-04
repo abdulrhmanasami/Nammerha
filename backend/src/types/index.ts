@@ -333,6 +333,7 @@ export interface SubmitSpatialProofDTO {
   description?: string;
   device_info?: Record<string, unknown>;
   client_hash?: string;
+  is_offsite?: boolean;
 }
 
 export interface ReleaseEscrowDTO {

@@ -18,6 +18,20 @@
 
 ## 🛑 ZERO-REGRESSION MEMOS (CRITICAL AI MEMORY)
 
+**MEMO 84: Complete Execution Layer Resolution & Spatial Sovereignty (June 4, 2026)**
+
+- **Root Cause Destroyed:**
+  1. **The Delivery Gap (PO Missing):** The platform lacked an automated bridge between a BOQ item becoming `fully_funded` and generating a formal Purchase Order (PO) for the supplier.
+  2. **The Financial Gap (Bid-to-Contract):** Accepting a contractor's bid updated the project status, but failed to generate a `service_contracts` record, disconnecting the execution logic from the financial ledger.
+  3. **The Immortality Gap (State Machine):** Projects lingered in `pending_execution` indefinitely, with no trigger to transition to `in_progress` upon actual work commencement.
+  4. **Spatial Reality Rigidity:** The strict Haversine validation (<150m) blocked critical material deliveries to off-site, secure holding areas, which are necessary in post-conflict zones.
+- **New Logic Built:**
+  1. **Automated PO Generation:** Created `purchase-order.service.ts` with idempotency protections and wired `generatePurchaseOrder` directly into `payment.service.ts`'s `fully_funded` state change.
+  2. **Atomic Contract Binding:** Injected `INSERT INTO service_contracts` inside `acceptBid` in `matchmaking.service.ts` to instantly seal a formal execution contract.
+  3. **Fluid Execution State:** Built `startProjectExecution` in `project.service.ts` to linearly transition the project into `in_progress`.
+  4. **Offsite Extension:** Updated `SubmitSpatialProofDTO` with `is_offsite`, allowing `execution.service.ts` to bypass absolute GPS constraints when flagged, while visibly stamping `[OFFSITE_PROOF]` on the ledger.
+- **Verification:** Global TypeScript validation passed (0 errors backend and frontend). All financial and logic operations execute inside atomic `financialTransaction` blocks.
+
 **MEMO 83: Absolute User Journey Logical Gap Resolution & Unified Citizen Enforcement Phase 2 (June 4, 2026)**
 
 - **Root Cause Destroyed:**
