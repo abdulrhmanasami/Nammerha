@@ -18,6 +18,21 @@
 
 ## 🛑 ZERO-REGRESSION MEMOS (CRITICAL AI MEMORY)
 
+**MEMO 85: Invisible UI Fixes & CSP/DOM Resolution (June 4, 2026)**
+
+- **Root Cause Destroyed:**
+  1. **Stale Assets (Service Worker):** Client-side fixes were not displaying due to a stale Service Worker cache strategy (Network First fallback failed because cache was hit). The cache key was not actively bumped.
+  2. **DOM Hierarchical Crash (`i18n.js`):** The `mount()` function crashed silently with `NotFoundError` because it attempted to use `navbar.insertBefore(widget, userAvatar)`, but `userAvatar` was inside a nested div, not a direct child of the `navbar`, causing the entire widget rendering and language/theme logic to break.
+  3. **Content Security Policy Violation (CSP):** Project cover images dynamically fetched from `https://images.unsplash.com` were blocked by the strict `helmet` config on the server.
+  4. **Open Data Enum Mismatch:** The `getPlatformStats` function utilized `total_users` in a manner that broke due to enum mismatches (homeowner vs user).
+- **New Logic Built:**
+  1. **Strict DOM Injection Check:** Modified `i18n.js` to use `userAvatar.parentNode.insertBefore(widget, userAvatar)` ensuring relative injection regardless of DOM depth.
+  2. **Helmet CSP Update:** Modified `server.ts` to allow `imgSrc: ["'self'", "data:", "https://images.unsplash.com"]`.
+  3. **Data Service Refactor:** Fixed `open-data.service.ts` to cleanly count `total_users` without relying on conflicted enums.
+  4. **SW Cache Busting:** Bumped `CACHE_VERSION` in `sw.js` and rebuilt the frontend container to force clients to clear their cache and load the updated logic.
+- **Verification:** Frontend strictly built (`npm run build = EXIT:0`), backend rebuilt with Docker Compose on the server, and the API health confirmed. Codebase locked.
+
+
 **MEMO 84: Complete Execution Layer Resolution & Spatial Sovereignty (June 4, 2026)**
 
 - **Root Cause Destroyed:**
